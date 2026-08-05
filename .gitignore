@@ -1,0 +1,21 @@
+# Local credentials — copy the .example files in config/
+config/db.php
+config/mail.php
+
+# Composer dependencies (restore with: composer install)
+/vendor/
+
+# Uploaded user content
+/uploads/avatars/*
+/uploads/grounds/*
+!/uploads/avatars/.gitkeep
+!/uploads/grounds/.gitkeep
+
+# Logs & OS cruft
+*.log
+Thumbs.db
+.DS_Store
+
+# Editor folders
+.idea/
+.vscode/

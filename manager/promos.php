@@ -186,8 +186,8 @@ require __DIR__ . '/../includes/header.php';
                         </td>
                         <td>
                             <div class="row-actions">
-                                <a href="<?php echo base_url('manager/promos.php?toggle=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-xs" title="Toggle active"><i class="fa-solid <?php echo (int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play'; ?>"></i></a>
-                                <a href="<?php echo base_url('manager/promos.php?delete=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-xs" data-confirm="Delete this promo code?" title="Delete"><i class="fa-solid fa-trash"></i></a>
+                                <a href="<?php echo base_url('manager/promos.php?toggle=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-xs" title="Toggle active" aria-label="Toggle active"><i class="fa-solid <?php echo (int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play'; ?>"></i></a>
+                                <a href="<?php echo base_url('manager/promos.php?delete=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-xs" data-confirm="Delete this promo code?" title="Delete" aria-label="Delete promo"><i class="fa-solid fa-trash"></i></a>
                             </div>
                         </td>
                     </tr>

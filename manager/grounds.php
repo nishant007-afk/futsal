@@ -335,7 +335,7 @@ require __DIR__ . '/../includes/header.php';
                     <?php $photos = ground_images((int)$editing['id']); ?>
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
-                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="">
+                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="" loading="lazy" decoding="async">
                             <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$editing['id'] . '&ground_id=' . (int)$editing['id'] . '&delete_photo=' . (int)$ph['id'] . '&csrf=' . csrf_token()); ?>"
                                class="photo-remove" data-confirm="Remove this photo?" title="Remove"><i class="fa-solid fa-xmark"></i></a>
                         </div>
@@ -402,7 +402,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="card-img">
                 <?php if ($editing): $cover = ground_cover((int)$editing['id']); endif; ?>
                 <?php if (!empty($cover)): ?>
-                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="">
+                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="" loading="lazy" decoding="async">
                 <?php else: ?>
                     <div class="pitch"></div>
                 <?php endif; ?>
@@ -428,7 +428,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-thumb">
                 <?php $gcover = ground_cover((int)$g['id']); ?>
                 <?php if ($gcover): ?>
-                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($gcover)); ?>" alt="">
+                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($gcover)); ?>" alt="" loading="lazy" decoding="async">
                 <?php else: ?>
                     <i class="fa-solid fa-store"></i>
                 <?php endif; ?>
@@ -446,13 +446,13 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="mbooking-meta">
                     <span><i class="fa-solid fa-location-dot"></i> <?php echo e($g['location']); ?></span>
-                    <span><i class="fa-solid fa-tag"></i> <?php echo format_price($g['price_per_hour']); ?>/hr</span>
+                    <span class="mprice"><i class="fa-solid fa-tag"></i> <?php echo format_price($g['price_per_hour']); ?>/hr</span>
                 </div>
             </div>
             <div class="mbooking-side">
                 <div class="actions" style="gap:8px;">
                     <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                    <a href="<?php echo base_url('manager/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?"><i class="fa-solid fa-trash"></i></a>
+                    <a href="<?php echo base_url('manager/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?" aria-label="Delete ground"><i class="fa-solid fa-trash"></i></a>
                 </div>
             </div>
         </div>

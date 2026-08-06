@@ -111,7 +111,7 @@ require __DIR__ . '/../includes/header.php';
                     <form method="post" action="" style="display:inline;">
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
-                        <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>
                     </form>
                 </div>
             </div>

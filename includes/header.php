@@ -37,7 +37,7 @@ $body_class = implode(' ', $body_classes);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=71'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=96'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -77,23 +77,9 @@ $body_class = implode(' ', $body_classes);
                     GoalSpace
                 </a>
             </div>
-            <?php if ($site_user): ?>
-                <div class="nav-mobile-head show-sm">
-                    <span class="avatar">
-                        <?php if (!empty($site_user['avatar'])): ?>
-                            <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($site_user['avatar'])); ?>" alt="">
-                        <?php else: ?>
-                            <?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?>
-                        <?php endif; ?>
-                    </span>
-                    <span class="chip-name">
-                        <span><?php echo e($site_user['name']); ?></span>
-                    </span>
-                </div>
-            <?php endif; ?>
             <?php if ($site_user && $site_user['role'] === 'user'): ?>
                 <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
+                <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
                 <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
             <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
                 <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
@@ -109,15 +95,13 @@ $body_class = implode(' ', $body_classes);
                 <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> Messages</a>
             <?php else: ?>
                 <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
+                <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
                 <a href="<?php echo base_url('index.php#how'); ?>"><i class="fa-solid fa-circle-info"></i> How it works</a>
                 <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="show-sm"><i class="fa-solid fa-chart-line"></i> Become a Manager</a>
             <?php endif; ?>
-            <?php if ($site_user): ?>
-                <a href="<?php echo base_url('pages/profile.php'); ?>" class="show-sm"><i class="fa-solid fa-user"></i> My Profile</a>
-                <a href="<?php echo base_url('pages/change_password.php'); ?>" class="show-sm"><i class="fa-solid fa-lock"></i> Change Password</a>
-                <a href="<?php echo base_url('pages/logout.php'); ?>" class="show-sm" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-            <?php endif; ?>
+            <div class="nav-sidebar-foot">
+                <p class="nsf-meta">GoalSpace &middot; v1.0 &middot; made for players &amp; managers</p>
+            </div>
         </nav>
 
         <div class="nav-auth">

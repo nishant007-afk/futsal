@@ -118,7 +118,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="profile-side form-card">
         <div class="profile-avatar">
             <?php if (!empty($user['avatar'])): ?>
-                <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>">
+                <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
             <?php else: ?>
                 <span><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
             <?php endif; ?>

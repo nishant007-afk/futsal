@@ -158,7 +158,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="search-field">
                 <label for="courtsDate">Date</label>
-                <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>">
+                <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
@@ -187,13 +187,13 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($totalPages > 1): ?>
             <nav class="pagination" aria-label="Courts pages">
                 <?php if ($page > 1): ?>
-                    <a class="page-link" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $page - 1])); ?>"><i class="fa-solid fa-chevron-left"></i></a>
+                    <a class="page-link" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $page - 1])); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
                 <?php endif; ?>
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                     <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $i])); ?>"><?php echo $i; ?></a>
                 <?php endfor; ?>
                 <?php if ($page < $totalPages): ?>
-                    <a class="page-link" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $page + 1])); ?>"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a class="page-link" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $page + 1])); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
                 <?php endif; ?>
             </nav>
         <?php endif; ?>

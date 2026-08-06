@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.has-error input, .has-error textarea, .has-error select').forEach(function (el) {
+        el.setAttribute('aria-invalid', 'true');
+    });
+
     const pageSkeleton = document.getElementById('pageSkeleton');
     if (pageSkeleton) {
         let shown = false;
@@ -35,14 +39,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const navToggle = document.getElementById('navToggle');
     const mainNav = document.getElementById('mainNav');
+    let setNavOpen = null;
     if (navToggle && mainNav) {
-        function setNavOpen(open) {
+        let navLockY = 0;
+        setNavOpen = function (open) {
             mainNav.classList.toggle('open', open);
             document.body.classList.toggle('nav-open', open);
+            document.body.classList.toggle('nav-locked', open);
             navToggle.innerHTML = open ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
+            if (open) {
+                navLockY = window.scrollY;
+                document.body.style.top = '-' + navLockY + 'px';
+            } else {
+                document.body.style.top = '';
+                window.scrollTo(0, navLockY);
+            }
         }
         navToggle.addEventListener('click', function (e) {
             e.stopPropagation();
+            if (bellWrap && bellWrap.classList.contains('open')) bellWrap.classList.remove('open');
+            if (profileWrap && profileWrap.classList.contains('open')) {
+                profileWrap.classList.remove('open');
+                if (profileBtn) profileBtn.setAttribute('aria-expanded', 'false');
+            }
+            if (typeof refreshPanelBackdrop === 'function') refreshPanelBackdrop();
             setNavOpen(!mainNav.classList.contains('open'));
         });
         document.addEventListener('click', function (e) {
@@ -55,19 +75,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function refreshPanelBackdrop() {
+        const anyOpen = !!(bellWrap && bellWrap.classList.contains('open')) || !!(profileWrap && profileWrap.classList.contains('open'));
+        document.body.classList.toggle('panel-open', anyOpen);
+    }
+
     const bellBtn = document.getElementById('bellBtn');
     const bellWrap = document.getElementById('bellWrap');
     if (bellBtn && bellWrap) {
         bellBtn.addEventListener('click', function (e) {
             e.stopPropagation();
+            if (setNavOpen && mainNav && mainNav.classList.contains('open')) setNavOpen(false);
             if (profileWrap && profileWrap.classList.contains('open')) {
                 profileWrap.classList.remove('open');
                 if (profileBtn) profileBtn.setAttribute('aria-expanded', 'false');
             }
             bellWrap.classList.toggle('open');
+            refreshPanelBackdrop();
         });
         document.addEventListener('click', function (e) {
-            if (!bellWrap.contains(e.target)) bellWrap.classList.remove('open');
+            if (!bellWrap.contains(e.target)) { bellWrap.classList.remove('open'); refreshPanelBackdrop(); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && bellWrap.classList.contains('open')) { bellWrap.classList.remove('open'); refreshPanelBackdrop(); }
         });
     }
 
@@ -76,20 +106,24 @@ document.addEventListener('DOMContentLoaded', function () {
     if (profileBtn && profileWrap) {
         profileBtn.addEventListener('click', function (e) {
             e.stopPropagation();
+            if (setNavOpen && mainNav && mainNav.classList.contains('open')) setNavOpen(false);
             if (bellWrap && bellWrap.classList.contains('open')) bellWrap.classList.remove('open');
             profileWrap.classList.toggle('open');
             profileBtn.setAttribute('aria-expanded', profileWrap.classList.contains('open') ? 'true' : 'false');
+            refreshPanelBackdrop();
         });
         document.addEventListener('click', function (e) {
             if (!profileWrap.contains(e.target)) {
                 profileWrap.classList.remove('open');
                 profileBtn.setAttribute('aria-expanded', 'false');
+                refreshPanelBackdrop();
             }
         });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 profileWrap.classList.remove('open');
                 profileBtn.setAttribute('aria-expanded', 'false');
+                refreshPanelBackdrop();
             }
         });
     }
@@ -121,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (y > lastY + 1) {
                 siteHeader.classList.add('collapsed');
                 if (mainNav) {
-                    mainNav.classList.remove('open');
+                    if (mainNav.classList.contains('open')) setNavOpen(false);
                     document.body.classList.remove('nav-open');
                 }
             } else if (y < lastY - 1) {
@@ -736,4 +770,28 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('load', clearRestoredPasswords);
     window.addEventListener('pageshow', clearRestoredPasswords);
     setTimeout(clearRestoredPasswords, 200);
+
+    document.addEventListener('keydown', function (e) {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+        const btn = e.target.closest && e.target.closest('.slot-grid .slot');
+        if (!btn || btn.disabled) return;
+        const grid = btn.parentElement;
+        if (!grid) return;
+        const slots = Array.prototype.filter.call(grid.querySelectorAll('.slot'), function (s) {
+            return !s.disabled;
+        });
+        if (slots.length < 2) return;
+        const col = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+        const idx = slots.indexOf(btn);
+        if (idx < 0) return;
+        let next = idx;
+        if (e.key === 'ArrowRight') next = idx + 1;
+        else if (e.key === 'ArrowLeft') next = idx - 1;
+        else if (e.key === 'ArrowDown') next = idx + col;
+        else if (e.key === 'ArrowUp') next = idx - col;
+        if (next < 0 || next >= slots.length) return;
+        e.preventDefault();
+        slots[next].focus();
+        slots[next].click();
+    });
 });

@@ -68,7 +68,7 @@ if ($date !== '') {
             </div>
             <div class="search-field">
                 <label for="searchDate">Date</label>
-                <input type="date" id="searchDate" name="date" value="<?php echo e($date); ?>">
+                <input type="date" id="searchDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
             <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
         </form>

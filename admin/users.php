@@ -122,13 +122,13 @@ require __DIR__ . '/../includes/header.php';
                                         <option value="<?php echo $val; ?>" <?php echo $selRole === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <noscript><button class="btn btn-outline btn-sm" type="submit"><i class="fa-solid fa-check"></i></button></noscript>
+                                <noscript><button class="btn btn-outline btn-sm" type="submit" aria-label="Make admin"><i class="fa-solid fa-check"></i></button></noscript>
                                 <?php if ((int)$u['id'] === $affectedId && !empty($errors['role'])): ?>
                                     <p class="field-error role-error"><i class="fa-solid fa-circle-exclamation"></i><?php echo e($errors['role']); ?></p>
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
-                                <a href="<?php echo base_url('admin/users.php?delete=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this user?"><i class="fa-solid fa-trash"></i></a>
+                                <a href="<?php echo base_url('admin/users.php?delete=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this user?" aria-label="Delete user"><i class="fa-solid fa-trash"></i></a>
                             <?php endif; ?>
                         </div>
                     </td>

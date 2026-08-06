@@ -39,7 +39,6 @@ $photos = ground_images((int)$ground['id']);
 $reviews = ground_reviews((int)$ground['id']);
 $rating = ground_rating((int)$ground['id']);
 $my_review = user_rating_for((int)$ground['id']);
-$has_played = user_has_played((int)$ground['id']);
 $is_blocked = date_is_blocked((int)$ground['id'], $selected_date);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
@@ -59,15 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
             'Manager and admin accounts don\'t play at the court.',
             'Sign in with a player account to share your experience.',
             'pages/login.php'
-        );
-        redirect('pages/ground.php?id=' . (int)$ground['id']);
-    }
-    if (!$my_review && !$has_played) {
-        set_flash_error(
-            'You can only review a court after you\'ve played there.',
-            'Reviews need to come from real games so they stay honest.',
-            'Book a slot, play, then come back to leave your review.',
-            'pages/ground.php?id=' . (int)$ground['id']
         );
         redirect('pages/ground.php?id=' . (int)$ground['id']);
     }
@@ -117,13 +107,13 @@ require __DIR__ . '/../includes/header.php';
         <div class="gallery-wrap">
             <?php if ($photos): ?>
                 <div class="gallery-main">
-                    <img id="galleryMain" src="<?php echo base_url('uploads/grounds/' . rawurlencode($photos[0]['image'])); ?>" alt="<?php echo e($ground['name']); ?>">
+                    <img id="galleryMain" src="<?php echo base_url('uploads/grounds/' . rawurlencode($photos[0]['image'])); ?>" alt="<?php echo e($ground['name']); ?>" decoding="async">
                 </div>
                 <?php if (count($photos) > 1): ?>
                     <div class="gallery-thumbs">
                         <?php foreach ($photos as $ph): ?>
                             <button type="button" class="gallery-thumb" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>">
-                                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="">
+                                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="" loading="lazy" decoding="async">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -163,7 +153,7 @@ require __DIR__ . '/../includes/header.php';
         <form method="get" action="">
             <div class="form-group">
                 <label for="bookingDate">Pick a day</label>
-                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>">
+                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
         </form>
 
@@ -257,9 +247,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="review-form-card reveal">
         <?php if (!is_logged_in()): ?>
-            <p class="muted" style="font-size:14px;">Have you played here? <a href="<?php echo base_url('pages/login.php'); ?>" class="inline-link">Log in</a> to leave a review.</p>
-        <?php elseif (is_player() && !$my_review && !$has_played): ?>
-            <p class="muted" style="font-size:14px;"><i class="fa-solid fa-lock" style="margin-right:4px;"></i> Reviews are open to players who have actually played at this court. Book a slot, play your game, then come back to rate it.</p>
+            <p class="muted" style="font-size:14px;">Played here or want to share your experience? <a href="<?php echo base_url('pages/login.php'); ?>" class="inline-link">Log in</a> to leave a review.</p>
         <?php elseif (is_player()): ?>
             <?php if ($my_review): ?>
                 <p class="muted" style="font-size:13.5px;margin-bottom:12px;">You've rated this court <?php echo star_html($my_review['rating']); ?>. Update it below.</p>
@@ -293,7 +281,7 @@ require __DIR__ . '/../includes/header.php';
                 <div class="review-item reveal">
                     <div class="review-avatar">
                         <?php if (!empty($rv['avatar'])): ?>
-                            <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($rv['avatar'])); ?>" alt="">
+                            <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($rv['avatar'])); ?>" alt="" loading="lazy" decoding="async">
                         <?php else: ?>
                             <?php echo e(strtoupper(substr($rv['user_name'], 0, 1))); ?>
                         <?php endif; ?>

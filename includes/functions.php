@@ -1043,7 +1043,7 @@ function ground_card_html(array $ground, ?array $availability = null): void
     <div class="card reveal <?php echo $full ? 'card-full' : ''; ?>">
         <div class="card-img">
             <?php if ($cover): ?>
-                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover">
+                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
             <?php else: ?>
                 <div class="pitch"></div>
             <?php endif; ?>
@@ -1093,7 +1093,7 @@ function has_error(array $errors, string $field): string
 function field_error(array $errors, string $field): void
 {
     if (!empty($errors[$field])) {
-        echo '<p class="field-error"><i class="fa-solid fa-circle-exclamation"></i>'
+        echo '<p class="field-error" role="alert"><i class="fa-solid fa-circle-exclamation"></i>'
             . e($errors[$field]) . '</p>';
     }
 }

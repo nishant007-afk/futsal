@@ -107,7 +107,7 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="mbooking-meta">
                         <span><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
-                        <span><i class="fa-solid fa-tag"></i> <?php echo format_price($b['total_price']); ?></span>
+                        <span class="mprice"><i class="fa-solid fa-tag"></i> <?php echo format_price($b['total_price']); ?></span>
                         <span><i class="fa-solid fa-user"></i> <?php echo e($b['user_name']); ?></span>
                     </div>
                     <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>

@@ -84,24 +84,19 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
                     </div>
                     <div class="mbooking-main">
                         <div class="mbooking-head">
-                            <h3><?php echo e($b['ground_name']); ?></h3>
-                            <span class="mbooking-status">
-                                <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>
-                                    <span class="badge badge-<?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
-                                        <i class="fa-solid fa-wallet"></i>
-                                        <?php echo $b['payment_status'] === 'partial' ? 'Advance paid' : 'Unpaid'; ?>
-                                    </span>
-                                <?php endif; ?>
+                            <div class="mbooking-head-row">
+                                <h3><?php echo e($b['ground_name']); ?></h3>
                                 <span class="badge badge-<?php echo e($b['status']); ?>">
                                     <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
                                     <?php echo ucfirst(e($b['status'])); ?>
                                 </span>
-                            </span>
+                            </div>
+                            <span class="mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
                         </div>
                         <div class="mbooking-meta">
-                            <span><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
                             <span><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
-                            <span><i class="fa-solid fa-tag"></i> Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
+                            <span class="mprice"><i class="fa-solid fa-tag"></i> Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
+                            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link">View details <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                         <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
                             <?php $balance = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
@@ -119,9 +114,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
                                 <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
                             </div>
                         <?php endif; ?>
-                    </div>
-                    <div class="mbooking-side">
-                        <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View details</a>
                     </div>
                 </div>
             <?php endforeach; ?>

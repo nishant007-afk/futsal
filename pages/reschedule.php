@@ -162,7 +162,7 @@ require __DIR__ . '/../includes/header.php';
         <form method="get" action="">
             <div class="form-group">
                 <label for="bookingDate">Pick a new day</label>
-                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>">
+                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
         </form>
 

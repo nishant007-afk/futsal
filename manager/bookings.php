@@ -92,7 +92,11 @@ if ($f_ground > 0) {
     $types .= 'i';
 }
 
-$sql = 'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+$perPage = 15;
+$page = max(1, (int)($_GET['page'] ?? 1));
+$offset = ($page - 1) * $perPage;
+
+$baseSql = 'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.created_at,
             g.name AS ground_name, u.name AS user_name
      FROM bookings b
@@ -101,16 +105,16 @@ $sql = 'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.
      WHERE ' . implode(' AND ', $where) . '
      ORDER BY b.booking_date DESC, b.start_time ASC';
 
-$stmt = $conn->prepare($sql);
-if ($types !== '') {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
+// Export (CSV/Excel) always uses the full filtered set, not the current page.
 if (isset($_GET['export']) || isset($_GET['export_excel'])) {
+    $stmt = $conn->prepare($baseSql);
+    if ($types !== '') {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $exportRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $csv = [['Reference', 'Ground', 'Customer', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Booked At']];
-    foreach ($bookings as $b) {
+    foreach ($exportRows as $b) {
         $csv[] = [
             $b['booking_ref'] ?? '',
             $b['ground_name'],
@@ -131,7 +135,43 @@ if (isset($_GET['export']) || isset($_GET['export_excel'])) {
     export_csv($csv, 'bookings.csv');
 }
 
+$sql = $baseSql . ' LIMIT ? OFFSET ?';
+$stmt = $conn->prepare($sql);
+$dataTypes = $types . 'ii';
+$dataParams = array_merge($params, [$perPage, $offset]);
+$stmt->bind_param($dataTypes, ...$dataParams);
+$stmt->execute();
+$bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// count for pagination
+$countSql = 'SELECT COUNT(*) c FROM bookings b
+     JOIN grounds g ON g.id = b.ground_id
+     JOIN users u ON u.id = b.user_id
+     WHERE ' . implode(' AND ', $where);
+$stmt = $conn->prepare($countSql);
+$countTypes = '';
+$countParams = [];
+if ($f_date_from !== '') { $countParams[] = $f_date_from; $countTypes .= 's'; }
+if ($f_date_to !== '') { $countParams[] = $f_date_to; $countTypes .= 's'; }
+if ($f_status !== '') { $countParams[] = $f_status; $countTypes .= 's'; }
+if ($f_payment !== '') { $countParams[] = $f_payment; $countTypes .= 's'; }
+if ($f_ground > 0) { $countParams[] = $f_ground; $countTypes .= 'i'; }
+if ($countParams) {
+    $stmt->bind_param($countTypes, ...$countParams);
+}
+$stmt->execute();
+$totalRows = (int)$stmt->get_result()->fetch_assoc()['c'];
+$totalPages = (int)ceil($totalRows / $perPage);
+
 $hasFilters = $f_date_from !== '' || $f_date_to !== '' || $f_status !== '' || $f_payment !== '' || $f_ground > 0;
+
+$baseFilters = [];
+if ($f_date_from !== '') { $baseFilters['date_from'] = $f_date_from; }
+if ($f_date_to !== '') { $baseFilters['date_to'] = $f_date_to; }
+if ($f_status !== '') { $baseFilters['status'] = $f_status; }
+if ($f_payment !== '') { $baseFilters['payment'] = $f_payment; }
+if ($f_ground > 0) { $baseFilters['ground'] = $f_ground; }
+$baseQuery = $baseFilters ? http_build_query($baseFilters) . '&' : '';
 
 $page_title = 'Manage Bookings';
 require __DIR__ . '/../includes/header.php';
@@ -241,6 +281,20 @@ require __DIR__ . '/../includes/header.php';
             </div>
         <?php endforeach; ?>
     </div>
+
+    <?php if ($totalPages > 1): ?>
+        <nav class="pagination" aria-label="Bookings pages">
+            <?php if ($page > 1): ?>
+                <a class="page-link" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . ($page - 1)); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
+            <?php endif; ?>
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . $i); ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <a class="page-link" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . ($page + 1)); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
+            <?php endif; ?>
+        </nav>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -31,7 +31,7 @@ if (isset($_GET['cancel'])) {
     redirect('admin/bookings.php');
 }
 
-$bookings = $conn->query(
+$bookingsAll = $conn->query(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.created_at,
             g.name AS ground_name, u.name AS user_name, u.email AS user_email,
@@ -43,9 +43,16 @@ $bookings = $conn->query(
      ORDER BY b.booking_date DESC, b.start_time ASC'
 )->fetch_all(MYSQLI_ASSOC);
 
+$perPage = 15;
+$page = max(1, (int)($_GET['page'] ?? 1));
+$offset = ($page - 1) * $perPage;
+$totalRows = count($bookingsAll);
+$totalPages = (int)ceil($totalRows / $perPage);
+$bookings = array_slice($bookingsAll, $offset, $perPage);
+
 if (isset($_GET['export']) || isset($_GET['export_excel'])) {
     $csv = [['Reference', 'Ground', 'Manager', 'Customer', 'Customer Email', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Booked At']];
-    foreach ($bookings as $b) {
+    foreach ($bookingsAll as $b) {
         $csv[] = [
             $b['booking_ref'] ?? '',
             $b['ground_name'],
@@ -136,6 +143,20 @@ require __DIR__ . '/../includes/header.php';
             </div>
         <?php endforeach; ?>
     </div>
+
+    <?php if ($totalPages > 1): ?>
+        <nav class="pagination" aria-label="Bookings pages">
+            <?php if ($page > 1): ?>
+                <a class="page-link" href="<?php echo base_url('admin/bookings.php?page=' . ($page - 1)); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
+            <?php endif; ?>
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo base_url('admin/bookings.php?page=' . $i); ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <a class="page-link" href="<?php echo base_url('admin/bookings.php?page=' . ($page + 1)); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
+            <?php endif; ?>
+        </nav>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

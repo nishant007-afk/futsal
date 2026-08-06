@@ -170,11 +170,11 @@ require __DIR__ . '/../includes/header.php';
                 <span>Total</span>
                 <strong>Rs <?php echo number_format($total, 0); ?></strong>
                 <?php if ($discount > 0): ?>
-                    <span style="display:block;font-size:11.5px;color:var(--ok);margin-top:3px;">Promo &minus; Rs <?php echo number_format($discount, 0); ?></span>
-                    <span style="display:block;font-size:14px;color:var(--ink);margin-top:2px;">Pay Rs <?php echo number_format($netTotal, 0); ?></span>
+                    <span class="pay-line ok">Promo &minus; Rs <?php echo number_format($discount, 0); ?></span>
+                    <span class="pay-line lg">Pay Rs <?php echo number_format($netTotal, 0); ?></span>
                 <?php endif; ?>
                 <?php if ($isPartial): ?>
-                    <span style="display:block;font-size:11.5px;color:var(--ok);margin-top:3px;">Rs <?php echo number_format($alreadyPaid, 0); ?> already paid</span>
+                    <span class="pay-line ok">Rs <?php echo number_format($alreadyPaid, 0); ?> already paid</span>
                 <?php endif; ?>
             </div>
         </div>

@@ -83,7 +83,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <?php if ($b['status'] === 'confirmed'): ?>
-        <div class="step-note <?php echo $b['payment_status'] === 'paid' ? 'success' : ($b['payment_status'] === 'partial' ? '' : 'urgent'); ?>" style="margin-top:22px;margin-bottom:26px;">
+        <div class="step-note bd-note <?php echo $b['payment_status'] === 'paid' ? 'success' : ($b['payment_status'] === 'partial' ? '' : 'urgent'); ?>">
             <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : 'lightbulb'; ?>"></i>
             <?php if ($me['role'] === 'user'): ?>
                 <?php if ($b['payment_status'] === 'paid'): ?>
@@ -154,7 +154,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <?php if ($b['status'] === 'confirmed'): ?>
-        <div class="notice bd-notice" style="margin-top:22px;">
+        <div class="notice bd-notice">
             <i class="fa-solid fa-circle-info"></i>
             <span><?php echo e($policy['label']); ?></span>
         </div>

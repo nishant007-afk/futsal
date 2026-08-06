@@ -116,7 +116,13 @@ h1 { font-size: 38px; }
 h2 { font-size: 25px; }
 h3 { font-size: 16px; font-weight: 700; }
 p { color: var(--ink-2); }
-.muted { color: var(--ink-3); }
+.muted { color: var(--ink-3); font-size: 13px; line-height: 1.6; }
+.muted strong { color: var(--ink-2); font-weight: 600; }
+
+.pay-line { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+.pay-line.ok { color: var(--ok); }
+.pay-line.warn { color: var(--warn); }
+.pay-line.lg { font-size: 14px; color: var(--ink); margin-top: 2px; }
 .center { text-align: center; }
 
 /* subtle reveal - only hidden when JS is active, so content is never invisible */
@@ -845,17 +851,22 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     .modal { width: calc(100vw - 24px); }
 }
 
-/* status notice banner */
+/* status notice banner - calm neutral container with a slim accent */
 .notice {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    background: var(--warn-soft); border: 1px solid #f0dfb6; color: #8a5a00;
-    border-radius: var(--r-md); padding: 15px 20px; margin-top: 22px;
+    background: var(--bg); border: 1px solid var(--line);
+    border-left: 3px solid var(--warn);
+    color: var(--ink-2);
+    border-radius: var(--r-md); padding: 14px 18px; margin-top: 22px;
     font-size: 14px;
 }
 .notice i { color: var(--warn); flex-shrink: 0; }
 .notice > span { flex: 1; min-width: 0; }
 .notice a { color: var(--role-dark, var(--brand-700)); font-weight: 600; text-decoration: none; margin-left: auto; }
 .notice a:hover { text-decoration: underline; }
+
+.bd-note { margin-top: 22px; }
+.step-note.bd-note { margin-bottom: 26px; }
 
 /* ============ COOKIE CONSENT ============ */
 .cookie-banner {
@@ -942,8 +953,11 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .section-alt { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .section-pad-top { padding-top: 28px; }
 .section-head { max-width: 600px; margin-bottom: 28px; }
+.section-head.tight { margin-bottom: 16px; }
+.section-head.gap { margin-top: 28px; }
 .eyebrow { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; color: var(--role-dark, var(--brand-700)); margin-bottom: 10px; }
 .section-title { font-size: 27px; }
+.section-title.sm { font-size: 20px; }
 .section-sub { color: var(--ink-2); margin-top: 10px; }
 .section-foot { margin-top: 18px; }
 
@@ -1094,25 +1108,26 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
     background: var(--danger-soft); color: var(--danger); border-color: rgba(214,69,61,.22);
 }
 
-/* next-step guidance callout */
+/* next-step guidance callout - neutral with a slim role accent */
 .step-note {
     display: flex; align-items: center; gap: 14px;
-    background: var(--bg-tint); border: 1px solid var(--line);
-    border-radius: var(--r-md); padding: 13px 18px;
+    background: var(--bg); border: 1px solid var(--line);
+    border-left: 3px solid var(--role, var(--brand));
+    border-radius: var(--r-md); padding: 14px 18px;
     margin: 16px 0 0;
     color: var(--ink-2); font-size: 13.5px;
 }
 .step-note i {
     width: 32px; height: 32px; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    background: var(--bg); border: 1px solid var(--line);
+    background: var(--bg-soft); border: 1px solid var(--line);
     border-radius: var(--r-sm); color: var(--role-dark, var(--brand)); font-size: 14px;
 }
 .step-note strong { color: var(--ink); font-weight: 700; }
 .step-note a, .step-note .link-inline { color: var(--role-dark, var(--brand)); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
-.step-note.urgent { background: var(--warn-soft); border-color: #f0dfb6; color: #6b4b12; }
+.step-note.urgent { border-left-color: var(--warn); }
 .step-note.urgent i { color: var(--warn); }
-.step-note.success { background: var(--ok-soft); border-color: #c6e7d4; color: #14532d; }
+.step-note.success { border-left-color: var(--ok); }
 .step-note.success i { color: var(--ok); }
 
 /* ============ MY BOOKINGS HERO ============ */
@@ -1124,8 +1139,8 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
     border-radius: var(--r-lg); padding: 34px 38px; margin-top: 26px;
     position: relative; overflow: hidden;
 }
-.bookings-hero h1 { color: #fff; font-size: 28px; margin-bottom: 6px; }
-.bookings-hero p { color: var(--on-dark-2); max-width: 520px; font-size: 14.5px; }
+.bookings-hero h1 { color: #fff; font-size: 30px; margin-bottom: 6px; }
+.bookings-hero p { color: var(--on-dark-2); max-width: 520px; font-size: 15px; line-height: 1.6; }
 .bookings-stats { display: flex; gap: 12px; flex-shrink: 0; }
 .bstat {
     background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
@@ -1455,15 +1470,17 @@ select { cursor: pointer; }
 /* ============ TABLES ============ */
 .table-wrap {
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md);
-    overflow-x: auto; box-shadow: var(--s1);
+    overflow: auto; box-shadow: var(--s1);
+    max-height: 620px;
 }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th {
+    position: sticky; top: 0; z-index: 1;
     text-align: left; font-size: 12px; font-weight: 700; color: var(--ink-2);
-    text-transform: uppercase; letter-spacing: .6px; padding: 16px 22px;
+    text-transform: uppercase; letter-spacing: .6px; padding: 14px 20px;
     border-bottom: 1px solid var(--line); background: var(--bg-soft); white-space: nowrap;
 }
-td { padding: 17px 22px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td { padding: 15px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--bg-soft); }
 tr.table-total td {
@@ -1471,6 +1488,9 @@ tr.table-total td {
     background: var(--bg-soft); font-weight: 700;
 }
 td.strong { font-weight: 700; color: var(--ink); }
+@media (max-width: 760px) {
+    th, td { padding: 12px 14px; }
+}
 
 /* ============ PROMO CODES ============ */
 .promo-form { margin: 16px 0 4px; }
@@ -1538,13 +1558,13 @@ td.strong { font-weight: 700; color: var(--ink); }
 .mbooking-side .btn { min-width: 128px; justify-content: center; }
 .paybar {
     grid-column: 1 / -1;
-    margin-top: 4px; padding: 14px 16px;
+    margin-top: 4px; padding: 13px 16px;
     display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    background: var(--bg-tint); border: 1px solid var(--line);
+    background: var(--bg-soft); border: 1px solid var(--line);
     border-radius: var(--r-md);
 }
-.paybar.partial { background: var(--warn-soft); border-color: #f0dfb6; }
-.paybar.unpaid { background: #fdf1ef; border-color: #f3d5d2; }
+.paybar.partial, .paybar.unpaid { background: var(--bg-soft); border-color: var(--line); border-left: 3px solid var(--warn); }
+.paybar.unpaid { border-left-color: var(--danger); }
 .paybar-info { display: inline-flex; align-items: center; gap: 12px; font-size: 13.5px; color: var(--ink-2); }
 .paybar-info i {
     width: 34px; height: 34px; flex-shrink: 0;

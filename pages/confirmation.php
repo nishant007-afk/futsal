@@ -67,14 +67,14 @@ require __DIR__ . '/../includes/header.php';
                 <span>Total</span>
                 <strong>Rs <?php echo number_format((float)$booking['total_price'], 0); ?></strong>
                 <?php if ((float)$booking['discount'] > 0): ?>
-                    <span style="display:block;font-size:11.5px;color:var(--ok);margin-top:3px;"><i class="fa-solid fa-tag"></i> <?php echo e($booking['promo_code']); ?> &minus; Rs <?php echo number_format((float)$booking['discount'], 0); ?></span>
+                    <span class="pay-line ok"><i class="fa-solid fa-tag"></i> <?php echo e($booking['promo_code']); ?> &minus; Rs <?php echo number_format((float)$booking['discount'], 0); ?></span>
                 <?php endif; ?>
                 <?php if ($booking['payment_status'] === 'paid'): ?>
-                    <span style="display:block;font-size:11.5px;color:var(--ok);margin-top:3px;">Fully paid</span>
+                    <span class="pay-line ok">Fully paid</span>
                 <?php elseif ($booking['payment_status'] === 'partial'): ?>
-                    <span style="display:block;font-size:11.5px;color:var(--warn);margin-top:3px;">Rs <?php echo number_format((float)$booking['amount_paid'], 0); ?> paid &middot; rest at court</span>
+                    <span class="pay-line warn">Rs <?php echo number_format((float)$booking['amount_paid'], 0); ?> paid &middot; rest at court</span>
                 <?php else: ?>
-                    <span style="display:block;font-size:11.5px;color:var(--warn);margin-top:3px;">Unpaid &middot; pay online or at court</span>
+                    <span class="pay-line warn">Unpaid &middot; pay online or at court</span>
                 <?php endif; ?>
             </div>
         </div>

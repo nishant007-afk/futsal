@@ -164,8 +164,8 @@ require __DIR__ . '/../includes/header.php';
     </div>
 <?php else: ?>
     <?php if ($upcoming): ?>
-        <div class="section-head reveal" style="margin-top:6px;">
-            <h2 class="section-title" style="font-size:20px;margin-top:24px;">Upcoming</h2>
+        <div class="section-head reveal tight">
+            <h2 class="section-title sm">Upcoming</h2>
         </div>
         <div class="mbookings reveal">
             <?php foreach ($upcoming as $b) { booking_card($b); } ?>
@@ -173,9 +173,9 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 
     <?php if ($past): ?>
-        <div class="section-head reveal" style="margin-top:26px;">
+        <div class="section-head reveal gap tight">
             <span class="eyebrow">Already played</span>
-            <h2 class="section-title" style="font-size:20px;">Past &amp; cancelled</h2>
+            <h2 class="section-title sm">Past &amp; cancelled</h2>
         </div>
         <div class="mbookings reveal">
             <?php foreach ($past as $b) { booking_card($b); } ?>

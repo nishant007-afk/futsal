@@ -92,7 +92,6 @@ $past = array_values(array_filter($bookings, function ($b) use ($today) {
 
 function booking_card($b): void
 {
-    $balance = max(0, (float)$b['total_price'] - (float)$b['amount_paid'] - 0 /* discount handled on details */);
     $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
     $payLabel = $b['payment_status'] === 'partial' ? 'Pay Rs ' . number_format(max(0, (float)$b['total_price'] - (float)$b['amount_paid']), 0) : 'Pay now';
     ?>

@@ -2265,6 +2265,11 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     .mbooking-meta { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
     .mbooking-meta span { font-size: 12.5px; justify-content: flex-start; }
     .mbooking-link { margin-left: auto; margin-top: 0; }
+    .mbooking.mbooking--card { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px; }
+    .mbooking.mbooking--card .mb-arena { flex: 1 1 200px; }
+    .mbooking.mbooking--card .mb-arena h3 { font-size: 15px; }
+    .mbooking.mbooking--card .mb-actions { width: 100%; }
+    .mbooking.mbooking--card .mb-status { justify-content: flex-start; }
     .paybar { flex-direction: column; align-items: stretch; gap: 12px; padding: 13px 14px; }
     .paybar .btn { width: 100%; }
     .mbooking-thumb { display: none; }

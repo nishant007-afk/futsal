@@ -82,12 +82,20 @@ require __DIR__ . '/../includes/header.php';
 </div>
 <p class="muted page-sub">Every booking across the platform, newest first.</p>
 
+<div class="table-toolbar reveal">
+    <div class="search-pill">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="adminSearch" placeholder="Search bookings by ground, player, ref…" autocomplete="off">
+        <i class="fa-regular fa-circle-xmark" id="adminClear" role="button" aria-label="Clear search"></i>
+    </div>
+</div>
+
 <?php if (!$bookings): ?>
     <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>Once players start reserving, everything lands here.</p></div>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($bookings as $b): ?>
-            <div class="mbooking">
+            <div class="mbooking" data-search="<?php echo e(strtolower(strip_tags($b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status']))); ?>">
                 <div class="mbooking-date">
                     <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
                     <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>

@@ -143,6 +143,14 @@ require __DIR__ . '/../includes/header.php';
 </div>
 <p class="muted page-sub">Bookings confirm instantly. Cancel any slot you can no longer host.</p>
 
+<div class="table-toolbar reveal">
+    <div class="search-pill">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="managerSearch" placeholder="Search bookings by ground, player, ref…" autocomplete="off">
+        <i class="fa-regular fa-circle-xmark" id="managerClear" role="button" aria-label="Clear search"></i>
+    </div>
+</div>
+
 <div class="courts-toolbar reveal">
     <form method="get" action="<?php echo base_url('manager/bookings.php'); ?>" class="courts-search">
         <div class="search-field">
@@ -193,7 +201,7 @@ require __DIR__ . '/../includes/header.php';
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($bookings as $b): ?>
-            <div class="mbooking">
+            <div class="mbooking" data-search="<?php echo e(strtolower(strip_tags($b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status']))); ?>">
                 <div class="mbooking-date">
                     <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
                     <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>

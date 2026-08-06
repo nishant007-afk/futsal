@@ -1158,6 +1158,20 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 /* ============ COURTS PAGE ============ */
 .page-title { font-size: 32px; margin: 26px 0; }
 .courts-toolbar { margin: 0 0 22px; }
+.table-toolbar { margin: 0 0 18px; }
+.search-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--line-2); border-radius: 999px;
+    padding: 8px 14px; width: 100%; max-width: 420px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.search-pill i.fa-magnifying-glass { color: var(--ink-3); font-size: 14px; pointer-events: none; }
+.search-pill input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-size: 14px; color: var(--ink); width: 100%;
+}
+.search-pill:hover, .search-pill:focus-within { border-color: var(--line); box-shadow: var(--s1); }
+.search-pill i.fa-circle-xmark { color: var(--ink-3); font-size: 12px; cursor: pointer; }
 .courts-search {
     display: grid; grid-template-columns: 2fr 1.25fr 1.25fr 1.1fr auto;
     gap: 14px; align-items: end; padding: 18px;

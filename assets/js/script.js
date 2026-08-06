@@ -794,4 +794,28 @@ document.addEventListener('DOMContentLoaded', function () {
         slots[next].focus();
         slots[next].click();
     });
+
+    /* Live search on bookings lists (filters .mbooking cards via data-search) */
+    function wireBookingsSearch(inputId, clearId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const clearBtn = document.getElementById(clearId);
+        const grid = document.querySelector('.mbookings');
+        if (!grid) return;
+        const items = grid.querySelectorAll('.mbooking');
+        function filter() {
+            const q = (input.value || '').toLowerCase().trim();
+            if (!q) { items.forEach(function (c) { c.style.display = ''; }); return; }
+            items.forEach(function (card) {
+                const txt = (card.getAttribute('data-search') || '').toLowerCase();
+                card.style.display = txt.indexOf(q) === -1 ? 'none' : '';
+            });
+        }
+        input.addEventListener('input', filter);
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () { input.value = ''; filter(); input.focus(); });
+        }
+    }
+    wireBookingsSearch('managerSearch', 'managerClear');
+    wireBookingsSearch('adminSearch', 'adminClear');
 });

@@ -92,6 +92,11 @@ function base_url(string $path = ''): string
     return $root . '/' . ltrim($path, '/');
 }
 
+function grounds_list_url(): string
+{
+    return is_logged_in() ? base_url('pages/courts.php') : base_url('index.php#grounds');
+}
+
 function redirect(string $path): void
 {
     header('Location: ' . base_url($path));

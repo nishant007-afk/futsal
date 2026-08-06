@@ -99,7 +99,7 @@ if ($date !== '') {
                 <?php foreach ($featured as $ground) { ground_card_html($ground); } ?>
             </div>
             <div class="section-foot reveal" style="text-align:center;">
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
+                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
             </div>
         <?php endif; ?>
     </div>

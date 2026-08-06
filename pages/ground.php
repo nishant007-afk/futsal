@@ -98,7 +98,7 @@ require __DIR__ . '/../includes/header.php';
 
 <nav class="breadcrumb">
     <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
-    <a href="<?php echo base_url('pages/courts.php'); ?>">Grounds</a> &nbsp;/&nbsp;
+    <a href="<?php echo grounds_list_url(); ?>">Grounds</a> &nbsp;/&nbsp;
     <span><?php echo e($ground['name']); ?></span>
 </nav>
 

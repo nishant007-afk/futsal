@@ -12,7 +12,7 @@
 
         <div class="footer-col">
             <h4>Players</h4>
-            <a href="<?php echo base_url('pages/courts.php'); ?>">Browse grounds</a>
+            <a href="<?php echo grounds_list_url(); ?>">Browse grounds</a>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My bookings</a>
             <a href="<?php echo base_url('pages/register.php'); ?>">Create account</a>
             <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a>

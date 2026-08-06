@@ -71,7 +71,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
             <span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>
             <h3>Nothing scheduled yet</h3>
             <p>Pick a court below and make it a match.</p>
-            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Browse courts</a>
+            <a href="<?php echo grounds_list_url(); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Browse courts</a>
         </div>
     <?php else: ?>
         <div class="mbookings reveal">
@@ -135,7 +135,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
             <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
         </div>
         <div class="section-foot reveal" style="text-align:center;">
-            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
+            <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
         </div>
     <?php endif; ?>
 </section>

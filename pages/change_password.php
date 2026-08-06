@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Change Password';
+?>
 
 <div class="form-card lg" style="margin-top:44px;">
     <div class="form-head">

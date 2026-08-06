@@ -51,8 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Change Password';
-require __DIR__ . '/../includes/header.php';
-?>
 
 <div class="form-card lg" style="margin-top:44px;">
     <div class="form-head">
@@ -106,5 +104,3 @@ require __DIR__ . '/../includes/header.php';
         <p class="form-foot">Need help? <a href="<?php echo base_url('pages/contact_submit.php?topic=password_issue'); ?>">Contact support</a></p>
     </form>
 </div>
-
-<?php require __DIR__ . '/../includes/footer.php'; ?>

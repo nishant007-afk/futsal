@@ -21,7 +21,12 @@ if (isset($_GET['cancel'])) {
         }
         set_flash('success', 'Booking cancelled.');
     } else {
-        set_flash('error', 'Could not cancel this booking.');
+        set_flash_error(
+            'This booking could not be cancelled.',
+            'It may already be cancelled, so there was nothing left to cancel.',
+            'Refresh the bookings list to see the current status.',
+            'admin/bookings.php'
+        );
     }
     redirect('admin/bookings.php');
 }
@@ -78,7 +83,7 @@ require __DIR__ . '/../includes/header.php';
 <p class="muted" style="margin-bottom:8px;">Every booking across the platform, newest first.</p>
 
 <?php if (!$bookings): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>No bookings on the platform yet.<p style="margin-top:8px;">Once players start reserving, everything lands here.</p></div>
+    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>Once players start reserving, everything lands here.</p></div>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($bookings as $b): ?>
@@ -92,25 +97,30 @@ require __DIR__ . '/../includes/header.php';
                     <div class="mbooking-head">
                         <h3><?php echo e($b['ground_name']); ?></h3>
                         <span class="mbooking-status">
-                            <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
-                            <?php if ($b['payment_status'] === 'paid'): ?>
-                                <span class="badge badge-confirmed">Paid</span>
-                            <?php elseif ($b['payment_status'] === 'partial'): ?>
-                                <span class="badge badge-pending"><?php echo format_price($b['amount_paid']); ?> paid</span>
-                            <?php else: ?>
-                                <span class="badge badge-cancelled">Unpaid</span>
+                            <?php if ($b['status'] !== 'cancelled'): ?>
+                                <span class="badge badge-<?php echo $b['payment_status'] === 'paid' ? 'paid' : ($b['payment_status'] === 'partial' ? 'partial' : 'unpaid'); ?>">
+                                    <?php echo $b['payment_status'] === 'paid' ? 'Paid' : ($b['payment_status'] === 'partial' ? 'Advance paid' : 'Unpaid'); ?>
+                                </span>
                             <?php endif; ?>
+                            <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
                         </span>
                     </div>
                     <div class="mbooking-meta">
-                        <span><i class="fa-solid fa-user"></i> <?php echo e($b['user_name']); ?></span>
-                        <span><i class="fa-solid fa-envelope"></i> <?php echo e($b['user_email']); ?></span>
-                        <?php if ($b['manager_name']): ?>
-                            <span><i class="fa-solid fa-user-tie"></i> <?php echo e($b['manager_name']); ?></span>
-                        <?php endif; ?>
                         <span><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
                         <span><i class="fa-solid fa-tag"></i> <?php echo format_price($b['total_price']); ?></span>
+                        <span><i class="fa-solid fa-user"></i> <?php echo e($b['user_name']); ?></span>
                     </div>
+                    <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>
+                        <?php $due = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
+                        <div class="paybar <?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
+                            <span class="paybar-info">
+                                <i class="fa-solid fa-<?php echo $b['payment_status'] === 'partial' ? 'hourglass-half' : 'circle-exclamation'; ?>"></i>
+                                <span><?php echo $b['payment_status'] === 'partial'
+                                    ? 'Advance received &middot; <strong>' . format_price($due) . '</strong> still to collect'
+                                    : '<strong>' . format_price($due) . '</strong> due at the court &middot; unpaid'; ?></span>
+                            </span>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="mbooking-side">
                     <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View details</a>

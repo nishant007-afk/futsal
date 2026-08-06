@@ -18,11 +18,21 @@ if (isset($_GET['cancel'])) {
     $cancel_series = !empty($_GET['cancel_series']);
 
     if (!$target) {
-        set_flash('error', 'This booking could not be cancelled.');
+        set_flash_error(
+            'This booking could not be cancelled.',
+            'It may already be cancelled, or the link may be out of date.',
+            'Refresh My Bookings to see the current status.',
+            'pages/my_bookings.php'
+        );
     } else {
         $policy = booking_refund_policy($target['booking_date'], $target['start_time'], (float)$target['amount_paid']);
         if (!$policy['allowed']) {
-            set_flash('error', $policy['label']);
+            set_flash_error(
+                'This booking can\'t be cancelled right now.',
+                $policy['label'],
+                'If the slot has passed, it\'s already done — nothing more to do.',
+                'pages/my_bookings.php'
+            );
         } else {
             if ($cancel_series && ((int)$target['repeat_weeks'] > 1 || (int)$target['repeat_of'] > 0)) {
                 $rootId = (int)$target['repeat_of'] > 0 ? (int)$target['repeat_of'] : $booking_id;
@@ -46,7 +56,12 @@ if (isset($_GET['cancel'])) {
                     set_flash('success', 'Booking cancelled.');
                 }
             } else {
-                set_flash('error', 'This booking could not be cancelled.');
+                set_flash_error(
+                    'This booking could not be cancelled.',
+                    'It was probably already cancelled, so there was nothing left to cancel.',
+                    'Check My Bookings to see your current slots.',
+                    'pages/my_bookings.php'
+                );
             }
         }
     }
@@ -88,19 +103,16 @@ function booking_card($b): void
             <div class="mbooking-head">
                 <h3><?php echo e($b['ground_name']); ?></h3>
                 <span class="mbooking-status">
+                    <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>
+                        <span class="badge badge-<?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
+                            <i class="fa-solid fa-wallet"></i>
+                            <?php echo $b['payment_status'] === 'partial' ? 'Advance paid' : 'Unpaid'; ?>
+                        </span>
+                    <?php endif; ?>
                     <span class="badge badge-<?php echo e($b['status']); ?>">
                         <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
                         <?php echo ucfirst(e($b['status'])); ?>
                     </span>
-                    <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
-                        <?php if ($b['payment_status'] === 'unpaid'): ?>
-                            <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Payment due</span>
-                        <?php else: ?>
-                            <span class="badge badge-pending"><i class="fa-solid fa-coins"></i> Rs <?php echo number_format((float)$b['amount_paid'], 0); ?> paid</span>
-                        <?php endif; ?>
-                    <?php elseif ($b['status'] === 'confirmed'): ?>
-                        <span class="badge badge-confirmed"><i class="fa-solid fa-circle-check"></i> Fully paid</span>
-                    <?php endif; ?>
                 </span>
             </div>
             <div class="mbooking-meta">
@@ -108,12 +120,25 @@ function booking_card($b): void
                 <span><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
                 <span><i class="fa-solid fa-tag"></i> Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
             </div>
+            <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
+                <?php $balance = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
+                <div class="paybar <?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
+                    <span class="paybar-info">
+                        <i class="fa-solid fa-<?php echo $b['payment_status'] === 'partial' ? 'hourglass-half' : 'circle-exclamation'; ?>"></i>
+                        <span>
+                            <?php if ($b['payment_status'] === 'partial'): ?>
+                                Advance already paid &middot; <strong>Rs <?php echo number_format($balance, 0); ?></strong> left to pay
+                            <?php else: ?>
+                                <strong>Rs <?php echo number_format($balance, 0); ?></strong> due &middot; pay to lock in your slot
+                            <?php endif; ?>
+                        </span>
+                    </span>
+                    <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
+                </div>
+            <?php endif; ?>
         </div>
         <div class="mbooking-side">
             <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View details</a>
-            <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
-                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-wallet"></i> Pay now</a>
-            <?php endif; ?>
         </div>
     </div>
     <?php
@@ -141,9 +166,9 @@ require __DIR__ . '/../includes/header.php';
 <?php if (!$bookings): ?>
     <div class="empty reveal">
         <span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>
-        Nothing booked yet.
-        <p>When you reserve a court, your games will show up here.<br>
-        <a href="<?php echo base_url('index.php#grounds'); ?>" class="inline-link"><i class="fa-solid fa-magnifying-glass-location"></i> Find a ground and grab a slot</a></p>
+        <h3>Nothing booked yet</h3>
+        <p>When you reserve a court, your games will show up here.</p>
+        <a href="<?php echo base_url('index.php#grounds'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Find a ground &amp; grab a slot</a>
     </div>
 <?php else: ?>
     <?php if ($upcoming): ?>

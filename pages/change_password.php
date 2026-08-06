@@ -60,15 +60,9 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted">Enter your current password, choose a new one, and we'll confirm it by email.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-    <form method="post" action="">
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'current_password'); ?>">
             <label for="current_password">Current password</label>
@@ -77,7 +71,6 @@ require __DIR__ . '/../includes/header.php';
                 <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
                 <button type="button" class="pw-toggle" data-target="current_password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
-            <?php field_hint('The password you use to log in right now.'); ?>
             <?php field_error($errors, 'current_password'); ?>
             <p class="form-hint" style="margin-top:8px;"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot your password?</a></p>
         </div>
@@ -106,7 +99,6 @@ require __DIR__ . '/../includes/header.php';
                 <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
                 <button type="button" class="pw-toggle" data-target="confirm_password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
-            <?php field_hint('Retype the same password you entered above.'); ?>
             <?php field_error($errors, 'confirm_password'); ?>
         </div>
 

@@ -18,7 +18,12 @@ if (isset($_GET['delete'])) {
             set_flash('error', 'Could not delete ground.');
         }
     } else {
-        set_flash('error', 'You can only manage your own grounds.');
+        set_flash_error(
+            'You can only manage your own grounds.',
+            'This action was for a court that isn\'t linked to your account.',
+            'Use your dashboard to manage the courts assigned to you.',
+            'manager/dashboard.php'
+        );
     }
     redirect('manager/grounds.php');
 }
@@ -56,7 +61,12 @@ if (isset($_GET['edit'])) {
     $stmt->execute();
     $editing = $stmt->get_result()->fetch_assoc();
     if (!$editing) {
-        set_flash('error', 'Ground not found or not owned by you.');
+        set_flash_error(
+            'We couldn\'t find that court.',
+            'It may have been removed, or it isn\'t linked to your account.',
+            'Refresh your courts list to see what you can manage.',
+            'manager/grounds.php'
+        );
         redirect('manager/grounds.php');
     }
 }
@@ -65,7 +75,12 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     if (!$subStatus['active']) {
-        set_flash('error', 'Your subscription is ' . strtolower($subStatus['label']) . '. Renew it with the platform to add or edit courts.');
+        set_flash_error(
+            'You can\'t add or edit courts right now.',
+            'Your subscription is ' . strtolower($subStatus['label']) . '.',
+            'Renew your subscription with the platform to keep managing courts.',
+            'manager/dashboard.php'
+        );
         redirect('manager/grounds.php');
     }
     $name = trim($_POST['name'] ?? '');
@@ -151,7 +166,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photos']) && $
         set_flash('success', $uploaded . ' photo(s) uploaded.');
     }
     if ($failed > 0) {
-        set_flash('error', $failed . ' photo(s) could not be uploaded. Use JPG, PNG, WebP or GIF.');
+        set_flash_error(
+            $failed . ' photo(s) could not be uploaded.',
+            'Only JPG, PNG, WebP or GIF images are accepted.',
+            'Convert the images to one of those formats and try again.',
+            'manager/grounds.php?edit=' . $ground_id
+        );
     }
     redirect('manager/grounds.php?edit=' . $ground_id);
 }
@@ -162,14 +182,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date']) &
     $block_date = trim($_POST['block_date'] ?? '');
     $note = trim($_POST['block_note'] ?? '');
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $block_date)) {
-        set_flash('error', 'Please pick a valid date.');
+        set_flash_error(
+            'That date doesn\'t look valid.',
+            'We need a real calendar date to block it.',
+            'Pick the date from the calendar and try again.',
+            'manager/grounds.php?edit=' . (int)$editing['id']
+        );
     } else {
         $stmt = $conn->prepare('INSERT INTO blocked_dates (ground_id, block_date, note) VALUES (?, ?, ?)');
         $stmt->bind_param('iss', $ground_id, $block_date, $note);
         if ($stmt->execute()) {
             set_flash('success', 'Court blocked for ' . date('M j, Y', strtotime($block_date)) . '.');
         } else {
-            set_flash('error', 'That date is already blocked.');
+            set_flash_error(
+                'That date is already blocked.',
+                'The court already has this date on its closed list.',
+                'Pick a different date to block.',
+                'manager/grounds.php?edit=' . (int)$editing['id']
+            );
         }
     }
     redirect('manager/grounds.php?edit=' . $ground_id);
@@ -216,26 +246,19 @@ require __DIR__ . '/../includes/header.php';
 <p class="muted" style="margin-bottom:8px;">Add or update the courts you own.</p>
 
 <?php if (!$subStatus['active']): ?>
-    <div class="toast toast-error toast-inline reveal" role="alert">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>
-            <div><strong><?php echo e($subStatus['label']); ?></strong> Your courts are hidden from players.</div>
-            <div>Renew your subscription to add or edit courts and go live again.</div>
-        </span>
+    <div class="toast toast-warning toast-inline reveal" role="status">
+        <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="toast-content">
+            <div class="toast-msg"><?php echo e($subStatus['label']); ?> — your courts are hidden from players. Renew your subscription to go live again.</div>
+        </div>
     </div>
 <?php endif; ?>
 
 
 <div class="ground-form-grid">
     <div class="form-card reveal" style="margin:0;">
-        <?php if (!empty($errors['general'])): ?>
-            <div class="toast toast-error" role="alert">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span><?php echo e($errors['general']); ?></span>
-                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-        <?php endif; ?>
-        <form method="post" action="" id="groundForm" enctype="multipart/form-data">
+        <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+        <form method="post" action="" id="groundForm" enctype="multipart/form-data" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
             <div class="grid grid-2">
@@ -252,13 +275,11 @@ require __DIR__ . '/../includes/header.php';
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
                     <label for="price_per_hour"><i class="fa-solid fa-tag"></i> Price per Hour (Rs.)</label>
                     <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" required>
-                    <?php field_hint('The standard rate for one hour of play. Numbers only.'); ?>
                     <?php field_error($errors, 'price_per_hour'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
                     <label for="capacity"><i class="fa-solid fa-users"></i> Capacity</label>
                     <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" required>
-                    <?php field_hint('How many players fit on the court (usually 8-10).'); ?>
                     <?php field_error($errors, 'capacity'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
@@ -269,7 +290,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
                     <label for="close_time"><i class="fa-solid fa-moon"></i> Closes at</label>
                     <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
-                    <?php field_hint('Pick an opening time that is earlier than closing.'); ?>
                     <?php field_error($errors, 'close_time'); ?>
                 </div>
                 <div class="form-group">
@@ -282,7 +302,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
                     <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted" style="font-weight:400;">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
-                    <p class="form-hint">Applied on Saturdays and Sundays. Leave blank to use the weekday price.</p>
                     <?php field_error($errors, 'price_weekend'); ?>
                 </div>
             </div>
@@ -428,7 +447,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="mbooking-meta">
                     <span><i class="fa-solid fa-location-dot"></i> <?php echo e($g['location']); ?></span>
                     <span><i class="fa-solid fa-tag"></i> <?php echo format_price($g['price_per_hour']); ?>/hr</span>
-                    <span><i class="fa-solid fa-users"></i> <?php echo (int)$g['capacity']; ?> players</span>
                 </div>
             </div>
             <div class="mbooking-side">
@@ -440,7 +458,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     <?php endforeach; ?>
     <?php if (!$grounds): ?>
-        <div class="empty reveal"><span class="big"><i class="fa-solid fa-store"></i></span>No grounds yet. Add your first futsal court above.</div>
+        <div class="empty reveal"><span class="big"><i class="fa-solid fa-store"></i></span><h3>No grounds yet</h3><p>Add your first futsal court above.</p></div>
     <?php endif; ?>
 </div>
 

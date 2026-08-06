@@ -8,14 +8,24 @@ if (isset($_GET['delete'])) {
     }
     $id = (int)$_GET['delete'];
     if ($id === (int)$_SESSION['user_id']) {
-        set_flash('error', 'You cannot delete your own account.');
+        set_flash_error(
+            'You can\'t delete your own account.',
+            'Deleting it would lock you out of the platform.',
+            'Use the role switcher to manage your account instead.',
+            'admin/users.php'
+        );
     } else {
         $stmt = $conn->prepare('DELETE FROM users WHERE id = ?');
         $stmt->bind_param('i', $id);
         if ($stmt->execute() && $stmt->affected_rows > 0) {
             set_flash('success', 'User deleted.');
         } else {
-            set_flash('error', 'Could not delete user.');
+            set_flash_error(
+                'Could not delete that user.',
+                'The account may have already been removed.',
+                'Refresh the user list to confirm the current state.',
+                'admin/users.php'
+            );
         }
     }
     redirect('admin/users.php');
@@ -80,13 +90,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 <p class="muted" style="margin-bottom:8px;">Change someone's role or remove accounts that no longer need access.</p>
 
-<?php if (!empty($errors['general'])): ?>
-    <div class="toast toast-error toast-inline" role="alert">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span><?php echo e($errors['general']); ?></span>
-        <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-<?php endif; ?>
+<?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
 <div class="table-wrap reveal">
     <table>

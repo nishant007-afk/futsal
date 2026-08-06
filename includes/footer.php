@@ -66,6 +66,6 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/script.js?v=22'); ?>"></script>
+<script src="<?php echo base_url('assets/js/script.js?v=34'); ?>"></script>
 </body>
 </html>

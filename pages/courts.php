@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../config/db.php';
 
 $q = trim($_GET['q'] ?? '');
+if (mb_strlen($q) > 100) {
+    $q = mb_substr($q, 0, 100);
+}
 $city = trim($_GET['location'] ?? '');
 $allowed_cities = ['Kathmandu', 'Bhaktapur', 'Lalitpur'];
 if (!in_array($city, $allowed_cities, true)) {
@@ -154,13 +157,15 @@ require __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="search-field">
-                <label for="courtsDate">Check availability on</label>
+                <label for="courtsDate">Date</label>
                 <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>">
             </div>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
-            <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
-            <?php endif; ?>
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
+                <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
+                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+                <?php endif; ?>
+            </div>
         </form>
     </div>
 
@@ -171,8 +176,8 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!$grounds): ?>
         <div class="empty reveal">
             <span class="big"><i class="fa-solid fa-futbol"></i></span>
-            No courts match your filters.
-            <p style="margin-top:8px;"><a href="<?php echo base_url('pages/courts.php'); ?>" class="inline-link">Clear filters and browse all</a></p>
+            <h3>No courts match your filters</h3>
+            <p><a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-sm">Clear filters &amp; browse all</a></p>
         </div>
     <?php else: ?>
         <div class="grid grid-3">

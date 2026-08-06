@@ -18,7 +18,12 @@ $stmt->execute();
 $booking = $stmt->get_result()->fetch_assoc();
 
 if (!$booking || $booking['status'] === 'cancelled') {
-    set_flash('error', 'Booking not found.');
+    set_flash_error(
+        'We couldn\'t find that booking.',
+        'It may have been cancelled, or the link may be out of date.',
+        'Open the booking from My Bookings to see its current status.',
+        'pages/my_bookings.php'
+    );
     redirect('pages/my_bookings.php');
 }
 
@@ -48,7 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $result = validate_promo_code($code, $total, $booking['ground_id']);
         if (isset($result['error'])) {
-            set_flash('error', $result['error']);
+            set_flash_error(
+                'That promo code can\'t be applied.',
+                $result['error'],
+                'Double-check the code, or continue without a promo.',
+                'pages/payment.php?booking_id=' . $booking_id
+            );
             redirect('pages/payment.php?booking_id=' . $booking_id);
         }
         $discount = $result['discount'];
@@ -88,7 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount_paid = $netTotal;
         $payment_status = 'paid';
     } else {
-        set_flash('error', 'Please choose a payment option.');
+        set_flash_error(
+            'No payment option was selected.',
+            'We need to know how you want to pay before processing.',
+            'Pick "Pay 20% now" or "Pay in full online", then tap the pay button.',
+            'pages/payment.php?booking_id=' . $booking_id
+        );
         redirect('pages/payment.php?booking_id=' . $booking_id);
     }
 
@@ -117,7 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         redirect('pages/confirmation.php?booking_id=' . $booking_id);
     } else {
-        set_flash('error', 'Payment could not be processed. Please try again.');
+        set_flash_error(
+            'Your payment couldn\'t be completed.',
+            'The checkout hit an unexpected problem.',
+            'Check your details and try again — nothing has been charged.',
+            'pages/payment.php?booking_id=' . $booking_id
+        );
     }
     redirect('pages/my_bookings.php');
 }
@@ -175,7 +195,6 @@ require __DIR__ . '/../includes/header.php';
                     <input type="text" name="promo_code" placeholder="Have a promo code?" maxlength="40" autocomplete="off">
                     <button type="submit" name="apply_promo" value="1" class="btn btn-outline btn-sm"><i class="fa-solid fa-wand-magic-sparkles"></i> Apply</button>
                 </div>
-                <p class="form-hint" style="margin:6px 0 0;">Ask the court for a promo code to save on your booking.</p>
             </form>
         <?php endif; ?>
 
@@ -217,7 +236,6 @@ require __DIR__ . '/../includes/header.php';
             <button type="submit" class="btn btn-primary btn-block btn-lg" id="payBtn" disabled>
                 <i class="fa-solid fa-lock"></i> <?php echo $isPartial ? 'Pay Rs ' . number_format($remaining, 0) : 'Pay now'; ?>
             </button>
-            <p class="form-hint" style="text-align:center;margin-top:12px;">Secure demo checkout &middot; no real money is charged.</p>
         </form>
     </div>
 </div>

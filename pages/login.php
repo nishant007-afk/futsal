@@ -40,6 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['email'] = 'Enter your email address.';
     } elseif ($password === '') {
         $errors['password'] = 'Enter your password.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
     } else {
         $key = login_attempt_key($email);
         $state = login_attempt_state($key);
@@ -71,7 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
+                $returnPath = $_SESSION['return_path'] ?? '';
+                unset($_SESSION['return_path']);
                 set_flash('success', 'Welcome back, ' . $user['name'] . '!');
+                if ($returnPath === 'pages/page.php?slug=contact') {
+                    redirect($returnPath);
+                }
                 redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
             }
 
@@ -94,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['general'] = 'Too many failed attempts. Try again in ' . gmdate('i:s', $after['lock_seconds']) . '.';
             } elseif (!$ok) {
                 $failuresLeft = 5 - $after['failures'];
-                $errors['general'] = 'That email or password isn\'t right. You have ' . max(0, $failuresLeft) . ' attempt' . (max(0, $failuresLeft) === 1 ? '' : 's') . ' left before a 1-minute pause.';
+                $errors['general'] = 'The password you entered is incorrect. You have ' . max(0, $failuresLeft) . ' attempt' . (max(0, $failuresLeft) === 1 ? '' : 's') . ' left before a 1-minute pause.';
             } else {
                 $errors['general'] = 'Please verify your email before logging in. Check your inbox for the verification link.';
             }
@@ -108,17 +115,18 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card">
     <div class="form-head">
-        <h2 >Welcome back</h2>
+        <h2 >Sign in to GoalSpace</h2>
     </div>
 
     <?php if ($suspended): ?>
         <?php $cErrors = form_errors(); $cOld = form_old(); ?>
         <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>
-                <div><strong>Logins are paused for this account.</strong></div>
-                <div>Too many failed attempts for <strong><?php echo e($suspendedEmail); ?></strong>. An admin can restore access.</div>
-            </span>
+            <div class="toast-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="toast-content">
+                <div class="toast-msg"><span>Logins are paused for this account.</span></div>
+                <p class="toast-detail toast-reason"><i class="fa-solid fa-circle-question"></i> <span>Too many failed attempts for <strong><?php echo e($suspendedEmail); ?></strong>.</span></p>
+                <p class="toast-detail toast-fix"><i class="fa-solid fa-lightbulb"></i> <span>Reach out to an admin below to restore access.</span></p>
+            </div>
             <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
@@ -127,7 +135,7 @@ require __DIR__ . '/../includes/header.php';
             <span>Use the form below to reach the admin about this issue.</span>
         </div>
 
-        <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" style="margin-top:18px;">
+        <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" style="margin-top:18px;" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
@@ -148,18 +156,13 @@ require __DIR__ . '/../includes/header.php';
             <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
                 <label for="msg">Message</label>
                 <textarea id="msg" name="message" rows="4" placeholder="Explain what happened so we can help you log back in." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
-                <?php field_hint('Explain what happened so we can help you log back in.'); ?>
                 <?php field_error($cErrors, 'message'); ?>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send to admin</button>
         </form>
     <?php else: ?>
         <?php if (!empty($errors['general'])): ?>
-            <div class="toast toast-error" role="alert">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span><?php echo e($errors['general']); ?></span>
-                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+            <div hidden data-error-modal-title="Login failed" data-error-modal-msg="<?php echo e($errors['general']); ?>"></div>
         <?php endif; ?>
 
         <?php if ($lock): ?>
@@ -177,7 +180,13 @@ require __DIR__ . '/../includes/header.php';
             </div>
         <?php endif; ?>
 
-        <form method="post" action="">
+        <a href="<?php echo base_url('pages/login_google.php?intent=login'); ?>" class="btn-google">
+            <svg class="g-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+            Continue with Google
+        </a>
+        <div class="auth-divider"><span>or</span></div>
+
+        <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
                 <label for="email">Email</label>
@@ -185,7 +194,6 @@ require __DIR__ . '/../includes/header.php';
                     <i class="fa-solid fa-envelope"></i>
                     <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder="you@example.com" autocomplete="email" required <?php echo $lock ? 'disabled' : ''; ?>>
                 </div>
-                <?php field_hint('Enter the email address you registered with.'); ?>
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'password'); ?>">
@@ -203,7 +211,7 @@ require __DIR__ . '/../includes/header.php';
                 <span class="check-box"><i class="fa-solid fa-check"></i></span>
                 <span>Remember me</span>
             </label>
-            <button type="submit" class="btn btn-primary btn-block" <?php echo $lock ? 'disabled' : ''; ?>><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+            <button type="submit" class="btn btn-primary btn-block" <?php echo $lock ? 'disabled' : 'data-autogate=""'; ?>><i class="fa-solid fa-right-to-bracket"></i> Login</button>
             <p class="form-foot">New here? <a href="<?php echo base_url('pages/register.php'); ?>">Create an account</a></p>
         </form>
     <?php endif; ?>

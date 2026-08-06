@@ -9,7 +9,12 @@ $stmt->execute();
 $ground = $stmt->get_result()->fetch_assoc();
 
 if (!$ground) {
-    set_flash('error', 'Ground not found.');
+    set_flash_error(
+        'We couldn\'t find that court.',
+        'It may have been removed or is no longer active.',
+        'Browse the courts list to find another place to play.',
+        'pages/courts.php'
+    );
     redirect('index.php');
 }
 
@@ -40,24 +45,47 @@ $is_blocked = date_is_blocked((int)$ground['id'], $selected_date);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
     verify_csrf();
     if (!is_logged_in()) {
-        set_flash('error', 'Please log in to leave a review.');
+        set_flash_error(
+            'You need to be logged in to leave a review.',
+            'Reviews are tied to your account so other players can trust them.',
+            'Log in, then come back to post your review.',
+            'pages/login.php'
+        );
         redirect('pages/ground.php?id=' . (int)$ground['id']);
     }
     if (!is_player()) {
-        set_flash('error', 'Only player accounts can leave reviews.');
+        set_flash_error(
+            'Only player accounts can leave reviews.',
+            'Manager and admin accounts don\'t play at the court.',
+            'Sign in with a player account to share your experience.',
+            'pages/login.php'
+        );
         redirect('pages/ground.php?id=' . (int)$ground['id']);
     }
     if (!$my_review && !$has_played) {
-        set_flash('error', 'You can only review a court after you have played there.');
+        set_flash_error(
+            'You can only review a court after you\'ve played there.',
+            'Reviews need to come from real games so they stay honest.',
+            'Book a slot, play, then come back to leave your review.',
+            'pages/ground.php?id=' . (int)$ground['id']
+        );
         redirect('pages/ground.php?id=' . (int)$ground['id']);
     }
     $rating_val = (int)($_POST['rating'] ?? 0);
     $comment = trim($_POST['comment'] ?? '');
+    if (mb_strlen($comment) > 600) {
+        $comment = mb_substr($comment, 0, 600);
+    }
     if ($rating_val < 1 || $rating_val > 5) {
         $rating_val = 0;
     }
     if ($rating_val === 0) {
-        set_flash('error', 'Please pick a star rating.');
+        set_flash_error(
+            'No star rating was selected.',
+            'A review needs a rating to be counted.',
+            'Tap a star from 1 to 5, then submit again.',
+            'pages/ground.php?id=' . (int)$ground['id']
+        );
     } else {
         if ($my_review) {
             $stmt = $conn->prepare('UPDATE reviews SET rating = ?, comment = ? WHERE id = ? AND user_id = ?');
@@ -106,6 +134,12 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="detail-box ground-info" style="margin-top:20px;">
             <h3>About this ground</h3>
+            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
+            <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
+            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open 08:00 - 22:00</span></div>
+            <?php if (!empty($ground['owner_name'])): ?>
+                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ground['owner_name']); ?></strong></span></div>
+            <?php endif; ?>
             <div class="rating-summary">
                 <?php if ($rating['count'] > 0): ?>
                     <span class="rating-big"><?php echo number_format((float)$rating['avg'], 1); ?></span>
@@ -115,14 +149,9 @@ require __DIR__ . '/../includes/header.php';
                     <span class="rating-meta">No reviews yet</span>
                 <?php endif; ?>
             </div>
-            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
-            <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
-            <?php if (!empty($ground['owner_name'])): ?>
-                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ground['owner_name']); ?></strong></span></div>
+            <?php if (!empty($ground['description'])): ?>
+                <p class="desc"><?php echo e($ground['description']); ?></p>
             <?php endif; ?>
-            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open 08:00 - 22:00</span></div>
-            <div class="info-row"><i class="fa-solid fa-circle-check"></i> <span>Your slot is locked the moment you book</span></div>
-            <p class="desc"><?php echo e($ground['description']); ?></p>
         </div>
     </div>
 
@@ -136,7 +165,6 @@ require __DIR__ . '/../includes/header.php';
                 <label for="bookingDate">Pick a day</label>
                 <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>">
             </div>
-            <?php field_hint('Choose any day from today onward. Closed days show in red.'); ?>
         </form>
 
         <?php if ($is_blocked): ?>
@@ -215,8 +243,6 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
             <?php endif; ?>
-            <p class="form-hint" style="text-align:center;margin-top:10px;">Your slot locks in instantly. You'll pick a payment option next.</p>
-            <p class="form-hint" style="text-align:center;margin-top:6px;"><i class="fa-solid fa-circle-info"></i> Cancel free up to 24h before your game; a 50% fee applies after that.</p>
         <?php endif; ?>
     </div>
 </div>
@@ -249,7 +275,6 @@ require __DIR__ . '/../includes/header.php';
                             <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>"><i class="fa-solid fa-star"></i></label>
                         <?php endfor; ?>
                     </div>
-                    <?php field_hint('Tap a star to rate the court, 5 being the best.'); ?>
                 </div>
                 <div class="form-group">
                     <label for="reviewComment">Your review <span class="muted" style="font-weight:400;">(optional)</span></label>

@@ -36,7 +36,12 @@ if ($b) {
 }
 
 if (!$b || !$allowed) {
-    set_flash('error', 'Booking not found.');
+    set_flash_error(
+        'We couldn\'t find that booking.',
+        'It may have been cancelled, or you may not have access to it.',
+        'Open the booking from your bookings list to see its current status.',
+        $me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')
+    );
     if ($me['role'] === 'admin') {
         redirect('admin/bookings.php');
     } elseif ($me['role'] === 'manager') {
@@ -77,6 +82,29 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
+    <?php if ($b['status'] === 'confirmed'): ?>
+        <div class="step-note <?php echo $b['payment_status'] === 'paid' ? 'success' : ($b['payment_status'] === 'partial' ? '' : 'urgent'); ?>" style="margin-top:22px;margin-bottom:26px;">
+            <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : 'lightbulb'; ?>"></i>
+            <?php if ($me['role'] === 'user'): ?>
+                <?php if ($b['payment_status'] === 'paid'): ?>
+                    <span><strong>All set.</strong> Your slot is confirmed and fully paid &middot; nothing left to do.</span>
+                <?php elseif ($b['payment_status'] === 'partial'): ?>
+                    <span>You've paid <strong>Rs <?php echo number_format((float)$b['amount_paid'], 0); ?></strong> as an advance. Pay <strong>Rs <?php echo number_format($balance, 0); ?></strong> to settle the rest.</span>
+                <?php else: ?>
+                    <span>Your slot is <strong>reserved but not paid</strong>. Pay now to lock it in &middot; it takes a minute.</span>
+                <?php endif; ?>
+            <?php else: ?>
+                <?php if ($b['payment_status'] === 'paid'): ?>
+                    <span><strong>Paid in full.</strong> Nothing left to collect for this booking.</span>
+                <?php elseif ($b['payment_status'] === 'partial'): ?>
+                    <span>Player paid <strong>Rs <?php echo number_format((float)$b['amount_paid'], 0); ?></strong> as an advance &middot; <strong>Rs <?php echo number_format($balance, 0); ?></strong> due at the court.</span>
+                <?php else: ?>
+                    <span><strong>Unpaid.</strong> This slot is only reserved &middot; remind the player to pay before the slot is released.</span>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
     <div class="bd-grid">
         <section class="bd-section">
             <h2><i class="fa-solid fa-calendar-day"></i> Schedule</h2>
@@ -102,7 +130,8 @@ require __DIR__ . '/../includes/header.php';
             </section>
         <?php endif; ?>
 
-        <section class="bd-section bd-section-full">
+        <?php if ($b['status'] !== 'cancelled' && ($balance > 0 || $b['payment_status'] !== 'paid')): ?>
+        <section class="bd-section">
             <h2><i class="fa-solid fa-receipt"></i> Payment</h2>
             <div class="bd-price">
                 <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong></div>
@@ -117,7 +146,11 @@ require __DIR__ . '/../includes/header.php';
                     <div class="bd-price-row"><span>Balance at court</span><strong class="warn">Rs <?php echo number_format($balance, 0); ?></strong></div>
                 <?php endif; ?>
             </div>
+            <?php if ($me['role'] === 'user' && $b['status'] === 'confirmed' && $balance > 0): ?>
+                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary btn-block bd-pay"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
+            <?php endif; ?>
         </section>
+    <?php endif; ?>
     </div>
 
     <?php if ($b['status'] === 'confirmed'): ?>
@@ -129,9 +162,8 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="bd-actions">
         <?php if ($me['role'] === 'user'): ?>
-            <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-file-invoice-dollar"></i> Receipt</a>
-            <?php if ($b['status'] === 'confirmed' && $balance > 0): ?>
-                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
+            <?php if ($b['payment_status'] === 'paid'): ?>
+                <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-file-invoice-dollar"></i> Receipt</a>
             <?php endif; ?>
             <?php if ($b['status'] === 'confirmed'): ?>
                 <a href="<?php echo base_url('pages/reschedule.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-arrows-rotate"></i> Reschedule</a>

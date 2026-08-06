@@ -98,9 +98,18 @@ function redirect(string $path): void
     exit;
 }
 
-function set_flash(string $type, string $message): void
+function set_flash(string $type, string $message, ?array $detail = null): void
 {
-    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+    $_SESSION['flash'] = ['type' => $type, 'message' => $message, 'detail' => $detail];
+}
+
+function set_flash_error(string $what, ?string $why = null, ?string $how = null, ?string $how_url = null): void
+{
+    $_SESSION['flash'] = [
+        'type' => 'error',
+        'message' => $what,
+        'detail' => ['why' => $why, 'how' => $how, 'how_url' => $how_url],
+    ];
 }
 
 function csrf_token(): string
@@ -332,6 +341,9 @@ function validate_password(string $password): ?string
 {
     if (strlen($password) < 8) {
         return 'Use at least 8 characters.';
+    }
+    if (strlen($password) > 72) {
+        return 'Passwords must be 72 characters or fewer.';
     }
     if (!preg_match('/[A-Za-z]/', $password)) {
         return 'Add at least one letter.';
@@ -837,6 +849,19 @@ function otp_remaining_seconds(string $identifier, string $purpose): int
     return max(0, strtotime($row['expires_at']) - time());
 }
 
+function otp_send_cooldown(string $identifier, string $purpose, int $cooldown = 30): int
+{
+    global $conn;
+    $stmt = $conn->prepare('SELECT created_at FROM otps WHERE identifier = ? AND purpose = ? AND used = 0 ORDER BY id DESC LIMIT 1');
+    $stmt->bind_param('ss', $identifier, $purpose);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if (!$row) {
+        return 0;
+    }
+    return max(0, $cooldown - (time() - strtotime($row['created_at'])));
+}
+
 function otp_subject(string $purpose): string
 {
     switch ($purpose) {
@@ -1036,23 +1061,17 @@ function ground_card_html(array $ground, ?array $availability = null): void
         </div>
         <div class="card-body">
             <h3 class="card-title"><?php echo e($ground['name']); ?></h3>
-            <p class="card-loc"><i class="fa-solid fa-users"></i> Up to <?php echo (int)$ground['capacity']; ?> players &middot; <?php echo e($ground['location']); ?></p>
-            <?php if (!empty($ground['owner_name'])): ?>
-                <p class="card-owner"><i class="fa-solid fa-store"></i> Managed by <strong><?php echo e($ground['owner_name']); ?></strong></p>
-            <?php endif; ?>
-            <p class="card-desc"><?php echo e($ground['description']); ?></p>
             <div class="card-meta">
-                <span class="price"><?php echo number_format((float)$ground['price_per_hour'], 0); ?><small> Rs / hour</small></span>
-                <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm">View &amp; book</a>
+                <div>
+                    <span class="price"><?php echo number_format((float)$ground['price_per_hour'], 0); ?><small> Rs / hour</small></span>
+                    <?php if ($rating['count'] > 0): ?>
+                        <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
+                    <?php else: ?>
+                        <span class="card-rating-inline"><i class="fa-solid fa-star" style="color:var(--ink-3);"></i> <small>No reviews yet</small></span>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="card-rating">
-                <?php if ($rating['count'] > 0): ?>
-                    <?php echo star_html($rating['avg']); ?>
-                    <span><?php echo number_format((float)$rating['avg'], 1); ?> (<?php echo $rating['count']; ?>)</span>
-                <?php else: ?>
-                    <span class="no-rating">No reviews yet</span>
-                <?php endif; ?>
-            </div>
+            <div class="card-cta"><a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm">View &amp; book</a></div>
         </div>
     </div>
     <?php
@@ -1077,6 +1096,19 @@ function field_error(array $errors, string $field): void
         echo '<p class="field-error"><i class="fa-solid fa-circle-exclamation"></i>'
             . e($errors[$field]) . '</p>';
     }
+}
+
+/**
+ * Renders a persistent inline callout at the top of a form for a form-level
+ * error (not tied to one field). Stays until dismissed or the form is resubmitted.
+ */
+function render_inline(string $message): void
+{
+    echo '<div class="toast toast-error toast-inline" role="alert">'
+        . '<div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>'
+        . '<div class="toast-content"><div class="toast-msg">' . e($message) . '</div></div>'
+        . '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>'
+        . '</div>';
 }
 
 /**

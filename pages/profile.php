@@ -95,7 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             redirect('pages/profile.php');
         }
     }
-    set_flash('error', 'Could not remove the photo. Please try again.');
+    set_flash_error(
+        'The photo couldn\'t be removed.',
+        'The image file may be in use or unavailable right now.',
+        'Try again, or upload a new photo instead.',
+        'pages/profile.php'
+    );
     redirect('pages/profile.php');
 }
 
@@ -107,13 +112,7 @@ require __DIR__ . '/../includes/header.php';
     <h2><i class="fa-solid fa-id-card"></i> My Profile</h2>
 </div>
 
-<?php if (!empty($errors['general'])): ?>
-    <div class="toast toast-error" role="alert">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span><?php echo e($errors['general']); ?></span>
-        <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-<?php endif; ?>
+<?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
 <div class="profile-grid">
     <div class="profile-side form-card">
@@ -153,7 +152,7 @@ require __DIR__ . '/../includes/header.php';
             <h2>Edit details</h2>
             <p class="muted">Keep your contact details up to date so managers can reach you.</p>
         </div>
-        <form method="post" action="">
+        <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="action" value="update_profile">
             <div class="form-group<?php echo has_error($errors, 'name'); ?>">
@@ -162,7 +161,6 @@ require __DIR__ . '/../includes/header.php';
                     <i class="fa-solid fa-user"></i>
                     <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" required>
                 </div>
-                <?php field_hint('Shown on bookings and to grounds managers.'); ?>
                 <?php field_error($errors, 'name'); ?>
             </div>
             <div class="form-group">
@@ -179,7 +177,6 @@ require __DIR__ . '/../includes/header.php';
                     <i class="fa-solid fa-phone"></i>
                     <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder="98xxxxxxxx">
                 </div>
-                <?php field_hint('A 10-digit mobile number, e.g. 98xxxxxxxx. No spaces or dashes needed.'); ?>
                 <?php field_error($errors, 'phone'); ?>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>

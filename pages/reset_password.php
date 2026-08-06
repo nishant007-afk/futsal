@@ -58,14 +58,8 @@ require __DIR__ . '/../includes/header.php';
         <h2>Choose a new password</h2>
         <p class="muted">Enter the code from your email, then pick a new password.</p>
     </div>
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
-    <form method="post" action="">
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="email" value="<?php echo e($email); ?>">
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
@@ -82,7 +76,6 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
             </div>
-            <?php field_hint('The 6-digit code from the email. Numbers only, no spaces or dashes.'); ?>
             <?php field_error($errors, 'code'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
@@ -108,7 +101,6 @@ require __DIR__ . '/../includes/header.php';
                 <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
                 <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
-            <?php field_hint('Retype the same password you entered above.'); ?>
             <?php field_error($errors, 'confirm'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Update password</button>

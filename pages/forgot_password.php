@@ -16,6 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
         if ($user) {
+            $cooldown = otp_send_cooldown($email, 'password_reset');
+            if ($cooldown > 0) {
+                set_flash_error(
+                    'You\'re requesting too many codes.',
+                    'Wait ' . $cooldown . 's before asking for another one.',
+                    'Check your inbox for the code we already sent, then try again shortly.',
+                    'pages/forgot_password.php'
+                );
+                redirect('pages/login.php');
+            }
             $otp = issue_otp($email, 'password_reset');
             $email_sent = send_otp_mail($email, $otp, 'password_reset');
             $reset_code = $otp;
@@ -43,7 +53,7 @@ if (isset($reset_code)) {
                 <span style="display:block;margin-top:8px;font-weight:800;letter-spacing:3px;font-size:20px;color:var(--brand-700);"><?php echo e($reset_code); ?></span>
             <?php endif; ?>
         </div>
-        <form method="post" action="<?php echo base_url('pages/reset_password.php'); ?>" style="margin-top:22px;">
+        <form method="post" action="<?php echo base_url('pages/reset_password.php'); ?>" style="margin-top:22px;" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="email" value="<?php echo e($reset_email); ?>">
             <div class="form-group">
@@ -52,7 +62,6 @@ if (isset($reset_code)) {
                     <i class="fa-solid fa-shield-halved"></i>
                     <input type="text" id="rcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" required>
                 </div>
-                <?php field_hint('The 6-digit code from the email. Numbers only, no spaces or dashes.'); ?>
             </div>
             <div class="form-group">
                 <label for="rpassword">New password</label>
@@ -76,7 +85,6 @@ if (isset($reset_code)) {
                     <input type="password" id="rconfirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
                     <button type="button" class="pw-toggle" data-target="rconfirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
-                <?php field_hint('Retype the same password you entered above.'); ?>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Reset password</button>
             <p class="form-foot" style="margin-top:20px;">Remembered it? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
@@ -96,14 +104,8 @@ require __DIR__ . '/../includes/header.php';
         <h2>Forgot your password?</h2>
         <p class="muted">Enter the email on your account and we'll send you a 6-digit reset code.</p>
     </div>
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
-    <form method="post" action="">
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
             <label for="email">Email</label>
@@ -111,7 +113,6 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-envelope"></i>
                 <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder="you@example.com" autocomplete="email" required>
             </div>
-            <?php field_hint('We\'ll email a 6-digit reset code to this address.'); ?>
             <?php field_error($errors, 'email'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send reset code</button>

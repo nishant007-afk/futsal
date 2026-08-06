@@ -37,7 +37,7 @@ $body_class = implode(' ', $body_classes);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=39'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=71'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -59,8 +59,9 @@ $body_class = implode(' ', $body_classes);
 </div>
 <div id="appLoader" class="app-loader" aria-hidden="true">
     <div class="al-card">
-        <span class="al-spin" role="presentation"></span>
-        <span class="al-text">Just a moment…</span>
+        <span class="al-ball" role="presentation"></span>
+        <span class="al-ground" aria-hidden="true"></span>
+        <span class="al-text">Just a moment<span class="al-dots" id="alDots" aria-hidden="true"></span></span>
     </div>
 </div>
 <header class="site-header">
@@ -70,6 +71,12 @@ $body_class = implode(' ', $body_classes);
         </a>
 
         <nav class="nav" id="mainNav">
+            <div class="nav-sidebar-head">
+                <a href="<?php echo base_url('index.php'); ?>" class="brand" aria-label="GoalSpace home">
+                    <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
+                    GoalSpace
+                </a>
+            </div>
             <?php if ($site_user): ?>
                 <div class="nav-mobile-head show-sm">
                     <span class="avatar">
@@ -115,21 +122,26 @@ $body_class = implode(' ', $body_classes);
 
         <div class="nav-auth">
             <?php if ($site_user): ?>
+                <?php $bellNotifications = user_notifications((int)$site_user['id'], 8); ?>
                 <div class="bell-wrap" id="bellWrap">
                     <button type="button" class="bell-btn" id="bellBtn" aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         <?php $unreadCount = unread_notification_count((int)$site_user['id']); ?>
                         <?php if ($unreadCount > 0): ?>
-                            <span class="bell-dot"><?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?></span>
+                            <span class="bell-dot" id="bellDot"><?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?></span>
                         <?php endif; ?>
                     </button>
                     <div class="bell-panel" id="bellPanel">
                         <div class="bell-head">
-                            <span>Notifications</span>
-                            <?php if ($unreadCount > 0): ?><span class="bell-head-count"><?php echo $unreadCount; ?> new</span><?php endif; ?>
+                            <span class="bell-title-wrap">Notifications<?php if ($unreadCount > 0): ?><span class="bell-head-count"><?php echo $unreadCount; ?> new</span><?php endif; ?></span>
+                            <?php if ($bellNotifications): ?>
+                                <form method="post" action="<?php echo base_url('pages/notifications.php'); ?>" style="display:inline;">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" name="mark_read" value="1" class="bell-markall" id="bellMarkAll" style="font-size:11px;padding:4px 10px;">Mark all read</button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                         <div class="bell-list">
-                            <?php $bellNotifications = user_notifications((int)$site_user['id'], 8); ?>
                             <?php if (!$bellNotifications): ?>
                                 <p class="bell-empty">You're all caught up.</p>
                             <?php else: ?>
@@ -148,12 +160,6 @@ $body_class = implode(' ', $body_classes);
                         </div>
                         <div class="bell-foot">
                             <a href="<?php echo base_url('pages/notifications.php'); ?>" class="bell-viewall"><i class="fa-solid fa-list"></i> View all notifications</a>
-                            <?php if ($bellNotifications): ?>
-                                <form method="post" action="<?php echo base_url('pages/notifications.php'); ?>">
-                                    <?php echo csrf_field(); ?>
-                                    <button type="submit" name="mark_read" value="1" class="bell-markall"><i class="fa-solid fa-check-double"></i> Mark all read</button>
-                                </form>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -198,21 +204,37 @@ $body_class = implode(' ', $body_classes);
 </header>
 
 <?php if ($flash): ?>
-    <?php if ($flash['type'] === 'success'): ?>
-        <div class="container">
-            <div class="toast toast-success toast-inline" role="status">
-                <i class="fa-solid fa-circle-check"></i>
-                <span><?php echo e($flash['message']); ?></span>
-                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+    <?php
+        $type = $flash['type'];
+        $toastClass = 'toast-error';
+        $toastIcon = 'fa-triangle-exclamation';
+        $toastRole = 'alert';
+        if ($type === 'success') { $toastClass = 'toast-success'; $toastIcon = 'fa-circle-check'; $toastRole = 'status'; }
+        elseif ($type === 'info') { $toastClass = 'toast-info'; $toastIcon = 'fa-circle-info'; $toastRole = 'status'; }
+        elseif ($type === 'warning') { $toastClass = 'toast-warning'; $toastIcon = 'fa-triangle-exclamation'; }
+        $inline = in_array($type, ['success', 'info'], true) ? 'toast-inline' : '';
+        $detail = $flash['detail'] ?? null;
+        $hasDetail = is_array($detail) && (($detail['why'] ?? '') !== '' || ($detail['how'] ?? '') !== '');
+    ?>
+    <?php if ($inline): ?><div class="container"><?php endif; ?>
+    <div class="toast <?php echo $toastClass . ' ' . $inline; ?><?php echo $hasDetail ? ' has-detail' : ''; ?>" role="<?php echo $toastRole; ?>">
+        <div class="toast-icon"><i class="fa-solid <?php echo $toastIcon; ?>"></i></div>
+        <div class="toast-content">
+            <div class="toast-msg"><span><?php echo e($flash['message']); ?></span></div>
+            <?php if ($hasDetail && ($detail['why'] ?? '') !== ''): ?>
+                <p class="toast-detail toast-reason"><i class="fa-solid fa-circle-question"></i> <span><?php echo e($detail['why']); ?></span></p>
+            <?php endif; ?>
+            <?php if ($hasDetail && ($detail['how'] ?? '') !== ''): ?>
+                <?php if (!empty($detail['how_url'])): ?>
+                    <a class="toast-detail toast-fix" href="<?php echo e($detail['how_url']); ?>"><i class="fa-solid fa-lightbulb"></i> <span><?php echo e($detail['how']); ?></span></a>
+                <?php else: ?>
+                    <p class="toast-detail toast-fix"><i class="fa-solid fa-lightbulb"></i> <span><?php echo e($detail['how']); ?></span></p>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
-    <?php else: ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($flash['message']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
+        <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <?php if ($inline): ?></div><?php endif; ?>
 <?php endif; ?>
 
 <main class="container page" id="mainContent" tabindex="-1">

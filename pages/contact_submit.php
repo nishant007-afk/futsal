@@ -17,6 +17,15 @@ if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback', '
     $topic = 'general';
 }
 
+if ($topic !== 'login_locked' && !is_logged_in()) {
+    flash_form([], [
+        'name' => $name, 'email' => $email, 'topic' => $topic,
+        'subject' => $subject, 'message' => $message,
+    ]);
+    $_SESSION['return_path'] = 'pages/page.php?slug=contact';
+    redirect('pages/login.php');
+}
+
 $errors = [];
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
@@ -33,7 +42,12 @@ $redirectTarget = $topic === 'login_locked' ? 'pages/login.php' : 'pages/page.ph
 if ($errors) {
     flash_form($errors, ['name' => $name, 'email' => $email, 'subject' => $subject, 'message' => $message, 'topic' => $topic]);
     if ($topic === 'login_locked') {
-        set_flash('error', 'Please check the highlighted fields and try again.');
+        set_flash_error(
+            'A few fields need attention.',
+            'Required details were missing or too short.',
+            'Check the highlighted fields below and submit again.',
+            'pages/login.php'
+        );
     }
     redirect($redirectTarget);
 }

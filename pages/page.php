@@ -126,7 +126,7 @@ $pages = [
         'title' => 'Contact Us',
         'summary' => 'We are happy to help players and court owners.',
         'body' => '
-            <p>For booking help, account issues or feedback, reach out through the form or any channel on this page. We usually respond within one business day.</p>
+            <p>Need help with a booking, your account or a court? Message us below, and we respond within 1 day.</p>
         ',
     ],
     'help' => [
@@ -194,14 +194,14 @@ require __DIR__ . '/../includes/header.php';
         <div class="detail-box">
             <h3><i class="fa-solid fa-paper-plane"></i> Send us a message</h3>
             <p class="muted contact-lead">Fill in the form below and we'll get back to you as soon as we can.</p>
-            <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>">
+            <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" novalidate>
                 <?php echo csrf_field(); ?>
                 <div class="grid-2">
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
                         <label for="cName">Your name</label>
                         <div class="input-group">
                             <i class="fa-solid fa-user"></i>
-                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name')); ?>" placeholder="Full name" autocomplete="name" required>
+                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder="Full name" autocomplete="name" required>
                         </div>
                         <?php field_error($cErrors, 'name'); ?>
                     </div>
@@ -209,7 +209,7 @@ require __DIR__ . '/../includes/header.php';
                         <label for="cEmail">Email</label>
                         <div class="input-group">
                             <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email')); ?>" placeholder="you@example.com" autocomplete="email" required>
+                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder="you@example.com" autocomplete="email" required>
                         </div>
                         <?php field_error($cErrors, 'email'); ?>
                     </div>
@@ -231,16 +231,14 @@ require __DIR__ . '/../includes/header.php';
                             <i class="fa-solid fa-heading"></i>
                             <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder="Short summary">
                         </div>
-                        <?php field_hint('A few words so we know what it\'s about.'); ?>
                     </div>
                 </div>
                 <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
                     <label for="cMessage">Message</label>
                     <textarea id="cMessage" name="message" rows="5" placeholder="Tell us how we can help (at least 10 characters)." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
-                    <?php field_hint('Give us enough detail to help: which court, which day, what happened.'); ?>
                     <?php field_error($cErrors, 'message'); ?>
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send message</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <?php echo is_logged_in() ? 'Send message' : 'Log in to send'; ?></button>
             </form>
         </div>
     </div>

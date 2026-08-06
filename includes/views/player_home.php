@@ -13,7 +13,7 @@ $stats = $conn->query(
 )->fetch_assoc();
 
 $upcoming = $conn->query(
-    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status, g.name AS ground_name, g.location
+    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status, b.amount_paid, g.name AS ground_name, g.location
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      WHERE b.user_id = ' . (int)$_SESSION['user_id'] . " AND b.booking_date >= '$today' AND b.status != 'cancelled'
@@ -69,24 +69,60 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <?php if (!$upcoming): ?>
         <div class="empty">
             <span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>
-            Nothing scheduled yet.
-            <p style="margin-top:8px;">Pick a court below and make it a match. <a href="<?php echo base_url('index.php#courts'); ?>" class="inline-link">Browse courts</a></p>
+            <h3>Nothing scheduled yet</h3>
+            <p>Pick a court below and make it a match.</p>
+            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Browse courts</a>
         </div>
     <?php else: ?>
-        <div class="grid grid-3">
+        <div class="mbookings reveal">
             <?php foreach ($upcoming as $b): ?>
-                <div class="booking-card reveal">
-                    <div class="booking-date">
+                <div class="mbooking">
+                    <div class="mbooking-date">
                         <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
                         <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
-                        <span class="bd-time"><?php echo e(substr($b['start_time'], 0, 5)); ?>-<?php echo e(substr($b['end_time'], 0, 5)); ?></span>
+                        <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
                     </div>
-                    <div class="booking-info">
-                        <h3><?php echo e($b['ground_name']); ?></h3>
-                        <p><?php echo e($b['location']); ?></p>
-                        <p>Rs <?php echo number_format((float)$b['total_price'], 0); ?></p>
+                    <div class="mbooking-main">
+                        <div class="mbooking-head">
+                            <h3><?php echo e($b['ground_name']); ?></h3>
+                            <span class="mbooking-status">
+                                <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>
+                                    <span class="badge badge-<?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
+                                        <i class="fa-solid fa-wallet"></i>
+                                        <?php echo $b['payment_status'] === 'partial' ? 'Advance paid' : 'Unpaid'; ?>
+                                    </span>
+                                <?php endif; ?>
+                                <span class="badge badge-<?php echo e($b['status']); ?>">
+                                    <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
+                                    <?php echo ucfirst(e($b['status'])); ?>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="mbooking-meta">
+                            <span><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
+                            <span><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
+                            <span><i class="fa-solid fa-tag"></i> Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
+                        </div>
+                        <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
+                            <?php $balance = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
+                            <div class="paybar <?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
+                                <span class="paybar-info">
+                                    <i class="fa-solid fa-<?php echo $b['payment_status'] === 'partial' ? 'hourglass-half' : 'circle-exclamation'; ?>"></i>
+                                    <span>
+                                        <?php if ($b['payment_status'] === 'partial'): ?>
+                                            Advance already paid &middot; <strong>Rs <?php echo number_format($balance, 0); ?></strong> left to pay
+                                        <?php else: ?>
+                                            <strong>Rs <?php echo number_format($balance, 0); ?></strong> due &middot; pay to lock in your slot
+                                        <?php endif; ?>
+                                    </span>
+                                </span>
+                                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                    <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
+                    <div class="mbooking-side">
+                        <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View details</a>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -101,7 +137,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
         <p class="section-sub">Tap a court to see its free hours and grab a slot for your team.</p>
     </div>
     <?php if (!$grounds): ?>
-        <div class="empty"><span class="big"><i class="fa-solid fa-futbol"></i></span>No grounds available right now.</div>
+        <div class="empty"><span class="big"><i class="fa-solid fa-futbol"></i></span><h3>No grounds available right now</h3><p>Check back soon &middot; courts open for booking will appear here.</p></div>
     <?php else: ?>
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>

@@ -19,7 +19,22 @@ $stmt->execute();
 $booking = $stmt->get_result()->fetch_assoc();
 
 if (!$booking || $booking['status'] === 'cancelled') {
-    set_flash('error', 'Booking not found.');
+    set_flash_error(
+        'We couldn\'t find that booking.',
+        'It may have been cancelled, or the link may be out of date.',
+        'Open the booking from My Bookings to see its current status.',
+        'pages/my_bookings.php'
+    );
+    redirect('pages/my_bookings.php');
+}
+
+if ($booking['payment_status'] !== 'paid') {
+    set_flash_error(
+        'This receipt isn\'t available yet.',
+        'Receipts are only generated after the booking is fully paid.',
+        'Complete the payment, then download the receipt.',
+        'pages/payment.php?booking_id=' . $booking_id
+    );
     redirect('pages/my_bookings.php');
 }
 

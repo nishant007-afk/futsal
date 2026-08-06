@@ -27,6 +27,21 @@ if (!$n) {
     redirect('pages/notifications.php');
 }
 
+$relatedBooking = null;
+if (preg_match('/booking_details\.php\?id=(\d+)/', (string)$n['link'], $m)) {
+    $stmt = $conn->prepare(
+        'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status,
+                g.name AS ground_name, g.location
+         FROM bookings b
+         JOIN grounds g ON g.id = b.ground_id
+         WHERE b.id = ?'
+    );
+    $relId = (int)$m[1];
+    $stmt->bind_param('i', $relId);
+    $stmt->execute();
+    $relatedBooking = $stmt->get_result()->fetch_assoc();
+}
+
 if ((int)$n['is_read'] === 0) {
     $stmt = $conn->prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?');
     $stmt->bind_param('ii', $nid, $uid);
@@ -95,6 +110,25 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($n['body'] !== ''): ?>
             <div class="nd-body">
                 <p><?php echo e($n['body']); ?></p>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($relatedBooking): ?>
+            <div class="nd-booking">
+                <div class="nd-booking-head">
+                    <div class="mbooking-thumb"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div>
+                        <span class="eyebrow">Related booking</span>
+                        <h3><?php echo e($relatedBooking['ground_name']); ?></h3>
+                        <p class="muted" style="font-size:13px;"><i class="fa-solid fa-receipt"></i> <?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
+                    </div>
+                </div>
+                <dl class="bd-list">
+                    <div><dt>Date</dt><dd><?php echo e(date('D, M j, Y', strtotime($relatedBooking['booking_date']))); ?></dd></div>
+                    <div><dt>Time</dt><dd><?php echo e(substr($relatedBooking['start_time'], 0, 5)); ?> - <?php echo e(substr($relatedBooking['end_time'], 0, 5)); ?></dd></div>
+                    <div><dt>Status</dt><dd><span class="badge badge-<?php echo e($relatedBooking['status']); ?>"><?php echo ucfirst(e($relatedBooking['status'])); ?></span> <span class="badge badge-<?php echo $relatedBooking['payment_status'] === 'paid' ? 'paid' : ($relatedBooking['payment_status'] === 'partial' ? 'partial' : 'unpaid'); ?>"><?php echo ucfirst(e($relatedBooking['payment_status'])); ?></span></dd></div>
+                </dl>
+                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$relatedBooking['id']); ?>" class="btn btn-primary btn-block"><i class="fa-solid fa-eye"></i> View this booking</a>
             </div>
         <?php endif; ?>
 

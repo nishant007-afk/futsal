@@ -27,6 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($resend) {
+            $cooldown = otp_send_cooldown($email, 'email_verify');
+            if ($cooldown > 0) {
+                set_flash_error(
+                    'You\'re requesting too many codes.',
+                    'Wait ' . $cooldown . 's before asking for another one.',
+                    'Check your inbox for the code we already sent, then try again shortly.',
+                    'pages/verify.php?email=' . urlencode($email)
+                );
+                redirect('pages/login.php');
+            }
             $otp = issue_otp($email, 'email_verify');
             $sent = send_otp_mail($email, $otp, 'email_verify');
             set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable right now, so your code is shown below.');
@@ -63,13 +73,7 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted">Enter the 6-digit code we sent to your email.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($demoCode): ?>
         <div class="notice" style="margin-top:14px;">
@@ -78,7 +82,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 
-    <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" style="margin-top:18px;">
+    <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" style="margin-top:18px;" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="email" value="<?php echo e($email); ?>">
         <input type="hidden" name="resend" value="0">
@@ -96,11 +100,10 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
             </div>
-            <?php field_hint('The 6-digit code from the email. Numbers only, no spaces or dashes.'); ?>
             <?php field_error($errors, 'code'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Verify email</button>
-        <button type="submit" name="resend" value="1" class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
     <p class="form-foot"><a href="<?php echo base_url('pages/register.php'); ?>">Create a new account</a></p>
 </div>

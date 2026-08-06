@@ -36,18 +36,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const navToggle = document.getElementById('navToggle');
     const mainNav = document.getElementById('mainNav');
     if (navToggle && mainNav) {
+        function setNavOpen(open) {
+            mainNav.classList.toggle('open', open);
+            document.body.classList.toggle('nav-open', open);
+            navToggle.innerHTML = open ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
+        }
         navToggle.addEventListener('click', function (e) {
             e.stopPropagation();
-            mainNav.classList.toggle('open');
-            navToggle.innerHTML = mainNav.classList.contains('open')
-                ? '<i class="fa-solid fa-xmark"></i>'
-                : '<i class="fa-solid fa-bars"></i>';
+            setNavOpen(!mainNav.classList.contains('open'));
         });
         document.addEventListener('click', function (e) {
             if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && e.target !== navToggle) {
-                mainNav.classList.remove('open');
-                navToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+                setNavOpen(false);
             }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && mainNav.classList.contains('open')) setNavOpen(false);
         });
     }
 
@@ -116,7 +120,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const y = window.scrollY;
             if (y > lastY + 1) {
                 siteHeader.classList.add('collapsed');
-                if (mainNav) mainNav.classList.remove('open');
+                if (mainNav) {
+                    mainNav.classList.remove('open');
+                    document.body.classList.remove('nav-open');
+                }
             } else if (y < lastY - 1) {
                 siteHeader.classList.remove('collapsed');
             }
@@ -356,6 +363,69 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    document.querySelectorAll('button[data-autogate]').forEach(function (btn) {
+        const form = btn.closest('form');
+        if (!form) return;
+        function gate() {
+            let ok = true;
+            form.querySelectorAll('input[required], select[required], textarea[required]').forEach(function (el) {
+                if (el.disabled) return;
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    if (!el.checked) ok = false;
+                } else if (!el.value || !el.value.trim()) {
+                    ok = false;
+                }
+            });
+            btn.disabled = !ok;
+        }
+        form.addEventListener('input', gate);
+        form.addEventListener('change', gate);
+        gate();
+    });
+
+    const termsCheck = document.getElementById('termsCheck');
+    if (termsCheck) {
+        const termsForm = termsCheck.closest('form');
+        if (termsForm) {
+            termsForm.addEventListener('submit', function (e) {
+                if (!termsCheck.checked) {
+                    e.preventDefault();
+                    const wrap = termsCheck.closest('.check-line');
+                    if (wrap) {
+                        wrap.classList.add('field-error');
+                        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(function () { wrap.classList.remove('field-error'); }, 2500);
+                    }
+                    if (window.openErrorModal) openErrorModal('Please accept the Terms of Service and Privacy Policy to continue.', 'Almost there');
+                }
+            });
+        }
+    }
+
+    const markAllBtn = document.getElementById('bellMarkAll');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const form = markAllBtn.closest('form');
+            if (!form) return;
+            markAllBtn.disabled = true;
+            fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.ok ? r.text() : Promise.reject(new Error('request failed')); })
+                .then(function () {
+                    document.querySelectorAll('#bellPanel .bell-item.unread').forEach(function (item) {
+                        item.classList.remove('unread');
+                    });
+                    document.querySelectorAll('#bellPanel .bell-unread-dot').forEach(function (d) { d.remove(); });
+                    const dot = document.getElementById('bellDot');
+                    if (dot) dot.remove();
+                    const hc = document.querySelector('.bell-head-count');
+                    if (hc) hc.remove();
+                    if (typeof updateBellBadge === 'function') updateBellBadge(0);
+                })
+                .catch(function () { markAllBtn.disabled = false; });
+        });
+    }
+
     const appLoader = document.getElementById('appLoader');
     function showLoader() {
         if (appLoader && !appLoader.classList.contains('active')) {
@@ -367,6 +437,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     window.showLoader = showLoader;
     window.hideLoader = hideLoader;
+    const alDots = document.getElementById('alDots');
+    if (alDots) {
+        let dotCount = 0;
+        setInterval(function () {
+            dotCount = dotCount % 3 + 1;
+            alDots.textContent = '.'.repeat(dotCount);
+        }, 500);
+    }
     document.addEventListener('submit', function (e) {
         const form = e.target;
         if (form.hasAttribute('data-no-loader') || form.classList.contains('no-loader')) return;
@@ -390,6 +468,38 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    const googleLink = document.getElementById('googleLink');
+    if (googleLink && roleSelect) {
+        function syncGoogleRole() {
+            const checked = roleSelect.querySelector('input[name="role"]:checked');
+            const role = checked ? checked.value : 'user';
+            googleLink.href = googleLink.href.split('?')[0] + '?intent=signup&role=' + role;
+        }
+        syncGoogleRole();
+        roleSelect.addEventListener('click', syncGoogleRole);
+    }
+
+    const signupIntroToggle = document.getElementById('signupIntroToggle');
+    const signupIntroDetails = document.getElementById('signupIntroDetails');
+    if (signupIntroToggle && signupIntroDetails) {
+        signupIntroToggle.addEventListener('click', function () {
+            const open = signupIntroDetails.classList.toggle('open');
+            signupIntroToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    }
+
+    document.querySelectorAll('a.btn-google[href*="login_google"]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            let url = btn.getAttribute('href');
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 'popup=1';
+            const w = 560, h = 620;
+            const left = Math.max(0, (window.screen.width - w) / 2);
+            const top = Math.max(0, (window.screen.height - h) / 2);
+            window.open(url, 'googleSignIn', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes,popup=yes');
+        });
+    });
 
     document.querySelectorAll('.role-switch select[data-role-select]').forEach(function (sel) {
         sel.addEventListener('change', function () {
@@ -493,15 +603,20 @@ document.addEventListener('DOMContentLoaded', function () {
     function openConfirmModal(message, onConfirm, labels) {
         labels = labels || {};
         showBackdrop();
+        const esc = function (s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML =
-            '<div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>' +
-            '<h3>Are you sure?</h3>' +
-            '<p>' + message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
+            '<div class="modal-head">' +
+                '<span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>' +
+                '<h3>Are you sure?</h3>' +
+            '</div>' +
+            '<p class="modal-msg">' + esc(message) + '</p>' +
             '<div class="modal-actions">' +
-            '<button type="button" class="btn btn-ghost" data-modal-cancel>' + (labels.cancelText || 'Cancel') + '</button>' +
-            '<button type="button" class="btn btn-danger" data-modal-ok>' + (labels.okText || 'Yes, continue') + '</button>' +
+                '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Cancel') + '</button>' +
+                '<button type="button" class="btn btn-danger" data-modal-ok>' + esc(labels.okText || 'Yes, continue') + '</button>' +
             '</div>';
         document.body.appendChild(modal);
 
@@ -516,17 +631,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         modal.querySelector('[data-modal-cancel]').focus();
     }
+    function openErrorModal(message, title) {
+        showBackdrop();
+        const esc = function (s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+        const modal = document.createElement('div');
+        modal.className = 'modal modal-error';
+        modal.innerHTML =
+            '<button type="button" class="modal-x" data-modal-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+            '<div class="modal-head">' +
+                '<span class="modal-icon"><i class="fa-solid fa-circle-xmark"></i></span>' +
+                '<h3>' + esc(title || 'Something went wrong') + '</h3>' +
+            '</div>' +
+            '<p class="modal-msg">' + esc(message) + '</p>';
+        document.body.appendChild(modal);
+        function close() {
+            modal.classList.add('hide');
+            setTimeout(function () { modal.remove(); removeBackdropIfEmpty(); }, 220);
+        }
+        modal.querySelector('[data-modal-close]').addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+        });
+        setTimeout(function () { modal.querySelector('[data-modal-close]').focus(); }, 10);
+        return { close: close };
+    }
+    window.openErrorModal = openErrorModal;
+    document.querySelectorAll('[data-error-modal-msg]').forEach(function (el) {
+        const pws = document.querySelectorAll('.form-card input[type="password"]');
+        if (pws.length) {
+            pws.forEach(function (p) { p.classList.add('field-error'); });
+            setTimeout(function () { if (pws[0]) pws[0].focus(); }, 150);
+        }
+        openErrorModal(el.getAttribute('data-error-modal-msg'), el.getAttribute('data-error-modal-title'));
+    });
     toasts.forEach(function (t, i) {
         const close = t.querySelector('.toast-close');
         if (close) close.addEventListener('click', function () { dismissToast(t); });
-        if (t.classList.contains('toast-inline')) {
-            setTimeout(function () { dismissToast(t); }, 2500);
-            return;
+        const isError = t.classList.contains('toast-error');
+        const autoDismiss = t.classList.contains('toast-success') || t.classList.contains('toast-info');
+        const isInline = t.classList.contains('toast-inline');
+        if (isInline) {
+            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
+        } else {
+            showBackdrop();
+            t.style.top = 'calc(50% + ' + ((i - (toasts.length - 1) / 2) * 64) + 'px)';
+            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
         }
-        showBackdrop();
-        t.style.top = 'calc(50% + ' + ((i - (toasts.length - 1) / 2) * 64) + 'px)';
-        setTimeout(function () { dismissToast(t); }, 2500);
-        if (t.classList.contains('toast-error')) {
+        if (isError) {
             highlightPasswordError(t);
         }
     });

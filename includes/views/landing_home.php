@@ -91,8 +91,8 @@ if ($date !== '') {
         <?php if (!$featured): ?>
             <div class="empty">
                 <span class="big"><i class="fa-solid fa-futbol"></i></span>
-                No grounds match your search.
-                <p style="margin-top:8px;"><a href="<?php echo base_url('index.php#grounds'); ?>" class="inline-link">Clear search and browse all</a></p>
+                <h3>No grounds match your search</h3>
+                <p><a href="<?php echo base_url('index.php#grounds'); ?>" class="btn btn-outline btn-sm">Clear search &amp; browse all</a></p>
             </div>
         <?php else: ?>
             <div class="grid grid-3">

@@ -17,11 +17,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_promo'])) {
     if (!preg_match('/^[A-Z0-9_-]{3,40}$/', $code)) {
         $errors['code'] = 'Code must be 3-40 characters using letters, numbers, dash or underscore.';
     }
-    if ($discount_type === 'percent' && ($discount_value <= 0 || $discount_value > 100)) {
-        $errors['discount_value'] = 'Percent discount must be between 1 and 100.';
+    if (!in_array($discount_type, ['percent', 'flat'], true)) {
+        $errors['discount_type'] = 'Discount type is invalid.';
+    } else {
+        if ($discount_type === 'percent' && ($discount_value <= 0 || $discount_value > 100)) {
+            $errors['discount_value'] = 'Percent discount must be between 1 and 100.';
+        } elseif ($discount_type === 'flat' && $discount_value <= 0) {
+            $errors['discount_value'] = 'Flat discount must be greater than 0.';
+        }
     }
-    if ($discount_type === 'flat' && $discount_value <= 0) {
-        $errors['discount_value'] = 'Flat discount must be greater than 0.';
+    if ($min_total < 0) {
+        $errors['min_total'] = 'Minimum total can\'t be a negative amount.';
+    }
+    if ($max_uses < 0) {
+        $errors['max_uses'] = 'Max uses can\'t be negative.';
+    }
+    if ($starts_at !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $starts_at)) {
+        $errors['starts_at'] = 'Start date must use YYYY-MM-DD format.';
+    }
+    if ($expires_at !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $expires_at)) {
+        $errors['expires_at'] = 'End date must use YYYY-MM-DD format.';
+    }
+    if ($starts_at && $expires_at && $expires_at < $starts_at) {
+        $errors['expires_at'] = 'End date must be on or after the start date.';
     }
     if ($errors) {
         flash_form($errors, [
@@ -39,7 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_promo'])) {
         if ($stmt->execute()) {
             set_flash('success', 'Promo code ' . $code . ' created for your courts.');
         } else {
-            set_flash('error', 'That code already exists.');
+        set_flash_error(
+            'That promo code already exists.',
+            'Each code must be unique on the platform.',
+            'Pick a different code and try again.',
+            'manager/promos.php'
+        );
         }
     }
     redirect('manager/promos.php');
@@ -80,13 +103,11 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card reveal" style="max-width:560px;margin-bottom:30px;">
     <h3 style="margin-bottom:6px;"><i class="fa-solid fa-wand-magic-sparkles"></i> New promo code</h3>
-    <p class="muted" style="margin-bottom:16px;font-size:12.5px;">Percent takes a % off the total; flat takes a fixed amount off.</p>
-    <form method="post" action="">
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
             <label for="code">Code</label>
             <input type="text" id="code" name="code" maxlength="40" value="<?php echo e(old_value($old, 'code')); ?>" placeholder="e.g. SUMMER20" required>
-            <?php field_hint('Letters, numbers, dash or underscore. Shown to players in capitals.'); ?>
             <?php field_error($errors, 'code'); ?>
         </div>
         <div class="form-group">
@@ -99,7 +120,6 @@ require __DIR__ . '/../includes/header.php';
         <div class="form-group<?php echo has_error($errors, 'discount_value'); ?>">
             <label for="discountValue">Discount value</label>
             <input type="number" id="discountValue" name="discount_value" step="0.01" min="1" value="<?php echo e(old_value($old, 'discount_value')); ?>" placeholder="10 = 10%" required>
-            <?php field_hint('For percent: a number from 1 to 100. For flat: the rupee amount off.'); ?>
             <?php field_error($errors, 'discount_value'); ?>
         </div>
         <div class="grid grid-2">
@@ -120,7 +140,6 @@ require __DIR__ . '/../includes/header.php';
             <div class="form-group">
                 <label for="expiresAt">Expires <span class="muted" style="font-weight:400;">(optional)</span></label>
                 <input type="date" id="expiresAt" name="expires_at" value="<?php echo e(old_value($old, 'expires_at')); ?>">
-                <?php field_hint('Leave the dates blank to let it run with no time limit.'); ?>
             </div>
         </div>
         <button type="submit" name="add_promo" value="1" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create promo</button>

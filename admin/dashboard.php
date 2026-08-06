@@ -147,7 +147,7 @@ require __DIR__ . '/../includes/header.php';
 
 <h3 class="reveal" style="margin:30px 0 14px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings</h3>
 <?php if (!$recent): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>No bookings yet.</div>
+    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings from across the platform will appear here.</p></div>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($recent as $b): ?>
@@ -163,11 +163,11 @@ require __DIR__ . '/../includes/header.php';
                         <span class="mbooking-status">
                             <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
                             <?php if ($b['payment_status'] === 'paid'): ?>
-                                <span class="badge badge-confirmed">Paid</span>
+                                <span class="badge badge-paid">Paid</span>
                             <?php elseif ($b['payment_status'] === 'partial'): ?>
-                                <span class="badge badge-pending"><?php echo format_price($b['amount_paid']); ?> paid</span>
+                                <span class="badge badge-partial"><?php echo format_price($b['amount_paid']); ?> paid</span>
                             <?php else: ?>
-                                <span class="badge badge-cancelled">Unpaid</span>
+                                <span class="badge badge-unpaid">Unpaid</span>
                             <?php endif; ?>
                         </span>
                     </div>

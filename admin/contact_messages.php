@@ -71,7 +71,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php if (!$messages): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-envelope-open"></i></span>No contact messages here.</div>
+    <div class="empty reveal"><span class="big"><i class="fa-regular fa-envelope-open"></i></span><h3>No contact messages</h3><p>Messages from the contact form will appear here.</p></div>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($messages as $m): ?>

@@ -1,6 +1,7 @@
 # Local credentials — copy the .example files in config/
 config/db.php
 config/mail.php
+.env
 
 # Composer dependencies (restore with: composer install)
 /vendor/
@@ -15,6 +16,7 @@ config/mail.php
 *.log
 Thumbs.db
 .DS_Store
+~$*
 
 # Editor folders
 .idea/

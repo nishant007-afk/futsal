@@ -20,6 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $resend = !empty($_POST['resend']);
 
     if ($resend) {
+        $cooldown = otp_send_cooldown($email, 'login');
+        if ($cooldown > 0) {
+            set_flash_error(
+                'You\'re requesting too many codes.',
+                'Wait ' . $cooldown . 's before asking for another one.',
+                'Check your inbox for the code we already sent, then try again shortly.',
+                'pages/login.php'
+            );
+            redirect('pages/login.php');
+        }
         $otp = issue_otp($email, 'login');
         $sent = send_otp_mail($email, $otp, 'login');
         $_SESSION['pending_login']['otp'] = $otp;
@@ -39,7 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->get_result()->fetch_assoc();
             if (!$user) {
                 unset($_SESSION['pending_login']);
-                set_flash('error', 'Something went wrong. Please log in again.');
+                set_flash_error(
+                    'We couldn\'t finish logging you in.',
+                    'Your login session expired while verifying the code.',
+                    'Log in again and it should only take a minute.',
+                    'pages/login.php'
+                );
                 redirect('pages/login.php');
             }
             unset($_SESSION['pending_login']);
@@ -66,13 +81,7 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($demoCode || (!empty($pending['otp']) && empty($pending['sent']))): ?>
         <div class="notice" style="margin-top:14px;">
@@ -81,7 +90,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 
-    <form method="post" action="" style="margin-top:18px;">
+    <form method="post" action="" style="margin-top:18px;" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
             <label for="code">Login code</label>
@@ -89,11 +98,10 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
             </div>
-            <?php field_hint('The 6-digit code sent to your email. Numbers only, no spaces or dashes.'); ?>
             <?php field_error($errors, 'code'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> Verify and log in</button>
-        <button type="submit" name="resend" value="1" class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
     <p class="form-foot"><a href="<?php echo base_url('pages/login.php'); ?>">Use a different account</a></p>
 </div>

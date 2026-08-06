@@ -15,7 +15,10 @@ $errors = [];
 $codeSent = false;
 $demoCode = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+$cooldown = otp_send_cooldown($me['email'], 'password_change');
+$resendLeft = max(0, $cooldown);
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     $code = issue_otp($me['email'], 'password_change');
     if (send_otp_mail($me['email'], $code, 'password_change')) {
         $codeSent = true;
@@ -30,6 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $otp = preg_replace('/\D/', '', $_POST['otp'] ?? '');
 
     if (!empty($_POST['resend'])) {
+        $cooldown = otp_send_cooldown($me['email'], 'password_change');
+        if ($cooldown > 0) {
+            set_flash_error(
+                'You\'re sending codes too quickly.',
+                'Wait ' . $cooldown . 's before requesting another code.',
+                'Check your inbox for the latest code, or try again shortly.',
+                'pages/change_password_otp.php'
+            );
+            redirect('pages/change_password_otp.php');
+        }
         $code = issue_otp($me['email'], 'password_change');
         if (send_otp_mail($me['email'], $code, 'password_change')) {
             set_flash('success', 'A new security code has been sent to your email.');
@@ -67,13 +80,7 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted">We just sent a 6-digit security code to <strong><?php echo e($me['email']); ?></strong>. Enter it below to finish changing your password.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): ?>
-        <div class="toast toast-error" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span><?php echo e($errors['general']); ?></span>
-            <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-    <?php endif; ?>
+    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($codeSent): ?>
         <div class="notice">
@@ -82,7 +89,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 
-    <form method="post" action="">
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'otp'); ?>">
             <label for="otp">Security code</label>
@@ -90,12 +97,11 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
             </div>
-            <?php field_hint('The 6-digit code sent to your email. Numbers only, no spaces or dashes.'); ?>
             <?php field_error($errors, 'otp'); ?>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm &amp; change password</button>
-        <button type="submit" name="resend" value="1" class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
         <p class="form-foot"><a href="<?php echo base_url('pages/change_password.php'); ?>">Start over</a></p>
     </form>
 </div>

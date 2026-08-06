@@ -60,12 +60,11 @@ require __DIR__ . '/../includes/header.php';
 <p class="muted" style="margin-bottom:8px;">Here's how your courts are doing.</p>
 
 <?php if (!$subStatus['active']): ?>
-    <div class="toast toast-error toast-inline reveal" role="alert">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>
-            <div><strong><?php echo e($subStatus['label']); ?></strong> Your courts are hidden from players.</div>
-            <div>Pay the setup fee / renew your monthly service charge to go live again. Contact the platform admin.</div>
-        </span>
+    <div class="toast toast-warning toast-inline reveal" role="status">
+        <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="toast-content">
+            <div class="toast-msg"><?php echo e($subStatus['label']); ?> — your courts are hidden from players. Pay the setup fee or renew your monthly service charge to go live again. Contact the platform admin.</div>
+        </div>
     </div>
 <?php endif; ?>
 
@@ -145,7 +144,7 @@ require __DIR__ . '/../includes/header.php';
 
 <h3 class="reveal" style="margin-bottom:14px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings on My Grounds</h3>
 <?php if (!$recent): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>No bookings yet.</div>
+    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings on your grounds will appear here.</p></div>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($recent as $b): ?>
@@ -161,11 +160,11 @@ require __DIR__ . '/../includes/header.php';
                         <span class="mbooking-status">
                             <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
                             <?php if ($b['payment_status'] === 'paid'): ?>
-                                <span class="badge badge-confirmed">Paid</span>
+                                <span class="badge badge-paid">Paid</span>
                             <?php elseif ($b['payment_status'] === 'partial'): ?>
-                                <span class="badge badge-pending"><?php echo format_price($b['amount_paid']); ?> paid</span>
+                                <span class="badge badge-partial"><?php echo format_price($b['amount_paid']); ?> paid</span>
                             <?php else: ?>
-                                <span class="badge badge-cancelled">Unpaid</span>
+                                <span class="badge badge-unpaid">Unpaid</span>
                             <?php endif; ?>
                         </span>
                     </div>

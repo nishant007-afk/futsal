@@ -18,7 +18,12 @@ $stmt->execute();
 $booking = $stmt->get_result()->fetch_assoc();
 
 if (!$booking || $booking['status'] === 'cancelled') {
-    set_flash('error', 'Booking not found.');
+    set_flash_error(
+        'We couldn\'t find that booking.',
+        'It may have been cancelled, or the link may be out of date.',
+        'Open the booking from My Bookings to see its current status.',
+        'pages/my_bookings.php'
+    );
     redirect('pages/my_bookings.php');
 }
 
@@ -69,13 +74,17 @@ require __DIR__ . '/../includes/header.php';
                 <?php elseif ($booking['payment_status'] === 'partial'): ?>
                     <span style="display:block;font-size:11.5px;color:var(--warn);margin-top:3px;">Rs <?php echo number_format((float)$booking['amount_paid'], 0); ?> paid &middot; rest at court</span>
                 <?php else: ?>
-                    <span style="display:block;font-size:11.5px;color:var(--warn);margin-top:3px;">Unpaid &middot; pay at court</span>
+                    <span style="display:block;font-size:11.5px;color:var(--warn);margin-top:3px;">Unpaid &middot; pay online or at court</span>
                 <?php endif; ?>
             </div>
         </div>
 
         <div class="confirm-actions">
-            <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-invoice-dollar"></i> Payment receipt</a>
+            <?php if ($booking['payment_status'] === 'paid'): ?>
+                <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-invoice-dollar"></i> Payment receipt</a>
+            <?php elseif ($booking['payment_status'] === 'unpaid'): ?>
+                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay online now</a>
+            <?php endif; ?>
             <a href="<?php echo e($gcal); ?>" target="_blank" rel="noopener" class="btn btn-outline"><i class="fa-regular fa-calendar-plus"></i> Add to Google Calendar</a>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-ghost"><i class="fa-solid fa-calendar-check"></i> My bookings</a>
         </div>

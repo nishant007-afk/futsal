@@ -71,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Confirm Password Change';
-require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="form-card lg" style="margin-top:44px;">
@@ -100,10 +99,8 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'otp'); ?>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm &amp; change password</button>
+        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm & change password</button>
         <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
         <p class="form-foot"><a href="<?php echo base_url('pages/change_password.php'); ?>">Start over</a></p>
     </form>
 </div>
-
-<?php require __DIR__ . '/../includes/footer.php'; ?>

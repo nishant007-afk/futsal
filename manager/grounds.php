@@ -93,6 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $close_time = trim($_POST['close_time'] ?? '22:00');
     $slot_interval = (int)($_POST['slot_interval'] ?? 60);
     $price_weekend = $_POST['price_weekend'] !== '' ? (float)$_POST['price_weekend'] : null;
+    $address = trim($_POST['address'] ?? '');
+    $court_number = trim($_POST['court_number'] ?? '') !== '' ? trim($_POST['court_number']) : null;
     $id = (int)($_POST['id'] ?? 0);
 
     if ($name === '') {
@@ -126,15 +128,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         if ($id > 0 && user_owns_ground($id)) {
             $stmt = $conn->prepare(
-                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ? WHERE id = ? AND manager_id = ?'
+                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ? WHERE id = ? AND manager_id = ?'
             );
-            $stmt->bind_param('sssdisisdsi', $name, $location, $description, $price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $id, $_SESSION['user_id']);
+            $stmt->bind_param('sssdisisdsdsi', $name, $location, $description, $price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $id, $_SESSION['user_id']);
             $msg = 'Ground updated.';
         } else {
             $stmt = $conn->prepare(
-                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssdisissds', $name, $location, $description, $price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend);
+            $stmt->bind_param('sssdisissdsds', $name, $location, $description, $price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number);
             $msg = 'Ground added.';
         }
         if ($stmt->execute()) {
@@ -303,8 +305,16 @@ require __DIR__ . '/../includes/header.php';
                     <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
                     <?php field_error($errors, 'price_weekend'); ?>
-                </div>
-            </div>
+                 </div>
+                 <div class="form-group">
+                     <label for="address"><i class="fa-solid fa-location-dot"></i> Full address (for maps)</label>
+                     <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
+                 </div>
+                 <div class="form-group">
+                     <label for="court_number"><i class="fa-solid fa-number-dot"></i> Court number/name (optional)</label>
+                     <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
+                 </div>
+             </div>
             <div class="form-group">
                 <label for="description"><i class="fa-solid fa-align-left"></i> Description</label>
                 <textarea id="description" name="description" rows="3"><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>

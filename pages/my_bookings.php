@@ -90,45 +90,6 @@ $past = array_values(array_filter($bookings, function ($b) use ($today) {
     return !($b['booking_date'] >= $today && $b['status'] !== 'cancelled');
 }));
 
-function booking_card($b): void
-{
-    $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
-    $payLabel = $b['payment_status'] === 'partial' ? 'Pay Rs ' . number_format(max(0, (float)$b['total_price'] - (float)$b['amount_paid']), 0) : 'Pay now';
-    ?>
-    <div class="mbooking mbooking--card">
-        <div class="mbooking-date mb-date" aria-label="<?php echo e(date('M j, Y', strtotime($b['booking_date']))); ?>">
-            <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
-            <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
-            <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
-        </div>
-        <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
-            <h3><?php echo e($b['ground_name']); ?></h3>
-        </div>
-        <div class="mb-time mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></div>
-        <div class="mb-status">
-            <span class="badge badge-<?php echo e($b['status']); ?>">
-                <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
-                <?php echo ucfirst(e($b['status'])); ?>
-            </span>
-            <span class="pay-badge pay-<?php echo e($b['payment_status']); ?>">
-                <?php echo ucfirst(e($b['payment_status'] === 'partial' ? 'Partial' : ($b['payment_status'] === 'paid' ? 'Paid' : 'Pending'))); ?>
-            </span>
-        </div>
-        <div class="mb-price">Rs <?php echo number_format((float)$b['total_price'], 0); ?></div>
-        <div class="mb-actions">
-            <?php if ($needsPayment): ?>
-                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary btn-sm mb-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
-            <?php else: ?>
-                <span class="pay-done muted">Paid</span>
-            <?php endif; ?>
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link">View details <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-    </div>
-    <?php
-}
-?>
-
-<?php
 $page_title = 'My Bookings';
 require __DIR__ . '/../includes/header.php';
 ?>

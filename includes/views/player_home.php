@@ -76,46 +76,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <?php else: ?>
         <div class="mbookings reveal">
             <?php foreach ($upcoming as $b): ?>
-                <div class="mbooking">
-                    <div class="mbooking-date">
-                        <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
-                        <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
-                        <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
-                    </div>
-                    <div class="mbooking-main">
-                        <div class="mbooking-head">
-                            <div class="mbooking-head-row">
-                                <h3><?php echo e($b['ground_name']); ?></h3>
-                                <span class="badge badge-<?php echo e($b['status']); ?>">
-                                    <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
-                                    <?php echo ucfirst(e($b['status'])); ?>
-                                </span>
-                            </div>
-                            <span class="mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
-                        </div>
-                        <div class="mbooking-meta">
-                            <span><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
-                            <span class="mprice"><i class="fa-solid fa-tag"></i> Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
-                            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link">View details <i class="fa-solid fa-arrow-right"></i></a>
-                        </div>
-                        <?php if ($b['status'] === 'confirmed' && $b['payment_status'] !== 'paid'): ?>
-                            <?php $balance = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
-                            <div class="paybar <?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
-                                <span class="paybar-info">
-                                    <i class="fa-solid fa-<?php echo $b['payment_status'] === 'partial' ? 'hourglass-half' : 'circle-exclamation'; ?>"></i>
-                                    <span>
-                                        <?php if ($b['payment_status'] === 'partial'): ?>
-                                            Advance already paid &middot; <strong>Rs <?php echo number_format($balance, 0); ?></strong> left to pay
-                                        <?php else: ?>
-                                            <strong>Rs <?php echo number_format($balance, 0); ?></strong> due &middot; pay to lock in your slot
-                                        <?php endif; ?>
-                                    </span>
-                                </span>
-                                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay Rs <?php echo number_format($balance, 0); ?></a>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                <?php booking_card($b); ?>
             <?php endforeach; ?>
         </div>
         <p class="section-foot"><a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="inline-link">View all bookings <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></a></p>

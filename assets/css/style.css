@@ -2064,6 +2064,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
 .bd-section-full { grid-column: 1 / -1; }
 .bd-section h2 { font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .bd-section h2 i { color: var(--brand-700); font-size: 13px; }
+.bd-map iframe { display: block; }
 .bd-list { margin: 0; }
 .bd-list > div {
     display: flex; justify-content: space-between; align-items: baseline; gap: 14px;

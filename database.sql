@@ -41,9 +41,11 @@ CREATE TABLE IF NOT EXISTS grounds (
   is_active TINYINT(1) DEFAULT 1,
   open_time TIME NOT NULL DEFAULT '08:00:00',
   close_time TIME NOT NULL DEFAULT '22:00:00',
-  slot_interval INT NOT NULL DEFAULT 60,
-  price_weekend DECIMAL(8,2) DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   slot_interval INT NOT NULL DEFAULT 60,
+   price_weekend DECIMAL(8,2) DEFAULT NULL,
+   address VARCHAR(255) NOT NULL DEFAULT '',
+   court_number VARCHAR(20) NULL DEFAULT NULL,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
@@ -235,8 +237,8 @@ INSERT INTO users (name, email, phone, password, role) VALUES
 -- Note: All seeded users share the same bcrypt hash of password "password123"
 -- (hash: $2y$10$OMmkJ9UnTpor8Psg8IeCdelLBzafZCAFJ9unOREXJNUJcfWlMYgFm)
 
-INSERT INTO grounds (name, location, description, price_per_hour, image, capacity, manager_id) VALUES
-  ('Downtown Futsal Arena', 'New Road, Kathmandu', 'Indoor futsal court with wooden flooring, floodlights and changing rooms.', 2500.00, '', 12, 3),
+INSERT INTO grounds (name, location, description, price_per_hour, image, capacity, manager_id, address, court_number) VALUES
+  ('Downtown Futsal Arena', 'New Road, Kathmandu', 'Indoor futsal court with wooden flooring, floodlights and changing rooms.', 2500.00, '', 12, 3, 'New Road, Kathmandu 44600, Nepal', 'Court 1'),
   ('Golden City Futsal', 'Jawalakhel, Lalitpur', 'Outdoor turf pitch, ideal for evening games with floodlights.', 1800.00, '', 10, 3),
   ('Riverside Sports Hub', 'Baneshwor, Kathmandu', 'Well-maintained court with a cafe and free parking on site.', 2200.00, '', 10, 3),
   ('Thamel Sports Complex', 'Thamel, Kathmandu', 'Busy indoor arena in the heart of the city with night floodlights.', 2100.00, '', 10, 3),

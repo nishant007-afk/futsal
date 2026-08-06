@@ -11,7 +11,7 @@ $booking_id = (int)($_GET['id'] ?? 0);
 $stmt = $conn->prepare(
     'SELECT b.id, b.user_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.discount, b.promo_code, b.created_at, b.repeat_weeks,
-            g.name AS ground_name, g.location, g.manager_id,
+            g.name AS ground_name, g.location, g.address, g.court_number, g.manager_id,
             u.name AS user_name, u.email AS user_email, u.phone AS user_phone,
             m.name AS manager_name
      FROM bookings b
@@ -116,8 +116,20 @@ require __DIR__ . '/../includes/header.php';
                     <div><dt>Weekly series</dt><dd>Every week &times;<?php echo (int)$b['repeat_weeks']; ?></dd></div>
                 <?php endif; ?>
                 <div><dt>Booked on</dt><dd><?php echo e(date('M j, Y g:i A', strtotime($b['created_at']))); ?></dd></div>
+                <?php if (!empty($b['court_number'])): ?><div><dt>Court</dt><dd><?php echo e($b['court_number']); ?></dd></div><?php endif; ?>
             </dl>
         </section>
+
+        <?php if (!empty($b['address'])): ?>
+        <section class="bd-section bd-map">
+            <h2><i class="fa-solid fa-location-dot"></i> Venue location</h2>
+            <p class="muted"><?php echo e($b['address']); ?></p>
+            <iframe
+                width="100%" height="210" style="border:0;border-radius:var(--r-sm)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                src="https://maps.google.com/maps?q=<?php echo rawurlencode($b['address']); ?>&t=&z=16&ie=UTF8&iwloc=B&output=embed">
+            </iframe>
+        </section>
+        <?php endif; ?>
 
         <?php if ($me['role'] !== 'user'): ?>
             <section class="bd-section">

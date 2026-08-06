@@ -65,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $close_time = trim($_POST['close_time'] ?? '22:00');
     $slot_interval = (int)($_POST['slot_interval'] ?? 60);
     $price_weekend = $_POST['price_weekend'] !== '' ? (float)$_POST['price_weekend'] : null;
+    $address = trim($_POST['address'] ?? '');
+    $court_number = trim($_POST['court_number'] ?? '') !== '' ? trim($_POST['court_number']) : null;
     $id = (int)($_POST['id'] ?? 0);
 
     if ($name === '') {
@@ -102,15 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         if ($id > 0) {
             $stmt = $conn->prepare(
-                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, manager_id = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ? WHERE id = ?'
+                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, manager_id = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ? WHERE id = ?'
             );
-            $stmt->bind_param('sssdisisdsdi', $name, $location, $description, $price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $id);
+            $stmt->bind_param('sssdisisdsdssi', $name, $location, $description, $price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $id);
             $msg = 'Ground updated.';
         } else {
             $stmt = $conn->prepare(
-                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssdisissds', $name, $location, $description, $price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend);
+            $stmt->bind_param('sssdisissdsds', $name, $location, $description, $price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number);
             $msg = 'Ground added.';
         }
         if ($stmt->execute()) {
@@ -242,8 +244,16 @@ require __DIR__ . '/../includes/header.php';
                     <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
                     <?php field_error($errors, 'price_weekend'); ?>
-                </div>
-            </div>
+                 </div>
+                 <div class="form-group">
+                     <label for="address"><i class="fa-solid fa-location-dot"></i> Full address (for maps)</label>
+                     <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
+                 </div>
+                 <div class="form-group">
+                     <label for="court_number"><i class="fa-solid fa-number-dot"></i> Court number/name (optional)</label>
+                     <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
+                 </div>
+             </div>
             <div class="form-group<?php echo has_error($errors, 'manager_id'); ?>">
                 <label for="manager_id"><i class="fa-solid fa-user-tie"></i> Owned By (Manager)</label>
                 <select id="manager_id" name="manager_id">

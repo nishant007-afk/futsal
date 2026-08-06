@@ -82,20 +82,20 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/settlements.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">Managers keep 100% of booking revenue. GoalSpace earns a one-time setup fee + a monthly service charge, tracked here.</p>
+<p class="muted page-sub">Managers keep 100% of booking revenue. GoalSpace earns a one-time setup fee + a monthly service charge, tracked here.</p>
 
-<div class="stat-grid" style="margin-bottom:26px;">
+<div class="stat-grid tight">
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
         <h3>Setup fee</h3>
-        <p style="font-size:1.2rem;">Rs <?php echo number_format($setupFee, 0); ?></p>
-        <span class="muted" style="font-size:12px;"><?php echo format_price($totalSetupCollected); ?> collected</span>
+        <p class="stat-amount">Rs <?php echo number_format($setupFee, 0); ?></p>
+        <span class="muted"><?php echo format_price($totalSetupCollected); ?> collected</span>
     </div>
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-calendar-week"></i></div>
         <h3>Monthly charge</h3>
-        <p style="font-size:1.2rem;">Rs <?php echo number_format($monthlyFee, 0); ?></p>
-        <span class="muted" style="font-size:12px;"><?php echo format_price($totalMonthlyCollected); ?> last 30 days</span>
+        <p class="stat-amount">Rs <?php echo number_format($monthlyFee, 0); ?></p>
+        <span class="muted"><?php echo format_price($totalMonthlyCollected); ?> last 30 days</span>
     </div>
 </div>
 
@@ -114,7 +114,7 @@ require __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
             <?php if (!$managerRows): ?>
-                <tr><td colspan="7" class="muted" style="text-align:center;padding:22px;">No managers yet.</td></tr>
+                <tr><td colspan="7" class="muted table-empty">No managers yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($managerRows as $m): ?>
                     <?php
@@ -132,11 +132,11 @@ require __DIR__ . '/../includes/header.php';
                     }
                     ?>
                     <tr>
-                        <td class="strong"><?php echo e($m['name']); ?><br><span class="muted" style="font-size:12px;"><?php echo e($m['email']); ?></span></td>
+                        <td class="strong"><?php echo e($m['name']); ?><br><span class="muted"><?php echo e($m['email']); ?></span></td>
                         <td><?php echo (int)$m['ground_count']; ?></td>
                         <td>
                             Rs <?php echo number_format((float)$m['setup_fee'], 0); ?>
-                            <?php if ($m['setup_paid_at']): ?><span class="badge badge-confirmed" style="margin-left:4px;">Paid <?php echo e(date('M j', strtotime($m['setup_paid_at']))); ?></span><?php endif; ?>
+                            <?php if ($m['setup_paid_at']): ?><span class="badge badge-confirmed ml-4">Paid <?php echo e(date('M j', strtotime($m['setup_paid_at']))); ?></span><?php endif; ?>
                         </td>
                         <td>Rs <?php echo number_format((float)$m['monthly_fee'], 0); ?>/mo</td>
                         <td>

@@ -72,7 +72,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> Bookings</a>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">A quick overview of users, grounds and bookings on the platform.</p>
+<p class="muted page-sub">A quick overview of users, grounds and bookings on the platform.</p>
 
 <div class="stat-grid">
     <div class="stat reveal">
@@ -89,17 +89,17 @@ require __DIR__ . '/../includes/header.php';
     </div>
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-        <h3>Bookings Revenue</h3><p style="font-size:1.2rem;"><?php echo format_price($revenue); ?></p>
+        <h3>Bookings Revenue</h3><p class="stat-amount"><?php echo format_price($revenue); ?></p>
         <!-- <span class="muted" style="font-size:12px;">100% to managers</span> -->
     </div>
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-        <h3>Subscription Revenue</h3><p style="font-size:1.2rem;"><?php echo format_price($subRevenue); ?></p>
+        <h3>Subscription Revenue</h3><p class="stat-amount"><?php echo format_price($subRevenue); ?></p>
         <!-- <span class="muted" style="font-size:12px;">Setup + monthly charges</span> -->
     </div>
 </div>
 
-<div class="grid grid-3 reveal" style="margin-top:20px;">
+<div class="grid grid-3 reveal mt-20">
     <div class="card-mini"><div class="mini-icon admin"><i class="fa-solid fa-file-invoice-dollar"></i></div><span>Setup paid</span><strong><?php echo $setupCollected; ?> / <?php echo $managerCount; ?></strong></div>
     <div class="card-mini"><div class="mini-icon manager"><i class="fa-solid fa-circle-check"></i></div><span>Active subs</span><strong><?php echo $activeSubs; ?></strong></div>
     <div class="card-mini"><div class="mini-icon user"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Overdue</span><strong><?php echo $overdueSubs; ?></strong></div>
@@ -127,7 +127,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="chart-card">
         <h3 class="chart-title"><i class="fa-solid fa-trophy"></i> Top grounds by revenue</h3>
         <?php if (!$topGrounds): ?>
-            <p class="muted" style="font-size:13px;padding:10px 0;">No revenue yet.</p>
+            <p class="muted" style="padding:10px 0;">No revenue yet.</p>
         <?php else: ?>
             <div class="top-grounds">
                 <?php foreach ($topGrounds as $i => $tg): ?>
@@ -145,7 +145,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<h3 class="reveal" style="margin:30px 0 14px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings</h3>
+<h3 class="reveal dash-section"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings</h3>
 <?php if (!$recent): ?>
     <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings from across the platform will appear here.</p></div>
 <?php else: ?>

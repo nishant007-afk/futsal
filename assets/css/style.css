@@ -1644,6 +1644,30 @@ td.strong { font-weight: 700; color: var(--ink); }
 .page-head h2 { font-size: 24px; display: flex; align-items: center; gap: 11px; }
 .page-head h2 i { font-size: 19px; color: var(--role-dark, var(--brand-700)); }
 .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.actions.tight { gap: 8px; }
+
+/* ============ ADMIN / MANAGER UTILITIES ============ */
+.page-sub { margin-bottom: 8px; }
+.dash-section { display: flex; align-items: center; gap: 8px; margin: 30px 0 14px; font-size: 17px; }
+.dash-section i { color: var(--role-dark, var(--brand-700)); font-size: 15px; }
+.block-title { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 16px; }
+.block-title i { color: var(--role-dark, var(--brand-700)); font-size: 14px; }
+.stat .stat-amount { font-size: 20px; }
+.stat-grid.tight { margin-bottom: 26px; }
+.grid.mt-20 { margin-top: 20px; }
+.form-card.flat { margin: 0; }
+.form-card.md { max-width: 560px; margin: 0 auto 30px; }
+.form-card.sub { margin: 0; padding: 22px; }
+.form-card.sub .form-group, .form-card.sub .file-pick, .form-card.sub .blocked-list { margin-bottom: 14px; }
+.form-card.sub h3 { font-size: 15px; margin-bottom: 8px; }
+label .muted { font-weight: 400; }
+.table-empty { text-align: center; padding: 22px; }
+.photo-grid.mb { margin-bottom: 16px; }
+.mbooking.top { align-items: flex-start; }
+.mbooking-date.sm { min-width: 52px; padding: 10px 8px; }
+.msg-body { margin-top: 10px; color: var(--ink-2); font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.badge.ml-4 { margin-left: 4px; }
+.btn-preview { pointer-events: none; opacity: .7; }
 
 /* ============ ROLE SWITCHER (admin users) ============ */
 .role-switch { display: inline-flex; align-items: center; gap: 8px; }

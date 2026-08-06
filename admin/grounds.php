@@ -192,10 +192,10 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">Manage every ground on the platform and assign each one to its owner.</p>
+<p class="muted page-sub">Manage every ground on the platform and assign each one to its owner.</p>
 
 <div class="ground-form-grid">
-    <div class="form-card reveal" style="margin:0;">
+    <div class="form-card reveal flat">
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
         <form method="post" action="" id="groundForm" enctype="multipart/form-data" novalidate>
             <?php echo csrf_field(); ?>
@@ -239,7 +239,7 @@ require __DIR__ . '/../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
-                    <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted" style="font-weight:400;">(optional)</span></label>
+                    <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
                     <?php field_error($errors, 'price_weekend'); ?>
                 </div>
@@ -278,11 +278,11 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="ground-form-side">
-        <div class="form-card" style="margin:0;padding:22px;">
-            <h3 style="margin-bottom:6px;"><i class="fa-solid fa-images"></i> Photos</h3>
-            <p class="muted" style="margin-bottom:14px;font-size:12.5px;">Show players this court before they book. JPG, PNG, WebP or GIF (max 5MB each).</p>
+        <div class="form-card sub">
+            <h3><i class="fa-solid fa-images"></i> Photos</h3>
+            <p class="muted">Show players this court before they book. JPG, PNG, WebP or GIF (max 5MB each).</p>
             <?php if ($editing): ?>
-                <div class="photo-grid" style="margin-bottom:16px;">
+                <div class="photo-grid mb">
                     <?php $photos = ground_images((int)$editing['id']); ?>
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
@@ -292,28 +292,28 @@ require __DIR__ . '/../includes/header.php';
                         </div>
                     <?php endforeach; ?>
                     <?php if (!$photos): ?>
-                        <p class="muted" style="font-size:12.5px;">No photos yet.</p>
+                        <p class="muted">No photos yet.</p>
                     <?php endif; ?>
                 </div>
                 <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm">
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="upload_photos" value="1">
-                    <div class="form-group file-pick" style="margin-bottom:14px;">
+                    <div class="form-group file-pick">
                         <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
                         <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
                         <span class="file-name" id="fileNames">No files selected</span>
                     </div>
                     <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-                    <button type="submit" class="btn btn-outline" style="width:100%;"><i class="fa-solid fa-upload"></i> Upload photos</button>
+                    <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-upload"></i> Upload photos</button>
                 </form>
             <?php else: ?>
-                <div class="form-group file-pick" style="margin-bottom:14px;">
+                <div class="form-group file-pick">
                     <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
                     <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
                     <span class="file-name" id="fileNames">No files selected</span>
                 </div>
                 <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-                <p class="muted" style="font-size:12px;margin-top:12px;">Photos you pick here are saved together with the ground when you click "Add Ground".</p>
+                <p class="muted">Photos you pick here are saved together with the ground when you click "Add Ground".</p>
             <?php endif; ?>
         </div>
 
@@ -334,7 +334,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($editing): ?>
                     <a href="<?php echo base_url('pages/ground.php?id=' . (int)$editing['id']); ?>" class="btn btn-primary btn-sm" target="_blank" rel="noopener"><i class="fa-solid fa-eye"></i> Live preview</a>
                 <?php else: ?>
-                    <span class="btn btn-primary btn-sm" style="pointer-events:none;opacity:.7;"><i class="fa-solid fa-eye"></i> Save to preview</span>
+                    <span class="btn btn-primary btn-sm btn-preview"><i class="fa-solid fa-eye"></i> Save to preview</span>
                 <?php endif; ?>
             </div>
         </div>
@@ -369,7 +369,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
             </div>
             <div class="mbooking-side">
-                <div class="actions" style="gap:8px;">
+                <div class="actions tight">
                     <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
                     <a href="<?php echo base_url('admin/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?" aria-label="Delete ground"><i class="fa-solid fa-trash"></i></a>
                 </div>

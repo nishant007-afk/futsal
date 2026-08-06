@@ -75,14 +75,14 @@ require __DIR__ . '/../includes/header.php';
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($messages as $m): ?>
-            <div class="mbooking <?php echo $m['is_resolved'] ? '' : 'unresolved'; ?>" style="align-items:flex-start;">
-                <div class="mbooking-date" style="min-width:52px;padding:10px 8px;">
+            <div class="mbooking top <?php echo $m['is_resolved'] ? '' : 'unresolved'; ?>">
+                <div class="mbooking-date sm">
                     <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($m['created_at'])))); ?></span>
                     <span class="bd-day"><?php echo (int)date('d', strtotime($m['created_at'])); ?></span>
                 </div>
                 <div class="mbooking-main">
                     <div class="mbooking-head">
-                        <h3 style="font-size:15px;"><?php echo e($topicLabels[$m['topic']] ?? ucfirst($m['topic'])); ?> &middot; <?php echo e($m['subject'] !== '' ? $m['subject'] : 'No subject'); ?></h3>
+                        <h3><?php echo e($topicLabels[$m['topic']] ?? ucfirst($m['topic'])); ?> &middot; <?php echo e($m['subject'] !== '' ? $m['subject'] : 'No subject'); ?></h3>
                         <span class="mbooking-status">
                             <span class="badge <?php echo $m['is_resolved'] ? 'badge-confirmed' : 'badge-pending'; ?>"><?php echo $m['is_resolved'] ? 'Resolved' : 'Open'; ?></span>
                         </span>
@@ -93,7 +93,7 @@ require __DIR__ . '/../includes/header.php';
                         <?php if ($m['user_id']): ?><span><i class="fa-solid fa-user-check"></i> User #<?php echo (int)$m['user_id']; ?></span><?php endif; ?>
                         <span><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($m['created_at']))); ?></span>
                     </div>
-                    <p style="margin-top:10px;color:var(--ink-2);font-size:14px;line-height:1.6;white-space:pre-wrap;"><?php echo e($m['message']); ?></p>
+                    <p class="msg-body"><?php echo e($m['message']); ?></p>
                 </div>
                 <div class="mbooking-side">
                     <div class="mbooking-actions">

@@ -141,7 +141,7 @@ require __DIR__ . '/../includes/header.php';
     <h2><i class="fa-solid fa-list-check"></i> Bookings on My Grounds</h2>
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
 </div>
-<p class="muted" style="margin-bottom:8px;">Bookings confirm instantly. Cancel any slot you can no longer host.</p>
+<p class="muted page-sub">Bookings confirm instantly. Cancel any slot you can no longer host.</p>
 
 <div class="courts-toolbar reveal">
     <form method="get" action="<?php echo base_url('manager/bookings.php'); ?>" class="courts-search">

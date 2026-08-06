@@ -99,10 +99,10 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head">
     <h2><i class="fa-solid fa-tags"></i> My Promo Codes</h2>
 </div>
-<p class="muted" style="margin-bottom:20px;">Create discount codes players can use <strong>only on your courts</strong>. Codes you make here won't work at other managers' grounds.</p>
+<p class="muted page-sub">Create discount codes players can use <strong>only on your courts</strong>. Codes you make here won't work at other managers' grounds.</p>
 
-<div class="form-card reveal" style="max-width:560px;margin-bottom:30px;">
-    <h3 style="margin-bottom:6px;"><i class="fa-solid fa-wand-magic-sparkles"></i> New promo code</h3>
+<div class="form-card reveal md">
+    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> New promo code</h3>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
@@ -124,21 +124,21 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="grid grid-2">
             <div class="form-group">
-                <label for="minTotal">Minimum booking (Rs) <span class="muted" style="font-weight:400;">(0 = none)</span></label>
+                <label for="minTotal">Minimum booking (Rs) <span class="muted">(0 = none)</span></label>
                 <input type="number" id="minTotal" name="min_total" step="0.01" min="0" value="<?php echo e(old_value($old, 'min_total', '0')); ?>">
             </div>
             <div class="form-group">
-                <label for="maxUses">Max uses <span class="muted" style="font-weight:400;">(0 = unlimited)</span></label>
+                <label for="maxUses">Max uses <span class="muted">(0 = unlimited)</span></label>
                 <input type="number" id="maxUses" name="max_uses" min="0" value="<?php echo e(old_value($old, 'max_uses', '0')); ?>">
             </div>
         </div>
         <div class="grid grid-2">
             <div class="form-group">
-                <label for="startsAt">Starts <span class="muted" style="font-weight:400;">(optional)</span></label>
+                <label for="startsAt">Starts <span class="muted">(optional)</span></label>
                 <input type="date" id="startsAt" name="starts_at" value="<?php echo e(old_value($old, 'starts_at')); ?>">
             </div>
             <div class="form-group">
-                <label for="expiresAt">Expires <span class="muted" style="font-weight:400;">(optional)</span></label>
+                <label for="expiresAt">Expires <span class="muted">(optional)</span></label>
                 <input type="date" id="expiresAt" name="expires_at" value="<?php echo e(old_value($old, 'expires_at')); ?>">
             </div>
         </div>
@@ -146,7 +146,7 @@ require __DIR__ . '/../includes/header.php';
     </form>
 </div>
 
-<h3 class="reveal" style="margin-bottom:14px;"><i class="fa-solid fa-list-check"></i> My promo codes (applies to your <?php echo (int)$myGroundCount; ?> courts)</h3>
+<h3 class="reveal block-title"><i class="fa-solid fa-list-check"></i> My promo codes (applies to your <?php echo (int)$myGroundCount; ?> courts)</h3>
 <div class="table-wrap reveal">
     <table>
         <thead>
@@ -162,7 +162,7 @@ require __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
             <?php if (!$promos): ?>
-                <tr><td colspan="7" class="muted" style="text-align:center;padding:22px;">You haven't created any promos yet.</td></tr>
+                <tr><td colspan="7" class="muted table-empty">You haven't created any promos yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($promos as $p): ?>
                     <?php

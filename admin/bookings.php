@@ -80,7 +80,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">Every booking across the platform, newest first.</p>
+<p class="muted page-sub">Every booking across the platform, newest first.</p>
 
 <?php if (!$bookings): ?>
     <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>Once players start reserving, everything lands here.</p></div>

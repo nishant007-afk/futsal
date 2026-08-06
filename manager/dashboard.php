@@ -57,7 +57,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> All Bookings</a>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">Here's how your courts are doing.</p>
+<p class="muted page-sub">Here's how your courts are doing.</p>
 
 <?php if (!$subStatus['active']): ?>
     <div class="toast toast-warning toast-inline reveal" role="status">
@@ -87,14 +87,14 @@ require __DIR__ . '/../includes/header.php';
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
         <h3>Revenue</h3>
-        <p style="font-size:1.2rem;"><?php echo format_price($revenue); ?></p>
+        <p class="stat-amount"><?php echo format_price($revenue); ?></p>
         <!-- <span class="muted" style="font-size:12px;">All yours, no commission</span> -->
     </div>
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
         <h3>Subscription</h3>
-        <p style="font-size:1.2rem;"><?php echo e($subStatus['label']); ?></p>
-        <span class="muted" style="font-size:12px;">
+        <p class="stat-amount"><?php echo e($subStatus['label']); ?></p>
+        <span class="muted">
             <?php if ($subStatus['sub'] && $subStatus['sub']['period_end']): ?>
                 Next renewal: <?php echo e(date('M j', strtotime($subStatus['sub']['period_end']))); ?>
             <?php else: ?>
@@ -104,7 +104,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<h3 class="reveal" style="margin:30px 0 14px;"><i class="fa-solid fa-chart-column"></i> Financial Summary</h3>
+<h3 class="reveal dash-section"><i class="fa-solid fa-chart-column"></i> Financial Summary</h3>
 <div class="table-wrap reveal" style="margin-bottom:30px;">
     <table class="data-table">
         <thead>
@@ -118,7 +118,7 @@ require __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
             <?php if (!$groundSummary): ?>
-                <tr><td colspan="5" class="muted" style="text-align:center;padding:22px;">Add a ground to see your financial summary.</td></tr>
+                <tr><td colspan="5" class="muted table-empty">Add a ground to see your financial summary.</td></tr>
             <?php else: ?>
                 <?php foreach ($groundSummary as $gs): ?>
                     <?php $gross = (float)$gs['gross']; ?>
@@ -142,7 +142,7 @@ require __DIR__ . '/../includes/header.php';
     </table>
 </div>
 
-<h3 class="reveal" style="margin-bottom:14px;"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings on My Grounds</h3>
+<h3 class="reveal block-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings on My Grounds</h3>
 <?php if (!$recent): ?>
     <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings on your grounds will appear here.</p></div>
 <?php else: ?>

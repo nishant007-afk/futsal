@@ -104,8 +104,8 @@ function booking_card($b): void
         </div>
         <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
             <h3><?php echo e($b['ground_name']); ?></h3>
-            <span class="mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
         </div>
+        <div class="mb-time mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></div>
         <div class="mb-status">
             <span class="badge badge-<?php echo e($b['status']); ?>">
                 <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>

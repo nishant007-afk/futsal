@@ -73,8 +73,8 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="form-group">
         <strong>Send to</strong>
-        <p><label><input type="radio" name="scope" value="admins" checked> Admins only (default)</label></p>
-        <p><label><input type="radio" name="scope" value="all"> All users</label></p>
+        <p><label><input type="radio" name="scope" value="all" checked> All users (default)</label></p>
+        <p><label><input type="radio" name="scope" value="admins"> Admins only</label></p>
         <p><label><input type="radio" name="scope" value="managers"> Managers only</label></p>
         <p><label><input type="radio" name="scope" value="users"> Players only</label></p>
     </div>

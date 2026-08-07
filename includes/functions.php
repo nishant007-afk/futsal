@@ -713,7 +713,7 @@ function notify_user(int $user_id, string $title, string $body = '', string $ico
  * @param string   $scope  "all", "admins", "managers" or "users"
  * @return int  number of users notified
  */
-function notify_policy_update(array $slugs, string $date = '', string $scope = 'admins'): int
+function notify_policy_update(array $slugs, string $date = '', string $scope = 'all'): int
 {
     global $conn;
     $allowed = [

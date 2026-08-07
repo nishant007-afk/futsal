@@ -49,6 +49,11 @@ if ((int)$n['is_read'] === 0) {
     $n['is_read'] = 1;
 }
 
+// If notification has a link and this is a direct click (not from View all), redirect to it
+if (!empty($n['link']) && !isset($_GET['view'])) {
+    redirect($n['link']);
+}
+
 $nav = $conn->prepare('SELECT id, title, icon FROM notifications WHERE user_id = ? ORDER BY created_at DESC, id DESC');
 $nav->bind_param('i', $uid);
 $nav->execute();

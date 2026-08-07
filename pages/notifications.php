@@ -107,7 +107,7 @@ require __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 </div>
                 <div class="notif-side">
-                    <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
+                    <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id'] . '&view=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
                     <form method="post" action="" style="display:inline;">
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">

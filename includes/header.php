@@ -39,6 +39,24 @@ if ($active === 'index.php') {
     $skeletonType = 'dashboard';
 } elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php'], true)) {
     $skeletonType = 'auth';
+} elseif ($active === 'page.php') {
+    $skeletonType = 'page';
+} elseif ($active === 'contact_submit.php') {
+    $skeletonType = 'contact-form';
+} elseif ($active === 'confirmation.php') {
+    $skeletonType = 'confirmation';
+} elseif (in_array($active, ['receipt.php', 'receipt_pdf.php'], true)) {
+    $skeletonType = 'receipt';
+} elseif ($active === 'reschedule.php') {
+    $skeletonType = 'reschedule';
+} elseif ($active === 'logout.php') {
+    $skeletonType = 'logout';
+} elseif (in_array($active, ['change_email_otp.php', 'change_password_otp.php'], true)) {
+    $skeletonType = 'settings';
+} elseif (in_array($active, ['pages.php', 'edit_page.php'], true) && $site_user && $site_user['role'] === 'admin') {
+    $skeletonType = 'admin-pages';
+} elseif ($active === 'notify_policy.php') {
+    $skeletonType = 'admin-notify';
 }
 $role_label = $site_user ? ucfirst($site_user['role']) : '';
 $body_role = $site_user ? $site_user['role'] : 'guest';
@@ -67,7 +85,7 @@ $body_class = implode(' ', $body_classes);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=144'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=148'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -209,6 +227,141 @@ $body_class = implode(' ', $body_classes);
             <span class="ps-mbooking"></span>
             <span class="ps-mbooking"></span>
         </div>
+    <?php elseif ($skeletonType === 'page'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w60"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-prose">
+                <span class="ps-gtitle"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'contact-form'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-fcard">
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field tall"><i></i></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'confirmation'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w45"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-fcard">
+                <span class="ps-gtitle"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'receipt'): ?>
+        <div class="container ps-main narrow">
+            <span class="ps-hero-tag"></span>
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w45"></span>
+        </div>
+        <div class="container ps-body narrow">
+            <div class="ps-fcard">
+                <span class="ps-gtitle"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+                <span class="ps-gline"></span>
+            </div>
+            <span class="ps-fbtn wide"></span>
+        </div>
+    <?php elseif ($skeletonType === 'reschedule'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w45"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-fcard">
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'logout'): ?>
+        <div class="container ps-authbody">
+            <div class="ps-form">
+                <span class="ps-gtitle ps-center"></span>
+                <span class="ps-line ps-center"></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'settings'): ?>
+        <div class="container ps-authbody">
+            <div class="ps-brandcenter ps-desktop"></div>
+            <div class="ps-form">
+                <span class="ps-gtitle ps-center"></span>
+                <span class="ps-line ps-center"></span>
+                <div class="ps-fcard-vertical">
+                    <i></i><i></i><i></i>
+                    <span class="ps-fbtn"></span>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'admin-pages'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-table-skeleton">
+                <span class="ps-row"></span>
+                <span class="ps-row"></span>
+                <span class="ps-row"></span>
+                <span class="ps-row"></span>
+                <span class="ps-row"></span>
+            </div>
+            <div class="ps-fcard">
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field tall"><i></i></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'admin-notify'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-fcard">
+                <span class="ps-gtitle"></span>
+                <div class="ps-options-skeleton">
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                </div>
+                <div class="ps-options-skeleton">
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                    <span class="ps-option-row"></span>
+                </div>
+                <span class="ps-option-row"></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
     <?php else: ?>
         <div class="container ps-section pad">
             <div class="ps-hero">
@@ -297,7 +450,7 @@ $body_class = implode(' ', $body_classes);
                                 <p class="bell-empty">You're all caught up.</p>
                             <?php else: ?>
                                 <?php foreach ($bellNotifications as $n): ?>
-                                    <a href="<?php echo $n['link'] ? base_url($n['link']) : '#'; ?>" class="bell-item <?php echo $n['is_read'] ? '' : 'unread'; ?>">
+                                    <a href="<?php echo base_url('pages/notification_details.php?id=' . $n['id']); ?>" class="bell-item <?php echo $n['is_read'] ? '' : 'unread'; ?>">
                                         <span class="bell-icon c-<?php echo notification_icon_color($n['icon']); ?>"><i class="fa-solid <?php echo e($n['icon']); ?>"></i></span>
                                         <span class="bell-text">
                                             <span class="bell-title"><?php echo e($n['title']); ?></span>
@@ -378,6 +531,8 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> Bookings</a>
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> Billing</a>
         <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> Messages</a>
+        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> Legal pages</a>
+        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> Announce update</a>
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
@@ -406,6 +561,8 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="Grounds"><i class="fa-solid fa-store"></i></a>
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings"><i class="fa-solid fa-list-check"></i></a>
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
+        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
+        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home"><i class="fa-solid fa-house"></i></a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>

@@ -289,6 +289,18 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   KEY idx_topic (topic)
 ) ENGINE=InnoDB;
 
+-- ------------------------------------------------------------
+-- Pages table (editable legal/static pages)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS pages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  slug VARCHAR(60) NOT NULL UNIQUE,
+  title VARCHAR(150) NOT NULL,
+  summary VARCHAR(255) DEFAULT '',
+  body LONGTEXT NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS otps (
   id INT AUTO_INCREMENT PRIMARY KEY,
   identifier VARCHAR(150) NOT NULL,

@@ -515,6 +515,23 @@ a.user-chip:hover { background: var(--bg-soft); }
 /* tables */
 .ps-table { display: block; height: 200px; border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 30px; background: var(--bg); }
 
+/* page / contact / receipt / admin skeletons */
+.ps-prose { padding: 20px 0; }
+.ps-prose .ps-gtitle { margin: 24px 0 16px; width: 60%; }
+.ps-prose .ps-gline { width: 92%; margin: 0 0 14px; }
+
+.ps-table-skeleton .ps-row { margin-bottom: 8px; height: 56px; }
+
+.ps-fcard .ps-field { display: flex; align-items: center; gap: 12px; height: 48px; margin-bottom: 16px; }
+.ps-fcard .ps-field i { width: 120px; height: 40px; border-radius: var(--r-sm); background: #eff2ee; flex-shrink: 0; }
+.ps-fcard .ps-field.tall { height: 100px; }
+.ps-fcard .ps-field.tall i { height: 92px; }
+
+.ps-options-skeleton { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.ps-option-row { display: flex; align-items: center; gap: 12px; height: 44px; }
+.ps-option-row::before { content: ''; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); flex-shrink: 0; }
+.ps-option-row::after { content: ''; flex: 1; height: 14px; border-radius: 6px; background: var(--line-2); }
+
 /* auth body */
 .ps-authbody { padding-top: 40px; }
 .ps-brandcenter { width: 60px; height: 60px; border-radius: 16px; margin: 0 auto 20px; background: var(--line-2); }
@@ -2515,7 +2532,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
 .content-hero { padding: 48px 0 6px; }
 .content-hero .eyebrow { margin-bottom: 4px; }
 .content-hero h1 { font-size: 32px; margin-bottom: 8px; }
-.content-hero p { color: var(--ink-2); max-width: 620px; }
+.content-hero p { color: var(--ink-2); }
 .prose { max-width: 760px; padding: 10px 0 24px; }
 .prose h2 { font-size: 19px; margin: 38px 0 12px; }
 .prose h3 { font-size: 16px; margin: 26px 0 10px; }
@@ -2697,6 +2714,10 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     #mainNav .nav-sidebar-foot { display: block; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
     #mainNav .nav-sidebar-foot .nsf-meta { padding: 0 6px; font-size: 11.5px; color: var(--ink-3); }
     #mainNav .show-sm { display: inline-flex; }
+
+    /* auth pages: full-width forms, no sidebar padding */
+    body.auth-page #mainNav { display: none !important; }
+    body.auth-page .page-skeleton { left: 0; }
 
     /* top header card: keep it, subtle bottom line + soft shadow */
     .site-header { will-change: auto; transform: none; box-shadow: 0 2px 8px rgba(0,0,0,.05); }

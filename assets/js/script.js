@@ -197,15 +197,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const siteHeader = document.querySelector('.site-header');
     if (siteHeader) {
         let lastY = window.scrollY;
+        function isCompactHeader() {
+            return !window.matchMedia('(min-width: 821px)').matches;
+        }
         function onScroll() {
             const y = window.scrollY;
-            if (y > lastY + 1) {
+            const delta = y - lastY;
+            if (delta > 6) {
+                // scrolling down -> hide the top navbar (sidebar stays fixed on the left)
                 siteHeader.classList.add('collapsed');
-                if (mainNav) {
-                    if (mainNav.classList.contains('open')) setNavOpen(false);
+                // mobile only: dismiss the slide-in nav drawer if open
+                if (isCompactHeader() && mainNav && mainNav.classList.contains('open') && typeof setNavOpen === 'function') {
+                    setNavOpen(false);
                     document.body.classList.remove('nav-open');
                 }
-            } else if (y < lastY - 1) {
+            } else if (delta < -6 || y <= 8) {
+                // scrolling up (or near the top) -> reveal the top navbar
                 siteHeader.classList.remove('collapsed');
             }
             lastY = y;
@@ -314,8 +321,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (nextBtn) nextBtn.hidden = !showNext;
             galleryThumbs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
         }
+        function animateSwap() {
+            galleryMain.classList.remove('gallery-swap');
+            void galleryMain.offsetWidth;
+            galleryMain.classList.add('gallery-swap');
+        }
         function show(src) {
             galleryMain.src = src;
+            animateSwap();
             if (zoomBtn) zoomBtn.dataset.src = src;
             updateNav();
         }
@@ -334,49 +347,57 @@ document.addEventListener('DOMContentLoaded', function () {
         if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
         if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
         if (zoomBtn) zoomBtn.addEventListener('click', function () {
-            openImageZoom((zoomBtn.dataset.src || galleryMain.src), srcs, current, goTo);
+            openImageZoom(current);
         });
         // initial state (active first thumb, hide prev arrow)
         galleryThumbs.forEach(function (t, i) { if (i === 0) t.classList.add('active'); });
         if (zoomBtn) zoomBtn.dataset.src = srcs[0];
         updateNav();
-    }
 
-    function openImageZoom(curSrc, srcs, currentIndex, onNav) {
-        const existing = document.querySelector('.image-zoom');
-        if (existing) existing.remove();
-        const overlay = document.createElement('div');
-        overlay.className = 'image-zoom';
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-        overlay.innerHTML =
-            '<button type="button" class="iz-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-            '<div class="iz-stage"><img class="iz-img" src="' + curSrc + '" alt=""></div>' +
-            (srcs && srcs.length > 1
-                ? '<button type="button" class="iz-prev" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>' +
-                  '<button type="button" class="iz-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>'
-                : '');
-        document.body.appendChild(overlay);
-        document.body.classList.add('modal-open');
-        const img = overlay.querySelector('.iz-img');
-        let index = current;
-        function update() {
-            img.src = srcs[index];
-            if (onNav) onNav(index);
-        }
-        overlay.querySelector('.iz-close').addEventListener('click', function () { overlay.remove(); document.body.classList.remove('modal-open'); });
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) { overlay.remove(); document.body.classList.remove('modal-open'); }
-        });
-        const p = overlay.querySelector('.iz-prev');
-        const n = overlay.querySelector('.iz-next');
-        if (p) p.addEventListener('click', function () { index = (index - 1 + srcs.length) % srcs.length; update(); });
-        if (n) n.addEventListener('click', function () { index = (index + 1) % srcs.length; update(); });
-        document.addEventListener('keydown', function esc(e) {
-            if (e.key === 'Escape') { overlay.remove(); document.body.classList.remove('modal-open'); document.removeEventListener('keydown', esc); }
-            else if (p && e.key === 'ArrowLeft') { index = (index - 1 + srcs.length) % srcs.length; update(); }
-            else if (n && e.key === 'ArrowRight') { index = (index + 1) % srcs.length; update(); }
-        });
+        var openImageZoom = function (index) {
+            const existing = document.querySelector('.image-zoom');
+            if (existing) existing.remove();
+            const overlay = document.createElement('div');
+            overlay.className = 'image-zoom';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.innerHTML =
+                '<button type="button" class="iz-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+                '<div class="iz-stage"><img class="iz-img" src="' + srcs[index] + '" alt=""></div>' +
+                (srcs.length > 1
+                    ? '<button type="button" class="iz-prev" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>' +
+                      '<button type="button" class="iz-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>'
+                    : '');
+            document.body.appendChild(overlay);
+            document.body.classList.add('modal-open');
+            let i = index;
+            const img = overlay.querySelector('.iz-img');
+            function render(next) {
+                i = (next + srcs.length) % srcs.length;
+                current = i;
+                img.src = srcs[i];
+                galleryMain.src = srcs[i];
+                updateNav();
+            }
+            overlay.addEventListener('click', function (e) {
+                const t = e.target;
+                if (t.closest('.iz-close')) { closeZoom(); return; }
+                if (t.closest('.iz-prev')) { render(i - 1); return; }
+                if (t.closest('.iz-next')) { render(i + 1); return; }
+                if (t === overlay) closeZoom();
+            });
+            function closeZoom() {
+                overlay.remove();
+                document.body.classList.remove('modal-open');
+                document.removeEventListener('keydown', onKey);
+            }
+            function onKey(e) {
+                if (e.key === 'Escape') closeZoom();
+                else if (e.key === 'ArrowLeft') render(i - 1);
+                else if (e.key === 'ArrowRight') render(i + 1);
+            }
+            document.addEventListener('keydown', onKey);
+        };
     }
 
     const groundForm = document.getElementById('groundForm');

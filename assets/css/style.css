@@ -1968,6 +1968,11 @@ label .muted { font-weight: 400; }
 .gallery.pitch { position: absolute; inset: 0; }
 .gallery-main { position: absolute; inset: 0; }
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-main img.gallery-swap { animation: gallerySwap .4s cubic-bezier(.2,.7,.3,1); }
+@keyframes gallerySwap {
+    from { opacity: .55; transform: translateX(18px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 .gallery-thumbs {
     position: absolute; left: 14px; bottom: 14px; z-index: 3;
     display: flex; gap: 8px;
@@ -2019,8 +2024,9 @@ label .muted { font-weight: 400; }
 .iz-prev { left: 16px; top: 50%; transform: translateY(-50%); }
 .iz-next { right: 16px; top: 50%; transform: translateY(-50%); }
 body.modal-open { overflow: hidden; }
-.ground-info .about-name { color: var(--ink-2); font-size: 13.5px; margin: 2px 0 -2px; display: flex; align-items: center; gap: 8px; }
-.ground-info .about-name i { color: var(--brand-700); font-size: 13px; }
+.ground-info .about-name { color: var(--ink); font-size: 14px; display: flex; align-items: flex-start; gap: 12px; padding: 13px 0 12px; border-bottom: 1px solid var(--line); margin: -2px 0 -1px; }
+.ground-info .about-name i { color: var(--brand-700); font-size: 13px; width: 18px; flex: none; text-align: center; margin-top: 3px; }
+.ground-info .about-name span { font-weight: 600; }
 .detail-box { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); padding: 32px; }
 .detail-box h3 { margin-bottom: 10px; }
 .ground-info .info-row { display: flex; align-items: flex-start; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
@@ -2028,7 +2034,6 @@ body.modal-open { overflow: hidden; }
 .ground-info .info-row i { color: var(--role-dark, var(--brand-700)); font-size: 13px; width: 18px; margin-top: 3px; }
 .ground-info .info-row span { color: var(--ink-2); font-size: 14px; }
 .ground-info p.desc { color: var(--ink-2); font-size: 14.5px; line-height: 1.7; margin-top: 18px; }
-.ground-info .about-name { color: var(--ink-2); font-size: 13.5px; margin: 2px 0 -2px; }
 .booking-panel { position: sticky; top: calc(var(--header-h) + 18px); }
 .booking-panel h1 { font-size: 24px; margin-bottom: 4px; }
 
@@ -2667,4 +2672,75 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     .mbooking-side .btn { width: 100%; }
     .page-head .actions .btn { flex: 1 1 100%; }
 }
+
+/* ============ SIDEBAR (desktop) + BOTTOM NAV (mobile) ============ */
+:root { --sidebar-w: 260px; --bottomnav-h: 62px; }
+
+/* desktop: #mainNav is a fixed left sidebar filling the full viewport height.
+   It is a direct <body> child (sibling of the header) so the header's
+   scroll-hide transform can never trap it, and it always spans top to bottom. */
+@media (min-width: 821px) {
+    body { padding-left: var(--sidebar-w); }
+    body.auth-page { padding-left: 0; }
+
+    #mainNav {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: var(--sidebar-w); height: auto; min-height: 100vh;
+        border-right: 1px solid var(--line); border-bottom: none;
+        background: #fff; box-shadow: var(--s2);
+        display: flex; flex-direction: column; align-items: stretch; gap: 2px;
+        padding: 22px 14px 24px; overflow-y: auto; z-index: 110;
+    }
+    #mainNav > a { padding: 11px 14px; font-size: 14px; }
+    #mainNav .nav-sidebar-head { display: block; padding: 6px 8px 18px; }
+    #mainNav .nav-sidebar-head .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; color: var(--ink); }
+    #mainNav .nav-sidebar-foot { display: block; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+    #mainNav .nav-sidebar-foot .nsf-meta { padding: 0 6px; font-size: 11.5px; color: var(--ink-3); }
+    #mainNav .show-sm { display: inline-flex; }
+
+    /* top header card: keep it, subtle bottom line + soft shadow */
+    .site-header { will-change: auto; transform: none; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .site-header .header-inner > .brand { display: none; }
+    .site-header .nav-auth { margin-left: auto; }
+    .site-header .nav-toggle { display: none; }
+
+    .booking-panel { top: 18px; }
+    .top-bar { left: 0; right: 0; }
+    .page-skeleton { left: var(--sidebar-w); }
+}
+
+/* hidden by default; shown on mobile */
+.bottom-nav { display: none; }
+
+/* mobile: no drawer/sidebar, use the bottom icon bar */
+@media (max-width: 820px) {
+    .site-header .header-inner > .brand { display: flex; }
+    .site-header .brand-name { display: inline; }
+    #mainNav { display: none !important; }
+    .site-header .nav-toggle { display: none !important; }
+    .site-header .nav-auth { margin-left: auto; }
+    body { padding-left: 0; padding-bottom: calc(var(--bottomnav-h) + 4px + env(safe-area-inset-bottom, 0px)); }
+    body.auth-page { padding-bottom: 0; }
+
+    .bottom-nav {
+        display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1200;
+        background: #fff; border-top: 1px solid var(--line);
+        box-shadow: 0 -6px 22px rgba(0,0,0,.07);
+        padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+    .bottom-nav a {
+        flex: 1 1 0; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 3px; padding: 6px 4px;
+        color: var(--ink-3); text-decoration: none; font-size: 9.5px; font-weight: 600;
+    }
+    .bottom-nav a i { font-size: 19px; color: var(--ink-2); }
+    .bottom-nav a.active { color: var(--brand-700); }
+    .bottom-nav a.active i { color: var(--brand-700); }
+
+    body.auth-page .bottom-nav { display: none; }
+    .cookie-banner { bottom: calc(var(--bottomnav-h) + 20px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* print */
+@media print { .bottom-nav { display: none !important; } }
 

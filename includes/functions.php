@@ -441,9 +441,13 @@ function booking_card(array $b): void
 {
     $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
     $payLabel = $b['payment_status'] === 'partial' ? 'Pay Rs ' . number_format(max(0, (float)$b['total_price'] - (float)$b['amount_paid']), 0) : 'Pay now';
+    $dateLabel = date('M j, Y', strtotime($b['booking_date']));
+    $isToday = date('m-d') === date('m-d', strtotime($b['booking_date']));
+    $isTomorrow = date('m-d') === date('m-d', strtotime($b['booking_date'] . ' +1 day'));
+    $dayLabel = $isToday ? 'Today' : ($isTomorrow ? 'Tomorrow' : date('D, M j', strtotime($b['booking_date'])));
     ?>
     <div class="mbooking mbooking--card">
-        <div class="mbooking-date mb-date" aria-label="<?php echo e(date('M j, Y', strtotime($b['booking_date']))); ?>">
+        <div class="mbooking-date mb-date" aria-label="<?php echo e($dateLabel); ?>">
             <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
             <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
             <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
@@ -451,24 +455,74 @@ function booking_card(array $b): void
         <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
             <h3><?php echo e($b['ground_name']); ?></h3>
         </div>
-        <div class="mb-time mbooking-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></div>
+        <div class="mb-time mbooking-time">
+            <i class="fa-regular fa-clock"></i>
+            <span><?php echo e($dayLabel); ?> &middot; <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
+        </div>
         <div class="mb-status">
-            <span class="badge badge-<?php echo e($b['status']); ?>">
-                <i class="fa-solid fa-<?php echo $b['status'] === 'confirmed' ? 'circle-check' : 'circle-xmark'; ?>"></i>
-                <?php echo ucfirst(e($b['status'])); ?>
-            </span>
+            <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo $b['status'] === 'confirmed' ? 'Confirmed' : ucfirst(e($b['status'])); ?></span>
             <span class="pay-badge pay-<?php echo e($b['payment_status']); ?>">
-                <?php echo ucfirst(e($b['payment_status'] === 'partial' ? 'Partial' : ($b['payment_status'] === 'paid' ? 'Paid' : 'Pending'))); ?>
+                <?php echo $b['payment_status'] === 'partial' ? 'Awaiting Payment' : ($b['payment_status'] === 'paid' ? 'Paid' : 'Payment Pending'); ?>
             </span>
         </div>
-        <div class="mb-price">Rs <?php echo number_format((float)$b['total_price'], 0); ?></div>
+        <div class="mb-price">
+            <span class="mb-price-label">Total</span>
+            <strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+        </div>
         <div class="mb-actions">
             <?php if ($needsPayment): ?>
                 <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary btn-sm mb-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
             <?php else: ?>
-                <span class="pay-done muted">Paid</span>
+                <span class="pay-done muted"><i class="fa-solid fa-circle-check"></i> Paid</span>
             <?php endif; ?>
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link">View details <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link mb-details">Details <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Minimal booking card for admin/manager lists, matching the player's card.
+ * $show: '' (none), 'user' (player name), 'manager' (manager name).
+ */
+function booking_card_mini(array $b, string $show = '', string $search = ''): void
+{
+    $dateLabel = date('M j, Y', strtotime($b['booking_date']));
+    $dayLabel = date('D, M j', strtotime($b['booking_date']));
+    $searchAttr = $search !== '' ? ' data-search="' . e(strtolower($search)) . '"' : '';
+    ?>
+    <div class="mbooking mbooking--card"<?php echo $searchAttr; ?>>
+        <div class="mbooking-date mb-date" aria-label="<?php echo e($dateLabel); ?>">
+            <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
+            <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
+            <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
+        </div>
+        <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
+            <h3><?php echo e($b['ground_name']); ?></h3>
+            <?php if ($show !== '' && !empty($b[$show . '_name'])): ?>
+                <span class="mb-arena-sub"><i class="fa-solid fa-<?php echo $show === 'manager' ? 'user-tie' : 'user'; ?>"></i> <?php echo e($b[$show . '_name']); ?></span>
+            <?php endif; ?>
+        </div>
+        <div class="mb-time mbooking-time">
+            <i class="fa-regular fa-clock"></i>
+            <span><?php echo e($dayLabel); ?> &middot; <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
+        </div>
+        <div class="mb-status">
+            <?php if ($b['status'] === 'cancelled'): ?>
+                <span class="badge badge-cancelled">Cancelled</span>
+            <?php else: ?>
+                <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo $b['status'] === 'confirmed' ? 'Confirmed' : ucfirst(e($b['status'])); ?></span>
+                <span class="pay-badge pay-<?php echo e($b['payment_status']); ?>">
+                    <?php if ($b['payment_status'] === 'paid'): ?>Paid<?php elseif ($b['payment_status'] === 'partial'): ?>Advance paid<?php else: ?>Unpaid<?php endif; ?>
+                </span>
+            <?php endif; ?>
+        </div>
+        <div class="mb-price">
+            <span class="mb-price-label">Total</span>
+            <strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+        </div>
+        <div class="mb-actions">
+            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link mb-details">Details <i class="fa-solid fa-arrow-right"></i></a>
         </div>
     </div>
     <?php
@@ -585,12 +639,13 @@ function create_manager_subscription(int $manager_id, bool $setup_prepaid = fals
     $setup = manager_setup_fee();
     $monthly = manager_monthly_fee();
     $setupDate = $setup_prepaid ? date('Y-m-d') : null;
+    $setupPaidDate = $setup_prepaid ? date('Y-m-d') : null;
     $periodEnd = date('Y-m-d', strtotime('+30 days'));
     $stmt = $conn->prepare(
         'INSERT IGNORE INTO manager_subscriptions (manager_id, setup_fee, setup_paid_at, monthly_fee, period_start, period_end)
          VALUES (?, ?, ?, ?, ?, ?)'
     );
-    $stmt->bind_param('idssss', $manager_id, $setup, $setupDate, $monthly, $setup_prepaid ? date('Y-m-d') : null, $periodEnd);
+    $stmt->bind_param('isssss', $manager_id, $setup, $setupPaidDate, $monthly, $setupDate, $periodEnd);
     $stmt->execute();
 }
 

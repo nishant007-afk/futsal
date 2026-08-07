@@ -115,6 +115,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card">
     <div class="form-head">
+        <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
         <h2 >Sign in to GoalSpace</h2>
     </div>
 
@@ -139,14 +140,14 @@ require __DIR__ . '/../includes/header.php';
             <?php echo csrf_field(); ?>
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
-                <label for="subj">Subject</label>
+                <label for="subj">Subject <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-heading"></i>
                     <input type="text" id="subj" name="subject" value="My account is locked after login attempts" required>
                 </div>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
-                <label for="em">Your email</label>
+                <label for="em">Your email <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
                     <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" required>
@@ -154,7 +155,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php field_error($cErrors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
-                <label for="msg">Message</label>
+                <label for="msg">Message <span class="req">*</span></label>
                 <textarea id="msg" name="message" rows="4" placeholder="Explain what happened so we can help you log back in." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
                 <?php field_error($cErrors, 'message'); ?>
             </div>
@@ -189,7 +190,7 @@ require __DIR__ . '/../includes/header.php';
         <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-                <label for="email">Email</label>
+                <label for="email">Email <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
                     <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder="you@example.com" autocomplete="email" required <?php echo $lock ? 'disabled' : ''; ?>>
@@ -197,7 +198,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-                <label for="password">Password</label>
+                <label for="password">Password <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" id="password" name="password" autocomplete="current-password" required <?php echo $lock ? 'disabled' : ''; ?>>

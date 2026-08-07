@@ -198,7 +198,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php echo csrf_field(); ?>
                 <div class="grid-2">
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
-                        <label for="cName">Your name</label>
+                        <label for="cName">Your name <span class="req">*</span></label>
                         <div class="input-group">
                             <i class="fa-solid fa-user"></i>
                             <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder="Full name" autocomplete="name" required>
@@ -206,7 +206,7 @@ require __DIR__ . '/../includes/header.php';
                         <?php field_error($cErrors, 'name'); ?>
                     </div>
                     <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
-                        <label for="cEmail">Email</label>
+                        <label for="cEmail">Email <span class="req">*</span></label>
                         <div class="input-group">
                             <i class="fa-solid fa-envelope"></i>
                             <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder="you@example.com" autocomplete="email" required>
@@ -216,7 +216,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label for="cTopic">Topic</label>
+                        <label for="cTopic">Topic <span class="req">*</span></label>
                         <select id="cTopic" name="topic" required>
                             <option value="general" <?php echo old_value($cOld, 'topic') === 'general' ? 'selected' : ''; ?>>General question</option>
                             <option value="booking" <?php echo old_value($cOld, 'topic') === 'booking' ? 'selected' : ''; ?>>Booking help</option>
@@ -234,7 +234,7 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
                 <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
-                    <label for="cMessage">Message</label>
+                    <label for="cMessage">Message <span class="req">*</span></label>
                     <textarea id="cMessage" name="message" rows="5" placeholder="Tell us how we can help (at least 10 characters)." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
                     <?php field_error($cErrors, 'message'); ?>
                 </div>

@@ -125,7 +125,10 @@ require __DIR__ . '/../includes/header.php';
 
     <section class="signup-right">
         <div class="auth-topline">
-            <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-switch">Already have an account? Sign in <i class="fa-solid fa-arrow-right"></i></a>
+            <div class="auth-toprow">
+                <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+                <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-switch">Already have an account? <strong>Sign in</strong> <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
             <h2>Sign up for GoalSpace</h2>
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
@@ -137,7 +140,7 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-            <label for="name">Full name</label>
+            <label for="name">Full name <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-user"></i>
                 <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder="e.g. Hari Sharma" required>
@@ -145,7 +148,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'name'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email</label>
+            <label for="email">Email <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-envelope"></i>
                 <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder="you@example.com" required>
@@ -188,7 +191,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-            <label for="password">Password</label>
+            <label for="password">Password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
@@ -204,7 +207,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'password'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
-            <label for="confirm">Confirm password</label>
+            <label for="confirm">Confirm password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your password" required>

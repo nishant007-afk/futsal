@@ -104,11 +104,16 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="ground-detail">
     <div class="reveal">
-        <div class="gallery-wrap">
+        <div class="gallery-wrap" id="galleryWrap">
             <?php if ($photos): ?>
                 <div class="gallery-main">
                     <img id="galleryMain" src="<?php echo base_url('uploads/grounds/' . rawurlencode($photos[0]['image'])); ?>" alt="<?php echo e($ground['name']); ?>" decoding="async">
                 </div>
+                <?php if (count($photos) > 1): ?>
+                    <button type="button" class="gallery-nav gallery-prev" aria-label="Previous photo" hidden><i class="fa-solid fa-chevron-left"></i></button>
+                    <button type="button" class="gallery-nav gallery-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
+                <?php endif; ?>
+                <button type="button" class="gallery-zoom" aria-label="Zoom photo"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
                 <?php if (count($photos) > 1): ?>
                     <div class="gallery-thumbs">
                         <?php foreach ($photos as $ph): ?>
@@ -124,7 +129,25 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="detail-box ground-info" style="margin-top:20px;">
             <h3>About this ground</h3>
+            <p class="about-name"><i class="fa-solid fa-futbol"></i> <span><?php echo e($ground['name']); ?></span></p>
             <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
+            <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
+            <?php $mapQuery = $hasCoords
+                ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
+                : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
+            <div class="ground-map">
+                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Location</div>
+                <div class="ground-map-frame">
+                    <iframe
+                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                        width="100%" height="320" style="border:0;" allowfullscreen loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+                </div>
+                <?php if (!empty($ground['address'])): ?>
+                    <a class="ground-map-link" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Google Maps</a>
+                <?php endif; ?>
+            </div>
             <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
             <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open 08:00 - 22:00</span></div>
             <?php if (!empty($ground['owner_name'])): ?>

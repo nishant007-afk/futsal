@@ -106,7 +106,7 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <label for="code">Code</label>
+            <label for="code">Code <span class="req">*</span></label>
             <input type="text" id="code" name="code" maxlength="40" value="<?php echo e(old_value($old, 'code')); ?>" placeholder="e.g. SUMMER20" required>
             <?php field_error($errors, 'code'); ?>
         </div>
@@ -118,7 +118,7 @@ require __DIR__ . '/../includes/header.php';
             </select>
         </div>
         <div class="form-group<?php echo has_error($errors, 'discount_value'); ?>">
-            <label for="discountValue">Discount value</label>
+            <label for="discountValue">Discount value <span class="req">*</span></label>
             <input type="number" id="discountValue" name="discount_value" step="0.01" min="1" value="<?php echo e(old_value($old, 'discount_value')); ?>" placeholder="10 = 10%" required>
             <?php field_error($errors, 'discount_value'); ?>
         </div>

@@ -95,6 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price_weekend = $_POST['price_weekend'] !== '' ? (float)$_POST['price_weekend'] : null;
     $address = trim($_POST['address'] ?? '');
     $court_number = trim($_POST['court_number'] ?? '') !== '' ? trim($_POST['court_number']) : null;
+    $latitude = ($_POST['latitude'] ?? '') !== '' ? (float)$_POST['latitude'] : null;
+    $longitude = ($_POST['longitude'] ?? '') !== '' ? (float)$_POST['longitude'] : null;
     $id = (int)($_POST['id'] ?? 0);
 
     if ($name === '') {
@@ -126,17 +128,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        if ($id > 0 && user_owns_ground($id)) {
+if ($id > 0 && user_owns_ground($id)) {
             $stmt = $conn->prepare(
-                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ? WHERE id = ? AND manager_id = ?'
+                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ?, latitude = ?, longitude = ? WHERE id = ? AND manager_id = ?'
             );
-            $stmt->bind_param('sssdisisdsdsi', $name, $location, $description, $price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $id, $_SESSION['user_id']);
+            $stmt->bind_param('sssdiissidssddii', $name, $location, $description, $price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude, $id, $_SESSION['user_id']);
             $msg = 'Ground updated.';
         } else {
             $stmt = $conn->prepare(
-                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssdisissdsds', $name, $location, $description, $price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number);
+            $stmt->bind_param('sssdiiissidssdd', $name, $location, $description, $price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude);
             $msg = 'Ground added.';
         }
         if ($stmt->execute()) {
@@ -235,6 +237,7 @@ if ($editing) {
 $page_title = 'My Grounds';
 require __DIR__ . '/../includes/header.php';
 ?>
+<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
 <div class="page-head">
     <h2><i class="fa-solid fa-store"></i> <?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
@@ -265,22 +268,22 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
             <div class="grid grid-2">
                 <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                    <label for="name"><i class="fa-solid fa-signature"></i> Ground Name</label>
+                    <label for="name"><i class="fa-solid fa-signature"></i> Ground Name <span class="req">*</span></label>
                     <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" required>
                     <?php field_error($errors, 'name'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'location'); ?>">
-                    <label for="location"><i class="fa-solid fa-location-dot"></i> Location</label>
+                    <label for="location"><i class="fa-solid fa-location-dot"></i> Location <span class="req">*</span></label>
                     <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" required>
                     <?php field_error($errors, 'location'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
-                    <label for="price_per_hour"><i class="fa-solid fa-tag"></i> Price per Hour (Rs.)</label>
+                    <label for="price_per_hour"><i class="fa-solid fa-tag"></i> Price per Hour (Rs.) <span class="req">*</span></label>
                     <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" required>
                     <?php field_error($errors, 'price_per_hour'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
-                    <label for="capacity"><i class="fa-solid fa-users"></i> Capacity</label>
+                    <label for="capacity"><i class="fa-solid fa-users"></i> Capacity <span class="req">*</span></label>
                     <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" required>
                     <?php field_error($errors, 'capacity'); ?>
                 </div>
@@ -310,11 +313,12 @@ require __DIR__ . '/../includes/header.php';
                      <label for="address"><i class="fa-solid fa-location-dot"></i> Full address (for maps)</label>
                      <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
                  </div>
-                 <div class="form-group">
+<div class="form-group">
                      <label for="court_number"><i class="fa-solid fa-number-dot"></i> Court number/name (optional)</label>
                      <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
                  </div>
              </div>
+             <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
             <div class="form-group">
                 <label for="description"><i class="fa-solid fa-align-left"></i> Description</label>
                 <textarea id="description" name="description" rows="3"><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
@@ -368,7 +372,7 @@ require __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <div class="form-group file-pick">
                     <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
-                    <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
+                    <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple form="groundForm">
                     <span class="file-name" id="fileNames">No files selected</span>
                 </div>
                 <div class="photo-preview-grid" id="photoPreviewGrid"></div>
@@ -472,4 +476,6 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
+<script src="<?php echo base_url('assets/js/map-picker.js'); ?>"></script>
 

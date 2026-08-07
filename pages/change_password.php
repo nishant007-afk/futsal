@@ -51,20 +51,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Change Password';
+require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card lg" style="margin-top:44px;">
+<div class="form-card chg-pass">
     <div class="form-head">
+        <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
         <h2>Change your password</h2>
-        <p class="muted">Enter your current password, choose a new one, and we'll confirm it by email.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+    <?php if (!empty($errors['general'])): ?>
+        <div hidden data-error-modal-title="Login failed" data-error-modal-msg="<?php echo e($errors['general']); ?>"></div>
+    <?php endif; ?>
 
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'current_password'); ?>">
-            <label for="current_password">Current password</label>
+            <label for="current_password">Current password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
@@ -75,7 +78,7 @@ $page_title = 'Change Password';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'new_password'); ?>">
-            <label for="new_password">New password</label>
+            <label for="new_password">New password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
@@ -92,7 +95,7 @@ $page_title = 'Change Password';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'confirm_password'); ?>">
-            <label for="confirm_password">Confirm new password</label>
+            <label for="confirm_password">Confirm new password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
@@ -105,3 +108,22 @@ $page_title = 'Change Password';
         <p class="form-foot">Need help? <a href="<?php echo base_url('pages/contact_submit.php?topic=password_issue'); ?>">Contact support</a></p>
     </form>
 </div>
+
+<?php require __DIR__ . '/../includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pwInput = document.getElementById('new_password');
+    const pwReqs = document.getElementById('pwRequirements');
+    if (pwInput && pwReqs) {
+        function checkRequirements() {
+            const v = pwInput.value;
+            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
+            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
+            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
+            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
+        }
+        pwInput.addEventListener('input', checkRequirements);
+        checkRequirements();
+    }
+});
+</script>

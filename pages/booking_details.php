@@ -91,7 +91,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php elseif ($b['payment_status'] === 'partial'): ?>
                     <span>You've paid <strong>Rs <?php echo number_format((float)$b['amount_paid'], 0); ?></strong> as an advance. Pay <strong>Rs <?php echo number_format($balance, 0); ?></strong> to settle the rest.</span>
                 <?php else: ?>
-                    <span>Your slot is <strong>reserved but not paid</strong>. Pay now to lock it in &middot; it takes a minute.</span>
+                    <span>Your slot is <strong>reserved but not paid</strong>. <a href="#paymentCard" class="inline-link note-pay">Pay now</a> to lock it in &middot; it takes a minute.</span>
                 <?php endif; ?>
             <?php else: ?>
                 <?php if ($b['payment_status'] === 'paid'): ?>
@@ -143,7 +143,7 @@ require __DIR__ . '/../includes/header.php';
         <?php endif; ?>
 
         <?php if ($b['status'] !== 'cancelled' && ($balance > 0 || $b['payment_status'] !== 'paid')): ?>
-        <section class="bd-section">
+        <section class="bd-section" id="paymentCard">
             <h2><i class="fa-solid fa-receipt"></i> Payment</h2>
             <div class="bd-price">
                 <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong></div>

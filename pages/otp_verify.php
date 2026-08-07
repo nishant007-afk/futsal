@@ -93,7 +93,7 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" style="margin-top:18px;" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <label for="code">Login code</label>
+            <label for="code">Login code <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>

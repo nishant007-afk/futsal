@@ -116,7 +116,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 <?php else: ?>
     <?php if ($upcoming): ?>
-        <div class="section-head reveal tight">
+        <div class="section-head reveal push tight">
             <h2 class="section-title sm">Upcoming</h2>
         </div>
         <div class="mbookings reveal">

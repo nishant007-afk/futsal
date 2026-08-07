@@ -156,7 +156,7 @@ require __DIR__ . '/../includes/header.php';
             <?php echo csrf_field(); ?>
             <input type="hidden" name="action" value="update_profile">
             <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                <label for="name">Full name</label>
+                <label for="name">Full name <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-user"></i>
                     <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" required>

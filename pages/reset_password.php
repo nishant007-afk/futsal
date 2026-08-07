@@ -63,7 +63,7 @@ require __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         <input type="hidden" name="email" value="<?php echo e($email); ?>">
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email</label>
+            <label for="email">Email <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-envelope"></i>
                 <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" required>
@@ -71,7 +71,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'email'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <label for="code">Reset code</label>
+            <label for="code">Reset code <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
@@ -79,7 +79,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'code'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-            <label for="password">New password</label>
+            <label for="password">New password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
@@ -95,7 +95,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'password'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
-            <label for="confirm">Confirm new password</label>
+            <label for="confirm">Confirm new password <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
                 <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>

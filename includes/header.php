@@ -13,10 +13,40 @@ if (in_array($active, ['ground.php', 'courts.php', 'book.php', 'payment.php', 'r
 } elseif (in_array($active, ['profile.php'], true)) {
     $activeSection = 'profile';
 }
+
+$skeletonType = 'generic';
+if ($active === 'index.php') {
+    $skeletonType = 'home';
+} elseif ($active === 'courts.php') {
+    $skeletonType = 'list';
+} elseif ($active === 'ground.php') {
+    $skeletonType = 'ground';
+} elseif ($active === 'my_bookings.php') {
+    $skeletonType = 'bookings';
+} elseif ($active === 'booking_details.php') {
+    $skeletonType = 'booking-detail';
+} elseif ($active === 'payment.php') {
+    $skeletonType = 'payment';
+} elseif ($active === 'profile.php') {
+    $skeletonType = 'profile';
+} elseif ($active === 'notifications.php' || $active === 'notification_details.php') {
+    $skeletonType = 'notifications';
+} elseif (in_array($active, ['grounds.php'], true) && $site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
+    $skeletonType = 'manage-grounds';
+} elseif (in_array($active, ['grounds.php', 'users.php', 'settlements.php', 'contact_messages.php', 'bookings.php', 'promos.php'], true)) {
+    $skeletonType = 'list';
+} elseif (in_array($active, ['dashboard.php'], true)) {
+    $skeletonType = 'dashboard';
+} elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php'], true)) {
+    $skeletonType = 'auth';
+}
 $role_label = $site_user ? ucfirst($site_user['role']) : '';
 $body_role = $site_user ? $site_user['role'] : 'guest';
 $body_classes = [$body_role];
-if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php'], true)) {
+if ($active === 'login.php') {
+    $body_classes[] = 'login-page';
+}
+if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php'], true)) {
     $body_classes[] = 'auth-page';
 }
 if ($active === 'page.php' && ($_GET['slug'] ?? '') === 'contact') {
@@ -37,31 +67,201 @@ $body_class = implode(' ', $body_classes);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=108'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=135'); ?>">
 </head>
-<body data-role="<?php echo e($body_role); ?>" class="<?php echo e($body_class); ?>">
+<body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
+<div id="topBar" class="top-bar" aria-hidden="true"><span></span></div>
 <div id="pageSkeleton" class="page-skeleton" aria-hidden="true">
-    <div class="ps-top">
-        <span class="ps-logo"></span>
-        <span class="ps-pill"></span>
-        <span class="ps-pill"></span>
-        <span class="ps-pill"></span>
-        <span class="ps-avatar"></span>
-        <span class="ps-btn"></span>
+    <div id="skeletonMsg" class="ps-msg"><i class="fa-solid fa-circle-notch fa-spin"></i> <span id="skeletonMsgText">Loading…</span></div>
+    <div class="ps-header">
+        <div class="container header-inner">
+            <span class="ps-brandmark"></span>
+            <span class="ps-logo"></span>
+            <span class="ps-nav ps-desktop"><?php
+                $navPills = 3;
+                if ($site_user && in_array($site_user['role'], ['admin', 'manager'], true)) { $navPills = 5; }
+                for ($i = 0; $i < $navPills; $i++) { echo '<span class="ps-pill"></span>'; }
+            ?></span>
+            <span class="ps-auth ps-desktop">
+                <span class="ps-avatar"></span>
+                <span class="ps-btn"></span>
+            </span>
+            <span class="ps-hamburger ps-mobile"><i></i><i></i><i></i></span>
+        </div>
     </div>
-    <div class="container ps-main">
-        <span class="ps-title"></span>
-        <span class="ps-line"></span>
-        <span class="ps-card"></span>
-        <span class="ps-card ps-card-wide"></span>
-    </div>
+
+    <?php if ($skeletonType === 'auth'): ?>
+        <div class="ps-authbody">
+            <div class="ps-brandcenter ps-desktop"></div>
+            <div class="ps-form">
+                <span class="ps-gtitle ps-center"></span>
+                <span class="ps-line ps-center"></span>
+                <div class="ps-fcard-vertical">
+                    <i></i><i></i><i></i><i></i>
+                    <span class="ps-fbtn"></span>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'payment'): ?>
+        <div class="container ps-main narrow">
+            <span class="ps-hero-tag"></span>
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w45"></span>
+        </div>
+        <div class="container ps-body narrow">
+            <div class="ps-fcard"><i></i><i></i><span class="ps-fbtn"></span></div>
+            <div class="ps-fcard stacks">
+                <span class="ps-option"></span>
+                <span class="ps-option"></span>
+            </div>
+            <span class="ps-fbtn wide"></span>
+        </div>
+    <?php elseif ($skeletonType === 'booking-detail'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-line ps-line-w60"></span>
+            <span class="ps-note"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-2">
+                <span class="ps-card"><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gline"></span><span class="ps-gline"></span></span>
+                <span class="ps-card"><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gline"></span></span>
+            </div>
+            <div class="ps-card">
+                <span class="ps-gtitle"></span>
+                <span class="ps-pricerow"></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'ground'): ?>
+        <div class="container ps-main">
+            <span class="ps-line ps-line-w30"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-detail">
+                <div class="ps-card tall">
+                    <span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gline"></span><span class="ps-gbtn"></span>
+                </div>
+                <div class="ps-card tall side">
+                    <span class="ps-title"></span><span class="ps-line"></span>
+                    <div class="ps-slotgrid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                    <span class="ps-fbtn"></span>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'bookings'): ?>
+        <div class="container ps-main">
+            <span class="ps-title"></span>
+            <span class="ps-stats"><i></i><i></i><i></i></span>
+        </div>
+        <div class="container ps-body">
+            <span class="ps-subtitle"></span>
+            <span class="ps-mbooking"></span>
+            <span class="ps-mbooking"></span>
+            <span class="ps-mbooking"></span>
+        </div>
+    <?php elseif ($skeletonType === 'profile'): ?>
+        <div class="container ps-main"><span class="ps-title"></span></div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-2">
+                <div class="ps-card">
+                    <span class="ps-avatar big"></span>
+                    <span class="ps-gtitle center"></span>
+                    <span class="ps-gline center"></span>
+                    <span class="ps-fbtn"></span>
+                </div>
+                <div class="ps-card">
+                    <span class="ps-gtitle"></span>
+                    <div class="ps-fields-vertical"><i></i><i></i><i></i></div>
+                    <span class="ps-fbtn"></span>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'notifications'): ?>
+        <div class="container ps-main"><span class="ps-title"></span><span class="ps-line"></span></div>
+        <div class="container ps-body">
+            <span class="ps-row"></span>
+            <span class="ps-row"></span>
+            <span class="ps-row"></span>
+            <span class="ps-row"></span>
+        </div>
+    <?php elseif ($skeletonType === 'dashboard'): ?>
+        <div class="container ps-main">
+            <span class="ps-line ps-line-w60"></span>
+        </div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-4"><span class="ps-stat"></span><span class="ps-stat"></span><span class="ps-stat"></span><span class="ps-stat"></span></div>
+            <span class="ps-subtitle"></span>
+            <span class="ps-table"></span>
+            <span class="ps-subtitle"></span>
+            <span class="ps-mbooking"></span>
+            <span class="ps-mbooking"></span>
+        </div>
+    <?php elseif ($skeletonType === 'manage-grounds' || $skeletonType === 'grounds-form'): ?>
+        <div class="container ps-main"><span class="ps-title"></span></div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-2">
+                <span class="ps-card tall"><span class="ps-gtitle"></span><div class="ps-fields-vertical"><i></i><i></i><i></i><i></i></div><span class="ps-fbtn"></span></span>
+                <span class="ps-card"><span class="ps-gtitle"></span><div class="ps-fields-vertical"><i></i><i></i></div></span>
+            </div>
+            <span class="ps-subtitle"></span>
+            <span class="ps-mbooking"></span>
+            <span class="ps-mbooking"></span>
+        </div>
+    <?php else: ?>
+        <div class="container ps-section pad">
+            <div class="ps-hero">
+                <span class="ps-hero-tag"></span>
+                <span class="ps-title-lg"></span>
+                <span class="ps-title-lg short"></span>
+                <span class="ps-line-lg"></span>
+                <span class="ps-line-lg half"></span>
+            </div>
+            <div class="ps-fcard">
+                <span class="ps-field"><i></i></span>
+                <span class="ps-field"><i></i></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
+        <div class="ps-section">
+            <div class="container ps-head">
+                <span class="ps-eyebrow"></span>
+                <span class="ps-title-sec"></span>
+                <span class="ps-subline"></span>
+            </div>
+            <div class="container ps-grid">
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+            </div>
+        </div>
+        <div class="ps-section soft">
+            <div class="container ps-head center">
+                <span class="ps-eyebrow"></span>
+                <span class="ps-title-sec"></span>
+            </div>
+            <div class="container ps-steps">
+                <span class="ps-step"></span>
+                <span class="ps-step"></span>
+                <span class="ps-step"></span>
+            </div>
+        </div>
+        <div class="ps-footer">
+            <div class="container ps-foot-grid">
+                <span class="ps-fcol"></span>
+                <span class="ps-fcol"></span>
+                <span class="ps-fcol"></span>
+                <span class="ps-fcol"></span>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 <div id="appLoader" class="app-loader" aria-hidden="true">
     <div class="al-card">
         <span class="al-ball" role="presentation"></span>
         <span class="al-ground" aria-hidden="true"></span>
-        <span class="al-text">Just a moment<span class="al-dots" id="alDots" aria-hidden="true"></span></span>
+        <span class="al-text"><span id="alText">Just a moment</span><span class="al-dots" id="alDots" aria-hidden="true"></span></span>
     </div>
 </div>
 <header class="site-header">

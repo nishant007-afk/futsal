@@ -102,45 +102,7 @@ require __DIR__ . '/../includes/header.php';
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($bookings as $b): ?>
-            <div class="mbooking" data-search="<?php echo e(strtolower(strip_tags($b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status']))); ?>">
-                <div class="mbooking-date">
-                    <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
-                    <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
-                    <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
-                </div>
-                <div class="mbooking-main">
-                    <div class="mbooking-head">
-                        <h3><?php echo e($b['ground_name']); ?></h3>
-                        <span class="mbooking-status">
-                            <?php if ($b['status'] !== 'cancelled'): ?>
-                                <span class="badge badge-<?php echo $b['payment_status'] === 'paid' ? 'paid' : ($b['payment_status'] === 'partial' ? 'partial' : 'unpaid'); ?>">
-                                    <?php echo $b['payment_status'] === 'paid' ? 'Paid' : ($b['payment_status'] === 'partial' ? 'Advance paid' : 'Unpaid'); ?>
-                                </span>
-                            <?php endif; ?>
-                            <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo e($b['status']); ?></span>
-                        </span>
-                    </div>
-                    <div class="mbooking-meta">
-                        <span><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
-                        <span class="mprice"><i class="fa-solid fa-tag"></i> <?php echo format_price($b['total_price']); ?></span>
-                        <span><i class="fa-solid fa-user"></i> <?php echo e($b['user_name']); ?></span>
-                    </div>
-                    <?php if ($b['status'] !== 'cancelled' && $b['payment_status'] !== 'paid'): ?>
-                        <?php $due = (float)$b['total_price'] - (float)$b['amount_paid']; ?>
-                        <div class="paybar <?php echo $b['payment_status'] === 'partial' ? 'partial' : 'unpaid'; ?>">
-                            <span class="paybar-info">
-                                <i class="fa-solid fa-<?php echo $b['payment_status'] === 'partial' ? 'hourglass-half' : 'circle-exclamation'; ?>"></i>
-                                <span><?php echo $b['payment_status'] === 'partial'
-                                    ? 'Advance received &middot; <strong>' . format_price($due) . '</strong> still to collect'
-                                    : '<strong>' . format_price($due) . '</strong> due at the court &middot; unpaid'; ?></span>
-                            </span>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                <div class="mbooking-side">
-                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View details</a>
-                </div>
-            </div>
+            <?php booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status']); ?>
         <?php endforeach; ?>
     </div>
 

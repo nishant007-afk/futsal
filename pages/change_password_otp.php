@@ -91,7 +91,7 @@ $page_title = 'Confirm Password Change';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'otp'); ?>">
-            <label for="otp">Security code</label>
+            <label for="otp">Security code <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>

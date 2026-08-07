@@ -87,7 +87,7 @@ require __DIR__ . '/../includes/header.php';
         <input type="hidden" name="email" value="<?php echo e($email); ?>">
         <input type="hidden" name="resend" value="0">
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email</label>
+            <label for="email">Email <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-envelope"></i>
                 <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" required>
@@ -95,7 +95,7 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'email'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <label for="vcode">Verification code</label>
+            <label for="vcode">Verification code <span class="req">*</span></label>
             <div class="input-group">
                 <i class="fa-solid fa-shield-halved"></i>
                 <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>

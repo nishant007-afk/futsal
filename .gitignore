@@ -18,6 +18,10 @@ Thumbs.db
 .DS_Store
 ~$*
 
+# Local design docs & low-fi mockups (keep off GitHub)
+Proposal.docx
+/futsal_low/
+
 # Editor folders
 .idea/
 .vscode/

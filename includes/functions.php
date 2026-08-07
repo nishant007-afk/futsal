@@ -970,6 +970,8 @@ function otp_subject(string $purpose): string
             return 'Your login code';
         case 'password_change':
             return 'Your security code';
+        case 'email_change':
+            return 'Verify your new email';
         default:
             return 'Your GoalSpace security code';
     }
@@ -1000,6 +1002,8 @@ function otp_purpose_verb(string $purpose): string
             return 'sign in to your account';
         case 'password_change':
             return 'change your password';
+        case 'email_change':
+            return 'verify your new email address';
         default:
             return 'continue with what you were doing';
     }

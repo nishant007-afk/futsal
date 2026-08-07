@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     verify_csrf();
     $name = trim($_POST['name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
 
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters.';
@@ -22,10 +23,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $errors['phone'] = 'Phone number is too long. Keep it under 20 characters.';
     }
 
+    $emailChanged = $email !== '' && $email !== strtolower($user['email']);
+    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
+    } elseif ($emailChanged) {
+        if (is_disposable_email($email)) {
+            $errors['email'] = 'One-time email addresses aren\'t allowed. Please use a real email.';
+        } elseif (!email_has_mx($email)) {
+            $errors['email'] = 'This email domain does not accept mail. Please use a real email address.';
+        } else {
+            $check = $conn->prepare('SELECT id FROM users WHERE email = ? AND id <> ?');
+            $check->bind_param('si', $email, $_SESSION['user_id']);
+            $check->execute();
+            if ($check->get_result()->fetch_assoc()) {
+                $errors['email'] = 'An account with this email already exists. Try logging in instead.';
+            }
+        }
+    }
+
     if (!$errors) {
         $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ? WHERE id = ?');
         $stmt->bind_param('ssi', $name, $phone, $_SESSION['user_id']);
         if ($stmt->execute()) {
+            if ($emailChanged) {
+                $_SESSION['pending_email_change'] = [
+                    'user_id' => (int)$_SESSION['user_id'],
+                    'new_email' => $email,
+                ];
+                redirect('pages/change_email_otp.php');
+            }
             set_flash('success', 'Profile updated.');
             redirect('pages/profile.php');
         } else {
@@ -163,13 +189,14 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <?php field_error($errors, 'name'); ?>
             </div>
-            <div class="form-group">
-                <label for="email">Email</label>
+            <div class="form-group<?php echo has_error($errors, 'email'); ?>">
+                <label for="email">Email <span class="req">*</span></label>
                 <div class="input-group">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="email" value="<?php echo e($user['email']); ?>" disabled>
+                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" required>
                 </div>
-                <p class="form-hint">Email can't be changed on this site.</p>
+                <p class="form-hint">Change it and we'll email a 6-digit code to your new address to confirm.</p>
+                <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
                 <label for="phone">Phone <span class="muted" style="font-weight:400;">(optional)</span></label>

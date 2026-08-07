@@ -1,6 +1,5 @@
 -- ============================================================
 -- Futsal Booking & Management System - Database Setup
--- Import this file into phpMyAdmin (or run via MySQL CLI)
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS futsal_booking

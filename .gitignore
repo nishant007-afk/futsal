@@ -21,6 +21,7 @@ Thumbs.db
 # Local design docs & low-fi mockups (keep off GitHub)
 Proposal.docx
 /futsal_low/
+prompt.txt
 
 # Editor folders
 .idea/

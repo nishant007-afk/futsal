@@ -2719,8 +2719,12 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     #mainNav { display: none !important; }
     .site-header .nav-toggle { display: none !important; }
     .site-header .nav-auth { margin-left: auto; }
-    body { padding-left: 0; padding-bottom: calc(var(--bottomnav-h) + 4px + env(safe-area-inset-bottom, 0px)); }
+    body { padding-left: 0; }
     body.auth-page { padding-bottom: 0; }
+    /* The footer owns the bottom bar's spacer. Its dark background then fills the
+       space below the footer, so scrolling to the very bottom never leaves a white
+       gap (even when the bottom bar is hidden on scroll). */
+    .site-footer { padding-bottom: calc(var(--bottomnav-h) + 4px + env(safe-area-inset-bottom, 0px)); }
 
     .bottom-nav {
         display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1200;

@@ -31,7 +31,7 @@ $pages = [
         'title' => 'Privacy Policy',
         'summary' => 'What data we collect, why we collect it, and how we keep it safe.',
         'body' => '
-            <p class="updated-note">Last updated: August 2026</p>
+            <p class="updated-note">Last updated: August 7, 2026</p>
 
             <h2>Information we collect</h2>
             <ul>
@@ -73,7 +73,7 @@ $pages = [
         'title' => 'Terms of Service',
         'summary' => 'The rules for using GoalSpace as a player, manager or admin.',
         'body' => '
-            <p class="updated-note">Last updated: August 2026</p>
+            <p class="updated-note">Last updated: August 7, 2026</p>
             <p>By creating an account or using GoalSpace, you agree to these terms.</p>
 
             <h2>Your account</h2>

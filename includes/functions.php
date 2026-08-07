@@ -702,6 +702,79 @@ function notify_user(int $user_id, string $title, string $body = '', string $ico
     $stmt->execute();
 }
 
+/**
+ * Announce legal page updates to users.
+ * Sends ONE combined email per user (every selected page in a single message)
+ * and ONE in-app notification per user (shown in the notifications tab).
+ * No em dashes are used in the messages. Human-friendly tone.
+ *
+ * @param string[] $slugs  legal page slugs (privacy, terms, about, help, contact)
+ * @param string   $date   humanized date, e.g. "August 7, 2026"
+ * @param string   $scope  "all", "admins", "managers" or "users"
+ * @return int  number of users notified
+ */
+function notify_policy_update(array $slugs, string $date = '', string $scope = 'admins'): int
+{
+    global $conn;
+    $allowed = [
+        'privacy' => 'Privacy Policy',
+        'terms'   => 'Terms of Service',
+        'about'   => 'About GoalSpace',
+        'help'    => 'Help and Support',
+        'contact' => 'Contact',
+    ];
+    $chosen = [];
+    foreach ($slugs as $s) {
+        if (isset($allowed[$s]) && !in_array($s, $chosen, true)) {
+            $chosen[$s] = $allowed[$s];
+        }
+    }
+    if (empty($chosen)) {
+        return 0;
+    }
+    if ($date === '') {
+        $date = date('F j, Y');
+    }
+
+    $labels = [];
+    $lines  = [];
+    foreach ($chosen as $slug => $label) {
+        $labels[] = $label;
+        $lines[]  = '- ' . $label . ': ' . base_url('pages/page.php?slug=' . $slug);
+    }
+    $labelText = implode(', ', $labels);
+    $summary   = 'GoalSpace updated: ' . $labelText . ' on ' . $date;
+    $firstSlug = array_keys($chosen)[0];
+
+    $where = '';
+    if ($scope === 'admins')      { $where = "WHERE role = 'admin'"; }
+    elseif ($scope === 'managers'){ $where = "WHERE role = 'manager'"; }
+    elseif ($scope === 'users')  { $where = "WHERE role = 'user'"; }
+    // scope === 'all' applies no filter
+
+    $res = $conn->query('SELECT id,email,name FROM users ' . $where);
+    if ($res === false) {
+        return 0;
+    }
+
+    $sent = 0;
+    while ($u = $res->fetch_assoc()) {
+        // 1) in-app notification -> appears in the notifications tab (bell)
+        notify_user((int)$u['id'], 'Legal pages updated', $summary, 'fa-circle-info', base_url('pages/page.php?slug=' . $firstSlug));
+
+        // 2) ONE combined email per user (both policies in the same message)
+        $subject = 'GoalSpace update: ' . $labelText;
+        $msg  = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n";
+        $msg .= "We have updated the following on GoalSpace:\r\n" . implode("\r\n", $lines) . "\r\n\r\n";
+        $msg .= "Last reviewed: " . $date . "\r\n";
+        $msg .= "Take a look when you have a moment so you know what changed. Thanks for being part of GoalSpace.\r\n\r\n";
+        $msg .= "See you on the court!\r\nThe GoalSpace team";
+        @send_mail($u['email'], $subject, $msg);
+        $sent++;
+    }
+    return $sent;
+}
+
 function user_notifications(int $user_id, int $limit = 20): array
 {
     global $conn;

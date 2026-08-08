@@ -13,7 +13,7 @@ $stats = $conn->query(
 )->fetch_assoc();
 
 $upcoming = $conn->query(
-    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status, b.amount_paid, g.name AS ground_name, g.location
+    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.discount, b.promo_code, b.payment_status, b.amount_paid, g.name AS ground_name, g.location
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      WHERE b.user_id = ' . (int)$_SESSION['user_id'] . " AND b.booking_date >= '$today' AND b.status != 'cancelled'
@@ -26,10 +26,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <section class="welcome reveal">
     <span class="eyebrow">Player dashboard</span>
     <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
-    <div class="actions" style="margin-top:18px;">
-        <a href="<?php echo base_url('index.php#courts'); ?>" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass-location"></i> Find a court</a>
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-check"></i> My bookings</a>
-    </div>
 </section>
 
 <?php if ((int)$stats['unpaid'] > 0): ?>

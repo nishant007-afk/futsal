@@ -99,10 +99,19 @@ require __DIR__ . '/../includes/header.php';
     <div>
         <h2><i class="fa-solid fa-calendar-check"></i> My Bookings</h2>
     </div>
-    <div class="bookings-stats">
-        <div class="bstat"><strong><?php echo count($upcoming); ?></strong><span>Upcoming</span></div>
-        <div class="bstat"><strong><?php echo count(array_filter($bookings, fn($b) => $b['payment_status'] === 'unpaid' && $b['status'] !== 'cancelled')); ?></strong><span>Unpaid</span></div>
-        <div class="bstat"><strong><?php echo count($past); ?></strong><span>Past</span></div>
+<div class="bookings-stats">
+        <div class="bstat">
+            <i class="fa-solid fa-calendar-day"></i>
+            <span class="bstat-in"><strong><?php echo count($upcoming); ?></strong><span class="bstat-lbl">Upcoming</span></span>
+        </div>
+        <div class="bstat">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span class="bstat-in"><strong><?php echo count(array_filter($bookings, fn($b) => $b['payment_status'] === 'unpaid' && $b['status'] !== 'cancelled')); ?></strong><span class="bstat-lbl">Unpaid</span></span>
+        </div>
+        <div class="bstat">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span class="bstat-in"><strong><?php echo count($past); ?></strong><span class="bstat-lbl">Past</span></span>
+        </div>
     </div>
 </div>
 

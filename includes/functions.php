@@ -102,7 +102,7 @@ function absolute_url(string $path = ''): string
 
 function grounds_list_url(): string
 {
-    return is_logged_in() ? base_url('pages/courts.php') : base_url('index.php#grounds');
+    return base_url('pages/courts.php');
 }
 
 function redirect(string $path): void
@@ -325,17 +325,20 @@ function ground_slot_settings(int $ground_id): array
 function ground_price_for_date(int $ground_id, float $base_price, string $date): float
 {
     global $conn;
-    $day = (int)date('N', strtotime($date)); // 1=Mon .. 7=Sun
-    if ($day >= 6) {
-        $stmt = $conn->prepare('SELECT price_weekend FROM grounds WHERE id = ?');
-        $stmt->bind_param('i', $ground_id);
-        $stmt->execute();
-        $weekend = $stmt->get_result()->fetch_assoc()['price_weekend'] ?? null;
-        if ($weekend !== null && (float)$weekend > 0) {
-            return (float)$weekend;
-        }
+    $stmt = $conn->prepare('SELECT price_weekend, discount_price FROM grounds WHERE id = ?');
+    $stmt->bind_param('i', $ground_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $discounted = $row['discount_price'] ?? null;
+    $effective = $base_price;
+    if ($discounted !== null && (float)$discounted > 0 && (float)$discounted < (float)$base_price) {
+        $effective = (float)$discounted;
     }
-    return (float)$base_price;
+    $day = (int)date('N', strtotime($date)); // 1=Mon .. 7=Sun
+    if ($day >= 6 && $row['price_weekend'] !== null && (float)$row['price_weekend'] > 0) {
+        return (float)$row['price_weekend'];
+    }
+    return $effective;
 }
 
 function slots_for_day($date, $ground_id): array
@@ -451,10 +454,32 @@ function user_has_played(int $ground_id): bool
     return $stmt->get_result()->num_rows > 0;
 }
 
+/**
+ * Echo a booking's price.
+ * Shows the discounted (net) amount. When a promo/discount was applied,
+ * the original total is shown struck through (reusing .price-orig) and a
+ * green "Rs X off" .discount-tag pill is shown - matching the ground card
+ * and booking_details conventions.
+ */
+function booking_price_html(array $b): void
+{
+    $total = (float)($b['total_price'] ?? 0);
+    $discount = (float)($b['discount'] ?? 0);
+    $netDue = max(0, $total - $discount);
+    $hasDiscount = $discount > 0;
+
+    echo '<strong class="mb-price"><span class="mb-price-cur">Rs</span> ' . number_format($netDue, 0) . '</strong>';
+    if ($hasDiscount):
+        echo '<span class="price-orig">Rs ' . number_format($total, 0) . '</span>';
+        echo '<span class="discount-tag" title="' . e(!empty($b['promo_code']) ? ('Promo ' . $b['promo_code'] . ' applied, Rs ' . number_format($discount, 0) . ' off') : 'Rs ' . number_format($discount, 0) . ' off') . '"><i class="fa-solid fa-tag"></i> Rs ' . number_format($discount, 0) . ' off</span>';
+    endif;
+}
+
 function booking_card(array $b): void
 {
     $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
-    $payLabel = $b['payment_status'] === 'partial' ? 'Pay Rs ' . number_format(max(0, (float)$b['total_price'] - (float)$b['amount_paid']), 0) : 'Pay now';
+    $netDue = max(0, (float)$b['total_price'] - (float)($b['discount'] ?? 0));
+    $payLabel = $b['payment_status'] === 'partial' ? 'Pay Rs ' . number_format(max(0, $netDue - (float)$b['amount_paid']), 0) : 'Pay now';
     $dateLabel = date('M j, Y', strtotime($b['booking_date']));
     $isToday = date('m-d') === date('m-d', strtotime($b['booking_date']));
     $isTomorrow = date('m-d') === date('m-d', strtotime($b['booking_date'] . ' +1 day'));
@@ -496,7 +521,7 @@ function booking_card(array $b): void
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
-            <strong class="mb-price"><span class="mb-price-cur">Rs</span> <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+            <?php booking_price_html($b); ?>
             <div class="mb-actions">
                 <?php if ($needsPayment): ?>
                     <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
@@ -557,7 +582,7 @@ function booking_card_mini(array $b, string $show = '', string $search = ''): vo
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
-            <strong class="mb-price"><span class="mb-price-cur">Rs</span> <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+            <?php booking_price_html($b); ?>
             <div class="mb-actions">
                 <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
             </div>
@@ -1331,7 +1356,15 @@ function ground_card_html(array $ground, ?array $availability = null): void
         <div class="card-body">
             <h3 class="card-title"><?php echo e($ground['name']); ?></h3>
             <div class="card-meta">
-                <span class="price"><?php echo number_format((float)$ground['price_per_hour'], 0); ?><small> Rs / hour</small></span>
+                <span class="price">
+                    <?php
+                    $cardPrice = (float)$ground['price_per_hour'];
+                    $cardDisc = isset($ground['discount_price']) ? (float)$ground['discount_price'] : 0;
+                    $cardSale = $cardDisc > 0 && $cardDisc < $cardPrice;
+                    ?>
+                    <?php if ($cardSale): ?><span class="price-orig">Rs <?php echo number_format($cardPrice, 0); ?></span><?php endif; ?>
+                    <?php echo number_format($cardSale ? $cardDisc : $cardPrice, 0); ?><small> Rs / hour</small>
+                </span>
                 <?php if ($rating['count'] > 0): ?>
                     <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
                 <?php else: ?>

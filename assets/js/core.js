@@ -573,4 +573,188 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    /* Header search with debounced suggestions (desktop bar + mobile overlay) */
+    const base = (document.body.getAttribute('data-base') || '').replace(/\/$/, '');
+
+    function wireHeaderSearch(root) {
+        if (!root) { return null; }
+        const input = root.querySelector('input[type="search"]');
+        const panel = root.querySelector('.hs-panel');
+        if (!input || !panel) { return null; }
+        let timer = null;
+        let abort = null;
+        let items = [];
+        let active = -1;
+
+        function escText(v) {
+            const d = document.createElement('div');
+            d.textContent = v;
+            return d.innerHTML;
+        }
+        function show() { panel.hidden = false; input.setAttribute('aria-expanded', 'true'); }
+        function hide() {
+            panel.hidden = true;
+            input.setAttribute('aria-expanded', 'false');
+            items = []; active = -1;
+        }
+
+        function skeleton() {
+            panel.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const sk = document.createElement('div');
+                sk.className = 'hs-skel';
+                sk.innerHTML = '<span class="hs-thumb"></span><span class="hs-meta"><span class="hs-bar"></span><span class="hs-bar short"></span></span>';
+                panel.appendChild(sk);
+            }
+            show();
+        }
+
+        function itemEl(item) {
+            const a = document.createElement('a');
+            a.className = 'hs-item';
+            a.href = base + '/pages/ground.php?id=' + item.id;
+            const thumb = document.createElement('span');
+            thumb.className = 'hs-thumb';
+            if (item.img) {
+                const im = document.createElement('img');
+                im.src = base + '/uploads/grounds/' + encodeURIComponent(item.img);
+                im.alt = '';
+                im.referrerPolicy = 'no-referrer';
+                thumb.appendChild(im);
+            } else {
+                thumb.innerHTML = '<i class="fa-solid fa-futbol"></i>';
+            }
+            a.appendChild(thumb);
+            const meta = document.createElement('span');
+            meta.className = 'hs-meta';
+            const b = document.createElement('b');
+            b.textContent = item.name;
+            const s = document.createElement('span');
+            s.textContent = item.location + ' · Rs ' + (Number(item.price) || 0).toLocaleString('en-NP');
+            meta.appendChild(b);
+            meta.appendChild(s);
+            a.appendChild(meta);
+            const go = document.createElement('i');
+            go.className = 'fa-solid fa-angle-right hs-go';
+            a.appendChild(go);
+            return a;
+        }
+
+        function render(q) {
+            if (items.length === 0) {
+                panel.innerHTML = '<div class="hs-empty">No courts match "<b>' + escText(q) + '</b>"</div>';
+            } else {
+                const frag = document.createDocumentFragment();
+                const showItems = items.slice(0, 5);
+                showItems.forEach(function (it) { frag.appendChild(itemEl(it)); });
+                const foot = document.createElement('a');
+                foot.className = 'hs-foot';
+                foot.href = base + '/pages/courts.php?q=' + encodeURIComponent(q);
+                foot.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> View all matches for "' + escText(q) + '"';
+                panel.innerHTML = '';
+                panel.appendChild(frag);
+                panel.appendChild(foot);
+            }
+            active = -1;
+            show();
+        }
+
+        function fetchSuggest(q) {
+            if (abort) { abort.abort(); }
+            abort = new AbortController();
+            fetch(base + '/ajax/search_suggest.php?q=' + encodeURIComponent(q), {
+                signal: abort.signal
+            }).then(function (r) {
+                if (!r.ok) { throw new Error(r.status); }
+                return r.json();
+            }).then(function (data) {
+                if (input.value.trim() !== q) { return; }
+                items = (data && data.results) ? data.results : [];
+                render(q);
+            }).catch(function (err) {
+                if (err && err.name === 'AbortError') { return; }
+                if (input.value.trim() === q) { hide(); }
+            }).finally(function () { abort = null; });
+        }
+
+        function move(dir) {
+            const rows = panel.querySelectorAll('.hs-item');
+            if (!rows.length) { return; }
+            active = (active + dir + rows.length) % rows.length;
+            rows.forEach(function (r, i) { r.classList.toggle('active', i === active); });
+            const el = rows[active];
+            if (el) { el.scrollIntoView({ block: 'nearest' }); }
+        }
+
+        input.addEventListener('input', function () {
+            const v = input.value.trim();
+            clearTimeout(timer);
+            if (!v) {
+                if (abort) { abort.abort(); }
+                panel.innerHTML = '';
+                hide();
+                return;
+            }
+            skeleton();
+            timer = setTimeout(function () { fetchSuggest(v); }, 500);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { hide(); input.blur(); }
+            else if (e.key === 'ArrowDown') { move(1); e.preventDefault(); }
+            else if (e.key === 'ArrowUp') { move(-1); e.preventDefault(); }
+            else if (e.key === 'Enter' && active >= 0 && items[active]) {
+                e.preventDefault();
+                window.location.href = base + '/pages/ground.php?id=' + items[active].id;
+            }
+        });
+
+        document.addEventListener('pointerdown', function (e) {
+            if (!root.contains(e.target)) { hide(); }
+        });
+
+        return { show, hide, clear: function () { panel.innerHTML = ''; hide(); } };
+    }
+
+    wireHeaderSearch(document.querySelector('.header-search-wrap'));
+
+    const hsOverlay = document.getElementById('hsOverlay');
+    const hsToggle = document.getElementById('headerSearchToggle');
+    const hsScrim = document.getElementById('hsScrim');
+    if (hsOverlay && hsToggle) {
+        const overlay = wireHeaderSearch(hsOverlay);
+
+        function overlayOpen() {
+            hsOverlay.hidden = false;
+            hsOverlay.classList.remove('closing');
+            void hsOverlay.offsetWidth;
+            hsOverlay.classList.add('open');
+            hsToggle.setAttribute('aria-expanded', 'true');
+            if (hsScrim) { hsScrim.classList.add('show'); hsScrim.classList.remove('closing'); }
+            const inp = hsOverlay.querySelector('input[type="search"]');
+            if (inp) { setTimeout(function () { inp.focus(); }, 30); }
+        }
+        function overlayClose() {
+            if (!hsOverlay.classList.contains('open')) return;
+            hsOverlay.classList.remove('open');
+            hsOverlay.classList.add('closing');
+            if (hsScrim) { hsScrim.classList.add('closing'); }
+            hsToggle.setAttribute('aria-expanded', 'false');
+            setTimeout(function () {
+                hsOverlay.hidden = true;
+                hsOverlay.classList.remove('closing');
+                if (hsScrim) { hsScrim.classList.remove('show', 'closing'); }
+                if (overlay) { overlay.clear(); }
+            }, 270);
+        }
+
+        hsToggle.addEventListener('click', overlayOpen);
+        const overlayCloseBtn = hsOverlay.querySelector('.hs-overlay-close');
+        if (overlayCloseBtn) { overlayCloseBtn.addEventListener('click', overlayClose); }
+        if (hsScrim) { hsScrim.addEventListener('click', overlayClose); }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !hsOverlay.hidden) { overlayClose(); }
+        });
+    }
 });

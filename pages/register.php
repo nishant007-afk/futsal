@@ -7,6 +7,7 @@ if (is_logged_in()) {
 
 $name = $email = $phone = '';
 $accept = false;
+$email_updates = false;
 $role = ($_GET['role'] ?? '') === 'manager' ? 'manager' : 'user';
 $errors = [];
 
@@ -19,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm'] ?? '';
     $accept = ($_POST['accept'] ?? '') === '1';
+    $email_updates = ($_POST['email_updates'] ?? '') === '1';
 
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters.';
@@ -49,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['email'] = 'An account with this email already exists. Try logging in instead.';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, verify_token) VALUES (?, ?, ?, ?, ?, 0, NULL)');
-            $stmt->bind_param('sssss', $name, $email, $phone, $hash, $role);
+            $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, verify_token, email_updates) VALUES (?, ?, ?, ?, ?, 0, NULL, ?)');
+            $stmt->bind_param('sssssi', $name, $email, $phone, $hash, $role, $email_updates);
             if ($stmt->execute()) {
                 $otp = issue_otp($email, 'email_verify');
                 $verification_sent = send_otp_mail($email, $otp, 'email_verify');
@@ -216,10 +218,15 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <?php field_error($errors, 'confirm'); ?>
         </div>
+        <label class="check-line" style="margin-bottom:10px;">
+            <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
+            <span class="check-box"><i class="fa-solid fa-check"></i></span>
+            <span>I'd like to receive emails about new grounds, booking tips and GoalSpace updates.</span>
+        </label>
         <label class="check-line" style="margin-bottom:18px;">
             <input type="checkbox" id="termsCheck" name="accept" value="1" required <?php echo $accept ? 'checked' : ''; ?>>
             <span class="check-box"><i class="fa-solid fa-check"></i></span>
-            <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy Policy</a></span>
+            <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a></span>
         </label>
         <?php field_error($errors, 'terms'); ?>
         <button type="submit" class="btn btn-primary btn-block" data-autogate=""><i class="fa-solid fa-user-plus"></i> Create account</button>

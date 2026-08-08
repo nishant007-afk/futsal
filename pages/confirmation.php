@@ -7,10 +7,11 @@ $booking_id = (int)($_GET['booking_id'] ?? 0);
 
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.discount, b.promo_code, b.created_at,
-            g.name AS ground_name, g.location
+            b.payment_status, b.payment_type, b.amount_paid, b.discount, b.promo_code, b.created_at,
+            g.name AS ground_name, g.location, u.email AS user_email
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
+     LEFT JOIN users u ON u.id = b.user_id
      WHERE b.id = ? AND b.user_id = ?'
 );
 $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
@@ -27,13 +28,29 @@ if (!$booking || $booking['status'] === 'cancelled') {
     redirect('pages/my_bookings.php');
 }
 
-$date = date('Ymd\THis', strtotime($booking['booking_date'] . ' ' . $booking['start_time']));
-$end = date('Ymd\THis', strtotime($booking['booking_date'] . ' ' . $booking['end_time']));
-$gcal = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-    . '&text=' . rawurlencode('Futsal at ' . $booking['ground_name'])
-    . '&dates=' . $date . '/' . $end
-    . '&location=' . rawurlencode($booking['location'])
-    . '&details=' . rawurlencode('Booking reference ' . $booking['booking_ref']);
+$total = (float)$booking['total_price'];
+$discount = (float)$booking['discount'];
+$netDue = max(0, $total - $discount);
+$hasDiscount = $discount > 0;
+$amountPaid = (float)$booking['amount_paid'];
+
+if (!empty($booking['payment_type'])) {
+    $methodText = $booking['payment_type'] === 'full' ? 'Full' : 'Half';
+} else {
+    $methodText = $booking['payment_status'] === 'paid' ? 'Full' : 'Unpaid';
+}
+if ($booking['payment_status'] === 'paid') {
+    if ($hasDiscount) {
+        $amountCell = '<span class="price-orig">Rs ' . number_format($total, 0) . '</span><span class="pay-net"> Rs ' . number_format($netDue, 0) . '</span>';
+    } else {
+        $amountCell = '<span class="pay-net">Rs ' . number_format($netDue, 0) . '</span>';
+    }
+} elseif ($booking['payment_status'] === 'partial') {
+    $amountCell = '<span class="pay-net">Rs ' . number_format($amountPaid, 0) . '</span> <span class="pay-subtext">Rs ' . number_format(max(0, $netDue - $amountPaid), 0) . ' due at court</span>';
+} else {
+    $amountCell = '<span class="muted">Not yet paid &middot; pay online or at court</span>';
+}
+$bookingDate = date('M j, Y', strtotime($booking['booking_date']));
 
 $page_title = 'Booking confirmed';
 $page_description = 'Your futsal court booking on GoalSpace is confirmed. Review your slot details and get ready for the game.';
@@ -42,52 +59,21 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="confirm-wrap reveal">
     <div class="confirm-card">
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="confirm-back"><i class="fa-solid fa-arrow-left"></i> My Bookings</a>
         <div class="confirm-check"><i class="fa-solid fa-circle-check"></i></div>
-        <span class="eyebrow">Booking confirmed</span>
-        <h1>You're booked in!</h1>
-        <p class="muted">Keep this reference handy. Quote it at the court.</p>
+        <h1>Payment completed</h1>
+        <div class="confirm-ref">Booking reference: <strong><?php echo e($booking['booking_ref']); ?></strong></div>
 
-        <div class="confirm-ref">
-            <span>Booking reference</span>
-            <strong><?php echo e($booking['booking_ref']); ?></strong>
-        </div>
-
-        <div class="payment-summary">
-            <div class="payment-ground">
-                <div class="payment-date">
-                    <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($booking['booking_date'])))); ?></span>
-                    <span class="bd-day"><?php echo (int)date('d', strtotime($booking['booking_date'])); ?></span>
-                </div>
-                <div>
-                    <h3><?php echo e($booking['ground_name']); ?></h3>
-                    <p><i class="fa-solid fa-location-dot"></i> <?php echo e($booking['location']); ?></p>
-                    <p><i class="fa-regular fa-clock"></i> <?php echo e(substr($booking['start_time'], 0, 5)); ?> - <?php echo e(substr($booking['end_time'], 0, 5)); ?></p>
-                </div>
-            </div>
-            <div class="payment-total">
-                <span>Total</span>
-                <strong>Rs <?php echo number_format((float)$booking['total_price'], 0); ?></strong>
-                <?php if ((float)$booking['discount'] > 0): ?>
-                    <span class="pay-line ok"><i class="fa-solid fa-tag"></i> <?php echo e($booking['promo_code']); ?> &minus; Rs <?php echo number_format((float)$booking['discount'], 0); ?></span>
-                <?php endif; ?>
-                <?php if ($booking['payment_status'] === 'paid'): ?>
-                    <span class="pay-line ok">Fully paid</span>
-                <?php elseif ($booking['payment_status'] === 'partial'): ?>
-                    <span class="pay-line warn">Rs <?php echo number_format((float)$booking['amount_paid'], 0); ?> paid &middot; rest at court</span>
-                <?php else: ?>
-                    <span class="pay-line warn">Unpaid &middot; pay online or at court</span>
-                <?php endif; ?>
-            </div>
-        </div>
+        <table class="confirm-table">
+            <tr><th>Date</th><td><?php echo e($bookingDate); ?> &middot; <?php echo e(substr($booking['start_time'], 0, 5)); ?> - <?php echo e(substr($booking['end_time'], 0, 5)); ?></td></tr>
+            <tr><th>Name</th><td><?php echo e($booking['ground_name']); ?>, <?php echo e($booking['location']); ?></td></tr>
+            <tr><th>Payment method</th><td><?php echo e($methodText); ?></td></tr>
+            <tr><th>Amount</th><td><?php echo $amountCell; ?></td></tr>
+            <tr><th>Email</th><td><?php echo e($booking['user_email'] ?? ''); ?></td></tr>
+        </table>
 
         <div class="confirm-actions">
-            <?php if ($booking['payment_status'] === 'paid'): ?>
-                <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-invoice-dollar"></i> Payment receipt</a>
-            <?php elseif ($booking['payment_status'] === 'unpaid'): ?>
-                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Pay online now</a>
-            <?php endif; ?>
-            <a href="<?php echo e($gcal); ?>" target="_blank" rel="noopener" class="btn btn-outline"><i class="fa-regular fa-calendar-plus"></i> Add to Google Calendar</a>
-            <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-ghost"><i class="fa-solid fa-calendar-check"></i> My bookings</a>
+            <a href="<?php echo base_url('pages/receipt_pdf.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> Download invoice</a>
         </div>
     </div>
 </div>

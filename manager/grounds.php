@@ -87,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $location = trim($_POST['location'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $price = (float)($_POST['price_per_hour'] ?? 0);
+    $discount_price = $_POST['discount_price'] !== '' ? (float)$_POST['discount_price'] : null;
     $capacity = (int)($_POST['capacity'] ?? 10);
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     $open_time = trim($_POST['open_time'] ?? '08:00');
@@ -107,6 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($price <= 0) {
         $errors['price_per_hour'] = 'Price must be greater than zero.';
+    }
+    if ($discount_price !== null && ($discount_price <= 0 || $discount_price >= $price)) {
+        $errors['discount_price'] = 'Discount price must be between 0 and the regular price.';
     }
     if ($capacity < 1) {
         $errors['capacity'] = 'Capacity must be at least 1 player.';
@@ -130,15 +134,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
 if ($id > 0 && user_owns_ground($id)) {
             $stmt = $conn->prepare(
-                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ?, latitude = ?, longitude = ? WHERE id = ? AND manager_id = ?'
+                'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, discount_price = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ?, latitude = ?, longitude = ? WHERE id = ? AND manager_id = ?'
             );
-            $stmt->bind_param('sssdiissidssddii', $name, $location, $description, $price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude, $id, $_SESSION['user_id']);
+            $stmt->bind_param('sssddiissidssddii', $name, $location, $description, $price, $discount_price, $capacity, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude, $id, $_SESSION['user_id']);
             $msg = 'Ground updated.';
         } else {
             $stmt = $conn->prepare(
-                'INSERT INTO grounds (name, location, description, price_per_hour, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO grounds (name, location, description, price_per_hour, discount_price, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssdiiissidssdd', $name, $location, $description, $price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude);
+            $stmt->bind_param('sssddiiissidssdd', $name, $location, $description, $price, $discount_price, $capacity, $_SESSION['user_id'], $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude);
             $msg = 'Ground added.';
         }
         if ($stmt->execute()) {
@@ -280,6 +284,11 @@ require __DIR__ . '/../includes/header.php';
                     <label for="price_per_hour"><i class="fa-solid fa-tag"></i> Price per Hour (Rs.) <span class="req">*</span></label>
                     <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" required>
                     <?php field_error($errors, 'price_per_hour'); ?>
+                </div>
+                <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
+                    <label for="discount_price"><i class="fa-solid fa-percent"></i> Discounted price/hr (Rs.) <span class="muted">(optional)</span></label>
+                    <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Lower than regular price for a sale">
+                    <?php field_error($errors, 'discount_price'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
                     <label for="capacity"><i class="fa-solid fa-users"></i> Capacity <span class="req">*</span></label>

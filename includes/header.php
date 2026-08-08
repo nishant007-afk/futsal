@@ -84,9 +84,10 @@ $body_class = implode(' ', $body_classes);
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=162'); ?>">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
+    <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=187'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -425,7 +426,18 @@ $body_class = implode(' ', $body_classes);
             <span class="brand-name">GoalSpace</span>
         </a>
 
+        <div class="header-search-wrap">
+            <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="header-search" role="search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="headerSearchInput" name="q" placeholder="Search courts by name or city..."
+                       aria-label="Search courts" autocomplete="off" role="combobox"
+                       aria-expanded="false" aria-controls="headerSearchPanel" aria-autocomplete="list">
+            </form>
+            <div class="hs-panel" id="headerSearchPanel" hidden></div>
+        </div>
+
         <div class="nav-auth">
+            <button type="button" class="header-search-toggle" id="headerSearchToggle" aria-label="Search" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-magnifying-glass"></i></button>
             <?php if ($site_user): ?>
                 <?php $bellNotifications = user_notifications((int)$site_user['id'], 4); ?>
                 <div class="bell-wrap" id="bellWrap">
@@ -486,18 +498,6 @@ $body_class = implode(' ', $body_classes);
                     </div>
                 </div>
             <?php else: ?>
-                <div class="nav-drop hide-sm">
-                    <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="nav-link"><i class="fa-solid fa-chart-line"></i> Become a Manager</a>
-                    <div class="nav-drop-panel">
-                        <div class="nd-head">Run your courts your way</div>
-                        <div class="nd-list">
-                            <div class="nd-item"><i class="fa-solid fa-calendar-check"></i><span><strong>See every booking</strong>All your court bookings in one list, always up to date.</span></div>
-                            <div class="nd-item"><i class="fa-solid fa-sack-dollar"></i><span><strong>Know what's paid</strong>See exactly what's been paid and what's still pending.</span></div>
-                            <div class="nd-item"><i class="fa-solid fa-bolt"></i><span><strong>Free a slot fast</strong>Cancel a booking in a couple of clicks when plans change.</span></div>
-                        </div>
-                        <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary btn-sm nd-cta"><i class="fa-solid fa-right-to-bracket"></i> Get started</a>
-                    </div>
-                </div>
                 <span class="nav-divider hide-sm"></span>
                 <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline-dark btn-sm">Log in</a>
                 <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-primary btn-sm">Sign up</a>
@@ -507,6 +507,23 @@ $body_class = implode(' ', $body_classes);
         <button class="nav-toggle" id="navToggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
     </div>
 </header>
+
+<!-- dim backdrop for the mobile search sheet (rest of the page darkens) -->
+<div class="hs-scrim" id="hsScrim"></div>
+
+<!-- mobile search sheet (overlaps only the navbar; the page below is dimmed) -->
+<div class="hs-overlay" id="hsOverlay" hidden>
+    <div class="hs-overlay-top">
+        <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="header-search" role="search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="hsOverlayInput" name="q" placeholder="Search courts by name or city..."
+                   aria-label="Search courts" autocomplete="off" role="combobox"
+                   aria-expanded="false" aria-controls="hsOverlayPanel" aria-autocomplete="list">
+        </form>
+        <button type="button" class="hs-overlay-close" id="hsOverlayClose" aria-label="Close search"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="hs-panel" id="hsOverlayPanel" hidden></div>
+</div>
 
 <!-- persistent desktop sidebar (body-level so it's never clipped by header transforms) -->
 <nav class="nav" id="mainNav">
@@ -541,7 +558,14 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="show-sm"><i class="fa-solid fa-chart-line"></i> Become a Manager</a>
     <?php endif; ?>
     <div class="nav-sidebar-foot">
-        <p class="nsf-meta">GoalSpace &middot; v1.0 &middot; made for players &amp; managers</p>
+        <div class="nsf-wrap">
+            <p class="nsf-meta">GoalSpace &middot; v1.0</p>
+            <div class="nsf-social">
+                <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" target="_blank" rel="noopener" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -607,3 +631,9 @@ $body_class = implode(' ', $body_classes);
 <?php endif; ?>
 
 <main class="container page" id="mainContent" tabindex="-1">
+
+
+
+
+
+

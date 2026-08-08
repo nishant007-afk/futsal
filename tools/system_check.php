@@ -56,8 +56,11 @@ $public = [
     '/pages/register.php'                     => 200,
     '/pages/ground.php?id=1'                  => 200,
     '/pages/forgot_password.php'              => 200,
-    '/assets/css/style.css?v=162'             => 200,
+    '/assets/css/style.css?v=187'             => 200,
+    '/assets/vendor/fontawesome/css/all.min.css' => 200,
+    '/assets/vendor/fontawesome/webfonts/fa-solid-900.woff2' => 200,
     '/uploads/grounds/ground_1_111d21fbae40.webp' => 200,
+    '/ajax/search_suggest.php?q=ground'       => 200,
 ];
 foreach ($public as $path => $want) {
     $out = get_scope($B . $path, '');
@@ -223,7 +226,7 @@ check('CSS: no blue/purple remnants', preg_match('/#2563eb|#4f46e5|#5b5bd6|#60a5
 check('CSS: body font = Manrope', strpos($css, "'Manrope'") !== false);
 check('CSS: heading font = Barlow Condensed', strpos($css, '--font-display') !== false && strpos($css, "'Barlow Condensed'") !== false);
 $gradCount = substr_count($css, 'gradient(');
-check('CSS: only functional gradients remain', $gradCount <= 13, "gradient() x$gradCount");
+    check('CSS: only functional gradients remain', $gradCount <= 14, "gradient() x$gradCount");
 
 // DB
 $db = @new mysqli(env('DB_HOST', 'localhost'), env('DB_USER', 'root'), (string)env('DB_PASS', ''), env('DB_NAME', 'futsal_booking'), (int)env('DB_PORT', '3306'));

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified TINYINT(1) NOT NULL DEFAULT 1,
   verify_token VARCHAR(64) DEFAULT NULL,
   login_count INT NOT NULL DEFAULT 0,
+  email_updates TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS grounds (
   location VARCHAR(255) NOT NULL,
   description TEXT,
   price_per_hour DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+  discount_price DECIMAL(8,2) DEFAULT NULL,
   image VARCHAR(255) DEFAULT '',
   capacity INT DEFAULT 10,
   manager_id INT NULL,

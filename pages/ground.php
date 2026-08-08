@@ -171,7 +171,15 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="detail-box booking-panel reveal">
         <h1><?php echo e($ground['name']); ?></h1>
-        <p class="price-line"><strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo (int)date('N', strtotime($selected_date)) >= 6 ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?></p>
+        <?php
+        $discPrice = $ground['discount_price'] ?? null;
+        $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);
+        $showDiscount = !$isWeekendRate && $discPrice !== null && (float)$discPrice > 0 && (float)$discPrice < (float)$ground['price_per_hour'];
+        ?>
+        <p class="price-line">
+            <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
+            <strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?>
+        </p>
         <p class="muted" style="font-size:12.5px;margin:-8px 0 14px;">Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> - <?php echo e(substr($ground['close_time'], 0, 5)); ?> &middot; <?php echo $ground['slot_interval'] == 60 ? 'hourly' : $ground['slot_interval'] . '-min'; ?> slots</p>
 
         <form method="get" action="">

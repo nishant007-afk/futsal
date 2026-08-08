@@ -225,9 +225,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const y = window.scrollY;
             const delta = y - lastY;
             if (delta > 6 && isUserScrolling()) {
-                // scrolling down -> hide the top navbar up and the mobile bottom nav down (opposite sides)
+                // scrolling down -> hide the top navbar up and the mobile bottom nav down
                 siteHeader.classList.add('collapsed');
-                if (bottomNav) bottomNav.classList.add('hidden');
+                if (bottomNav) { bottomNav.classList.add('hidden'); document.body.classList.add('nav-hidden'); }
                 // mobile only: dismiss the slide-in nav drawer if open
                 if (isCompactHeader() && mainNav && mainNav.classList.contains('open') && typeof setNavOpen === 'function') {
                     setNavOpen(false);
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if ((delta < -6 && isUserScrolling()) || y <= 8) {
                 // scrolling up (or near the top) -> reveal the top navbar and bottom nav
                 siteHeader.classList.remove('collapsed');
-                if (bottomNav) bottomNav.classList.remove('hidden');
+                if (bottomNav) { bottomNav.classList.remove('hidden'); document.body.classList.remove('nav-hidden'); }
             }
             lastY = y;
         }

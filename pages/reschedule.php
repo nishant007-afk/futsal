@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = [
                 'what' => 'That time slot was just taken.',
                 'why' => 'Someone else booked it while you were choosing.',
-                'how' => 'Pick a different time — there are usually plenty of open slots.',
+                'how' => 'Pick a different time - there are usually plenty of open slots.',
             ];
         }
     }

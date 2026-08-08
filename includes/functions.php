@@ -278,13 +278,19 @@ function waitlist_count(int $ground_id, string $booking_date, string $start_time
 function notify_waitlist_freed(int $ground_id, string $booking_date, string $start_time): void
 {
     global $conn;
-    $groundName = $conn->query('SELECT name FROM grounds WHERE id = ' . (int)$ground_id)->fetch_assoc()['name'] ?? 'the court';
+    $gStmt = $conn->prepare('SELECT name FROM grounds WHERE id = ?');
+    $gStmt->bind_param('i', $ground_id);
+    $gStmt->execute();
+    $groundName = $gStmt->get_result()->fetch_assoc()['name'] ?? 'the court';
     $label = date('D, M j', strtotime($booking_date)) . ' at ' . substr($start_time, 0, 5);
-    $rows = $conn->query(
+    $stmt = $conn->prepare(
         'SELECT id, user_id FROM waitlist
-         WHERE ground_id = ' . (int)$ground_id . ' AND booking_date = "' . $conn->real_escape_string($booking_date) . '" AND start_time = "' . $conn->real_escape_string($start_time) . '" AND is_notified = 0
+         WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND is_notified = 0
          ORDER BY id ASC'
     );
+    $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
+    $stmt->execute();
+    $rows = $stmt->get_result();
     while ($row = $rows->fetch_assoc()) {
         notify_user((int)$row['user_id'], 'A slot opened up!', $groundName . ' is free on ' . $label . '. Book before someone else does.', 'fa-bell', 'pages/ground.php?id=' . (int)$ground_id . '&date=' . urlencode($booking_date));
         $upd = $conn->prepare('UPDATE waitlist SET is_notified = 1 WHERE id = ?');
@@ -590,6 +596,61 @@ function booking_refund_policy(string $booking_date, string $start_time, float $
     ];
 }
 
+/**
+ * Convert an uploaded image to WebP and write it to $dest.
+ * Returns true on success (file saved as WebP) or false on failure.
+ * GIFs are saved as-is (no frame support in GD WebP), and already-WebP
+ * sources are copied through untouched.
+ */
+function convert_image_to_webp(string $src, string $dest, int $quality = 82, ?int $maxWidth = null): bool
+{
+    $src = realpath($src);
+    if ($src === false || !is_file($src)) {
+        return false;
+    }
+    $info = @getimagesize($src);
+    if ($info === false) {
+        return false;
+    }
+    $mime = $info['mime'];
+    if ($mime === 'image/webp') {
+        return copy($src, $dest);
+    }
+    if ($mime === 'image/gif') {
+        return copy($src, $dest);
+    }
+    switch ($mime) {
+        case 'image/jpeg':
+            $img = @imagecreatefromjpeg($src);
+            break;
+        case 'image/png':
+            $img = @imagecreatefrompng($src);
+            break;
+        default:
+            return false;
+    }
+    if (!$img) {
+        return false;
+    }
+    if ($maxWidth !== null) {
+        $w = imagesx($img);
+        $h = imagesy($img);
+        if ($w > $maxWidth) {
+            $nh = (int)round($h * ($maxWidth / $w));
+            $resized = imagecreatetruecolor($maxWidth, $nh);
+            imagecopyresampled($resized, $img, 0, 0, 0, 0, $maxWidth, $nh, $w, $h);
+            imagedestroy($img);
+            $img = $resized;
+        }
+    }
+    if (function_exists('imagepalettetotruecolor')) {
+        imagepalettetotruecolor($img);
+    }
+    $ok = imagewebp($img, $dest, $quality);
+    imagedestroy($img);
+    return $ok;
+}
+
 function save_ground_photos(int $ground_id): array
 {
     global $conn;
@@ -609,22 +670,24 @@ function save_ground_photos(int $ground_id): array
             continue;
         }
         $mime = finfo_file($finfo, $tmps[$i]);
-        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+        $allowed = ['image/jpeg' => true, 'image/png' => true, 'image/webp' => true, 'image/gif' => true];
         if (!isset($allowed[$mime])) {
             $failed++;
             continue;
         }
-        $ext = $allowed[$mime];
-        $filename = 'ground_' . $ground_id . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        if (move_uploaded_file($tmps[$i], __DIR__ . '/../uploads/grounds/' . $filename)) {
-            $stmt = $conn->prepare('INSERT INTO ground_images (ground_id, image) VALUES (?, ?)');
-            $stmt->bind_param('is', $ground_id, $filename);
-            if ($stmt->execute()) {
-                $uploaded++;
-            } else {
-                $failed++;
-            }
+        $filename = 'ground_' . $ground_id . '_' . bin2hex(random_bytes(6)) . '.webp';
+        $dest = __DIR__ . '/../uploads/grounds/' . $filename;
+        if (!convert_image_to_webp($tmps[$i], $dest, 82, 1600)) {
+            @unlink($dest);
+            $failed++;
+            continue;
+        }
+        $stmt = $conn->prepare('INSERT INTO ground_images (ground_id, image) VALUES (?, ?)');
+        $stmt->bind_param('is', $ground_id, $filename);
+        if ($stmt->execute()) {
+            $uploaded++;
         } else {
+            @unlink($dest);
             $failed++;
         }
     }

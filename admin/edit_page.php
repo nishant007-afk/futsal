@@ -65,7 +65,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group">
-            <label for="pBody">Body (HTML allowed — live preview on the right)</label>
+            <label for="pBody">Body (HTML allowed - live preview on the right)</label>
             <div class="editor-split">
                 <textarea id="pBody" name="body" rows="24" required spellcheck="false"><?php echo e($body); ?></textarea>
                 <div class="editor-preview" id="editorPreview"></div>

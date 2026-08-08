@@ -44,8 +44,13 @@ foreach ($notifications as $n) {
     }
 }
 if ($linkedIds) {
-    $in = implode(',', array_keys($linkedIds));
-    $res = $conn->query("SELECT id, booking_ref FROM bookings WHERE id IN ($in)");
+    $ids = array_map('intval', array_keys($linkedIds));
+    $ph = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare("SELECT id, booking_ref FROM bookings WHERE id IN ($ph)");
+    $types = str_repeat('i', count($ids));
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) {
         $bookingRefs[(int)$row['id']] = $row['booking_ref'];
     }

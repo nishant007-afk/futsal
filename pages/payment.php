@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash_error(
             'Your payment couldn\'t be completed.',
             'The checkout hit an unexpected problem.',
-            'Check your details and try again — nothing has been charged.',
+            'Check your details and try again - nothing has been charged.',
             'pages/payment.php?booking_id=' . $booking_id
         );
     }

@@ -17,7 +17,7 @@ if (is_logged_in()) {
 $page_title = $view === 'landing' ? 'Book Futsal Courts Online' : 'My Home';
 $page_description = $view === 'landing'
     ? 'Book futsal courts online in Kathmandu, Nepal. Find a free court near you, pick your slot, and pay securely on GoalSpace.'
-    : 'Your GoalSpace dashboard — view your upcoming bookings, browse courts, and manage your schedule.';
+    : 'Your GoalSpace dashboard - view your upcoming bookings, browse courts, and manage your schedule.';
 
 require __DIR__ . '/includes/header.php';
 require __DIR__ . '/includes/views/' . $view . '_home.php';

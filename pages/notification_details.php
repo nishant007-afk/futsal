@@ -28,19 +28,19 @@ if (!$n) {
 }
 
 $relatedBooking = null;
-if (preg_match('/booking_details\.php\?id=(\d+)/', (string)$n['link'], $m)) {
-    $stmt = $conn->prepare(
-        'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status,
-                g.name AS ground_name, g.location
-         FROM bookings b
-         JOIN grounds g ON g.id = b.ground_id
-         WHERE b.id = ?'
-    );
-    $relId = (int)$m[1];
-    $stmt->bind_param('i', $relId);
-    $stmt->execute();
-    $relatedBooking = $stmt->get_result()->fetch_assoc();
-}
+    if (preg_match('/booking_details\.php\?id=(\d+)/', (string)$n['link'], $m)) {
+        $statement = $conn->prepare(
+            'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.status, b.total_price, b.payment_status,
+                    g.name AS ground_name, g.location
+             FROM bookings b
+             JOIN grounds g ON g.id = b.ground_id
+             WHERE b.id = ? AND b.user_id = ?'
+        );
+        $relId = (int)$m[1];
+        $statement->bind_param('ii', $relId, $uid);
+        $statement->execute();
+        $relatedBooking = $statement->get_result()->fetch_assoc();
+    }
 
 if ((int)$n['is_read'] === 0) {
     $stmt = $conn->prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?');

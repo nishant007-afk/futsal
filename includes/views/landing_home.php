@@ -28,15 +28,23 @@ $featured = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 if ($date !== '') {
     $ids = array_map(fn($g) => (int)$g['id'], $featured);
-    $idList = implode(',', $ids ?: [0]);
-    $takenRows = $conn->query(
-        "SELECT ground_id, COUNT(*) c FROM bookings
-         WHERE booking_date = '$date' AND status != 'cancelled' AND ground_id IN ($idList)
-         GROUP BY ground_id"
-    );
-    $takenMap = [];
-    while ($row = $takenRows->fetch_assoc()) {
-        $takenMap[(int)$row['ground_id']] = (int)$row['c'];
+    if ($ids === []) {
+        $takenMap = [];
+    } else {
+        $idPlaceholders = implode(',', array_fill(0, count($ids), '?'));
+        $takenStmt = $conn->prepare(
+            "SELECT ground_id, COUNT(*) c FROM bookings
+             WHERE booking_date = ? AND status != 'cancelled' AND ground_id IN ($idPlaceholders)
+             GROUP BY ground_id"
+        );
+        $takenTypes = 's' . str_repeat('i', count($ids));
+        $takenStmt->bind_param($takenTypes, $date, ...$ids);
+        $takenStmt->execute();
+        $takenRows = $takenStmt->get_result();
+        $takenMap = [];
+        while ($row = $takenRows->fetch_assoc()) {
+            $takenMap[(int)$row['ground_id']] = (int)$row['c'];
+        }
     }
     $totalSlots = count(slots_for_day(date('Y-m-d'), 0));
     $featured = array_values(array_filter($featured, function ($g) use ($takenMap, $totalSlots) {

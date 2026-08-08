@@ -62,7 +62,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="toast toast-warning toast-inline reveal" role="status">
         <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
         <div class="toast-content">
-            <div class="toast-msg"><?php echo e($subStatus['label']); ?> — your courts are hidden from players. Pay the setup fee or renew your monthly service charge to go live again. Contact the platform admin.</div>
+            <div class="toast-msg"><?php echo e($subStatus['label']); ?> - your courts are hidden from players. Pay the setup fee or renew your monthly service charge to go live again. Contact the platform admin.</div>
         </div>
     </div>
 <?php endif; ?>

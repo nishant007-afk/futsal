@@ -72,18 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $tmp = $file['tmp_name'];
 
         $detected = getimagesize($tmp);
-        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+        $allowed = ['image/jpeg' => true, 'image/png' => true, 'image/webp' => true, 'image/gif' => true];
 
         if (!$detected || !isset($allowed[$detected['mime']])) {
             $errors['avatar'] = 'That file isn\'t a supported image. Use JPG, PNG, WebP or GIF.';
         } elseif ($size > $maxBytes) {
             $errors['avatar'] = 'That photo is too big. It must be 2MB or smaller.';
         } else {
-            $ext = $allowed[$detected['mime']];
-            $filename = 'user_' . (int)$_SESSION['user_id'] . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
+            $filename = 'user_' . (int)$_SESSION['user_id'] . '_' . bin2hex(random_bytes(8)) . '.webp';
             $dest = $avatarDir . $filename;
 
-            if (move_uploaded_file($tmp, $dest)) {
+            if (convert_image_to_webp($tmp, $dest, 85, 512)) {
                 if (!empty($user['avatar'])) {
                     $old = $avatarDir . basename($user['avatar']);
                     if (is_file($old)) {

@@ -85,7 +85,7 @@ if (!$errors) {
         $errors[] = [
             'what' => 'That time slot was just taken.',
             'why' => 'Someone else booked it while you were choosing.',
-            'how' => 'Pick a different time — there are usually plenty of open slots.',
+            'how' => 'Pick a different time - there are usually plenty of open slots.',
         ];
     }
 }
@@ -146,7 +146,7 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
         set_flash_error(
             'That time slot was just taken.',
             'Someone else booked it while you were paying.',
-            'Pick a different time — there are usually plenty of open slots.',
+            'Pick a different time - there are usually plenty of open slots.',
             'pages/ground.php?id=' . $ground_id . '&date=' . $booking_date
         );
         redirect('pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);

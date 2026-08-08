@@ -63,22 +63,32 @@ if ($date !== '') {
     $availability = [];
     $totalSlots = count(slots_for_day(date('Y-m-d'), 0));
     $gids = array_map(fn($g) => (int)$g['id'], $grounds);
-    $gidList = implode(',', $gids ?: [0]);
-    $takenRows = $conn->query(
-        "SELECT ground_id, COUNT(*) c FROM bookings
-         WHERE booking_date = '$date' AND status != 'cancelled' AND ground_id IN ($gidList)
-         GROUP BY ground_id"
-    );
     $takenMap = [];
-    while ($row = $takenRows->fetch_assoc()) {
-        $takenMap[(int)$row['ground_id']] = (int)$row['c'];
-    }
-    $blockedRows = $conn->query(
-        "SELECT ground_id FROM blocked_dates WHERE block_date = '$date' AND ground_id IN ($gidList)"
-    );
     $blockedSet = [];
-    while ($row = $blockedRows->fetch_assoc()) {
-        $blockedSet[(int)$row['ground_id']] = true;
+    if ($gids !== []) {
+        $gidPlaceholders = implode(',', array_fill(0, count($gids), '?'));
+        $takenStmt = $conn->prepare(
+            "SELECT ground_id, COUNT(*) c FROM bookings
+             WHERE booking_date = ? AND status != 'cancelled' AND ground_id IN ($gidPlaceholders)
+             GROUP BY ground_id"
+        );
+        $takenTypes = 's' . str_repeat('i', count($gids));
+        $takenStmt->bind_param($takenTypes, $date, ...$gids);
+        $takenStmt->execute();
+        $takenRows = $takenStmt->get_result();
+        while ($row = $takenRows->fetch_assoc()) {
+            $takenMap[(int)$row['ground_id']] = (int)$row['c'];
+        }
+        $blockedStmt = $conn->prepare(
+            "SELECT ground_id FROM blocked_dates WHERE block_date = ? AND ground_id IN ($gidPlaceholders)"
+        );
+        $blockedTypes = 's' . str_repeat('i', count($gids));
+        $blockedStmt->bind_param($blockedTypes, $date, ...$gids);
+        $blockedStmt->execute();
+        $blockedRows = $blockedStmt->get_result();
+        while ($row = $blockedRows->fetch_assoc()) {
+            $blockedSet[(int)$row['ground_id']] = true;
+        }
     }
     foreach ($grounds as $g) {
         $free = isset($blockedSet[(int)$g['id']]) ? 0 : max(0, $totalSlots - ($takenMap[(int)$g['id']] ?? 0));

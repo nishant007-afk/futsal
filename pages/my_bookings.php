@@ -30,7 +30,7 @@ if (isset($_GET['cancel'])) {
             set_flash_error(
                 'This booking can\'t be cancelled right now.',
                 $policy['label'],
-                'If the slot has passed, it\'s already done — nothing more to do.',
+                'If the slot has passed, it\'s already done - nothing more to do.',
                 'pages/my_bookings.php'
             );
         } else {
@@ -95,9 +95,9 @@ $page_description = 'View your upcoming and past futsal court bookings on GoalSp
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="bookings-hero reveal">
+<div class="page-head bookings-head reveal">
     <div>
-        <h1>My Bookings</h1>
+        <h2><i class="fa-solid fa-calendar-check"></i> My Bookings</h2>
     </div>
     <div class="bookings-stats">
         <div class="bstat"><strong><?php echo count($upcoming); ?></strong><span>Upcoming</span></div>

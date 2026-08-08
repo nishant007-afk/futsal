@@ -12,6 +12,9 @@ config/mail.php
 !/uploads/avatars/.gitkeep
 !/uploads/grounds/.gitkeep
 
+# WebP migration backups (old originals kept locally)
+/uploads/_legacy_backup/
+
 # Logs & OS cruft
 *.log
 Thumbs.db

@@ -582,6 +582,9 @@ a.user-chip:hover { background: var(--bg-soft); }
 .ps-mobile { display: none; }
 .ps-desktop { display: flex; }
 
+.ps-header-auth { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid var(--line); }
+.ps-header-auth .header-inner { display: flex; align-items: center; gap: 16px; height: var(--header-h); }
+
 .ps-logo { width: 110px; height: 14px; }
 .ps-pill { width: 76px; height: 14px; border-radius: 99px; }
 .ps-main { padding-top: 28px; }
@@ -1750,6 +1753,32 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1.2fr; 
     position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
     color: var(--ink-3); font-size: 14px; pointer-events: none;
 }
+.input-group.floating {
+    display: flex; align-items: center;
+    border: 1px solid var(--line-2); border-radius: var(--r-md);
+    background: var(--bg);
+    transition: border-color .15s;
+}
+.input-group.floating:focus-within { border-color: var(--brand); }
+.input-group.floating input {
+    flex: 1; padding: 22px 14px 8px 16px;
+    border: none; background: transparent; box-shadow: none; border-radius: 0;
+    font-size: 14px; font-family: inherit; color: var(--ink);
+    transition: none;
+}
+.input-group.floating label {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; font-weight: 400; color: var(--ink-3); pointer-events: none;
+    padding: 0 4px; transition: top .15s ease, left .15s ease, font-size .15s ease, color .15s ease, transform .15s ease;
+    white-space: nowrap; z-index: 1;
+}
+.input-group.floating input:focus + label,
+.input-group.floating input.has-value + label {
+    top: 2px; left: 12px; font-size: 9px; font-weight: 600; color: var(--ink-2);
+    transform: none; padding: 0 3px;
+}
+.input-group.floating input:focus { box-shadow: none; }
+.input-group.floating .pw-toggle { right: 12px; top: 50%; transform: translateY(-50%); position: absolute; z-index: 2; }
 .form-group input, .form-group select, .form-group textarea {
     width: 100%; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: var(--r-md);
     font-size: 14px; font-family: inherit; background: var(--bg); color: var(--ink);

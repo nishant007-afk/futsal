@@ -180,27 +180,25 @@ require __DIR__ . '/../includes/header.php';
             <?php echo csrf_field(); ?>
             <input type="hidden" name="action" value="update_profile">
             <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                <label for="name">Full name <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" required>
+                <div class="input-group floating">
+                    <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" placeholder=" " required>
+                    <label for="name">Full name <span class="req">*</span></label>
                 </div>
                 <?php field_error($errors, 'name'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-                <label for="email">Email <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" required>
+                <div class="input-group floating">
+                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required>
+                    <label for="email">Email <span class="req">*</span></label>
                 </div>
                 <p class="form-hint">Change it and we'll email a 6-digit code to your new address to confirm.</p>
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
                 <label for="phone">Phone <span class="muted" style="font-weight:400;">(optional)</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-phone"></i>
-                    <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder="98xxxxxxxx">
+                <div class="input-group floating">
+                    <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder=" ">
+                    <label for="phone">Phone</label>
                 </div>
                 <?php field_error($errors, 'phone'); ?>
             </div>

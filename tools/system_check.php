@@ -56,7 +56,7 @@ $public = [
     '/pages/register.php'                     => 200,
     '/pages/ground.php?id=1'                  => 200,
     '/pages/forgot_password.php'              => 200,
-    '/assets/css/style.css?v=187'             => 200,
+    '/assets/css/style.css?v=204'             => 200,
     '/assets/vendor/fontawesome/css/all.min.css' => 200,
     '/assets/vendor/fontawesome/webfonts/fa-solid-900.woff2' => 200,
     '/uploads/grounds/ground_1_111d21fbae40.webp' => 200,

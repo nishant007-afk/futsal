@@ -87,18 +87,16 @@ require __DIR__ . '/../includes/header.php';
         <input type="hidden" name="email" value="<?php echo e($email); ?>">
         <input type="hidden" name="resend" value="0">
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" required>
+            <div class="input-group floating">
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required>
+                <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <label for="vcode">Verification code <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-shield-halved"></i>
-                <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" spellcheck="false" required>
+            <div class="input-group floating">
+                <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder=" " autocomplete="one-time-code" spellcheck="false" required>
+                <label for="vcode">Verification code <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'code'); ?>
         </div>
@@ -109,3 +107,18 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Floating labels
+    const floatingInputs = document.querySelectorAll('.input-group.floating input');
+    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
+    floatingInputs.forEach(function(el){
+        sync(el);
+        el.addEventListener('input', function(){ sync(el); });
+        el.addEventListener('change', function(){ sync(el); });
+        el.addEventListener('blur', function(){ sync(el); });
+    });
+    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
+    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
+});
+</script>

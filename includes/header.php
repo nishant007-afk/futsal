@@ -87,29 +87,38 @@ $body_class = implode(' ', $body_classes);
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=187'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=204'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
 <div id="topBar" class="top-bar" aria-hidden="true"><span></span></div>
 <div id="pageSkeleton" class="page-skeleton" aria-hidden="true">
     <div id="skeletonMsg" class="ps-msg"><i class="fa-solid fa-circle-notch fa-spin"></i> <span id="skeletonMsgText">Loading…</span></div>
-    <div class="ps-header">
-        <div class="container header-inner">
-            <span class="ps-brandmark"></span>
-            <span class="ps-logo"></span>
-            <span class="ps-nav ps-desktop"><?php
-                $navPills = 3;
-                if ($site_user && in_array($site_user['role'], ['admin', 'manager'], true)) { $navPills = 5; }
-                for ($i = 0; $i < $navPills; $i++) { echo '<span class="ps-pill"></span>'; }
-            ?></span>
-            <span class="ps-auth ps-desktop">
-                <span class="ps-avatar"></span>
-                <span class="ps-btn"></span>
-            </span>
-            <span class="ps-hamburger ps-mobile"><i></i><i></i><i></i></span>
+    <?php if ($skeletonType === 'auth'): ?>
+        <div class="ps-header ps-header-auth">
+            <div class="container header-inner">
+                <span class="ps-brandmark"></span>
+                <span class="ps-logo"></span>
+            </div>
         </div>
-    </div>
+    <?php else: ?>
+        <div class="ps-header">
+            <div class="container header-inner">
+                <span class="ps-brandmark"></span>
+                <span class="ps-logo"></span>
+                <span class="ps-nav ps-desktop"><?php
+                    $navPills = 3;
+                    if ($site_user && in_array($site_user['role'], ['admin', 'manager'], true)) { $navPills = 5; }
+                    for ($i = 0; $i < $navPills; $i++) { echo '<span class="ps-pill"></span>'; }
+                ?></span>
+                <span class="ps-auth ps-desktop">
+                    <span class="ps-avatar"></span>
+                    <span class="ps-btn"></span>
+                </span>
+                <span class="ps-hamburger ps-mobile"><i></i><i></i><i></i></span>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php if ($skeletonType === 'auth'): ?>
         <div class="ps-authbody">

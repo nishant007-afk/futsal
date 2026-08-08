@@ -87,10 +87,9 @@ if (isset($verification_code)) {
             <input type="hidden" name="email" value="<?php echo e($verification_email); ?>">
             <input type="hidden" name="resend" value="0">
             <div class="form-group">
-                <label for="vcode">Verification code</label>
-                <div class="input-group">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" required>
+                <div class="input-group floating">
+                    <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder=" " autocomplete="one-time-code" required>
+                    <label for="vcode">Verification code</label>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Verify email</button>
@@ -143,26 +142,23 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-            <label for="name">Full name <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-user"></i>
-                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder="e.g. Hari Sharma" required>
+            <div class="input-group floating">
+                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " required>
+                <label for="name">Full name <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'name'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder="you@example.com" required>
+            <div class="input-group floating">
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required>
+                <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
-            <label for="phone">Phone <span class="muted" style="font-weight:400;">(optional)</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-phone"></i>
-                <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder="98xxxxxxxx">
+            <div class="input-group floating">
+                <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder=" ">
+                <label for="phone">Phone</label>
             </div>
             <?php field_error($errors, 'phone'); ?>
         </div>
@@ -194,10 +190,9 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-            <label for="password">Password <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+            <div class="input-group floating">
+                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <label for="password">Password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <p class="form-hint">Your password needs:</p>
@@ -210,10 +205,9 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'password'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
-            <label for="confirm">Confirm password <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your password" required>
+            <div class="input-group floating">
+                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <label for="confirm">Confirm password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <?php field_error($errors, 'confirm'); ?>
@@ -235,3 +229,31 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pwInput = document.getElementById('password');
+    const pwReqs = document.getElementById('pwRequirements');
+    if (pwInput && pwReqs) {
+        function checkRequirements() {
+            const v = pwInput.value;
+            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
+            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
+            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
+            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
+        }
+        pwInput.addEventListener('input', checkRequirements);
+        checkRequirements();
+    }
+    // Floating labels
+    const floatingInputs = document.querySelectorAll('.input-group.floating input');
+    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
+    floatingInputs.forEach(function(el){
+        sync(el);
+        el.addEventListener('input', function(){ sync(el); });
+        el.addEventListener('change', function(){ sync(el); });
+        el.addEventListener('blur', function(){ sync(el); });
+    });
+    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
+    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
+});
+</script>

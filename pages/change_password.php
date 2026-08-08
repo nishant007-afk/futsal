@@ -67,10 +67,9 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'current_password'); ?>">
-            <label for="current_password">Current password <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
+            <div class="input-group floating">
+                <input type="password" id="current_password" name="current_password" autocomplete="current-password" placeholder=" " required>
+                <label for="current_password">Current password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="current_password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <?php field_error($errors, 'current_password'); ?>
@@ -78,10 +77,9 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'new_password'); ?>">
-            <label for="new_password">New password <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+            <div class="input-group floating">
+                <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <label for="new_password">New password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="new_password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <p class="form-hint">Your new password needs:</p>
@@ -95,10 +93,9 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group<?php echo has_error($errors, 'confirm_password'); ?>">
-            <label for="confirm_password">Confirm new password <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
+            <div class="input-group floating">
+                <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <label for="confirm_password">Confirm new password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="confirm_password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <?php field_error($errors, 'confirm_password'); ?>
@@ -125,5 +122,16 @@ document.addEventListener('DOMContentLoaded', function() {
         pwInput.addEventListener('input', checkRequirements);
         checkRequirements();
     }
+    // Floating labels
+    const floatingInputs = document.querySelectorAll('.input-group.floating input');
+    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
+    floatingInputs.forEach(function(el){
+        sync(el);
+        el.addEventListener('input', function(){ sync(el); });
+        el.addEventListener('change', function(){ sync(el); });
+        el.addEventListener('blur', function(){ sync(el); });
+    });
+    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
+    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
 });
 </script>

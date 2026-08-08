@@ -191,18 +191,16 @@ require __DIR__ . '/../includes/header.php';
         <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-                <label for="email">Email <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder="you@example.com" autocomplete="email" required <?php echo $lock ? 'disabled' : ''; ?>>
+                <div class="input-group floating">
+                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required <?php echo $lock ? 'disabled' : ''; ?>>
+                    <label for="email">Email <span class="req">*</span></label>
                 </div>
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-                <label for="password">Password <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
+                <div class="input-group floating">
                     <input type="password" id="password" name="password" autocomplete="current-password" required <?php echo $lock ? 'disabled' : ''; ?>>
+                    <label for="password">Password <span class="req">*</span></label>
                     <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
                 <p class="form-hint" style="margin-top:8px;"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a></p>
@@ -220,3 +218,18 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<script>
+(function(){
+    const floatingInputs = document.querySelectorAll('.input-group.floating input');
+    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
+    floatingInputs.forEach(function(el){
+        sync(el);
+        el.addEventListener('input', function(){ sync(el); });
+        el.addEventListener('change', function(){ sync(el); });
+        el.addEventListener('blur', function(){ sync(el); });
+    });
+    // Handle autofill
+    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
+    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
+})();
+</script>

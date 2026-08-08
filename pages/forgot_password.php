@@ -57,17 +57,15 @@ if (isset($reset_code)) {
             <?php echo csrf_field(); ?>
             <input type="hidden" name="email" value="<?php echo e($reset_email); ?>">
             <div class="form-group">
-                <label for="rcode">Reset code <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <input type="text" id="rcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" required>
+                <div class="input-group floating">
+                    <input type="text" id="rcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder=" " autocomplete="one-time-code" required>
+                    <label for="rcode">Reset code <span class="req">*</span></label>
                 </div>
             </div>
             <div class="form-group">
-                <label for="rpassword">New password <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="rpassword" name="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                <div class="input-group floating">
+                    <input type="password" id="rpassword" name="password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                    <label for="rpassword">New password <span class="req">*</span></label>
                     <button type="button" class="pw-toggle" data-target="rpassword" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
                 <p class="form-hint">Your new password needs:</p>
@@ -79,10 +77,9 @@ if (isset($reset_code)) {
                 </ul>
             </div>
             <div class="form-group">
-                <label for="rconfirm">Confirm new password <span class="req">*</span></label>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="rconfirm" name="confirm" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>
+                <div class="input-group floating">
+                    <input type="password" id="rconfirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required>
+                    <label for="rconfirm">Confirm new password <span class="req">*</span></label>
                     <button type="button" class="pw-toggle" data-target="rconfirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
             </div>
@@ -110,10 +107,9 @@ require __DIR__ . '/../includes/header.php';
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <label for="email">Email <span class="req">*</span></label>
-            <div class="input-group">
-                <i class="fa-solid fa-envelope"></i>
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder="you@example.com" autocomplete="email" required>
+            <div class="input-group floating">
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required>
+                <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>
         </div>
@@ -123,3 +119,33 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php if (isset($reset_code)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pwInput = document.getElementById('rpassword');
+    const pwReqs = document.getElementById('pwRequirements');
+    if (pwInput && pwReqs) {
+        function checkRequirements() {
+            const v = pwInput.value;
+            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
+            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
+            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
+            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
+        }
+        pwInput.addEventListener('input', checkRequirements);
+        checkRequirements();
+    }
+    // Floating labels
+    const floatingInputs = document.querySelectorAll('.input-group.floating input');
+    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
+    floatingInputs.forEach(function(el){
+        sync(el);
+        el.addEventListener('input', function(){ sync(el); });
+        el.addEventListener('change', function(){ sync(el); });
+        el.addEventListener('blur', function(){ sync(el); });
+    });
+    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
+    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
+});
+</script>
+<?php endif; ?>

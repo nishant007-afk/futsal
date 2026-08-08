@@ -127,6 +127,7 @@ function city_label(string $city): string
 }
 
 $page_title = 'Browse Courts';
+$page_description = 'Browse all futsal courts in Kathmandu, Bhaktapur, and Lalitpur. Compare prices, amenities, and open slots to book your next game on GoalSpace.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

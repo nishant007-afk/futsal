@@ -452,38 +452,51 @@ function booking_card(array $b): void
     $dateLabel = date('M j, Y', strtotime($b['booking_date']));
     $isToday = date('m-d') === date('m-d', strtotime($b['booking_date']));
     $isTomorrow = date('m-d') === date('m-d', strtotime($b['booking_date'] . ' +1 day'));
-    $dayLabel = $isToday ? 'Today' : ($isTomorrow ? 'Tomorrow' : date('D, M j', strtotime($b['booking_date'])));
+    $dayLabel = $isToday ? 'Today' : ($isTomorrow ? 'Tomorrow' : date('D', strtotime($b['booking_date'])));
+    if ($b['status'] === 'cancelled') {
+        $statusText = 'Cancelled';
+        $statusIcon = 'fa-circle-xmark';
+        $statusClass = 'sm-cancelled';
+    } elseif ($b['status'] === 'pending') {
+        $statusText = 'Awaiting approval';
+        $statusIcon = 'fa-clock';
+        $statusClass = 'sm-unpaid';
+    } elseif ($b['payment_status'] === 'paid') {
+        $statusText = $needsPayment ? 'Confirmed' : 'Confirmed · Paid';
+        $statusIcon = $needsPayment ? 'fa-clock' : 'fa-circle-check';
+        $statusClass = $needsPayment ? 'sm-partial' : 'sm-paid';
+    } elseif ($b['payment_status'] === 'partial') {
+        $statusText = 'Awaiting payment';
+        $statusIcon = 'fa-circle-half-stroke';
+        $statusClass = 'sm-partial';
+    } else {
+        $statusText = 'Payment pending';
+        $statusIcon = 'fa-clock';
+        $statusClass = 'sm-unpaid';
+    }
     ?>
     <div class="mbooking mbooking--card">
         <div class="mbooking-date mb-date" aria-label="<?php echo e($dateLabel); ?>">
             <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
             <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
             <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
-        </div>
-        <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
-            <h3><?php echo e($b['ground_name']); ?></h3>
-        </div>
-        <div class="mb-time mbooking-time">
-            <i class="fa-regular fa-clock"></i>
-            <span><?php echo e($dayLabel); ?> &middot; <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
-        </div>
-        <div class="mb-status">
-            <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo $b['status'] === 'confirmed' ? 'Confirmed' : ucfirst(e($b['status'])); ?></span>
-            <span class="pay-badge pay-<?php echo e($b['payment_status']); ?>">
-                <?php echo $b['payment_status'] === 'partial' ? 'Awaiting Payment' : ($b['payment_status'] === 'paid' ? 'Paid' : 'Payment Pending'); ?>
+            <span class="bd-session">
+                <span class="bd-when"><?php echo e($dayLabel); ?></span>
+                <span class="bd-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
             </span>
         </div>
-        <div class="mb-price">
-            <span class="mb-price-label">Total</span>
-            <strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+        <div class="mb-main" title="<?php echo e($b['ground_name']); ?>">
+            <h3><?php echo e($b['ground_name']); ?></h3>
         </div>
-        <div class="mb-actions">
-            <?php if ($needsPayment): ?>
-                <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-primary btn-sm mb-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
-            <?php else: ?>
-                <span class="pay-done muted"><i class="fa-solid fa-circle-check"></i> Paid</span>
-            <?php endif; ?>
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link mb-details">Details <i class="fa-solid fa-arrow-right"></i></a>
+        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
+        <div class="mb-side">
+            <strong class="mb-price"><span class="mb-price-cur">Rs</span> <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+            <div class="mb-actions">
+                <?php if ($needsPayment): ?>
+                    <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
+                <?php endif; ?>
+                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
         </div>
     </div>
     <?php
@@ -496,41 +509,52 @@ function booking_card(array $b): void
 function booking_card_mini(array $b, string $show = '', string $search = ''): void
 {
     $dateLabel = date('M j, Y', strtotime($b['booking_date']));
-    $dayLabel = date('D, M j', strtotime($b['booking_date']));
+    $dayLabel = date('D', strtotime($b['booking_date']));
     $searchAttr = $search !== '' ? ' data-search="' . e(strtolower($search)) . '"' : '';
+    if ($b['status'] === 'cancelled') {
+        $statusText = 'Cancelled';
+        $statusIcon = 'fa-circle-xmark';
+        $statusClass = 'sm-cancelled';
+    } elseif ($b['status'] === 'pending') {
+        $statusText = 'Awaiting approval';
+        $statusIcon = 'fa-clock';
+        $statusClass = 'sm-unpaid';
+    } elseif ($b['payment_status'] === 'paid') {
+        $statusText = 'Confirmed · Paid';
+        $statusIcon = 'fa-circle-check';
+        $statusClass = 'sm-paid';
+    } elseif ($b['payment_status'] === 'partial') {
+        $statusText = 'Awaiting payment';
+        $statusIcon = 'fa-circle-half-stroke';
+        $statusClass = 'sm-partial';
+    } else {
+        $statusText = $b['status'] === 'confirmed' ? 'Payment pending' : 'Pending';
+        $statusIcon = 'fa-clock';
+        $statusClass = 'sm-unpaid';
+    }
     ?>
     <div class="mbooking mbooking--card"<?php echo $searchAttr; ?>>
         <div class="mbooking-date mb-date" aria-label="<?php echo e($dateLabel); ?>">
             <span class="bd-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
             <span class="bd-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
             <span class="bd-year"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
+            <span class="bd-session">
+                <span class="bd-when"><?php echo e($dayLabel); ?></span>
+                <span class="bd-time"><i class="fa-regular fa-clock"></i> <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
+            </span>
         </div>
-        <div class="mb-arena" title="<?php echo e($b['ground_name']); ?>">
+        <div class="mb-main" title="<?php echo e($b['ground_name']); ?>">
             <h3><?php echo e($b['ground_name']); ?></h3>
             <?php if ($show !== '' && !empty($b[$show . '_name'])): ?>
-                <span class="mb-arena-sub"><i class="fa-solid fa-<?php echo $show === 'manager' ? 'user-tie' : 'user'; ?>"></i> <?php echo e($b[$show . '_name']); ?></span>
+                <span class="mb-person"><i class="fa-solid fa-user"></i> <?php echo e($b[$show . '_name']); ?></span>
             <?php endif; ?>
         </div>
-        <div class="mb-time mbooking-time">
-            <i class="fa-regular fa-clock"></i>
-            <span><?php echo e($dayLabel); ?> &middot; <?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></span>
-        </div>
-        <div class="mb-status">
-            <?php if ($b['status'] === 'cancelled'): ?>
-                <span class="badge badge-cancelled">Cancelled</span>
-            <?php else: ?>
-                <span class="badge badge-<?php echo e($b['status']); ?>"><?php echo $b['status'] === 'confirmed' ? 'Confirmed' : ucfirst(e($b['status'])); ?></span>
-                <span class="pay-badge pay-<?php echo e($b['payment_status']); ?>">
-                    <?php if ($b['payment_status'] === 'paid'): ?>Paid<?php elseif ($b['payment_status'] === 'partial'): ?>Advance paid<?php else: ?>Unpaid<?php endif; ?>
-                </span>
-            <?php endif; ?>
-        </div>
-        <div class="mb-price">
-            <span class="mb-price-label">Total</span>
-            <strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong>
-        </div>
-        <div class="mb-actions">
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mbooking-link mb-details">Details <i class="fa-solid fa-arrow-right"></i></a>
+        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
+        <div class="mb-side">
+            <strong class="mb-price"><span class="mb-price-cur">Rs</span> <?php echo number_format((float)$b['total_price'], 0); ?></strong>
+            <div class="mb-actions">
+                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
         </div>
     </div>
     <?php
@@ -1244,16 +1268,14 @@ function ground_card_html(array $ground, ?array $availability = null): void
         <div class="card-body">
             <h3 class="card-title"><?php echo e($ground['name']); ?></h3>
             <div class="card-meta">
-                <div>
-                    <span class="price"><?php echo number_format((float)$ground['price_per_hour'], 0); ?><small> Rs / hour</small></span>
-                    <?php if ($rating['count'] > 0): ?>
-                        <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
-                    <?php else: ?>
-                        <span class="card-rating-inline"><i class="fa-solid fa-star" style="color:var(--ink-3);"></i> <small>No reviews yet</small></span>
-                    <?php endif; ?>
-                </div>
+                <span class="price"><?php echo number_format((float)$ground['price_per_hour'], 0); ?><small> Rs / hour</small></span>
+                <?php if ($rating['count'] > 0): ?>
+                    <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
+                <?php else: ?>
+                    <span class="card-rating-inline"><i class="fa-solid fa-star" style="color:var(--ink-3);"></i> <small>No reviews yet</small></span>
+                <?php endif; ?>
+                <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm card-cta-link">View details <i class="fa-solid fa-arrow-right"></i></a>
             </div>
-            <div class="card-cta"><a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm">View &amp; book</a></div>
         </div>
     </div>
     <?php

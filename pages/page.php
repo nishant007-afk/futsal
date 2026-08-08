@@ -28,7 +28,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="contact-form-col">
         <div class="detail-box">
             <h3><i class="fa-solid fa-paper-plane"></i> Send us a message</h3>
-            <p class="muted contact-lead">Fill in the form below and we'll get back to you as soon as we can.</p>
             <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" novalidate>
                 <?php echo csrf_field(); ?>
                 <div class="grid-2">

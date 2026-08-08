@@ -248,7 +248,6 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
     </div>
 </div>
-<p class="muted page-sub">Add or update the courts you own.</p>
 
 <?php if (!$subStatus['active']): ?>
     <div class="toast toast-warning toast-inline reveal" role="status">

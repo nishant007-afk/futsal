@@ -82,7 +82,6 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/settlements.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
     </div>
 </div>
-<p class="muted page-sub">Managers keep 100% of booking revenue. GoalSpace earns a one-time setup fee + a monthly service charge, tracked here.</p>
 
 <div class="stat-grid tight">
     <div class="stat reveal">

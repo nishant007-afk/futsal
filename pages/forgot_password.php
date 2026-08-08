@@ -96,6 +96,7 @@ if (isset($reset_code)) {
 }
 
 $page_title = 'Forgot Password';
+$page_description = 'Reset your GoalSpace password safely. Enter your email and we\'ll send you a link to get back into your account.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

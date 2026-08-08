@@ -181,7 +181,6 @@ require __DIR__ . '/../includes/header.php';
     <h2><i class="fa-solid fa-list-check"></i> Bookings on My Grounds</h2>
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
 </div>
-<p class="muted page-sub">Bookings confirm instantly. Cancel any slot you can no longer host.</p>
 
 <div class="table-toolbar reveal">
     <div class="search-pill">

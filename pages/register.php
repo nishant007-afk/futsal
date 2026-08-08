@@ -102,6 +102,7 @@ if (isset($verification_code)) {
 }
 
 $page_title = 'Sign Up';
+$page_description = 'Create a free GoalSpace account to book futsal courts near you, track your bookings, and never miss a game.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

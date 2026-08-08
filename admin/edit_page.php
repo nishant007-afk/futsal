@@ -46,7 +46,6 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <h1>Edit: <?php echo e($legal[$slug]['title']); ?></h1>
-    <p class="muted">Editing the <strong><?php echo e($slug); ?></strong> page. Use the live preview on the right — type HTML and see it render as it will appear on the public site. When you publish a change, <a href="<?php echo e(base_url('admin/notify_policy.php')); ?>">announce a policy update</a> to email and notify users.</p>
 </div>
 
 <main class="page">

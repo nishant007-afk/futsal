@@ -66,6 +66,26 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/script.js?v=49'); ?>"></script>
+<script src="<?php echo base_url('assets/js/core.js?v=52'); ?>" defer></script>
+<?php
+// Code-split bundles: only load the JS a page/role actually needs.
+$pageModules = [];
+if (in_array($active, ['ground.php', 'book.php', 'payment.php', 'reschedule.php'], true)) {
+    $pageModules[] = 'booking';
+}
+if (in_array($active, [
+    'login.php', 'register.php', 'forgot_password.php', 'reset_password.php',
+    'verify.php', 'otp_verify.php', 'change_password.php', 'profile.php',
+    'change_email_otp.php', 'change_password_otp.php'
+], true)) {
+    $pageModules[] = 'auth';
+}
+if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
+    $pageModules[] = 'manager';
+}
+foreach ($pageModules as $module) {
+    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=1') . '" defer></script>' . "\n";
+}
+?>
 </body>
 </html>

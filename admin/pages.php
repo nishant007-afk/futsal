@@ -39,7 +39,6 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <h1>Legal pages</h1>
-    <p class="muted">Edit the static policy, terms and support pages shown on the site. When you publish a change, use <a href="<?php echo e(base_url('admin/notify_policy.php')); ?>">Announce a policy update</a> to email and notify users.</p>
 </div>
 
 <div class="admin-legal-list">

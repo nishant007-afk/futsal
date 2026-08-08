@@ -53,7 +53,7 @@ if ($date !== '') {
         <div class="hero-content">
             <span class="hero-tag"><i class="fa-solid fa-bolt"></i> No calls needed</span>
             <h1>Pick a court, grab a slot, <span>play</span></h1>
-            <p>Skip the phone calls. See which courts near you are free right now, and book your game in under a minute.</p>
+            <p>Find a free court near you and book your game in under a minute.</p>
         </div>
     </div>
 </section>
@@ -83,9 +83,6 @@ if ($date !== '') {
             <h2 class="section-title">
                 <?php echo $q !== '' ? 'Grounds in "' . e($q) . '"' : ($date !== '' ? 'Available on ' . e(date('M j, Y', strtotime($date))) : 'Ready to play today'); ?>
             </h2>
-            <?php if ($q === '' && $date === ''): ?>
-                <p class="section-sub">These courts are taking bookings right now. Open one, pick a free hour and you're set.</p>
-            <?php endif; ?>
         </div>
 
         <?php if (!$featured): ?>
@@ -109,7 +106,6 @@ if ($date !== '') {
 <section class="section section-alt" id="how">
     <div class="container">
         <div class="section-head reveal">
-            <span class="eyebrow">How it works</span>
             <h2 class="section-title">Booking a game takes three steps</h2>
         </div>
         <div class="grid grid-3">

@@ -36,6 +36,7 @@ $gcal = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
     . '&details=' . rawurlencode('Booking reference ' . $booking['booking_ref']);
 
 $page_title = 'Booking confirmed';
+$page_description = 'Your futsal court booking on GoalSpace is confirmed. Review your slot details and get ready for the game.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

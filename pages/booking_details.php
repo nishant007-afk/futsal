@@ -55,6 +55,7 @@ $netDue = (float)$b['total_price'] - (float)$b['discount'];
 $balance = max(0, $netDue - (float)$b['amount_paid']);
 
 $page_title = 'Booking details';
+$page_description = 'Review the full details of your futsal booking on GoalSpace — court, date, time, pricing, and payment status.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

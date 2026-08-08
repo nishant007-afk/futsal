@@ -91,14 +91,13 @@ $past = array_values(array_filter($bookings, function ($b) use ($today) {
 }));
 
 $page_title = 'My Bookings';
+$page_description = 'View your upcoming and past futsal court bookings on GoalSpace, check payment status, and manage your schedule.';
 require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="bookings-hero reveal">
     <div>
-        <span class="eyebrow">My schedule</span>
         <h1>My Bookings</h1>
-        <p>See what's coming up and what you've already played.</p>
     </div>
     <div class="bookings-stats">
         <div class="bstat"><strong><?php echo count($upcoming); ?></strong><span>Upcoming</span></div>
@@ -126,7 +125,6 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if ($past): ?>
         <div class="section-head reveal gap tight">
-            <span class="eyebrow">Already played</span>
             <h2 class="section-title sm">Past &amp; cancelled</h2>
         </div>
         <div class="mbookings reveal">

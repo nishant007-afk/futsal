@@ -67,7 +67,6 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head">
     <h2><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</h2>
 </div>
-<p class="muted page-sub">A quick overview of revenue and subscriptions on the platform. Use the sidebar to edit legal pages and announce policy updates.</p>
 
 <div class="stat-grid">
     <div class="stat reveal">

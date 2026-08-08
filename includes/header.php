@@ -80,12 +80,13 @@ $body_class = implode(' ', $body_classes);
     <script>document.documentElement.classList.add('js');
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }</script>
     <title><?php echo isset($page_title) ? e($page_title) . ' | ' : ''; ?>GoalSpace</title>
+    <meta name="description" content="<?php echo isset($page_description) ? e($page_description) : e('Book futsal courts online. Find a free court near you, choose your slot, and pay securely with GoalSpace.'); ?>">
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=148'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=155'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -426,7 +427,7 @@ $body_class = implode(' ', $body_classes);
 
         <div class="nav-auth">
             <?php if ($site_user): ?>
-                <?php $bellNotifications = user_notifications((int)$site_user['id'], 8); ?>
+                <?php $bellNotifications = user_notifications((int)$site_user['id'], 4); ?>
                 <div class="bell-wrap" id="bellWrap">
                     <button type="button" class="bell-btn" id="bellBtn" aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
@@ -469,11 +470,11 @@ $body_class = implode(' ', $body_classes);
                 </div>
                 <div class="profile-wrap" id="profileWrap">
                     <button type="button" class="user-chip nav-profile" id="profileBtn" aria-haspopup="true" aria-expanded="false" title="My account">
-                        <span class="avatar"><?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?></span>
+                        <span class="avatar"><?php if (!empty($site_user['avatar'])): ?><img src="<?php echo base_url('uploads/avatars/' . rawurlencode($site_user['avatar'])); ?>" alt="<?php echo e($site_user['name']); ?>" decoding="async"><?php else: ?><?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?><?php endif; ?></span>
                     </button>
                     <div class="profile-menu" role="menu">
                         <div class="profile-menu-head">
-                            <span class="avatar"><?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?></span>
+                            <span class="avatar"><?php if (!empty($site_user['avatar'])): ?><img src="<?php echo base_url('uploads/avatars/' . rawurlencode($site_user['avatar'])); ?>" alt="<?php echo e($site_user['name']); ?>" decoding="async"><?php else: ?><?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?><?php endif; ?></span>
                             <span class="chip-name">
                                 <span><?php echo e($site_user['name']); ?></span>
                                 <em><?php echo e($site_user['email']); ?></em>
@@ -567,7 +568,7 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home"><i class="fa-solid fa-house"></i></a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>
         <a href="<?php echo base_url('index.php#how'); ?>" title="How it works"><i class="fa-solid fa-circle-info"></i></a>
-        <a href="<?php echo base_url('pages/login.php'); ?>" title="Log in"><i class="fa-solid fa-right-to-bracket"></i></a>
+        <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" title="Become a Manager"><i class="fa-solid fa-chart-line"></i></a>
     <?php endif; ?>
 </nav>
 

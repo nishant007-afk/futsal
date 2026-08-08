@@ -57,7 +57,6 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> All Bookings</a>
     </div>
 </div>
-<p class="muted page-sub">Here's how your courts are doing.</p>
 
 <?php if (!$subStatus['active']): ?>
     <div class="toast toast-warning toast-inline reveal" role="status">

@@ -48,7 +48,6 @@ require __DIR__ . '/../includes/header.php';
             <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
         </div>
         <div class="receipt-meta">
-            <span class="eyebrow">Payment receipt</span>
             <h1>Receipt of payment</h1>
             <p class="muted">Show this to the court manager when you arrive.</p>
         </div>

@@ -110,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Login';
+$page_description = 'Log in to your GoalSpace account to manage bookings, view open slots, and get back on the court.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

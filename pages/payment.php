@@ -143,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Payment';
+$page_description = 'Complete your secure payment for your futsal court booking on GoalSpace and confirm your slot.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

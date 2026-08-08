@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Reset Password';
+$page_description = 'Choose a new password for your GoalSpace account and get back to booking your next game.';
 require __DIR__ . '/../includes/header.php';
 ?>
 

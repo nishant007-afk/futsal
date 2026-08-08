@@ -26,7 +26,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <section class="welcome reveal">
     <span class="eyebrow">Player dashboard</span>
     <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
-    <p>Here's what's coming up on your schedule, and a few courts ready for a game.</p>
     <div class="actions" style="margin-top:18px;">
         <a href="<?php echo base_url('index.php#courts'); ?>" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass-location"></i> Find a court</a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-check"></i> My bookings</a>
@@ -62,7 +61,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 
 <section class="section section-pad-top" style="padding-top:8px;">
     <div class="section-head reveal">
-        <span class="eyebrow">Your schedule</span>
         <h2 class="section-title">Upcoming bookings</h2>
     </div>
 
@@ -85,9 +83,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 
 <section class="section section-alt" id="courts">
     <div class="section-head reveal">
-        <span class="eyebrow">Book now</span>
         <h2 class="section-title">Courts available near you</h2>
-        <p class="section-sub">Tap a court to see its free hours and grab a slot for your team.</p>
     </div>
     <?php if (!$grounds): ?>
         <div class="empty"><span class="big"><i class="fa-solid fa-futbol"></i></span><h3>No grounds available right now</h3><p>Check back soon &middot; courts open for booking will appear here.</p></div>

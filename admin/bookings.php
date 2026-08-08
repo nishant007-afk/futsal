@@ -87,7 +87,6 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
     </div>
 </div>
-<p class="muted page-sub">Every booking across the platform, newest first.</p>
 
 <div class="table-toolbar reveal">
     <div class="search-pill">

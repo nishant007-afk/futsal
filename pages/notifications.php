@@ -58,7 +58,6 @@ require __DIR__ . '/../includes/header.php';
 <div class="notif-page-head reveal">
     <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
 </div>
-<p class="muted" style="margin-bottom:14px;">Updates about your bookings, payments and cancellations.</p>
 <div class="notif-actions reveal" style="margin-bottom:18px;">
     <?php if ($notifications): ?>
         <form method="post" action="">

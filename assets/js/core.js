@@ -1,3 +1,7 @@
+/* GoalSpace core.js
+   Shared runtime loaded on every page: skeleton loader, panels, modals,
+   toasts, top bar, cookie consent, scroll helpers. Page-specific modules
+   live in assets/js/modules/ and are loaded only where needed. */
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.has-error input, .has-error textarea, .has-error select').forEach(function (el) {
         el.setAttribute('aria-invalid', 'true');
@@ -198,13 +202,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const bottomNav = document.getElementById('bottomNav');
     if (siteHeader) {
         let lastY = window.scrollY;
+
+        // Only treat scrolls that follow a real user gesture (wheel/touch/keyboard)
+        // as "user is scrolling". Programmatic scrolls (in-page anchor links like
+        // index.php#how, scroll restoration) must never hide the navigation.
+        let lastUserScroll = 0;
+        function markUserScroll() { lastUserScroll = Date.now(); }
+        const scrollKeys = [' ', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
+        window.addEventListener('wheel', markUserScroll, { passive: true });
+        window.addEventListener('touchmove', markUserScroll, { passive: true });
+        window.addEventListener('keydown', function (e) {
+            if (scrollKeys.indexOf(e.key) !== -1) markUserScroll();
+        }, { passive: true });
+
+        function isUserScrolling() {
+            return Date.now() - lastUserScroll < 500;
+        }
         function isCompactHeader() {
             return !window.matchMedia('(min-width: 821px)').matches;
         }
         function onScroll() {
             const y = window.scrollY;
             const delta = y - lastY;
-            if (delta > 6) {
+            if (delta > 6 && isUserScrolling()) {
                 // scrolling down -> hide the top navbar up and the mobile bottom nav down (opposite sides)
                 siteHeader.classList.add('collapsed');
                 if (bottomNav) bottomNav.classList.add('hidden');
@@ -213,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     setNavOpen(false);
                     document.body.classList.remove('nav-open');
                 }
-            } else if (delta < -6 || y <= 8) {
+            } else if ((delta < -6 && isUserScrolling()) || y <= 8) {
                 // scrolling up (or near the top) -> reveal the top navbar and bottom nav
                 siteHeader.classList.remove('collapsed');
                 if (bottomNav) bottomNav.classList.remove('hidden');
@@ -236,274 +256,6 @@ document.addEventListener('DOMContentLoaded', function () {
         reveals.forEach(function (el) { revealObserver.observe(el); });
     } else {
         reveals.forEach(function (el) { el.classList.add('visible'); });
-    }
-
-    const slotGrid = document.getElementById('slotGrid');
-    const selectedSlot = document.getElementById('selectedSlot');
-    const bookBtn = document.getElementById('bookBtn');
-
-    if (slotGrid && selectedSlot) {
-        if (bookBtn) bookBtn.disabled = true;
-
-        slotGrid.addEventListener('click', function (e) {
-            const slot = e.target.closest('.slot');
-            if (!slot || slot.classList.contains('taken')) return;
-
-            document.querySelectorAll('.slot.selected').forEach(function (s) {
-                s.classList.remove('selected');
-            });
-            slot.classList.add('selected');
-
-            selectedSlot.value = slot.dataset.start + '|' + slot.dataset.end;
-
-            const priceEl = document.getElementById('priceHint');
-            if (priceEl && slot.dataset.label) {
-                priceEl.textContent = 'Selected: ' + slot.dataset.label + ' - ' + (slot.dataset.price || '');
-            }
-            if (bookBtn) bookBtn.disabled = false;
-        });
-    }
-
-    const settleButtons = document.querySelectorAll('[data-settle]');
-    const settleModal = document.getElementById('settleModal');
-    const settleClose = document.getElementById('settleClose');
-    if (settleButtons.length && settleModal) {
-        settleButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.getElementById('settleName').textContent = btn.dataset.name;
-                document.getElementById('settleManagerId').value = btn.dataset.settle;
-                document.getElementById('settleGross').value = btn.dataset.gross;
-                document.getElementById('settleFee').value = btn.dataset.fee;
-                document.getElementById('settlePayout').value = btn.dataset.payout;
-                settleModal.hidden = false;
-            });
-        });
-        if (settleClose) {
-            settleClose.addEventListener('click', function () { settleModal.hidden = true; });
-        }
-        settleModal.addEventListener('click', function (e) {
-            if (e.target === settleModal) settleModal.hidden = true;
-        });
-    }
-
-    const repeatToggle = document.getElementById('repeatToggle');
-    const repeatWeeksWrap = document.getElementById('repeatWeeksWrap');
-    if (repeatToggle && repeatWeeksWrap) {
-        repeatToggle.addEventListener('change', function () {
-            repeatWeeksWrap.style.display = repeatToggle.checked ? 'flex' : 'none';
-        });
-    }
-
-    const dateInput = document.getElementById('bookingDate');    if (dateInput && dateInput.closest('form')) {
-        const today = new Date();
-        const iso = today.getFullYear() + '-' +
-            String(today.getMonth() + 1).padStart(2, '0') + '-' +
-            String(today.getDate()).padStart(2, '0');
-        dateInput.min = iso;
-        if (!dateInput.value) dateInput.value = iso;
-        dateInput.addEventListener('change', function () {
-            const id = new URLSearchParams(window.location.search).get('id');
-            if (id) {
-                window.location.search = '?id=' + id + '&date=' + dateInput.value;
-            }
-        });
-    }
-
-    const galleryMain = document.getElementById('galleryMain');
-    const galleryThumbs = document.querySelectorAll('.gallery-thumb');
-    if (galleryMain && galleryThumbs.length) {
-        const srcs = Array.prototype.map.call(galleryThumbs, function (t) { return t.dataset.src; });
-        let current = 0;
-        const prevBtn = document.querySelector('.gallery-prev');
-        const nextBtn = document.querySelector('.gallery-next');
-        const zoomBtn = document.querySelector('.gallery-zoom');
-        function updateNav() {
-            const showPrev = current > 0;
-            const showNext = current < srcs.length - 1;
-            if (prevBtn) prevBtn.hidden = !showPrev;
-            if (nextBtn) nextBtn.hidden = !showNext;
-            galleryThumbs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
-        }
-        function animateSwap() {
-            galleryMain.classList.remove('gallery-swap');
-            void galleryMain.offsetWidth;
-            galleryMain.classList.add('gallery-swap');
-        }
-        function show(src) {
-            galleryMain.src = src;
-            animateSwap();
-            if (zoomBtn) zoomBtn.dataset.src = src;
-            updateNav();
-        }
-        function goTo(i) {
-            if (i < 0) i = srcs.length - 1;
-            if (i > srcs.length - 1) i = 0;
-            current = i;
-            show(srcs[current]);
-        }
-        galleryThumbs.forEach(function (thumb, i) {
-            thumb.addEventListener('click', function () {
-                current = i;
-                show(thumb.dataset.src);
-            });
-        });
-        if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
-        if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
-        if (zoomBtn) zoomBtn.addEventListener('click', function () {
-            openImageZoom(current);
-        });
-        // initial state (active first thumb, hide prev arrow)
-        galleryThumbs.forEach(function (t, i) { if (i === 0) t.classList.add('active'); });
-        if (zoomBtn) zoomBtn.dataset.src = srcs[0];
-        updateNav();
-
-        var openImageZoom = function (index) {
-            const existing = document.querySelector('.image-zoom');
-            if (existing) existing.remove();
-            const overlay = document.createElement('div');
-            overlay.className = 'image-zoom';
-            overlay.setAttribute('role', 'dialog');
-            overlay.setAttribute('aria-modal', 'true');
-            overlay.innerHTML =
-                '<button type="button" class="iz-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-                '<div class="iz-stage"><img class="iz-img" src="' + srcs[index] + '" alt=""></div>' +
-                (srcs.length > 1
-                    ? '<button type="button" class="iz-prev" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>' +
-                      '<button type="button" class="iz-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>'
-                    : '');
-            document.body.appendChild(overlay);
-            document.body.classList.add('modal-open');
-            let i = index;
-            const img = overlay.querySelector('.iz-img');
-            function render(next) {
-                i = (next + srcs.length) % srcs.length;
-                current = i;
-                img.src = srcs[i];
-                galleryMain.src = srcs[i];
-                updateNav();
-            }
-            overlay.addEventListener('click', function (e) {
-                const t = e.target;
-                if (t.closest('.iz-close')) { closeZoom(); return; }
-                if (t.closest('.iz-prev')) { render(i - 1); return; }
-                if (t.closest('.iz-next')) { render(i + 1); return; }
-                if (t === overlay) closeZoom();
-            });
-            function closeZoom() {
-                overlay.remove();
-                document.body.classList.remove('modal-open');
-                document.removeEventListener('keydown', onKey);
-            }
-            function onKey(e) {
-                if (e.key === 'Escape') closeZoom();
-                else if (e.key === 'ArrowLeft') render(i - 1);
-                else if (e.key === 'ArrowRight') render(i + 1);
-            }
-            document.addEventListener('keydown', onKey);
-        };
-    }
-
-    const groundForm = document.getElementById('groundForm');
-    if (groundForm) {
-        const pn = document.getElementById('previewName');
-        const pl = document.getElementById('previewLoc');
-        const pd = document.getElementById('previewDesc');
-        const pf = groundForm.querySelector('#price_per_hour');
-        const priceEl = document.querySelector('.preview-price');
-        function refreshPreview() {
-            const name = groundForm.querySelector('#name').value.trim();
-            const loc = groundForm.querySelector('#location').value.trim();
-            const desc = groundForm.querySelector('#description').value.trim();
-            if (pn) pn.textContent = name || 'Your court name';
-            if (pl) pl.textContent = loc || 'Kathmandu, Nepal';
-            if (pd) pd.textContent = desc || 'A short description of your court.';
-            if (pf && priceEl) {
-                const v = parseFloat(pf.value) || 0;
-                priceEl.innerHTML = 'Rs ' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' <small>/ hour</small>';
-            }
-        }
-        ['#name', '#location', '#description', '#price_per_hour'].forEach(function (sel) {
-            const el = groundForm.querySelector(sel);
-            if (el) el.addEventListener('input', refreshPreview);
-        });
-        refreshPreview();
-    }
-
-    const photoInput = document.getElementById('photoInput');
-    const fileNames = document.getElementById('fileNames');
-    const photoPreviewGrid = document.getElementById('photoPreviewGrid');
-    const previewCardImg = document.querySelector('.ground-preview .card-img');
-    if (photoInput && fileNames) {
-        let selectedFiles = [];
-        function syncInput() {
-            const dt = new DataTransfer();
-            selectedFiles.forEach(function (f) { dt.items.add(f); });
-            photoInput.files = dt.files;
-        }
-        function ensureCoverImg() {
-            if (!previewCardImg) return null;
-            let img = previewCardImg.querySelector('img');
-            if (!img) {
-                img = document.createElement('img');
-                img.alt = 'Court preview';
-                previewCardImg.appendChild(img);
-            }
-            const pitch = previewCardImg.querySelector('.pitch');
-            if (pitch) pitch.style.display = 'none';
-            return img;
-        }
-        function updateLiveCover(files) {
-            if (!previewCardImg) return;
-            const img = ensureCoverImg();
-            if (!img) return;
-            if (files.length) {
-                img.src = URL.createObjectURL(files[0]);
-                img.style.display = 'block';
-            } else {
-                img.style.display = '';
-                img.src = '';
-                const pitch = previewCardImg.querySelector('.pitch');
-                if (pitch) pitch.style.display = '';
-                img.remove();
-            }
-        }
-        function renderPreviews() {
-            fileNames.textContent = selectedFiles.length ? selectedFiles.length + ' file(s) selected' : 'No files selected';
-            if (!photoPreviewGrid) return;
-            photoPreviewGrid.style.display = selectedFiles.length ? 'grid' : 'none';
-            photoPreviewGrid.innerHTML = '';
-            selectedFiles.forEach(function (file, idx) {
-                const url = URL.createObjectURL(file);
-                const item = document.createElement('div');
-                item.className = 'photo-preview-item';
-                item.innerHTML =
-                    '<img src="' + url + '" alt="">' +
-                    '<button type="button" class="photo-remove" data-idx="' + idx + '" title="Remove" aria-label="Remove"><i class="fa-solid fa-xmark"></i></button>';
-                photoPreviewGrid.appendChild(item);
-            });
-            photoPreviewGrid.querySelectorAll('.photo-remove').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const idx = parseInt(btn.dataset.idx, 10);
-                    selectedFiles.splice(idx, 1);
-                    syncInput();
-                    renderPreviews();
-                });
-            });
-            updateLiveCover(selectedFiles);
-        }
-        function mergeFiles(newList) {
-            newList.forEach(function (nf) {
-                const dup = selectedFiles.some(function (sf) {
-                    return sf.name === nf.name && sf.size === nf.size && sf.lastModified === nf.lastModified;
-                });
-                if (!dup) selectedFiles.push(nf);
-            });
-            syncInput();
-            renderPreviews();
-        }
-        photoInput.addEventListener('change', function () {
-            mergeFiles(Array.from(photoInput.files || []));
-        });
     }
 
     document.querySelectorAll('[data-confirm]').forEach(function (el) {
@@ -568,25 +320,6 @@ document.addEventListener('DOMContentLoaded', function () {
         gate();
     });
 
-    const termsCheck = document.getElementById('termsCheck');
-    if (termsCheck) {
-        const termsForm = termsCheck.closest('form');
-        if (termsForm) {
-            termsForm.addEventListener('submit', function (e) {
-                if (!termsCheck.checked) {
-                    e.preventDefault();
-                    const wrap = termsCheck.closest('.check-line');
-                    if (wrap) {
-                        wrap.classList.add('field-error');
-                        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setTimeout(function () { wrap.classList.remove('field-error'); }, 2500);
-                    }
-                    if (window.openErrorModal) openErrorModal('Please accept the Terms of Service and Privacy Policy to continue.', 'Almost there');
-                }
-            });
-        }
-    }
-
     const markAllBtn = document.getElementById('bellMarkAll');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function (e) {
@@ -594,7 +327,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const form = markAllBtn.closest('form');
             if (!form) return;
             markAllBtn.disabled = true;
-            fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            const fd = new FormData(form);
+            if (markAllBtn.name) fd.append(markAllBtn.name, markAllBtn.value || '1');
+            fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(function (r) { return r.ok ? r.text() : Promise.reject(new Error('request failed')); })
                 .then(function () {
                     document.querySelectorAll('#bellPanel .bell-item.unread').forEach(function (item) {
@@ -656,116 +391,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 0);
     }, true);
-
-    const roleSelect = document.querySelector('.role-select');
-    const roleHint = document.getElementById('roleHint');
-    if (roleSelect) {
-        roleSelect.addEventListener('click', function (e) {
-            const option = e.target.closest('.role-option');
-            if (!option) return;
-            roleSelect.querySelectorAll('.role-option').forEach(function (o) {
-                o.classList.remove('checked');
-            });
-            option.classList.add('checked');
-            if (roleHint && option.dataset.hint) {
-                roleHint.textContent = option.dataset.hint;
-            }
-        });
-    }
-
-    const googleLink = document.getElementById('googleLink');
-    if (googleLink && roleSelect) {
-        function syncGoogleRole() {
-            const checked = roleSelect.querySelector('input[name="role"]:checked');
-            const role = checked ? checked.value : 'user';
-            googleLink.href = googleLink.href.split('?')[0] + '?intent=signup&role=' + role;
-        }
-        syncGoogleRole();
-        roleSelect.addEventListener('click', syncGoogleRole);
-    }
-
-    const signupIntroToggle = document.getElementById('signupIntroToggle');
-    const signupIntroDetails = document.getElementById('signupIntroDetails');
-    if (signupIntroToggle && signupIntroDetails) {
-        signupIntroToggle.addEventListener('click', function () {
-            const open = signupIntroDetails.classList.toggle('open');
-            signupIntroToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-    }
-
-    document.querySelectorAll('a.btn-google[href*="login_google"]').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            let url = btn.getAttribute('href');
-            url += (url.indexOf('?') === -1 ? '?' : '&') + 'popup=1';
-            const w = 560, h = 620;
-            const left = Math.max(0, (window.screen.width - w) / 2);
-            const top = Math.max(0, (window.screen.height - h) / 2);
-            window.open(url, 'googleSignIn', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes,popup=yes');
-        });
-    });
-
-    document.querySelectorAll('.role-switch select[data-role-select]').forEach(function (sel) {
-        sel.addEventListener('change', function () {
-            const form = sel.closest('.role-switch');
-            if (form) form.setAttribute('data-role', sel.value);
-            sel.closest('form').submit();
-        });
-    });
-
-    document.querySelectorAll('.pw-toggle').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const input = document.getElementById(btn.dataset.target);
-            if (!input) return;
-            const show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            btn.innerHTML = show
-                ? '<i class="fa-regular fa-eye-slash"></i>'
-                : '<i class="fa-regular fa-eye"></i>';
-            btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-        });
-    });
-
-    const pwInput = document.getElementById('password');
-    const pwReqs = document.getElementById('pwRequirements');
-    if (pwInput && pwReqs) {
-        function checkRequirements() {
-            const v = pwInput.value;
-            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
-            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
-            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
-            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
-        }
-        pwInput.addEventListener('input', checkRequirements);
-        checkRequirements();
-    }
-
-    const avatarInput = document.getElementById('avatar');
-    const avatarForm = document.getElementById('avatarForm');
-    if (avatarInput && avatarForm) {
-        avatarInput.addEventListener('change', function () {
-            if (avatarInput.files && avatarInput.files.length > 0) {
-                const status = document.getElementById('avatarStatus');
-                if (status) status.textContent = 'Uploading…';
-                avatarForm.submit();
-            }
-        });
-    }
-
-    const payOptions = document.querySelector('.pay-options');
-    const payBtn = document.getElementById('payBtn');
-    if (payOptions && payBtn) {
-        payOptions.addEventListener('click', function (e) {
-            const option = e.target.closest('.pay-option');
-            if (!option) return;
-            payOptions.querySelectorAll('.pay-option').forEach(function (o) {
-                o.classList.remove('checked');
-            });
-            option.classList.add('checked');
-            option.querySelector('input').checked = true;
-            payBtn.disabled = false;
-        });
-    }
 
     const cookieBanner = document.getElementById('cookieBanner');
     if (cookieBanner) {
@@ -902,37 +527,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const lockNotice = document.getElementById('lockNotice');
-    if (lockNotice) {
-        const ends = Date.parse(lockNotice.dataset.lockEnds);
-        const timerEl = document.getElementById('lockTimer');
-        const barEl = document.getElementById('lockBar');
-        const form = lockNotice.closest('.form-card');
-        const inputs = form ? form.querySelectorAll('input, button') : [];
-        function fmtLock(ms) {
-            const total = Math.max(0, Math.floor(ms / 1000));
-            const m = String(Math.floor(total / 60)).padStart(2, '0');
-            const s = String(total % 60).padStart(2, '0');
-            return m + ':' + s;
-        }
-        function tickLock() {
-            const remain = ends - Date.now();
-            if (timerEl) timerEl.textContent = fmtLock(remain);
-            if (barEl && lockNotice.dataset.lockTotal) {
-                const total = parseInt(lockNotice.dataset.lockTotal, 10) * 1000;
-                const pct = Math.max(0, Math.min(100, (remain / total) * 100));
-                barEl.style.width = pct + '%';
-            }
-            if (remain <= 0) {
-                clearInterval(lockTimerId);
-                if (lockNotice) lockNotice.style.display = 'none';
-                inputs.forEach(function (el) { el.disabled = false; });
-            }
-        }
-        const lockTimerId = setInterval(tickLock, 1000);
-        tickLock();
-    }
-
     function clearRestoredPasswords() {
         document.querySelectorAll('input[type="password"]').forEach(function (p) {
             if (p.value) p.value = '';
@@ -942,30 +536,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('load', clearRestoredPasswords);
     window.addEventListener('pageshow', clearRestoredPasswords);
     setTimeout(clearRestoredPasswords, 200);
-
-    document.addEventListener('keydown', function (e) {
-        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
-        const btn = e.target.closest && e.target.closest('.slot-grid .slot');
-        if (!btn || btn.disabled) return;
-        const grid = btn.parentElement;
-        if (!grid) return;
-        const slots = Array.prototype.filter.call(grid.querySelectorAll('.slot'), function (s) {
-            return !s.disabled;
-        });
-        if (slots.length < 2) return;
-        const col = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
-        const idx = slots.indexOf(btn);
-        if (idx < 0) return;
-        let next = idx;
-        if (e.key === 'ArrowRight') next = idx + 1;
-        else if (e.key === 'ArrowLeft') next = idx - 1;
-        else if (e.key === 'ArrowDown') next = idx + col;
-        else if (e.key === 'ArrowUp') next = idx - col;
-        if (next < 0 || next >= slots.length) return;
-        e.preventDefault();
-        slots[next].focus();
-        slots[next].click();
-    });
 
     /* Live search on bookings lists (filters .mbooking cards via data-search) */
     function wireBookingsSearch(inputId, clearId) {

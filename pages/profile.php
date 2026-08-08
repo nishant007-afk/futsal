@@ -176,7 +176,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="form-card lg">
         <div class="form-head">
             <h2>Edit details</h2>
-            <p class="muted">Keep your contact details up to date so managers can reach you.</p>
         </div>
         <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>

@@ -195,9 +195,8 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/grounds.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
         <a href="<?php echo base_url('admin/grounds.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
-    </div>
 </div>
-<p class="muted page-sub">Manage every ground on the platform and assign each one to its owner.</p>
+</div>
 
 <div class="ground-form-grid">
     <div class="form-card reveal flat">
@@ -327,7 +326,6 @@ require __DIR__ . '/../includes/header.php';
                     <span class="file-name" id="fileNames">No files selected</span>
                 </div>
                 <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-                <p class="muted">Photos you pick here are saved together with the ground when you click "Add Ground".</p>
             <?php endif; ?>
         </div>
 

@@ -22,6 +22,13 @@ Thumbs.db
 Proposal.docx
 /futsal_low/
 prompt.txt
+DESIGN.md
+design.docx
+PRODUCT.md
+
+# AI tooling & design-agent skill libraries
+/.opencode/
+/.impeccable/
 
 # Editor folders
 .idea/

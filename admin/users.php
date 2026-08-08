@@ -86,9 +86,8 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/users.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
         <a href="<?php echo base_url('admin/users.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
-    </div>
 </div>
-<p class="muted page-sub">Change someone's role or remove accounts that no longer need access.</p>
+</div>
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 

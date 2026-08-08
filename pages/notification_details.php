@@ -106,7 +106,6 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid <?php echo e($n['icon']); ?>"></i>
             </div>
             <div>
-                <span class="eyebrow">Notification</span>
                 <h1><?php echo e($n['title']); ?></h1>
                 <p class="muted" style="font-size:13px;"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>
             </div>

@@ -36,18 +36,8 @@ if ($b) {
 }
 
 if (!$b || !$allowed) {
-    set_flash_error(
-        'We couldn\'t find that booking.',
-        'It may have been cancelled, or you may not have access to it.',
-        'Open the booking from your bookings list to see its current status.',
-        $me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')
-    );
-    if ($me['role'] === 'admin') {
-        redirect('admin/bookings.php');
-    } elseif ($me['role'] === 'manager') {
-        redirect('manager/bookings.php');
-    }
-    redirect('pages/my_bookings.php');
+    $back = $me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php');
+    http_error_page(404, 'Booking not found', 'We couldn\'t find that booking. It may have been cancelled, or you may not have access to it.', 'Back to bookings', $back);
 }
 
 $policy = booking_refund_policy($b['booking_date'], $b['start_time'], (float)$b['amount_paid']);

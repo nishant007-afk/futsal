@@ -14,6 +14,9 @@
     RewriteRule ^config(/|$) - [F,L]
 </IfModule>
 
+# Serve a styled 404 for missing pages without leaking the Apache default
+ErrorDocument 404 /futsal/pages/404.php
+
 # Far-future caching for versioned static assets (files are cache-busted with ?v=)
 <IfModule mod_expires.c>
     ExpiresActive On

@@ -9,13 +9,7 @@ $stmt->execute();
 $ground = $stmt->get_result()->fetch_assoc();
 
 if (!$ground) {
-    set_flash_error(
-        'We couldn\'t find that court.',
-        'It may have been removed or is no longer active.',
-        'Browse the courts list to find another place to play.',
-        'pages/courts.php'
-    );
-    redirect('index.php');
+    http_error_page(404, 'Court not found', 'We couldn\'t find that court. It may have been removed or is no longer active.', 'Browse all courts', 'pages/courts.php');
 }
 
 $selected_date = $_GET['date'] ?? date('Y-m-d');

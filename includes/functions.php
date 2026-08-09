@@ -111,6 +111,17 @@ function redirect(string $path): void
     exit;
 }
 
+function http_error_page(int $code, string $title, string $message, ?string $cta_label = null, ?string $cta_url = null): void
+{
+    global $conn;
+    http_response_code($code);
+    $page_title = $title;
+    require __DIR__ . '/header.php';
+    require __DIR__ . '/views/error_page.php';
+    require __DIR__ . '/footer.php';
+    exit;
+}
+
 function set_flash(string $type, string $message, ?array $detail = null): void
 {
     $_SESSION['flash'] = ['type' => $type, 'message' => $message, 'detail' => $detail];

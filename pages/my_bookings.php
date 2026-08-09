@@ -9,7 +9,9 @@ if (isset($_GET['cancel'])) {
     }
     $booking_id = (int)$_GET['cancel'];
     $stmt = $conn->prepare(
-        'SELECT ground_id, booking_date, start_time, amount_paid, repeat_of, repeat_weeks FROM bookings WHERE id = ? AND user_id = ? AND status = "confirmed"'
+        'SELECT b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.amount_paid, b.repeat_of, b.repeat_weeks, g.name AS ground_name
+         FROM bookings b JOIN grounds g ON g.id = b.ground_id
+         WHERE b.id = ? AND b.user_id = ? AND b.status = "confirmed"'
     );
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
     $stmt->execute();
@@ -41,6 +43,23 @@ if (isset($_GET['cancel'])) {
                 if ($stmt->execute() && $stmt->affected_rows > 0) {
                     notify_waitlist_freed((int)$target['ground_id'], $target['booking_date'], $target['start_time']);
                     notify_user((int)$_SESSION['user_id'], 'Weekly series cancelled', 'All ' . $stmt->affected_rows . ' bookings in your series were cancelled.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $rootId);
+                    $cancelEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+                    $cancelEmail->bind_param('i', $_SESSION['user_id']);
+                    $cancelEmail->execute();
+                    $cancelRow = $cancelEmail->get_result()->fetch_assoc();
+                    if ($cancelRow) {
+                        send_booking_email(
+                            $cancelRow['email'],
+                            'Your weekly series at GoalSpace was cancelled',
+                            'Your weekly booking series was cancelled',
+                            [
+                                'Court' => $target['ground_name'] ?? 'the court',
+                                'First date' => date('D, M j, Y', strtotime($target['booking_date'])),
+                                'Time' => substr($target['start_time'], 0, 5),
+                                'Cancelled' => $stmt->affected_rows . ' bookings',
+                            ]
+                        );
+                    }
                     set_flash('success', 'Your whole weekly series (' . $stmt->affected_rows . ' bookings) was cancelled.');
                     redirect('pages/my_bookings.php');
                 }
@@ -50,6 +69,26 @@ if (isset($_GET['cancel'])) {
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 notify_waitlist_freed((int)$target['ground_id'], $target['booking_date'], $target['start_time']);
                 notify_user((int)$_SESSION['user_id'], 'Booking cancelled', 'Your booking was cancelled.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $booking_id);
+                $cancelEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+                $cancelEmail->bind_param('i', $_SESSION['user_id']);
+                $cancelEmail->execute();
+                $cancelRow = $cancelEmail->get_result()->fetch_assoc();
+                if ($cancelRow) {
+                    send_booking_email(
+                        $cancelRow['email'],
+                        'Your booking was cancelled',
+                        'Your booking at the court was cancelled',
+                        [
+                            'Booking ref' => $target['booking_ref'] ?? $booking_id,
+                            'Court' => $target['ground_name'] ?? 'the court',
+                            'Date' => date('D, M j, Y', strtotime($target['booking_date'])),
+                            'Time' => substr($target['start_time'], 0, 5) . ' onwards',
+                        ],
+                        $policy['refund'] > 0
+                            ? 'A refund of Rs ' . number_format($policy['refund'], 0) . ' is on its way back to your account.'
+                            : 'The freed slot will show up as available again.'
+                    );
+                }
                 if ($policy['refund'] > 0) {
                     set_flash('success', 'Booking cancelled. A refund of Rs ' . number_format($policy['refund'], 0) . ' will be returned to you.');
                 } else {

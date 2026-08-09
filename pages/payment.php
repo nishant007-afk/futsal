@@ -6,7 +6,7 @@ require_player();
 $booking_id = (int)($_GET['booking_id'] ?? 0);
 
 $stmt = $conn->prepare(
-    'SELECT b.id, b.ground_id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status, b.payment_status, b.amount_paid, b.payment_type,
+    'SELECT b.id, b.booking_ref, b.ground_id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status, b.payment_status, b.amount_paid, b.payment_type,
             b.discount, b.promo_code, b.promo_id,
             g.name AS ground_name, g.location, g.price_per_hour
      FROM bookings b
@@ -129,6 +129,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'fa-sack-dollar',
                 'pages/booking_details.php?id=' . $booking_id
             );
+        }
+        $playerEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+        $playerEmail->bind_param('i', $_SESSION['user_id']);
+        $playerEmail->execute();
+        $playerRow = $playerEmail->get_result()->fetch_assoc();
+        if ($playerRow) {
+            send_booking_email(
+                $playerRow['email'],
+                $payment_status === 'paid' ? 'Payment confirmed!' : 'Advance payment received',
+                $payment_status === 'paid' ? 'Payment confirmed for your booking' : 'Your advance is confirmed',
+                [
+                    'Booking ref' => $booking['booking_ref'],
+                    'Court' => $booking['ground_name'],
+                    'Date' => date('D, M j, Y', strtotime($booking['booking_date'])),
+                    'Time' => substr($booking['start_time'], 0, 5) . ' - ' . substr($booking['end_time'], 0, 5),
+                    'Paid' => 'Rs ' . number_format($amount_paid, 0),
+                ],
+                $payment_status === 'paid'
+                    ? 'Your booking is fully paid. See you on the court!'
+                    : 'The rest is payable at the court on game day.'
+            );
+        }
+        if ($mgr && (int)$mgr['manager_id'] !== (int)$_SESSION['user_id']) {
+            $mgrEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+            $mgrEmail->bind_param('i', $mgr['manager_id']);
+            $mgrEmail->execute();
+            $mgrRow = $mgrEmail->get_result()->fetch_assoc();
+            if ($mgrRow) {
+                send_booking_email(
+                    $mgrRow['email'],
+                    'Payment received: ' . $booking['ground_name'],
+                    $payment_status === 'paid' ? 'Booking fully paid' : 'Advance paid',
+                    [
+                        'Court' => $booking['ground_name'],
+                        'Date' => date('D, M j, Y', strtotime($booking['booking_date'])),
+                        'Time' => substr($booking['start_time'], 0, 5) . ' - ' . substr($booking['end_time'], 0, 5),
+                        'Received' => 'Rs ' . number_format($amount_paid, 0),
+                    ],
+                    'Open your manager dashboard to track your money.'
+                );
+            }
         }
         redirect('pages/confirmation.php?booking_id=' . $booking_id);
     } else {

@@ -189,6 +189,44 @@ if ((int)$ground['manager_id'] > 0) {
     );
 }
 
+$user = current_user();
+if ($user) {
+    send_booking_email(
+        $user['email'],
+        $createdCount > 1 ? 'Your weekly bookings are confirmed' : 'Your booking is confirmed',
+        $createdCount > 1 ? $createdCount . ' bookings confirmed at ' . $ground['name'] : 'Booking confirmed at ' . $ground['name'],
+        [
+            'Booking ref' => 'GS-' . $booking_ref,
+            'Court' => $ground['name'],
+            'Date' => date('D, M j, Y', strtotime($booking_date)),
+            'Time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
+            'Price' => format_price($week_price),
+        ],
+        $createdCount > 1
+            ? 'This is a weekly repeat for the same slot. Your other weeks show up under My bookings.'
+            : 'Pay now to lock this slot in, or settle at the court.'
+    );
+}
+if ((int)$ground['manager_id'] > 0) {
+    $mgrLookup = $conn->prepare('SELECT email FROM users WHERE id = ?');
+    $mgrLookup->bind_param('i', $ground['manager_id']);
+    $mgrLookup->execute();
+    $mgrRow = $mgrLookup->get_result()->fetch_assoc();
+    if ($mgrRow) {
+        send_booking_email(
+            $mgrRow['email'],
+            'A new booking arrived at ' . $ground['name'],
+            $createdCount > 1 ? $createdCount . ' new bookings on your court' : 'You have a new booking',
+            [
+                'Court' => $ground['name'],
+                'Date' => date('D, M j, Y', strtotime($booking_date)),
+                'Time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
+            ],
+            'Open your manager dashboard to manage this booking.'
+        );
+    }
+}
+
 if ($createdCount > 1) {
     $msg = 'You booked ' . $createdCount . ' weekly slots at ' . $ground['name'] . '.';
     if ($skipped) {

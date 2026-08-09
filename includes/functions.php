@@ -304,6 +304,23 @@ function notify_waitlist_freed(int $ground_id, string $booking_date, string $sta
     $rows = $stmt->get_result();
     while ($row = $rows->fetch_assoc()) {
         notify_user((int)$row['user_id'], 'A slot opened up!', $groundName . ' is free on ' . $label . '. Book before someone else does.', 'fa-bell', 'pages/ground.php?id=' . (int)$ground_id . '&date=' . urlencode($booking_date));
+        $uStmt = $conn->prepare('SELECT email FROM users WHERE id = ?');
+        $uStmt->bind_param('i', $row['user_id']);
+        $uStmt->execute();
+        $uRow = $uStmt->get_result()->fetch_assoc();
+        if ($uRow) {
+            send_booking_email(
+                $uRow['email'],
+                'A slot opened up at ' . $groundName,
+                'Your waitlist slot just freed up',
+                [
+                    'Court' => $groundName,
+                    'Date' => date('D, M j, Y', strtotime($booking_date)),
+                    'Time' => substr($start_time, 0, 5) . ' onwards',
+                ],
+                'Slots go fast. Book it now before someone else grabs it.'
+            );
+        }
         $upd = $conn->prepare('UPDATE waitlist SET is_notified = 1 WHERE id = ?');
         $upd->bind_param('i', $row['id']);
         $upd->execute();
@@ -831,6 +848,54 @@ function notify_user(int $user_id, string $title, string $body = '', string $ico
     $stmt = $conn->prepare('INSERT INTO notifications (user_id, title, body, icon, link) VALUES (?, ?, ?, ?, ?)');
     $stmt->bind_param('issss', $user_id, $title, $body, $icon, $link);
     $stmt->execute();
+}
+
+/**
+ * Small HTML email shell shared by all transactional messages.
+ * Inline styles only so it renders in every client. No em dashes.
+ *
+ * @param array $rows key => value pairs shown as a summary table
+ */
+function booking_email_html(string $heading, array $rows = [], string $note = ''): string
+{
+    $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    $table = '';
+    if ($rows) {
+        $cells = '';
+        foreach ($rows as $k => $v) {
+            $cells .= '<tr><td style="padding:7px 0;color:#425349;width:130px;font-size:14px;vertical-align:top;">'
+                . $esc($k) . '</td><td style="padding:7px 0;color:#101814;font-size:14px;font-weight:600;">'
+                . $esc($v) . '</td></tr>';
+        }
+        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">' . $cells . '</table>';
+    }
+    $noteBlock = $note !== '' ? '<p style="margin:18px 0 0;color:#6e8175;font-size:13px;line-height:1.6;">'
+        . $esc($note) . '</p>' : '';
+
+    return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f7f5;">
+<table role="presentation" width="100%" style="background:#f4f7f5;padding:28px 12px;">
+<tr><td align="center">
+<table role="presentation" width="560" style="max-width:560px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e1e5e1;">
+    <tr><td style="background:#0a120e;padding:22px 28px;">
+        <span style="color:#6ee7a8;font-size:15px;font-weight:800;">GoalSpace</span>
+    </td></tr>
+    <tr><td style="padding:28px;">
+        <h1 style="margin:0 0 6px;color:#101814;font-size:20px;font-family:Arial,sans-serif;">' . $esc($heading) . '</h1>
+        ' . $table . $noteBlock . '
+        <p style="margin:22px 0 0;color:#6e8175;font-size:12px;line-height:1.5;">You got this email because it relates to your GoalSpace account.
+        <br><a href="' . base_url('index.php') . '" style="color:#059669;">goalspace.com</a></p>
+    </td></tr>
+</table></td></tr></table></body></html>';
+}
+
+/**
+ * Send a transactional booking email. Uses in-app style, safe when SMTP is offline.
+ *
+ * @return bool true if a mail was actually sent (SMTP configured + ack)
+ */
+function send_booking_email(string $to, string $subject, string $heading, array $rows = [], string $note = ''): bool
+{
+    return send_mail($to, $subject, booking_email_html($heading, $rows, $note), true);
 }
 
 /**

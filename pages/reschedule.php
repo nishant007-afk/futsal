@@ -127,6 +127,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('sssdii', $new_date, $start_time, $end_time, $new_price, $booking_id, $_SESSION['user_id']);
     if ($stmt->execute() && $stmt->affected_rows > 0) {
         $conn->commit();
+        $reschedUser = current_user();
+        if ($reschedUser) {
+            send_booking_email(
+                $reschedUser['email'],
+                'Your booking was rescheduled',
+                'Your booking has moved to a new slot',
+                [
+                    'Court' => $booking['ground_name'],
+                    'New date' => date('D, M j, Y', strtotime($new_date)),
+                    'New time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
+                    'New price' => 'Rs ' . number_format($new_price, 0),
+                ],
+                'Your payment and balance carry over to the new slot.'
+            );
+        }
         set_flash('success', 'Your booking was rescheduled. Check the new details below.');
         redirect('pages/my_bookings.php');
     } else {

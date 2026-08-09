@@ -1043,4 +1043,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     initGallery();
     /* end ground gallery */
+
+    /* Promo code badge copy-to-clipboard */
+    document.querySelectorAll('.promo-code-badge').forEach(function (badge) {
+        badge.addEventListener('click', function () {
+            const code = badge.getAttribute('data-code');
+            if (!code) return;
+            navigator.clipboard.writeText(code).then(function () {
+                const orig = badge.textContent;
+                badge.textContent = 'Copied!';
+                badge.style.background = 'var(--brand)';
+                badge.style.color = '#fff';
+                setTimeout(function () {
+                    badge.textContent = orig;
+                    badge.style.background = '';
+                    badge.style.color = '';
+                }, 1200);
+            });
+        });
+    });
+    /* end promo badges */
 });

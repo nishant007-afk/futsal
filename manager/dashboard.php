@@ -13,6 +13,15 @@ $totalGrounds = count($myGrounds);
 $todayBookings = $conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND booking_date = CURDATE() AND status != 'cancelled'")->fetch_assoc()['c'];
 $paidCount = $conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND payment_status = 'paid' AND status != 'cancelled'")->fetch_assoc()['c'];
 $revenue = $conn->query("SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE ground_id IN ($idList) AND status != 'cancelled'")->fetch_assoc()['s'];
+$weekDays = [];
+$weekMax = 1;
+for ($d = 6; $d >= 0; $d--) {
+    $day = date('Y-m-d', strtotime("-$d days"));
+    $c = (int)$conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND booking_date = '$day' AND status != 'cancelled'")->fetch_assoc()['c'];
+    $weekDays[] = ['day' => date('D', strtotime($day)), 'short' => date('M j', strtotime($day)), 'count' => $c];
+    if ($c > $weekMax) { $weekMax = $c; }
+}
+$weekRevenue = (float)$conn->query("SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE ground_id IN ($idList) AND booking_date >= CURDATE() - INTERVAL 6 DAY AND status != 'cancelled'")->fetch_assoc()['s'];
 $subStatus = subscription_status((int)$_SESSION['user_id']);
 $setupFee = manager_setup_fee();
 $monthlyFee = manager_monthly_fee();
@@ -103,6 +112,21 @@ require __DIR__ . '/../includes/header.php';
                 Rs <?php echo number_format($setupFee, 0); ?> setup &middot; Rs <?php echo number_format($monthlyFee, 0); ?>/mo
             <?php endif; ?>
         </span>
+    </div>
+</div>
+
+<h3 class="reveal dash-section"><i class="fa-solid fa-chart-column"></i> Bookings this week</h3>
+<div class="chart-wrap reveal" style="margin-bottom:30px;">
+    <div class="chart-legend"><span><i class="fa-solid fa-calendar-day"></i> Last 7 days</span><span class="strong"><?php echo format_price($weekRevenue); ?> gross &middot; <?php echo (int)array_sum(array_column($weekDays, 'count')); ?> bookings</span></div>
+    <div class="bar-chart" role="img" aria-label="Bookings per day for the last 7 days">
+        <?php foreach ($weekDays as $wd): ?>
+            <?php $pct = $weekMax > 0 ? (int)round(($wd['count'] / $weekMax) * 100) : 0; ?>
+            <div class="bar-group">
+                <div class="bar-track"><div class="bar-fill" style="height:<?php echo max($pct, 6); ?>%;"></div></div>
+                <div class="bar-value"><?php echo (int)$wd['count']; ?></div>
+                <div class="bar-label"><?php echo e($wd['short']); ?></div>
+            </div>
+        <?php endforeach; ?>
     </div>
 </div>
 

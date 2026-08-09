@@ -207,6 +207,28 @@ require __DIR__ . '/../includes/header.php';
         </form>
     </div>
 
+    <?php
+    $activePromos = array_filter(promo_codes_list(), function ($p) { return $p['is_active'] && ($p['usage_limit'] === null || $p['used_count'] < $p['usage_limit']); });
+    if ($activePromos):
+    ?>
+    <div class="promo-banner reveal" style="margin-top:20px;">
+        <div class="promo-banner-inner">
+            <i class="fa-solid fa-gift"></i>
+            <div class="promo-banner-content">
+                <strong>Active Promotions</strong>
+                <span>Apply a promo code at checkout to save on your booking.</span>
+            </div>
+            <div class="promo-codes-list">
+                <?php foreach ($activePromos as $p): ?>
+                    <span class="promo-code-badge" data-code="<?php echo e($p['code']); ?>" title="<?php echo e($p['code']); ?> - <?php echo (float)$p['discount_percent'] > 0 ? (int)$p['discount_percent'] . '% off' : format_price($p['discount_amount'] . ' off'); ?>">
+                        <?php echo e($p['code']); ?>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <p class="courts-count muted">
         <?php echo $total; ?> court<?php echo $total === 1 ? '' : 's'; ?><?php echo $q !== '' ? ' matching "' . e($q) . '"' : ''; ?>
     </p>

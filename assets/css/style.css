@@ -3359,6 +3359,18 @@ html[data-theme="dark"] .cancel-policy-notice { background: var(--dark-2); borde
 html[data-theme="dark"] .profile-stats { border-color: var(--dark-line); }
 html[data-theme="dark"] .pstat { background: var(--dark-2); }
 
+.promo-banner { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.promo-banner-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.promo-banner-inner i { font-size: 22px; color: var(--brand); }
+.promo-banner-content strong { display: block; font-size: 15px; color: var(--ink); }
+.promo-banner-content span { font-size: 13px; color: var(--muted); }
+.promo-codes-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.promo-code-badge { background: var(--brand-soft); color: var(--brand); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.promo-code-badge:hover { background: var(--brand); color: #fff; }
+html[data-theme="dark"] .promo-banner { background: var(--dark-2); border-color: var(--dark-line); }
+html[data-theme="dark"] .promo-code-badge { background: var(--brand); color: #fff; }
+html[data-theme="dark"] .promo-code-badge:hover { background: var(--brand-600); }
+
 .gallery-thumb { border-radius: 8px; overflow: hidden; transition: transform .15s, box-shadow .15s; }
 .gallery-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
 .gallery-thumb.active { box-shadow: 0 0 0 2px var(--brand); }

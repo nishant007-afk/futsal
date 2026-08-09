@@ -328,14 +328,16 @@ function notify_waitlist_freed(int $ground_id, string $booking_date, string $sta
         $uStmt->execute();
         $uRow = $uStmt->get_result()->fetch_assoc();
         if ($uRow) {
+            $bookUrl = absolute_url('pages/ground.php?id=' . (int)$ground_id . '&date=' . urlencode($booking_date));
             send_booking_email(
                 $uRow['email'],
                 'A slot opened up at ' . $groundName,
                 'Your waitlist slot just freed up',
                 [
-                    'Court' => $groundName,
-                    'Date' => date('D, M j, Y', strtotime($booking_date)),
-                    'Time' => substr($start_time, 0, 5) . ' onwards',
+                    'Court'      => $groundName,
+                    'Date'       => date('D, M j, Y', strtotime($booking_date)),
+                    'Time'       => substr($start_time, 0, 5) . ' onwards',
+                    'Book now'   => $bookUrl,
                 ],
                 'Slots go fast. Book it now before someone else grabs it.'
             );

@@ -125,33 +125,34 @@ $existing = $stmt->get_result()->fetch_assoc();
 if ($existing) {
     $uid = (int)$existing['id'];
     $greeting = $existing['name'];
-} else {
-    $dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
-    $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified) VALUES (?, ?, ?, ?, ?, 1)');
-    $phone = '';
-    $stmt->bind_param('sssss', $name, $email, $phone, $dummy, $role);
-    if (!$stmt->execute()) {
-        set_flash_error(
-            'Could not create your account.',
-            'Something went wrong while saving your Google profile.',
-            'Please try again, or sign up with the form.',
-            $backSignup
-        );
-        $finish($backSignup);
+
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $uid;
+    unset($_SESSION['google_oauth']);
+    set_flash('success', 'Signed in with Google. Welcome back, ' . $greeting . '!');
+
+    $returnPath = $_SESSION['return_path'] ?? '';
+    unset($_SESSION['return_path']);
+    if ($returnPath === 'pages/page.php?slug=contact') {
+        $finish($returnPath);
     }
-    $uid = $conn->insert_id;
-    $greeting = $name;
+
+    $finish('index.php');
 }
 
-session_regenerate_id(true);
-$_SESSION['user_id'] = $uid;
+// Brand-new Google account: ask for role + consent on a card before creating it.
+$_SESSION['google_pending'] = [
+    'name'  => $name,
+    'email' => $email,
+    'role'  => $role,
+    'back'  => $back,
+    'popup' => $popup,
+];
 unset($_SESSION['google_oauth']);
-set_flash('success', 'Signed in with Google. Welcome, ' . $greeting . '!');
 
-$returnPath = $_SESSION['return_path'] ?? '';
-unset($_SESSION['return_path']);
-if ($returnPath === 'pages/page.php?slug=contact') {
-    $finish($returnPath);
+$setupUrl = base_url('pages/google_setup.php');
+if ($popup) {
+    echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>GoalSpace</title></head><body><script>(function(){try{var o=window.opener;if(o){o.location.href=' . json_encode($setupUrl) . ';}}catch(e){}window.close();})();</script></body></html>';
+    exit;
 }
-
-$finish('index.php');
+redirect('pages/google_setup.php');

@@ -195,7 +195,6 @@ require __DIR__ . '/../includes/header.php';
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
-                <label for="phone">Phone <span class="muted" style="font-weight:400;">(optional)</span></label>
                 <div class="input-group floating">
                     <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder=" ">
                     <label for="phone">Phone</label>

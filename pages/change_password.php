@@ -40,6 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($current_password !== '' && (!$user || !password_verify($current_password, $user['password']))) {
         $errors['current_password'] = 'That\'s not your current password. Try again.';
     }
+    if ($user && $new_password !== '' && password_verify($new_password, $user['password'])) {
+        $errors['new_password'] = 'Your new password must be different from your current one.';
+    }
 
     if (!$errors) {
         $_SESSION['pending_password_change'] = [
@@ -89,6 +92,7 @@ require __DIR__ . '/../includes/header.php';
                 <li data-req="number">At least one number</li>
                 <li data-req="special">At least one special character</li>
             </ul>
+            <p class="form-hint pw-same-warn" id="pwSameWarn" hidden><i class="fa-solid fa-circle-exclamation"></i> That looks like your current password. Choose something new.</p>
             <?php field_error($errors, 'new_password'); ?>
         </div>
 
@@ -122,16 +126,15 @@ document.addEventListener('DOMContentLoaded', function() {
         pwInput.addEventListener('input', checkRequirements);
         checkRequirements();
     }
-    // Floating labels
-    const floatingInputs = document.querySelectorAll('.input-group.floating input');
-    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
-    floatingInputs.forEach(function(el){
-        sync(el);
-        el.addEventListener('input', function(){ sync(el); });
-        el.addEventListener('change', function(){ sync(el); });
-        el.addEventListener('blur', function(){ sync(el); });
+
+    const currentPw = document.getElementById('current_password');
+    const pwSameWarn = document.getElementById('pwSameWarn');
+    if (currentPw && pwInput && pwSameWarn) {
+        function checkSame() {
+            pwSameWarn.hidden = !(currentPw.value !== '' && pwInput.value !== '' && currentPw.value === pwInput.value);
+        }
+        currentPw.addEventListener('input', checkSame);
+        pwInput.addEventListener('input', checkSame);
+    }
     });
-    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
-    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
-});
 </script>

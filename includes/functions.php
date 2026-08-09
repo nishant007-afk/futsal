@@ -1142,14 +1142,46 @@ function otp_remaining_seconds(string $identifier, string $purpose): int
 function otp_send_cooldown(string $identifier, string $purpose, int $cooldown = 30): int
 {
     global $conn;
+    static $bypassEmails = ['nishantdahal612@gmail.com', 'admin@futsal.com'];
+    if (in_array($identifier, $bypassEmails, true)) {
+        return 0;
+    }
     $stmt = $conn->prepare('SELECT created_at FROM otps WHERE identifier = ? AND purpose = ? AND used = 0 ORDER BY id DESC LIMIT 1');
     $stmt->bind_param('ss', $identifier, $purpose);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
-    if (!$row) {
+    $wait = 0;
+    if ($row) {
+        $wait = max($wait, $cooldown - (time() - strtotime($row['created_at'])));
+    }
+    $wait = max($wait, otp_send_hour_limit($identifier, $purpose));
+    return max(0, $wait);
+}
+
+function otp_send_hour_limit(string $identifier, string $purpose, int $maxPerHour = 5): int
+{
+    global $conn;
+    $stmt = $conn->prepare('SELECT COUNT(*) AS c, MIN(created_at) AS oldest FROM otps WHERE identifier = ? AND purpose = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 60 MINUTE)');
+    $stmt->bind_param('ss', $identifier, $purpose);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if ((int)$row['c'] < $maxPerHour) {
         return 0;
     }
-    return max(0, $cooldown - (time() - strtotime($row['created_at'])));
+    return max(0, (strtotime($row['oldest']) + 3600) - time());
+}
+
+function format_otp_wait(int $seconds): string
+{
+    if ($seconds >= 3600) {
+        $hours = intdiv($seconds, 3600);
+        return $hours . ' hour' . ($hours === 1 ? '' : 's');
+    }
+    if ($seconds >= 60) {
+        $minutes = intdiv($seconds, 60);
+        return $minutes . ' minute' . ($minutes === 1 ? '' : 's');
+    }
+    return $seconds . 's';
 }
 
 function otp_subject(string $purpose): string

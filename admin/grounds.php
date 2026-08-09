@@ -308,9 +308,9 @@ require __DIR__ . '/../includes/header.php';
                     <?php $photos = ground_images((int)$editing['id']); ?>
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
-                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="" loading="lazy" decoding="async">
+                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
                             <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$editing['id'] . '&ground_id=' . (int)$editing['id'] . '&delete_photo=' . (int)$ph['id'] . '&csrf=' . csrf_token()); ?>"
-                               class="photo-remove" data-confirm="Remove this photo?" title="Remove"><i class="fa-solid fa-xmark"></i></a>
+                               class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></a>
                         </div>
                     <?php endforeach; ?>
                     <?php if (!$photos): ?>
@@ -342,7 +342,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="card-img">
                 <?php if ($editing): $cover = ground_cover((int)$editing['id']); endif; ?>
                 <?php if (!empty($cover)): ?>
-                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="" loading="lazy" decoding="async">
+                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="Cover photo of <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
                 <?php else: ?>
                     <div class="pitch"></div>
                 <?php endif; ?>
@@ -368,7 +368,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-thumb">
                 <?php $gcover = ground_cover((int)$g['id']); ?>
                 <?php if ($gcover): ?>
-                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($gcover)); ?>" alt="" loading="lazy" decoding="async">
+                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($gcover)); ?>" alt="<?php echo e($g['name']); ?> cover" loading="lazy" decoding="async">
                 <?php else: ?>
                     <i class="fa-solid fa-store"></i>
                 <?php endif; ?>

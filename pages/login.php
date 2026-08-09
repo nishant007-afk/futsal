@@ -65,6 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unset($_SESSION['login_lock'], $_SESSION['login_lock_email']);
                 clear_login_attempts($key);
                 if ($newCount % 6 === 0 && $user['role'] !== 'admin') {
+                    $cooldown = otp_send_cooldown($email, 'login');
+                    if ($cooldown > 0) {
+                        session_regenerate_id(true);
+                        $_SESSION['user_id'] = $user['id'];
+                        set_flash('success', 'Welcome back, ' . $user['name'] . '!');
+                        redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
+                    }
                     $otp = issue_otp($email, 'login');
                     $otp_sent = send_otp_mail($email, $otp, 'login');
                     session_regenerate_id(true);
@@ -141,17 +148,17 @@ require __DIR__ . '/../includes/header.php';
             <?php echo csrf_field(); ?>
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
-                <label for="subj">Subject <span class="req">*</span></label>
-                <div class="input-group">
+                <div class="input-group floating">
                     <i class="fa-solid fa-heading"></i>
-                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" required>
+                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " required>
+                    <label for="subj">Subject <span class="req">*</span></label>
                 </div>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
-                <label for="em">Your email <span class="req">*</span></label>
-                <div class="input-group">
+                <div class="input-group floating">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" required>
+                    <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" placeholder=" " required>
+                    <label for="em">Your email <span class="req">*</span></label>
                 </div>
                 <?php field_error($cErrors, 'email'); ?>
             </div>
@@ -218,18 +225,3 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
-<script>
-(function(){
-    const floatingInputs = document.querySelectorAll('.input-group.floating input');
-    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
-    floatingInputs.forEach(function(el){
-        sync(el);
-        el.addEventListener('input', function(){ sync(el); });
-        el.addEventListener('change', function(){ sync(el); });
-        el.addEventListener('blur', function(){ sync(el); });
-    });
-    // Handle autofill
-    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
-    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
-})();
-</script>

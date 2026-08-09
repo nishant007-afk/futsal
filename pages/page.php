@@ -32,18 +32,18 @@ require __DIR__ . '/../includes/header.php';
                 <?php echo csrf_field(); ?>
                 <div class="grid-2">
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
-                        <label for="cName">Your name <span class="req">*</span></label>
-                        <div class="input-group">
+                        <div class="input-group floating">
                             <i class="fa-solid fa-user"></i>
-                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder="Full name" autocomplete="name" required>
+                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" required>
+                            <label for="cName">Your name <span class="req">*</span></label>
                         </div>
                         <?php field_error($cErrors, 'name'); ?>
                     </div>
                     <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
-                        <label for="cEmail">Email <span class="req">*</span></label>
-                        <div class="input-group">
+                        <div class="input-group floating">
                             <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder="you@example.com" autocomplete="email" required>
+                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder=" " autocomplete="email" required>
+                            <label for="cEmail">Email <span class="req">*</span></label>
                         </div>
                         <?php field_error($cErrors, 'email'); ?>
                     </div>
@@ -60,10 +60,10 @@ require __DIR__ . '/../includes/header.php';
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="cSubject">Subject</label>
-                        <div class="input-group">
+                        <div class="input-group floating">
                             <i class="fa-solid fa-heading"></i>
-                            <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder="Short summary">
+                            <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder=" ">
+                            <label for="cSubject">Subject</label>
                         </div>
                     </div>
                 </div>

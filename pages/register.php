@@ -87,9 +87,15 @@ if (isset($verification_code)) {
             <input type="hidden" name="email" value="<?php echo e($verification_email); ?>">
             <input type="hidden" name="resend" value="0">
             <div class="form-group">
-                <div class="input-group floating">
-                    <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder=" " autocomplete="one-time-code" required>
-                    <label for="vcode">Verification code</label>
+                <label for="vcode">Verification code</label>
+                <input type="hidden" name="code" class="otp-source" required>
+                <div class="otp-boxes" role="group" aria-label="Verification code">
+                    <input class="otp-box" type="tel" id="vcode" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" aria-label="First digit">
+                    <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
+                    <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Third digit">
+                    <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Fourth digit">
+                    <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Fifth digit">
+                    <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Sixth digit">
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Verify email</button>
@@ -164,8 +170,8 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-group">
-            <label>I'm signing up as</label>
-            <div class="role-select">
+            <label id="roleLabel">I'm signing up as</label>
+            <div class="role-select" role="radiogroup" aria-labelledby="roleLabel">
                 <label class="role-option <?php echo $role === 'user' ? 'checked' : ''; ?>"
                        data-hint="Players book courts, track their games and cancel their own bookings.">
                     <input type="radio" name="role" value="user" <?php echo $role === 'user' ? 'checked' : ''; ?>>
@@ -244,16 +250,5 @@ document.addEventListener('DOMContentLoaded', function() {
         pwInput.addEventListener('input', checkRequirements);
         checkRequirements();
     }
-    // Floating labels
-    const floatingInputs = document.querySelectorAll('.input-group.floating input');
-    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
-    floatingInputs.forEach(function(el){
-        sync(el);
-        el.addEventListener('input', function(){ sync(el); });
-        el.addEventListener('change', function(){ sync(el); });
-        el.addEventListener('blur', function(){ sync(el); });
-    });
-    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
-    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
 });
 </script>

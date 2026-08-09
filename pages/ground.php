@@ -117,8 +117,8 @@ require __DIR__ . '/../includes/header.php';
                 <button type="button" class="gallery-zoom" aria-label="Zoom photo"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
                 <?php if (count($photos) > 1): ?>
                     <div class="gallery-thumbs">
-                        <?php foreach ($photos as $ph): ?>
-                            <button type="button" class="gallery-thumb" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>">
+                        <?php foreach ($photos as $pi => $ph): ?>
+                            <button type="button" class="gallery-thumb" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" aria-label="View photo <?php echo $pi + 1; ?> of <?php echo count($photos); ?>">
                                 <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="" loading="lazy" decoding="async">
                             </button>
                         <?php endforeach; ?>
@@ -291,7 +291,7 @@ require __DIR__ . '/../includes/header.php';
                     <label>Your rating</label>
                     <div class="star-input">
                         <?php for ($i = 5; $i >= 1; $i--): ?>
-                            <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" <?php echo ($my_review['rating'] ?? 0) == $i ? 'checked' : ''; ?>>
+                            <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" aria-label="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>" <?php echo ($my_review['rating'] ?? 0) == $i ? 'checked' : ''; ?>>
                             <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>"><i class="fa-solid fa-star"></i></label>
                         <?php endfor; ?>
                     </div>
@@ -313,7 +313,7 @@ require __DIR__ . '/../includes/header.php';
                 <div class="review-item reveal">
                     <div class="review-avatar">
                         <?php if (!empty($rv['avatar'])): ?>
-                            <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($rv['avatar'])); ?>" alt="" loading="lazy" decoding="async">
+                            <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($rv['avatar'])); ?>" alt="<?php echo e($rv['user_name']); ?>" loading="lazy" decoding="async">
                         <?php else: ?>
                             <?php echo e(strtoupper(substr($rv['user_name'], 0, 1))); ?>
                         <?php endif; ?>

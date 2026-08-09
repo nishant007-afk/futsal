@@ -241,6 +241,30 @@ document.addEventListener('DOMContentLoaded', function () {
             lastY = y;
         }
         window.addEventListener('scroll', onScroll, { passive: true });
+
+        /* Mobile: tap/click on a blank area toggles both the top and bottom nav.
+           If they are hidden, one tap reveals them; if revealed, one tap hides them. */
+        document.addEventListener('click', function (e) {
+            if (!window.matchMedia('(max-width: 820px)').matches) return;
+            if (!bottomNav) return;
+            if (Date.now() - lastUserScroll < 500) return;
+            const t = e.target;
+            if (!(t instanceof Element)) return;
+            if (t.closest('.site-header') || t.closest('.bottom-nav')) return;
+            if (t.closest('a, button, input, textarea, select, label, [data-confirm], .otp-box')) return;
+            if (t.closest('.toast, .modal, .popup-backdrop, .cookie-banner, .drawer')) return;
+            const hidden = siteHeader.classList.contains('collapsed') && bottomNav.classList.contains('hidden');
+            if (hidden) {
+                hideTopBar();
+                siteHeader.classList.remove('collapsed');
+                bottomNav.classList.remove('hidden');
+                document.body.classList.remove('nav-hidden');
+            } else {
+                siteHeader.classList.add('collapsed');
+                bottomNav.classList.add('hidden');
+                document.body.classList.add('nav-hidden');
+            }
+        });
     }
 
     const reveals = document.querySelectorAll('.reveal');
@@ -288,10 +312,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('button[data-autogate]').forEach(function (btn) {
-        const form = btn.closest('form');
-        if (!form) return;
-        function gate() {
+    // ----- Floating labels + gated CTA buttons ---------------------------
+    // Both react to typing AND to browser autofill (which often fires no
+    // input/change event). Central here so every page behaves the same.
+    function syncFloatingLabels() {
+        document.querySelectorAll('.input-group.floating input').forEach(function (el) {
+            const on = el.value.trim() !== '';
+            if (el.classList.contains('has-value') !== on) {
+                el.classList.toggle('has-value', on);
+            }
+        });
+    }
+
+    function autogateAll() {
+        document.querySelectorAll('button[data-autogate]').forEach(function (btn) {
+            const form = btn.closest('form');
+            if (!form) return;
             let ok = true;
             form.querySelectorAll('input[required], select[required], textarea[required]').forEach(function (el) {
                 if (el.disabled) return;
@@ -302,22 +338,103 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             if (btn.disabled === ok) btn.disabled = !ok;
-        }
-        form.addEventListener('input', gate);
-        form.addEventListener('change', gate);
-        form.addEventListener('animationstart', function (e) {
-            if (e.animationName === 'autofill') gate();
         });
-        window.addEventListener('load', gate);
-        window.addEventListener('pageshow', gate);
-        document.addEventListener('focusin', gate);
-        var autofillChecks = 0;
-        var recheck = setInterval(function () {
-            autofillChecks++;
-            gate();
-            if (autofillChecks >= 5) clearInterval(recheck);
-        }, 100);
-        gate();
+    }
+
+    function autosync() {
+        syncFloatingLabels();
+        autogateAll();
+    }
+
+    document.addEventListener('input', autosync, true);
+    document.addEventListener('change', autosync, true);
+    document.addEventListener('click', autosync, true);
+    document.addEventListener('focusin', autogateAll);
+    document.addEventListener('animationstart', function (e) {
+        if (e.animationName === 'autofill') autosync();
+    });
+    window.addEventListener('load', autosync);
+    window.addEventListener('pageshow', autosync);
+
+    // Autofill can land a moment after load; keep polling briefly.
+    var recheckTries = 0;
+    var recheck = setInterval(function () {
+        recheckTries++;
+        autosync();
+        if (recheckTries >= 30) clearInterval(recheck);
+    }, 100);
+    autosync();
+
+    // ----- OTP boxes (one digit per box) ------------------------------
+    // Single shared behaviour: auto-advance on typing, go back with
+    // backspace, accept paste, keyboard arrows. Values live in a hidden
+    // `.otp-source` input so server-side code keeps working unchanged.
+    document.querySelectorAll('.otp-boxes').forEach(function (wrap) {
+        const form = wrap.closest('form');
+        const source = form && form.querySelector('.otp-source');
+        if (!source) return;
+        const boxes = Array.prototype.slice.call(wrap.querySelectorAll('.otp-box'));
+        if (boxes.length === 0) return;
+
+        function readBoxes() {
+            source.value = boxes.map(function (b) { return b.value; }).join('');
+        }
+        function writeBoxes() {
+            for (let i = 0; i < boxes.length; i++) {
+                boxes[i].value = source.value[i] ? source.value[i] : '';
+            }
+        }
+        function emitChange() {
+            source.dispatchEvent(new Event('input', { bubbles: true }));
+            source.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        boxes.forEach(function (box, i) {
+            box.addEventListener('input', function () {
+                box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
+                readBoxes();
+                emitChange();
+                if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+            });
+            box.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace') {
+                    if (box.value === '') {
+                        if (i > 0) {
+                            e.preventDefault();
+                            boxes[i - 1].value = '';
+                            boxes[i - 1].focus();
+                            readBoxes();
+                            emitChange();
+                        }
+                    } else {
+                        box.value = '';
+                        readBoxes();
+                        emitChange();
+                    }
+                }
+                if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); boxes[i - 1].focus(); }
+                if (e.key === 'ArrowRight' && i < boxes.length - 1) { e.preventDefault(); boxes[i + 1].focus(); }
+            });
+            box.addEventListener('focus', function () { box.select(); });
+            box.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const digits = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '');
+                boxes.forEach(function (b) { b.value = ''; });
+                digits.split('').forEach(function (ch, j) { if (j < boxes.length) boxes[j].value = ch; });
+                readBoxes();
+                emitChange();
+                const last = Math.min(digits.length, boxes.length) - 1;
+                boxes[last >= 0 ? last : 0].focus();
+            });
+        });
+
+        wrap.addEventListener('click', function () {
+            let idx = boxes.findIndex(function (b) { return b.value === ''; });
+            if (idx === -1) idx = boxes.length - 1;
+            boxes[idx].focus();
+        });
+
+        writeBoxes();
     });
 
     const markAllBtn = document.getElementById('bellMarkAll');
@@ -362,10 +479,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (href.charAt(0) === '#') return false;
             if (/^(https?:)?\/\//i.test(href)) return false;
             return true;
+        })
+        .filter(function (a) {
+            let url;
+            try { url = new URL(a.href, window.location.href); } catch (e) { return true; }
+            const samePage = url.origin === window.location.origin && url.pathname === window.location.pathname;
+            return !(samePage && url.hash);
         });
     internalLinks.forEach(function (a) {
         a.addEventListener('click', function () { showTopBar(); });
     });
+    window.addEventListener('hashchange', hideTopBar);
     window.addEventListener('pagehide', hideTopBar);
 
     const alDots = document.getElementById('alDots');
@@ -755,6 +879,42 @@ document.addEventListener('DOMContentLoaded', function () {
         if (hsScrim) { hsScrim.addEventListener('click', overlayClose); }
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !hsOverlay.hidden) { overlayClose(); }
+        });
+    }
+
+    /* ---- Dark/light theme toggle ---- */
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const THEME_KEY = 'goalspace-theme';
+    function themeSystemPrefersDark() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function themeFromStorage() {
+        try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+    }
+    function currentTheme() {
+        const saved = themeFromStorage();
+        if (saved === 'dark' || saved === 'light') return saved;
+        return themeSystemPrefersDark() ? 'dark' : 'light';
+    }
+    function syncThemeUI(theme) {
+        const isDark = theme === 'dark';
+        themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+        themeToggle.setAttribute('aria-label', (isDark ? 'Disable' : 'Enable') + ' dark mode');
+        if (themeIcon) {
+            themeIcon.className = 'fa-solid ' + (isDark ? 'fa-sun' : 'fa-moon');
+        }
+    }
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (themeToggle) { syncThemeUI(theme); }
+    }
+    if (themeToggle) {
+        applyTheme(currentTheme());
+        themeToggle.addEventListener('click', function () {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage unavailable */ }
         });
     }
 });

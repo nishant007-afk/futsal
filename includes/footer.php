@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/core.js?v=60'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=63'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];
@@ -76,7 +76,7 @@ if (in_array($active, ['ground.php', 'book.php', 'payment.php', 'reschedule.php'
 if (in_array($active, [
     'login.php', 'register.php', 'forgot_password.php', 'reset_password.php',
     'verify.php', 'otp_verify.php', 'change_password.php', 'profile.php',
-    'change_email_otp.php', 'change_password_otp.php'
+    'change_email_otp.php', 'change_password_otp.php', 'google_setup.php'
 ], true)) {
     $pageModules[] = 'auth';
 }

@@ -140,7 +140,7 @@ if ($date !== '') {
 </section>
 
 <!-- CTA -->
-<section class="cta-band">
+<section class="cta-band" id="become-manager">
     <div class="container cta-inner reveal">
         <div>
             <h2>Own a court? Keep your calendar full.</h2>

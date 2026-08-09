@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($cooldown > 0) {
                 set_flash_error(
                     'You\'re requesting too many codes.',
-                    'Wait ' . $cooldown . 's before asking for another one.',
+                    'Wait ' . format_otp_wait($cooldown) . ' before asking for another one.',
                     'Check your inbox for the code we already sent, then try again shortly.',
                     'pages/verify.php?email=' . urlencode($email)
                 );
@@ -94,9 +94,15 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'email'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
-            <div class="input-group floating">
-                <input type="text" id="vcode" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder=" " autocomplete="one-time-code" spellcheck="false" required>
-                <label for="vcode">Verification code <span class="req">*</span></label>
+            <label for="vcode">Verification code <span class="req">*</span></label>
+            <input type="hidden" name="code" class="otp-source" required>
+            <div class="otp-boxes" role="group" aria-label="Verification code">
+                <input class="otp-box" type="tel" id="vcode" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" spellcheck="false" aria-label="First digit">
+                <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
+                <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Third digit">
+                <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Fourth digit">
+                <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Fifth digit">
+                <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Sixth digit">
             </div>
             <?php field_error($errors, 'code'); ?>
         </div>
@@ -109,16 +115,5 @@ require __DIR__ . '/../includes/header.php';
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Floating labels
-    const floatingInputs = document.querySelectorAll('.input-group.floating input');
-    function sync(el){ el.classList.toggle('has-value', el.value.trim() !== ''); }
-    floatingInputs.forEach(function(el){
-        sync(el);
-        el.addEventListener('input', function(){ sync(el); });
-        el.addEventListener('change', function(){ sync(el); });
-        el.addEventListener('blur', function(){ sync(el); });
     });
-    setTimeout(function(){ floatingInputs.forEach(sync); }, 0);
-    window.addEventListener('pageshow', function(){ floatingInputs.forEach(sync); });
-});
 </script>

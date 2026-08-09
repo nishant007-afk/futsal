@@ -26,6 +26,15 @@ $subStatus = subscription_status((int)$_SESSION['user_id']);
 $setupFee = manager_setup_fee();
 $monthlyFee = manager_monthly_fee();
 
+// Payout history from settlements
+$settlements = $conn->query(
+    "SELECT period_start, period_end, gross, fee, payout, paid_at
+     FROM settlements
+     WHERE manager_id = " . (int)$_SESSION['user_id'] . "
+     ORDER BY period_end DESC
+     LIMIT 12"
+)->fetch_all(MYSQLI_ASSOC);
+
 $recent = $conn->query(
     "SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.created_at,
@@ -168,6 +177,42 @@ require __DIR__ . '/../includes/header.php';
                     <td><?php echo format_price($platformFeeTotal); ?></td>
                     <td class="strong"><?php echo format_price($payoutTotal); ?></td>
                 </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<h3 class="reveal block-title"><i class="fa-solid fa-money-bill-transfer"></i> Payout History</h3>
+<div class="table-wrap reveal">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Gross Revenue</th>
+                <th>Platform Fee</th>
+                <th>Your Payout</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!$settlements): ?>
+                <tr><td colspan="5" class="muted table-empty">No payouts yet. They appear here after each billing period.</td></tr>
+            <?php else: ?>
+                <?php foreach ($settlements as $s): ?>
+                    <tr>
+                        <td><?php echo e(date('M j, Y', strtotime($s['period_start']))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($s['period_end']))); ?></td>
+                        <td><?php echo format_price((float)$s['gross']); ?></td>
+                        <td><?php echo format_price((float)$s['fee']); ?></td>
+                        <td class="strong"><?php echo format_price((float)$s['payout']); ?></td>
+                        <td>
+                            <?php if ($s['paid_at']): ?>
+                                <span class="badge badge-confirmed">Paid <?php echo e(date('M j, Y', strtotime($s['paid_at']))); ?></span>
+                            <?php else: ?>
+                                <span class="badge badge-pending">Pending</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
     </table>

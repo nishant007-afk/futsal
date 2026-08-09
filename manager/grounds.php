@@ -28,6 +28,53 @@ if (isset($_GET['delete'])) {
     redirect('manager/grounds.php');
 }
 
+if (isset($_GET['duplicate'])) {
+    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
+        exit('Invalid request.');
+    }
+    $id = (int)$_GET['duplicate'];
+    if (user_owns_ground($id)) {
+        $stmt = $conn->prepare('SELECT * FROM grounds WHERE id = ? AND manager_id = ?');
+        $stmt->bind_param('ii', $id, $_SESSION['user_id']);
+        $stmt->execute();
+        $g = $stmt->get_result()->fetch_assoc();
+        if ($g) {
+            $newName = $g['name'] . ' (copy)';
+            $stmt = $conn->prepare(
+                'INSERT INTO grounds (name, location, description, price_per_hour, discount_price, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            );
+            $stmt->bind_param('sssddiissidssdd', $newName, $g['location'], $g['description'], $g['price_per_hour'], $g['discount_price'], $g['capacity'], $g['manager_id'], $g['is_active'], $g['open_time'], $g['close_time'], $g['slot_interval'], $g['price_weekend'], $g['address'], $g['court_number'], $g['latitude'], $g['longitude']);
+            if ($stmt->execute()) {
+                $newId = (int)$stmt->insert_id;
+                // Copy images
+                $imgStmt = $conn->prepare('SELECT * FROM ground_images WHERE ground_id = ?');
+                $imgStmt->bind_param('i', $id);
+                $imgStmt->execute();
+                $images = $imgStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                $imgStmt->close();
+                if ($images) {
+                    $ins = $conn->prepare('INSERT INTO ground_images (ground_id, image, sort_order) VALUES (?, ?, ?)');
+                    foreach ($images as $img) {
+                        $ins->bind_param('isi', $newId, $img['image'], $img['sort_order']);
+                        $ins->execute();
+                    }
+                    $ins->close();
+                }
+                set_flash('success', 'Ground duplicated. You can now edit the copy.');
+                redirect('manager/grounds.php?edit=' . $newId);
+            } else {
+                set_flash_error('Could not duplicate ground.', 'Database error.', 'Try again.', 'manager/grounds.php');
+            }
+        } else {
+            set_flash_error('Ground not found.', 'It may have been deleted.', 'Check your grounds list.', 'manager/grounds.php');
+        }
+    } else {
+        set_flash_error('You can only duplicate your own grounds.', 'This action was for a court that isn\'t linked to your account.', 'Use your dashboard to manage the courts assigned to you.', 'manager/dashboard.php');
+    }
+    redirect('manager/grounds.php');
+}
+
 if (isset($_GET['delete_photo'])) {
     if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
         exit('Invalid request.');
@@ -473,6 +520,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-side">
                 <div class="actions tight">
                     <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+                    <a href="<?php echo base_url('manager/grounds.php?duplicate=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" data-confirm="Create a copy of this ground?" data-confirm-ok="Yes, duplicate" data-confirm-cancel="Cancel"><i class="fa-solid fa-copy"></i> Duplicate</a>
                     <a href="<?php echo base_url('manager/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?" aria-label="Delete ground"><i class="fa-solid fa-trash"></i></a>
                 </div>
             </div>

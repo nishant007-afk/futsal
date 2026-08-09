@@ -219,6 +219,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             </div>
 
+            <?php echo cancellation_policy_html(); ?>
             <form method="post" action="<?php echo base_url('pages/book.php'); ?>">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
@@ -228,7 +229,7 @@ require __DIR__ . '/../includes/header.php';
                     <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
                 <?php elseif (is_player()): ?>
                     <div class="repeat-row" id="repeatRow">
-                        <label class="repeat-check" for="repeatWeeks">
+                        <label class="repeat-check" for="repeatToggle">
                             <input type="checkbox" id="repeatToggle">
                             <span><i class="fa-solid fa-arrows-rotate"></i> Repeat this booking weekly</span>
                         </label>

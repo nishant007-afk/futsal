@@ -3345,4 +3345,10 @@ html[data-theme="dark"] .site-footer { background: var(--dark); }
     border-radius: 50%; animation: spin 0.7s linear infinite;
 }
 html[data-theme="dark"] .spinner-thin { border-color: rgba(255,255,255,.12); }
+
+.cancel-policy-notice {
+    font-size: 13px; line-height: 1.4; padding: 12px 14px; border-radius: 10px;
+    background: var(--bg-soft); border: 1px solid var(--line); margin-bottom: 14px; color: var(--muted);
+}
+html[data-theme="dark"] .cancel-policy-notice { background: var(--dark-2); border-color: var(--dark-line); }
 @keyframes spin { to { transform: rotate(360deg); } }

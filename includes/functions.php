@@ -650,6 +650,14 @@ function booking_refund_policy(string $booking_date, string $start_time, float $
     ];
 }
 
+function cancellation_policy_html(): string
+{
+    return '<div class="cancel-policy-notice"><i class="fa-solid fa-circle-info"></i> '
+        . '<strong>Cancellation policy:</strong> Free cancellation up to 24 hours before your game. '
+        . 'Cancellations within 24 hours incur a 50% fee. Once your game has started, no cancellations are possible. '
+        . '<a href="' . e(base_url('pages/page.php?slug=terms')) . '" class="inline-link">See full terms</a>.</div>';
+}
+
 /**
  * Convert an uploaded image to WebP and write it to $dest.
  * Returns true on success (file saved as WebP) or false on failure.

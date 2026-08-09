@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS bookings (
    payment_method ENUM('online', 'at_court') NOT NULL DEFAULT 'online',
    amount_paid DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   paid_at DATETIME DEFAULT NULL,
+  reminder_sent TINYINT(1) NOT NULL DEFAULT 0,
   discount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   promo_code VARCHAR(40) DEFAULT NULL,
   promo_id INT NULL,

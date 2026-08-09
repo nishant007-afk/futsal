@@ -114,4 +114,11 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `grounds.updated_at` column.\n";
 }
 
+// Add reminder_sent to bookings to track 24h reminder emails.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'reminder_sent'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE bookings ADD COLUMN reminder_sent TINYINT(1) NOT NULL DEFAULT 0 AFTER paid_at");
+    $applied++;
+    echo "Applied: added `bookings.reminder_sent` column.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

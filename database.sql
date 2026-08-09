@@ -315,4 +315,12 @@ CREATE TABLE IF NOT EXISTS otps (
   KEY idx_lookup (identifier, purpose)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS favorites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  ground_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY favorites_user_ground (user_id, ground_id)
+) ENGINE=InnoDB;
+
 

@@ -917,4 +917,46 @@ document.addEventListener('DOMContentLoaded', function () {
             try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage unavailable */ }
         });
     }
+
+    /* ---- Favorites (saved courts) toggle ---- */
+    const favToggle = document.querySelector('.fav-toggle');
+    if (favToggle) {
+        document.querySelectorAll('.fav-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                const id = btn.getAttribute('data-ground-id');
+                const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
+                const csrf = btn.getAttribute('data-csrf') || document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value;
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', base_url('ajax/favorite.php'), true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        btn.disabled = false;
+                        if (xhr.status === 200) {
+                            let json;
+                            try { json = JSON.parse(xhr.responseText); } catch (e) { return; }
+                            if (json && json.ok) {
+                                const icon = btn.querySelector('i');
+                                btn.setAttribute('data-saved', json.saved);
+                                if (json.saved === 1) {
+                                    btn.classList.add('saved');
+                                    if (icon) icon.classList.remove('fa-regular');
+                                    if (icon) icon.classList.add('fa-solid');
+                                    if (icon) icon.style.color = 'var(--danger)';
+                                } else {
+                                    btn.classList.remove('saved');
+                                    if (icon) icon.classList.remove('fa-solid');
+                                    if (icon) icon.classList.add('fa-regular');
+                                    if (icon) icon.style.color = '';
+                                }
+                            }
+                        }
+                    }
+                };
+                xhr.send('id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(csrf || ''));
+            });
+        });
+    }
+    /* end favorites */
 });

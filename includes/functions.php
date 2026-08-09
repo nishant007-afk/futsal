@@ -1449,6 +1449,18 @@ function ground_card_html(array $ground, ?array $availability = null): void
             <?php else: ?>
                 <div class="pitch"></div>
             <?php endif; ?>
+            <?php if (is_logged_in()): ?>
+                <button type="button"
+                        class="fav-toggle card-fav"
+                        data-ground-id="<?php echo (int)$ground['id']; ?>"
+                        data-url="<?php echo base_url('ajax/favorite.php'); ?>"
+                        aria-label="Save this court"
+                        title="Save this court"
+                        data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
+                    <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>"
+                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>"></i>
+                </button>
+            <?php endif; ?>
             <?php if ($availability !== null): ?>
                 <span class="thumb-tag availability <?php echo $full ? 'is-full' : 'is-free'; ?>">
                     <?php if ($full): ?>
@@ -1483,6 +1495,53 @@ function ground_card_html(array $ground, ?array $availability = null): void
         </div>
     </div>
     <?php
+}
+
+/**
+ * Favorites (saved courts). Requires login. Helpers are safe no-ops when the
+ * table is missing (e.g. before running tools/migrate.php).
+ */
+function favorite_exists(int $ground_id): bool
+{
+    if (!is_logged_in() || $ground_id <= 0) {
+        return false;
+    }
+    global $conn;
+    $stmt = $conn->prepare('SELECT 1 FROM favorites WHERE user_id = ? AND ground_id = ? LIMIT 1');
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param('ii', $_SESSION['user_id'], $ground_id);
+    $stmt->execute();
+    return (bool)$stmt->get_result()->fetch_row();
+}
+
+function toggle_favorite(int $ground_id): bool
+{
+    if (!is_logged_in() || $ground_id <= 0) {
+        return false;
+    }
+    global $conn;
+    if (favorite_exists($ground_id)) {
+        $stmt = $conn->prepare('DELETE FROM favorites WHERE user_id = ? AND ground_id = ?');
+        $stmt->bind_param('ii', $_SESSION['user_id'], $ground_id);
+    } else {
+        $stmt = $conn->prepare('INSERT INTO favorites (user_id, ground_id) VALUES (?, ?)');
+        $stmt->bind_param('ii', $_SESSION['user_id'], $ground_id);
+    }
+    return $stmt ? $stmt->execute() : false;
+}
+
+function favorite_ground_ids(): array
+{
+    if (!is_logged_in()) {
+        return [];
+    }
+    global $conn;
+    $stmt = $conn->prepare('SELECT ground_id FROM favorites WHERE user_id = ? ORDER BY created_at DESC');
+    $stmt->bind_param('i', $_SESSION['user_id']);
+    $stmt->execute();
+    return array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'ground_id');
 }
 
 /**

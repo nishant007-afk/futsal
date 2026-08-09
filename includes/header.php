@@ -93,9 +93,9 @@ $body_class = implode(' ', $body_classes);
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=205'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=206'); ?>">
 </head>
-<body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url() ?? '', '/')); ?>" class="<?php echo e($body_class); ?>">
+<body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
 <div id="topBar" class="top-bar" aria-hidden="true"><span></span></div>
 <div id="pageSkeleton" class="page-skeleton" aria-hidden="true">
@@ -557,6 +557,7 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+        <a href="<?php echo base_url('pages/favorites.php'); ?>" class="<?php echo $active === 'favorites.php' ? 'active' : ''; ?>"><i class="fa-solid fa-heart"></i> Saved Courts</a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
         <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> My Grounds</a>

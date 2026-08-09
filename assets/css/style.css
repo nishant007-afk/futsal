@@ -1394,6 +1394,28 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .card-img { position: relative; height: 232px; }
 .card-img .pitch { position: absolute; inset: 0; }
 .card-img .card-cover { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-fav {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    width: 34px; height: 34px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,(.8)); border: 1px solid var(--line-2);
+    color: var(--ink-3); font-size: 15px; cursor: pointer;
+    transition: background .15s, color .15s, transform .1s;
+}
+.card-fav:hover { background: #fff; color: var(--danger); transform: scale(1.12); }
+.card-fav.saved { color: var(--danger); }
+html[data-theme="dark"] .card-fav { background: rgba(18,42,32,.92); border-color: var(--line); color: var(--ink-3); }
+.ground-fav {
+    margin-left: 8px; margin-top: 2px; vertical-align: middle;
+    width: 30px; height: 30px; border-radius: 7px;
+    background: rgba(255,255,255,(.8)); border: 1px solid var(--line-2);
+    color: var(--ink-3); font-size: 15px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+}
+.ground-fav:hover { background: #fff; color: var(--danger); }
+.ground-fav.saved { color: var(--danger); }
+html[data-theme="dark"] .ground-fav { background: rgba(18,42,32,.92); border-color: var(--line); color: var(--ink-3); }
 .card-rating { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--ink-3); }
 .card-rating .no-rating { color: var(--ink-3); font-size: 12.5px; }
 .thumb-tag {

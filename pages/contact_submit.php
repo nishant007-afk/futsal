@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('pages/page.php?slug=contact');
@@ -7,61 +8,54 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 verify_csrf();
 
-$name = trim($_POST['name'] ?? '');
-$email = trim($_POST['email'] ?? '');
-$topic = trim($_POST['topic'] ?? 'general');
-$subject = trim($_POST['subject'] ?? '');
-$message = trim($_POST['message'] ?? '');
-
-if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback', 'login_locked'], true)) {
-    $topic = 'general';
-}
-
-if ($topic !== 'login_locked' && !is_logged_in()) {
-    flash_form([], [
-        'name' => $name, 'email' => $email, 'topic' => $topic,
-        'subject' => $subject, 'message' => $message,
-    ]);
-    $_SESSION['return_path'] = 'pages/page.php?slug=contact';
-    redirect('pages/login.php');
-}
-
 $errors = [];
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
-}
-if ($message === '' || mb_strlen($message) < 10) {
-    $errors['message'] = 'Please write a message of at least 10 characters.';
-}
-if ($topic !== 'login_locked' && $name === '') {
-    $errors['name'] = 'Please enter your name.';
-}
+$name    = trim((string)($_POST['name'] ?? ''));
+$email   = trim((string)($_POST['email'] ?? ''));
+$topic   = trim((string)($_POST['topic'] ?? 'general'));
+$subject = trim((string)($_POST['subject'] ?? ''));
+$message = trim((string)($_POST['message'] ?? ''));
 
-$redirectTarget = $topic === 'login_locked' ? 'pages/login.php' : 'pages/page.php?slug=contact';
+if ($name === '') { $errors['name'] = 'Your name is required.'; }
+if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'A valid email is required.'; }
+if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback'], true)) { $errors['topic'] = 'Please choose a topic.'; }
+if ($message === '' || mb_strlen($message) < 10) { $errors['message'] = 'Message must be at least 10 characters.'; }
 
 if ($errors) {
-    flash_form($errors, ['name' => $name, 'email' => $email, 'subject' => $subject, 'message' => $message, 'topic' => $topic]);
-    if ($topic === 'login_locked') {
-        set_flash_error(
-            'A few fields need attention.',
-            'Required details were missing or too short.',
-            'Check the highlighted fields below and submit again.',
-            'pages/login.php'
-        );
+    foreach ($errors as $field => $msg) {
+        set_flash('error', $msg);
     }
-    redirect($redirectTarget);
+    foreach ($_POST as $k => $v) {
+        if (is_string($v)) { set_form_old($k, $v); }
+    }
+    redirect('pages/page.php?slug=contact');
 }
 
-$stmt = $conn->prepare('INSERT INTO contact_messages (name, email, topic, subject, message, ip, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
-$uid = is_logged_in() ? (int)$_SESSION['user_id'] : null;
 $ip = client_ip();
-$stmt->bind_param('ssssssi', $name, $email, $topic, $subject, $message, $ip, $uid);
-$stmt->execute();
+$ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+$uid  = is_logged_in() ? (int)$_SESSION['user_id'] : null;
 
-if ($topic === 'login_locked') {
-    set_flash('success', 'Your message has been sent to the admin. They will review and restore your access shortly.');
-    redirect('pages/login.php');
+$stmt = $conn->prepare('INSERT INTO contact_messages (name, email, topic, subject, message, ip, user_agent, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+$stmt->bind_param('sssssssi', $name, $email, $topic, $subject, $message, $ip, $ua, $uid);
+$stmt->execute();
+$msgId = (int)$stmt->insert_id;
+$stmt->close();
+
+$admins = $conn->query("SELECT id FROM users WHERE role = 'admin'")->fetch_all(MYSQLI_ASSOC);
+foreach ($admins as $a) {
+    notify_user(
+        (int)$a['id'],
+        'New contact message: ' . $subject,
+        $name . ' (' . $email . ') wrote about ' . $topic . ': ' . mb_substr($message, 0, 120) . '…',
+        'fa-paper-plane',
+        'admin/contact_messages.php'
+    );
 }
 
-set_flash('success', 'Thanks for reaching out! We will get back to you at ' . $email . ' soon.');
+$to = 'hello@goalspace.com';
+$mailSubject = "GoalSpace Contact: {$topic} - {$subject}";
+$body = "Name: {$name}\nEmail: {$email}\nTopic: {$topic}\nSubject: {$subject}\n\nMessage:\n{$message}\n\n---\nIP: {$ip}\nUA: {$ua}\nMsg ID: {$msgId}";
+$headers = "From: GoalSpace <noreply@goalspace.com>\r\nReply-To: {$email}\r\n";
+@mail($to, $mailSubject, $body, $headers);
+
+set_flash('success', 'Thanks for reaching out! We\'ll get back to you soon.');
 redirect('pages/page.php?slug=contact');

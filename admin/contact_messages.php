@@ -2,6 +2,41 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
+if (isset($_GET['export'])) {
+    $filter = $_GET['filter'] ?? 'all';
+    $where = '1=1';
+    if ($filter === 'open') {
+        $where = 'is_resolved = 0';
+    } elseif ($filter === 'resolved') {
+        $where = 'is_resolved = 1';
+    } elseif ($filter === 'login_locked') {
+        $where = 'topic = "login_locked"';
+    }
+    $stmt = $conn->prepare('SELECT id, name, email, topic, subject, message, is_resolved, user_id, created_at FROM contact_messages WHERE ' . $where . ' ORDER BY is_resolved ASC, id DESC');
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $topicLabels = [
+        'general' => 'General', 'booking' => 'Booking', 'account' => 'Account',
+        'manager' => 'Manager', 'feedback' => 'Feedback', 'login_locked' => 'Login locked',
+    ];
+    $csv = [['ID', 'Name', 'Email', 'Topic', 'Subject', 'Message', 'Resolved', 'User ID', 'Created At']];
+    foreach ($rows as $m) {
+        $csv[] = [
+            (int)$m['id'],
+            $m['name'],
+            $m['email'],
+            $topicLabels[$m['topic']] ?? $m['topic'],
+            $m['subject'],
+            $m['message'],
+            $m['is_resolved'] ? 'Yes' : 'No',
+            (int)$m['user_id'],
+            $m['created_at'],
+        ];
+    }
+    export_csv($csv, 'contact-messages.csv');
+}
+
 if (isset($_GET['resolve'])) {
     if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
         exit('Invalid request.');
@@ -63,6 +98,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head">
     <h2><i class="fa-solid fa-inbox"></i> Contact Messages</h2>
     <div class="actions">
+        <a href="?filter=all&export=1" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         <a href="?filter=all" class="btn btn-outline btn-sm <?php echo $filter === 'all' ? 'btn-primary' : ''; ?>">All (<?php echo count($messages); ?>)</a>
         <a href="?filter=open" class="btn btn-outline btn-sm <?php echo $filter === 'open' ? 'btn-primary' : ''; ?>">Open</a>
         <a href="?filter=login_locked" class="btn btn-outline btn-sm <?php echo $filter === 'login_locked' ? 'btn-primary' : ''; ?>">Login locked</a>

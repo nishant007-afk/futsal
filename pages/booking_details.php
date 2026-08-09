@@ -173,6 +173,7 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
             <?php if ($b['status'] === 'confirmed'): ?>
                 <a href="<?php echo base_url('pages/reschedule.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-arrows-rotate"></i> Reschedule</a>
+                <a href="<?php echo base_url('pages/booking_ics.php?id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-plus"></i> Add to Calendar</a>
                 <?php if ((int)$b['repeat_weeks'] > 1): ?>
                     <a href="<?php echo base_url('pages/my_bookings.php?cancel=' . (int)$b['id'] . '&cancel_series=1&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this whole weekly series of <?php echo (int)$b['repeat_weeks']; ?>?" data-confirm-ok="Yes, cancel series" data-confirm-cancel="No"><i class="fa-solid fa-calendar-xmark"></i> Cancel series</a>
                 <?php else: ?>

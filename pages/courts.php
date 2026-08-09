@@ -61,7 +61,6 @@ $grounds = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $availability = null;
 if ($date !== '') {
     $availability = [];
-    $totalSlots = count(slots_for_day(date('Y-m-d'), 0));
     $gids = array_map(fn($g) => (int)$g['id'], $grounds);
     $takenMap = [];
     $blockedSet = [];
@@ -91,8 +90,9 @@ if ($date !== '') {
         }
     }
     foreach ($grounds as $g) {
-        $free = isset($blockedSet[(int)$g['id']]) ? 0 : max(0, $totalSlots - ($takenMap[(int)$g['id']] ?? 0));
-        $availability[(int)$g['id']] = ['free' => $free, 'total' => $totalSlots];
+        $gTotal = count(slots_for_day($date, (int)$g['id']));
+        $free = isset($blockedSet[(int)$g['id']]) ? 0 : max(0, $gTotal - ($takenMap[(int)$g['id']] ?? 0));
+        $availability[(int)$g['id']] = ['free' => $free, 'total' => $gTotal];
     }
 }
 

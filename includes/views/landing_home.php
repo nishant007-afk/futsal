@@ -46,10 +46,10 @@ if ($date !== '') {
             $takenMap[(int)$row['ground_id']] = (int)$row['c'];
         }
     }
-    $totalSlots = count(slots_for_day(date('Y-m-d'), 0));
-    $featured = array_values(array_filter($featured, function ($g) use ($takenMap, $totalSlots) {
+    $featured = array_values(array_filter($featured, function ($g) use ($takenMap) {
         $taken = $takenMap[(int)$g['id']] ?? 0;
-        return $totalSlots - $taken > 0;
+        $gTotal = count(slots_for_day(date('Y-m-d'), (int)$g['id']));
+        return $gTotal - $taken > 0;
     }));
 }
 ?>

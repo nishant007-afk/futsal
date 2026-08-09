@@ -45,6 +45,22 @@ if (isset($_POST['join_waitlist']) && !$errors) {
     $stmt = $conn->prepare('INSERT INTO waitlist (ground_id, booking_date, start_time, user_id) VALUES (?, ?, ?, ?)');
     $stmt->bind_param('issi', $ground_id, $booking_date, $start_time, $_SESSION['user_id']);
     if ($stmt->execute()) {
+        $pos = waitlist_position($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id']);
+        $user = current_user();
+        if ($user && $pos !== null) {
+            send_booking_email(
+                $user['email'],
+                'You\'re on the waitlist!',
+                'Your position in the queue for ' . $ground['name'],
+                [
+                    'Ground'  => $ground['name'],
+                    'Date'    => date('D, M j, Y', strtotime($booking_date)),
+                    'Time'    => substr($start_time, 0, 5),
+                    'Position' => (int)$pos,
+                ],
+                'We\'ll email you the moment this slot frees up. If you\'d like to book another slot, check the courts list.'
+            );
+        }
         set_flash('success', 'You\'re on the waitlist. We\'ll ping you the moment this slot frees up.');
     } else {
         set_flash('info', 'You\'re already on the waitlist for this slot.');

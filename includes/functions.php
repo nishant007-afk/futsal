@@ -286,6 +286,25 @@ function waitlist_count(int $ground_id, string $booking_date, string $start_time
     return (int)$stmt->get_result()->fetch_assoc()['c'];
 }
 
+function waitlist_position(int $ground_id, string $booking_date, string $start_time, int $user_id): ?int
+{
+    global $conn;
+    $stmt = $conn->prepare(
+        'SELECT w.user_id FROM waitlist w
+         WHERE w.ground_id = ? AND w.booking_date = ? AND w.start_time = ?
+         ORDER BY w.created_at ASC'
+    );
+    $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    foreach ($rows as $i => $row) {
+        if ((int)$row['user_id'] === $user_id) {
+            return $i + 1;
+        }
+    }
+    return null;
+}
+
 function notify_waitlist_freed(int $ground_id, string $booking_date, string $start_time): void
 {
     global $conn;

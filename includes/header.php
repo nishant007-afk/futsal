@@ -533,6 +533,9 @@ $body_class = implode(' ', $body_classes);
                         </button>
                         <a href="<?php echo base_url('pages/profile.php'); ?>" role="menuitem"><i class="fa-solid fa-user"></i> My Profile</a>
                         <a href="<?php echo base_url('pages/change_password.php'); ?>" role="menuitem"><i class="fa-solid fa-lock"></i> Change Password</a>
+                        <?php if (!empty($_SESSION['impersonated_from'])): ?>
+                            <a href="<?php echo base_url('admin/users.php?stop_impersonate=1&csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger"><i class="fa-solid fa-user-check"></i> Stop impersonating</a>
+                        <?php endif; ?>
                         <a href="<?php echo base_url('pages/logout.php?csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>

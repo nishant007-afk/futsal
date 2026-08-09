@@ -2,6 +2,56 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
+if (isset($_GET['impersonate'])) {
+    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
+        exit('Invalid request.');
+    }
+    $id = (int)$_GET['impersonate'];
+    if ($id === (int)$_SESSION['user_id']) {
+        set_flash_error('You cannot impersonate yourself.', 'That would be redundant.', 'Pick another user.', 'admin/users.php');
+    } else {
+        $stmt = $conn->prepare('SELECT id, name, email, role FROM users WHERE id = ?');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $target = $stmt->get_result()->fetch_assoc();
+        if ($target) {
+            $_SESSION['impersonated_from'] = (int)$_SESSION['user_id'];
+            $_SESSION['user_id'] = (int)$target['id'];
+            $_SESSION['user_name'] = $target['name'];
+            $_SESSION['user_email'] = $target['email'];
+            $_SESSION['user_role'] = $target['role'];
+            set_flash('success', 'Now impersonating ' . $target['name'] . ' (' . $target['role'] . ').');
+            redirect(base_url('index.php'));
+        } else {
+            set_flash_error('User not found.', 'The account may have been deleted.', 'Refresh the user list.', 'admin/users.php');
+        }
+    }
+    redirect('admin/users.php');
+}
+
+if (isset($_GET['stop_impersonate'])) {
+    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
+        exit('Invalid request.');
+    }
+    if (!empty($_SESSION['impersonated_from'])) {
+        $orig = (int)$_SESSION['impersonated_from'];
+        $stmt = $conn->prepare('SELECT id, name, email, role FROM users WHERE id = ?');
+        $stmt->bind_param('i', $orig);
+        $stmt->execute();
+        $origUser = $stmt->get_result()->fetch_assoc();
+        if ($origUser) {
+            $_SESSION['user_id'] = $origUser['id'];
+            $_SESSION['user_name'] = $origUser['name'];
+            $_SESSION['user_email'] = $origUser['email'];
+            $_SESSION['user_role'] = $origUser['role'];
+            unset($_SESSION['impersonated_from']);
+            set_flash('success', 'Stopped impersonating. You are back as ' . $origUser['name'] . '.');
+            redirect(base_url('admin/users.php'));
+        }
+    }
+    redirect('admin/users.php');
+}
+
 if (isset($_GET['delete'])) {
     if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
         exit('Invalid request.');
@@ -127,6 +177,7 @@ require __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
+                                <a href="<?php echo base_url('admin/users.php?impersonate=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" data-confirm="Log in as this user?" aria-label="Impersonate user"><i class="fa-solid fa-user-secret"></i></a>
                                 <a href="<?php echo base_url('admin/users.php?delete=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this user?" aria-label="Delete user"><i class="fa-solid fa-trash"></i></a>
                             <?php endif; ?>
                         </div>

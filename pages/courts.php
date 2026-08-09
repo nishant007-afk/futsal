@@ -195,9 +195,6 @@ require __DIR__ . '/../includes/header.php';
                 <label for="courtsDate">Date</label>
                 <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
-            <button type="button" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location">
-                <i class="fa-solid fa-walkie-talkie"></i> Use my location
-            </button>
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
@@ -206,35 +203,6 @@ require __DIR__ . '/../includes/header.php';
             </div>
         </form>
     </div>
-
-    <?php
-    $activePromos = array_filter(promo_codes_list(), function ($p) { 
-        return $p['is_active'] && ($p['usage_limit'] === null || $p['used_count'] < $p['usage_limit']); 
-    });
-    if ($activePromos):
-    ?>
-    <div class="promo-banner reveal" style="margin-top:20px;">
-        <div class="promo-banner-inner">
-            <i class="fa-solid fa-gift"></i>
-            <div class="promo-banner-content">
-                <strong>Active Promotions</strong>
-                <span>Apply a promo code at checkout to save on your booking.</span>
-            </div>
-            <div class="promo-codes-list">
-                <?php foreach ($activePromos as $p): ?>
-                    <?php 
-                        $discountText = $p['discount_type'] === 'percent' 
-                            ? (int)$p['discount_value'] . '% off' 
-                            : format_price($p['discount_value'] . ' off');
-                    ?>
-                    <span class="promo-code-badge" data-code="<?php echo e($p['code']); ?>" title="<?php echo e($p['code']); ?> - <?php echo e($discountText); ?>">
-                        <?php echo e($p['code']); ?>
-                    </span>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <p class="courts-count muted">
         <?php echo $total; ?> court<?php echo $total === 1 ? '' : 's'; ?><?php echo $q !== '' ? ' matching "' . e($q) . '"' : ''; ?>

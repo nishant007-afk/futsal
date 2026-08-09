@@ -3379,8 +3379,8 @@ html[data-theme="dark"] .helpful-btn { background: var(--dark-2); border-color: 
 html[data-theme="dark"] .helpful-btn:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
 html[data-theme="dark"] .helpful-btn.helped { background: var(--brand); border-color: var(--brand); }
 
-.location-prompt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; animation: fadeIn .15s ease-out; }
-.location-prompt { background: var(--card); border-radius: 16px; padding: 28px; max-width: 400px; width: 100%; text-align: center; animation: slideUp .2s ease-out; box-shadow: 0 20px 40px rgba(0,0,0,.15); }
+.location-prompt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; animation: fadeIn .15s ease-out; }
+.location-prompt { background: var(--card, #fff); border-radius: 16px; padding: 28px; max-width: 400px; width: 100%; text-align: center; animation: slideUp .2s ease-out; box-shadow: 0 20px 40px rgba(0,0,0,.15); }
 .location-prompt-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; }
 .location-prompt h3 { margin: 0 0 8px; font-size: 1.2rem; color: var(--ink); }
 .location-prompt > p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 16px; }

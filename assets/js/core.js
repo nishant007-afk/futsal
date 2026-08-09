@@ -1063,4 +1063,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     /* end promo badges */
+
+    /* Review helpful voting */
+    document.querySelectorAll('.helpful-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = form.querySelector('.helpful-btn');
+            if (btn.disabled) return;
+            btn.disabled = true;
+            const fd = new FormData(form);
+            const url = form.action;
+            fetch(url, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.ok) {
+                        btn.classList.add('helped');
+                        btn.disabled = true;
+                        btn.setAttribute('aria-label', 'You found this helpful');
+                        const countEl = btn.querySelector('.helpful-count');
+                        if (countEl) countEl.textContent = data.count;
+                    } else {
+                        btn.disabled = false;
+                        alert(data.error || 'Could not vote');
+                    }
+                })
+                .catch(function () { btn.disabled = false; });
+        });
+    });
+    /* end review helpful */
 });

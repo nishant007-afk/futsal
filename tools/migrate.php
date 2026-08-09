@@ -129,4 +129,24 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `users.notify_email` and `users.notify_sms` columns.\n";
 }
 
+// Add helpful_count to reviews.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'reviews' AND COLUMN_NAME = 'helpful_count'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE reviews ADD COLUMN helpful_count INT NOT NULL DEFAULT 0 AFTER comment");
+    $applied++;
+    echo "Applied: added `reviews.helpful_count` column.\n";
+}
+
+// Create review_votes table for helpful voting.
+if (!table_exists('review_votes')) {
+    $conn->query("CREATE TABLE review_votes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        review_id INT NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY review_votes_unique (review_id, user_id)
+    ) ENGINE=InnoDB");
+    $applied++;
+    echo "Applied: added `review_votes` table.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

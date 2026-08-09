@@ -320,7 +320,9 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if ($reviews): ?>
         <div class="review-list">
-            <?php foreach ($reviews as $rv): ?>
+            <?php foreach ($reviews as $rv):
+                $helped = is_logged_in() && (bool)$conn->query("SELECT 1 FROM review_votes WHERE review_id = {$rv['id']} AND user_id = {$_SESSION['user_id']}")->fetch_assoc();
+            ?>
                 <div class="review-item reveal">
                     <div class="review-avatar">
                         <?php if (!empty($rv['avatar'])): ?>
@@ -338,6 +340,15 @@ require __DIR__ . '/../includes/header.php';
                         <?php if ($rv['comment'] !== ''): ?>
                             <p class="review-comment"><?php echo e($rv['comment']); ?></p>
                         <?php endif; ?>
+                        <div class="review-helpful">
+                            <form method="post" action="<?php echo base_url('ajax/review_helpful.php'); ?>" class="helpful-form" data-review="<?php echo (int)$rv['id']; ?>">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="review_id" value="<?php echo (int)$rv['id']; ?>">
+                                <button type="submit" class="helpful-btn <?php echo $helped ? 'helped' : ''; ?>" <?php echo $helped ? 'disabled' : ''; ?> aria-label="<?php echo $helped ? 'You found this helpful' : 'Mark as helpful'; ?>">
+                                    <i class="fa-solid fa-thumbs-up"></i> <span class="helpful-count"><?php echo (int)$rv['helpful_count']; ?></span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>

@@ -3359,6 +3359,16 @@ html[data-theme="dark"] .cancel-policy-notice { background: var(--dark-2); borde
 html[data-theme="dark"] .profile-stats { border-color: var(--dark-line); }
 html[data-theme="dark"] .pstat { background: var(--dark-2); }
 
+.review-helpful { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.helpful-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 20px; font-size: 12px; font-weight: 500; color: var(--ink); cursor: pointer; transition: all .15s; }
+.helpful-btn:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
+.helpful-btn.helped { background: var(--brand); border-color: var(--brand); color: #fff; cursor: default; }
+.helpful-btn:disabled { opacity: 0.8; cursor: default; }
+html[data-theme="dark"] .review-helpful { border-color: var(--dark-line); }
+html[data-theme="dark"] .helpful-btn { background: var(--dark-2); border-color: var(--dark-line); color: var(--ink); }
+html[data-theme="dark"] .helpful-btn:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
+html[data-theme="dark"] .helpful-btn.helped { background: var(--brand); border-color: var(--brand); }
+
 .promo-banner { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .promo-banner-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .promo-banner-inner i { font-size: 22px; color: var(--brand); }

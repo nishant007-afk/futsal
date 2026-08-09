@@ -588,6 +588,7 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>"><i class="fa-solid fa-users"></i> Users</a>
         <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> Grounds</a>
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> Bookings</a>
+        <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> Announce</a>
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> Billing</a>
         <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> Messages</a>
         <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> Legal pages</a>
@@ -627,6 +628,10 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>" title="Users" aria-label="Users"><i class="fa-solid fa-users"></i></a>
         <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-store"></i></a>
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i></a>
+        <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>" title="Announce" aria-label="Announce"><i class="fa-solid fa-bullhorn"></i></a>
+        <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing" aria-label="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
+        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages" aria-label="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
+        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing" aria-label="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
         <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages" aria-label="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
         <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>

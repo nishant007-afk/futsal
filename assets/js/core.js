@@ -1003,7 +1003,6 @@ document.addEventListener('DOMContentLoaded', function () {
             nearMeBtn.disabled = true;
             nearMeBtn.innerHTML = '<span class="spinner-thin"></span> Finding...';
             navigator.geolocation.getCurrentPosition(function (pos) {
-                const base = document.body.getAttribute('data-base') || '';
                 const params = new URLSearchParams(window.location.search);
                 params.delete('page');
                 params.set('lat', pos.coords.latitude.toFixed(6));

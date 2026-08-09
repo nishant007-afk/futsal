@@ -577,8 +577,8 @@ $body_class = implode(' ', $body_classes);
     </div>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"> <i class="fa-solid fa-house"></i> Home</a>
-        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
-        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>"><i class="fa-solid fa-layer-group"></i> Map</a>
+        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-layer-group"></i> Grounds</a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Map</a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
         <a href="<?php echo base_url('pages/favorites.php'); ?>" class="<?php echo $active === 'favorites.php' ? 'active' : ''; ?>"><i class="fa-solid fa-heart"></i> Saved Courts</a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
@@ -598,7 +598,7 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> Announce update</a>
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
-        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
+        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-layer-group"></i> Grounds</a>
         <a href="<?php echo base_url('index.php#how'); ?>"><i class="fa-solid fa-circle-info"></i> How it works</a>
         <a href="<?php echo base_url('index.php#become-manager'); ?>" class="show-sm"><i class="fa-solid fa-chart-line"></i> Become a Manager</a>
     <?php endif; ?>
@@ -617,8 +617,8 @@ $body_class = implode(' ', $body_classes);
 <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation">
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>
-        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-layer-group"></i></a>
+        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i></a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $active === 'my_bookings.php' ? 'active' : ''; ?>" title="My Bookings" aria-label="My Bookings"><i class="fa-solid fa-calendar-check"></i></a>
         <a href="<?php echo base_url('pages/profile.php'); ?>" class="<?php echo $active === 'profile.php' ? 'active' : ''; ?>" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i></a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
@@ -640,8 +640,8 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>
-        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-layer-group"></i></a>
+        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i></a>
         <a href="<?php echo base_url('index.php#how'); ?>" title="How it works" aria-label="How it works"><i class="fa-solid fa-circle-info"></i></a>
         <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-chart-line"></i></a>
     <?php endif; ?>

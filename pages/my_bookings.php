@@ -3,6 +3,42 @@ require_once __DIR__ . '/../config/db.php';
 
 require_player();
 
+if (isset($_GET['export'])) {
+    $stmt = $conn->prepare(
+        'SELECT b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+                b.payment_status, b.amount_paid, b.discount, b.promo_code, b.repeat_weeks,
+                g.name AS ground_name, g.location
+         FROM bookings b
+         JOIN grounds g ON g.id = b.ground_id
+         WHERE b.user_id = ?
+         ORDER BY b.booking_date ASC, b.start_time ASC'
+    );
+    $stmt->bind_param('i', $_SESSION['user_id']);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    $csv = [['Reference', 'Ground', 'Location', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Discount (Rs)', 'Promo', 'Repeat Weeks']];
+    foreach ($rows as $b) {
+        $csv[] = [
+            $b['booking_ref'],
+            $b['ground_name'],
+            $b['location'],
+            $b['booking_date'],
+            substr($b['start_time'], 0, 5),
+            substr($b['end_time'], 0, 5),
+            number_format((float)$b['total_price'], 2),
+            $b['status'],
+            $b['payment_status'],
+            number_format((float)$b['amount_paid'], 2),
+            number_format((float)$b['discount'], 2),
+            $b['promo_code'] ?? '',
+            (int)$b['repeat_weeks'],
+        ];
+    }
+    export_csv($csv, 'my-bookings.csv');
+}
+
 if (isset($_GET['cancel'])) {
     if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
         exit('Invalid request.');
@@ -138,6 +174,10 @@ require __DIR__ . '/../includes/header.php';
     <div>
         <h2><i class="fa-solid fa-calendar-check"></i> My Bookings</h2>
     </div>
+    <div class="actions">
+        <a href="<?php echo base_url('pages/my_bookings.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+    </div>
+</div>
 <div class="bookings-stats">
         <div class="bstat">
             <i class="fa-solid fa-calendar-day"></i>

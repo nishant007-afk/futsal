@@ -1581,7 +1581,7 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 /* ============ MY BOOKINGS HEADER ============ */
 .bookings-head { padding-bottom: 20px; border-bottom: 1px solid var(--line); }
 .bookings-stats { display: flex; align-items: center; gap: 0; margin-left: 8px; }
-.bstat { display: flex; align-items: center; gap: 11px; padding: 4px 22px; border-right: 1px solid var(--line); }
+.bstat { display: flex; align-items: center; gap: 11px; padding: 4px 22px; border-right: 1px solid var(--line); flex: 1; justify-content: center; }
 .bstat:first-child { padding-left: 0; }
 .bstat:last-child { border-right: 0; padding-right: 0; }
 .bstat i {

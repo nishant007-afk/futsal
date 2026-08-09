@@ -980,7 +980,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <li><i class="fa-solid fa-check"></i> Accurate distance in km</li>
                         <li><i class="fa-solid fa-check"></i> Filter by radius</li>
                     </ul>
-                    <p class="location-prompt-note">Your location is only used for sorting. We don't store or share it.</p>
                     <div class="location-prompt-actions">
                         <button type="button" class="btn btn-outline" id="locationDeny">Not now</button>
                         <button type="button" class="btn btn-primary" id="locationAllow">Allow location</button>
@@ -1011,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }, function (err) {
                 let msg = 'Location access was denied. You can search by city instead.';
                 if (err.code === err.PERMISSION_DENIED) {
-                    msg = 'Location permission denied. You can enable it in browser settings or search by city instead.';
+                    msg = 'Location permission denied. Please enable it in browser settings (lock icon in address bar) or search by city instead.';
                 } else if (err.code === err.TIMEOUT) {
                     msg = 'Location request timed out. Please try again.';
                 } else if (err.code === err.POSITION_UNAVAILABLE) {

@@ -7,11 +7,9 @@ if (isset($_GET['cancel'])) {
         exit('Invalid request.');
     }
     $booking_id = (int)$_GET['cancel'];
-    $stmt = $conn->prepare(
-        'SELECT b.user_id, b.ground_id, b.booking_date, b.start_time FROM bookings b
+    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.total_price, b.payment_status, b.payment_method FROM bookings b
          JOIN grounds g ON g.id = b.ground_id
-         WHERE b.id = ? AND g.manager_id = ? AND b.status != "cancelled"'
-    );
+         WHERE b.id = ? AND g.manager_id = ? AND b.status = "confirmed"');
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
     $stmt->execute();
     $cancelTarget = $stmt->get_result()->fetch_assoc();
@@ -36,6 +34,58 @@ if (isset($_GET['cancel'])) {
             'Manage the bookings from your own courts instead.',
             'manager/bookings.php'
         );
+    }
+    redirect('manager/bookings.php');
+}
+
+if (isset($_GET['mark_paid'])) {
+    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
+        exit('Invalid request.');
+    }
+    $booking_id = (int)$_GET['mark_paid'];
+    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.amount_paid FROM bookings b
+         JOIN grounds g ON g.id = b.ground_id
+         WHERE b.id = ? AND g.manager_id = ? AND b.status = "confirmed" AND b.payment_status IN ("unpaid", "partial")');
+    $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $target = $stmt->get_result()->fetch_assoc();
+
+    if (!$target) {
+        set_flash_error('That booking could not be marked as paid.', 'It may already be fully paid, or it belongs to another court.', 'Return to your bookings list to pick another one.', 'manager/bookings.php');
+    } else {
+        $update = $conn->prepare('UPDATE bookings SET payment_status = "paid", payment_type = "full", amount_paid = total_price, payment_method = "at_court", paid_at = NOW() WHERE id = ? AND status = "confirmed"');
+        $update->bind_param('i', $booking_id);
+        if ($update->execute() && $update->affected_rows > 0) {
+            notify_user(
+                (int)$target['user_id'],
+                'Payment confirmed by the court',
+                'Your booking ' . $target['booking_ref'] . ' is now marked as paid at court.',
+                'fa-sack-dollar',
+                'pages/booking_details.php?id=' . $booking_id
+            );
+            $playerEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+            $playerEmail->bind_param('i', $target['user_id']);
+            $playerEmail->execute();
+            $playerRow = $playerEmail->get_result()->fetch_assoc();
+            if ($playerRow) {
+                send_booking_email(
+                    $playerRow['email'],
+                    'Payment confirmed by the court',
+                    'Your booking is now paid (paid at court)',
+                    [
+                        'Booking ref' => $target['booking_ref'],
+                        'Court' => '',
+                        'Date' => date('D, M j, Y', strtotime($target['booking_date'])),
+                        'Time' => substr($target['start_time'], 0, 5) . ' - ' . substr($target['end_time'], 0, 5),
+                        'Paid' => 'Rs ' . number_format((float)$target['total_price'], 0) . ' (at court)',
+                    ]
+                );
+            }
+            notify_user((int)$_SESSION['user_id'], 'Payment confirmed', 'You marked booking ' . $target['booking_ref'] . ' as paid at court.', 'fa-sack-dollar', 'manager/bookings.php');
+            set_flash('success', 'Booking marked as paid at court. The player can see it on their receipt.');
+        } else {
+            set_flash_error('That booking could not be marked as paid.', 'It was probably updated by another manager.', 'Try again from your bookings list.', 'manager/bookings.php');
+        }
     }
     redirect('manager/bookings.php');
 }
@@ -240,7 +290,17 @@ require __DIR__ . '/../includes/header.php';
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($bookings as $b): ?>
-            <?php booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status']); ?>
+            <?php
+            $canMarkPaid = $b['status'] === 'confirmed' && in_array($b['payment_status'], ['unpaid', 'partial'], true);
+            $markPaidAction = '';
+            if ($canMarkPaid) {
+                $markPaidAction = '<a href="' . base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token())
+                    . '" class="mb-cta mb-cta-mark" title="Mark as paid (paid at court)" data-confirm="Mark this booking as paid at court?"'
+                    . ' data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel">'
+                    . '<i class="fa-solid fa-coins"></i> Mark paid</a>';
+            }
+            booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status'], $markPaidAction);
+            ?>
         <?php endforeach; ?>
     </div>
 

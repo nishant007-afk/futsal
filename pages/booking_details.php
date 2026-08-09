@@ -8,18 +8,18 @@ if (!is_logged_in()) {
 $me = current_user();
 $booking_id = (int)($_GET['id'] ?? 0);
 
-$stmt = $conn->prepare(
-    'SELECT b.id, b.user_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.discount, b.promo_code, b.created_at, b.repeat_weeks,
-            g.name AS ground_name, g.location, g.address, g.court_number, g.manager_id,
-            u.name AS user_name, u.email AS user_email, u.phone AS user_phone,
-            m.name AS manager_name
-     FROM bookings b
-     JOIN grounds g ON g.id = b.ground_id
-     JOIN users u ON u.id = b.user_id
-     LEFT JOIN users m ON m.id = g.manager_id
-     WHERE b.id = ?'
-);
+    $stmt = $conn->prepare(
+        'SELECT b.id, b.user_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+                b.payment_status, b.payment_type, b.amount_paid, b.payment_method, b.discount, b.promo_code, b.created_at, b.repeat_weeks,
+                g.name AS ground_name, g.location, g.address, g.court_number, g.manager_id,
+                u.name AS user_name, u.email AS user_email, u.phone AS user_phone,
+                m.name AS manager_name
+         FROM bookings b
+         JOIN grounds g ON g.id = b.ground_id
+         JOIN users u ON u.id = b.user_id
+         LEFT JOIN users m ON m.id = g.manager_id
+         WHERE b.id = ?'
+    );
 $stmt->bind_param('i', $booking_id);
 $stmt->execute();
 $b = $stmt->get_result()->fetch_assoc();
@@ -70,6 +70,9 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : ($b['payment_status'] === 'partial' ? 'coins' : 'clock'); ?>"></i>
                 <?php echo ucfirst(e($b['payment_status'])); ?>
             </span>
+            <?php if (!empty($b['payment_method']) && $b['payment_status'] === 'paid' && $b['payment_method'] === 'at_court'): ?>
+                <span class="status-badge status-pending" style="border-color:var(--warn);color:var(--warn);background:var(--warn-soft);"><i class="fa-solid fa-coins"></i> Paid at court</span>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -177,6 +180,9 @@ require __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             <?php endif; ?>
         <?php elseif ($me['role'] === 'manager' && $b['status'] !== 'cancelled'): ?>
+            <?php if ($b['payment_status'] !== 'paid'): ?>
+                <a href="<?php echo base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline" data-confirm="Mark this booking as paid (paid at court)?" data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel"><i class="fa-solid fa-coins"></i> Mark paid</a>
+            <?php endif; ?>
             <a href="<?php echo base_url('manager/bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>
         <?php elseif ($me['role'] === 'admin' && $b['status'] !== 'cancelled'): ?>
             <a href="<?php echo base_url('admin/bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>

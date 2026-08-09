@@ -6,7 +6,9 @@ $totalGrounds = (int)$conn->query('SELECT COUNT(*) c FROM grounds')->fetch_assoc
 $totalUsers = (int)$conn->query('SELECT COUNT(*) c FROM users')->fetch_assoc()['c'];
 $totalBookings = (int)$conn->query('SELECT COUNT(*) c FROM bookings')->fetch_assoc()['c'];
 $revenue = $conn->query('SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE status != "cancelled"')->fetch_assoc()['s'];
-
+$grossFloat = (float)$revenue;
+$platformTake = platform_fee_amount($grossFloat);
+$managerPayout = manager_payout($grossFloat);
 $setupFee = manager_setup_fee();
 $monthlyFee = manager_monthly_fee();
 $managerCount = (int)$conn->query('SELECT COUNT(*) c FROM users WHERE role = "manager"')->fetch_assoc()['c'];
@@ -76,6 +78,16 @@ require __DIR__ . '/../includes/header.php';
     <div class="stat reveal">
         <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
         <h3>Subscription Revenue</h3><p class="stat-amount"><?php echo format_price($subRevenue); ?></p>
+    </div>
+    <div class="stat reveal">
+        <div class="stat-icon"><i class="fa-solid fa-percentage"></i></div>
+        <h3>Platform Fees</h3><p class="stat-amount"><?php echo format_price($platformTake); ?></p>
+        <span class="muted" style="font-size:12px;"><?php echo (int)platform_fee_percent(); ?>% of gross bookings</span>
+    </div>
+    <div class="stat reveal">
+        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+        <h3>Manager Payouts</h3><p class="stat-amount"><?php echo format_price($managerPayout); ?></p>
+        <span class="muted" style="font-size:12px;">to be paid out to court owners</span>
     </div>
 </div>
 

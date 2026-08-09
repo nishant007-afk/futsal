@@ -42,9 +42,12 @@ $groundSummary = $conn->query(
 )->fetch_all(MYSQLI_ASSOC);
 
 $grossTotal = 0;
+$platformFeeTotal = 0;
 foreach ($groundSummary as $gs) {
     $grossTotal += (float)$gs['gross'];
+    $platformFeeTotal += platform_fee_amount((float)$gs['gross']);
 }
+$payoutTotal = $grossTotal - $platformFeeTotal;
 
 $page_title = 'Manager Dashboard';
 require __DIR__ . '/../includes/header.php';
@@ -112,21 +115,25 @@ require __DIR__ . '/../includes/header.php';
                 <th>Bookings</th>
                 <th>Paid</th>
                 <th>Gross Revenue</th>
-                <th>Your Earnings (100%)</th>
+                <th>Platform Fee</th>
+                <th>Your Payout</th>
             </tr>
         </thead>
         <tbody>
             <?php if (!$groundSummary): ?>
-                <tr><td colspan="5" class="muted table-empty">Add a ground to see your financial summary.</td></tr>
+                <tr><td colspan="6" class="muted table-empty">Add a ground to see your financial summary.</td></tr>
             <?php else: ?>
                 <?php foreach ($groundSummary as $gs): ?>
-                    <?php $gross = (float)$gs['gross']; ?>
+                    <?php $gross = (float)$gs['gross']; $fee = platform_fee_amount($gross); ?>
                     <tr>
                         <td class="strong"><?php echo e($gs['name']); ?></td>
                         <td><?php echo (int)$gs['booking_count']; ?></td>
                         <td><?php echo (int)$gs['paid_count']; ?></td>
                         <td><?php echo format_price($gross); ?></td>
-                        <td class="strong"><?php echo format_price($gross); ?></td>
+                        <td><?php echo format_price($fee); ?>
+                            <span class="muted" style="font-size:11px">(<?php echo (int)platform_fee_percent(); ?>%)</span>
+                        </td>
+                        <td class="strong"><?php echo format_price(manager_payout($gross)); ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <tr class="table-total">
@@ -134,7 +141,8 @@ require __DIR__ . '/../includes/header.php';
                     <td><?php echo (int)array_sum(array_column($groundSummary, 'booking_count')); ?></td>
                     <td><?php echo (int)array_sum(array_column($groundSummary, 'paid_count')); ?></td>
                     <td><?php echo format_price($grossTotal); ?></td>
-                    <td class="strong"><?php echo format_price($grossTotal); ?></td>
+                    <td><?php echo format_price($platformFeeTotal); ?></td>
+                    <td class="strong"><?php echo format_price($payoutTotal); ?></td>
                 </tr>
             <?php endif; ?>
         </tbody>

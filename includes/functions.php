@@ -565,7 +565,7 @@ function booking_card(array $b): void
  * Minimal booking card for admin/manager lists, matching the player's card.
  * $show: '' (none), 'user' (player name), 'manager' (manager name).
  */
-function booking_card_mini(array $b, string $show = '', string $search = ''): void
+function booking_card_mini(array $b, string $show = '', string $search = '', ?string $actions_html = null): void
 {
     $dateLabel = date('M j, Y', strtotime($b['booking_date']));
     $dayLabel = date('D', strtotime($b['booking_date']));
@@ -612,6 +612,7 @@ function booking_card_mini(array $b, string $show = '', string $search = ''): vo
         <div class="mb-side">
             <?php booking_price_html($b); ?>
             <div class="mb-actions">
+                <?php if ($actions_html !== null): ?><?php echo $actions_html; ?><?php endif; ?>
                 <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </div>
@@ -769,6 +770,25 @@ function manager_setup_fee(): float
 function manager_monthly_fee(): float
 {
     return max(0, (float)setting('manager_monthly_fee', '800'));
+}
+
+/**
+ * Platform commission model (configurable in `settings`).
+ * Managers keep (100 - fee)% of each booking's gross; the platform keeps the rest.
+ */
+function platform_fee_percent(): float
+{
+    return max(0.0, min(100.0, (float)setting('platform_fee_percent', '10')));
+}
+
+function platform_fee_amount(float $gross): float
+{
+    return round($gross * (platform_fee_percent() / 100.0), 2);
+}
+
+function manager_payout(float $gross): float
+{
+    return round($gross - platform_fee_amount($gross), 2);
 }
 
 function manager_subscription(int $manager_id): ?array

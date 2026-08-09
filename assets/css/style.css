@@ -2150,6 +2150,10 @@ td.strong { font-weight: 700; color: var(--ink); }
 }
 .mb-cta-pay:hover { background: var(--brand-700); border-color: var(--brand-700); color: #fff; }
 .mb-cta-pay i { color: inherit; }
+.mb-cta-mark {
+    background: var(--warn-soft); border-color: var(--warn-soft); color: var(--warn);
+}
+.mb-cta-mark:hover { background: var(--warn); border-color: var(--warn); color: #fff; }
 .mbooking-date {
     min-width: 66px; text-align: center; flex-shrink: 0;
     background: var(--bg-soft); border-radius: var(--r-sm);

@@ -75,4 +75,11 @@ if ($needsCoords > 0) {
     echo "Applied: backfilled coordinates for seeded Kathmandu grounds.\n";
 }
 
+// Add payment_method column for the pay-at-court flow.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'payment_method'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE bookings ADD COLUMN payment_method ENUM('online','at_court') NOT NULL DEFAULT 'online' AFTER payment_type");
+    $applied++;
+    echo "Applied: added `bookings.payment_method` column.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

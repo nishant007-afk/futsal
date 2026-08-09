@@ -1741,19 +1741,21 @@ function legal_pages_defaults(): array
             'title'   => 'Privacy Policy',
             'summary' => 'What data we collect, why we collect it, and how we keep it safe.',
             'body'    => '
-            <p class="updated-note">Last updated: August 7, 2026</p>
+            <p class="updated-note">Last updated: August 9, 2026</p>
 
             <h2>Information we collect</h2>
             <ul>
                 <li><strong>Account details</strong>: your name, email address and phone number, provided when you sign up.</li>
                 <li><strong>Booking data</strong>: the courts, dates and time slots you reserve.</li>
                 <li><strong>Usage data</strong>: pages you visit and actions you take, used to improve the platform.</li>
+                <li><strong>Location data</strong>: when you choose "Use my location" on the courts page, we request your browser&rsquo;s geolocation to show courts sorted by distance. This is only used during that session to sort and display distances; we do not store your precise location on our servers.</li>
             </ul>
 
             <h2>Why we use it</h2>
             <ul>
                 <li>To create and manage your account.</li>
                 <li>To process and manage bookings including sharing booking details with the manager of the court.</li>
+                <li>To show nearby courts and sort by distance when you opt in.</li>
                 <li>To keep the platform secure and prevent misuse.</li>
                 <li>To improve performance and user experience.</li>
             </ul>
@@ -1765,6 +1767,7 @@ function legal_pages_defaults(): array
                 <li>Service providers that host and operate the platform, bound by confidentiality.</li>
                 <li>Authorities, only where required by law.</li>
             </ul>
+            <p><strong>Your precise location is never shared with managers, third parties, or stored in our database.</strong> It is only used client-side in your browser to calculate distances for sorting.</p>
 
             <h2>Cookies and sessions</h2>
             <p>We use session cookies to keep you logged in. You can clear these at any time in your browser; you\'ll just need to log in again.</p>
@@ -1783,7 +1786,7 @@ function legal_pages_defaults(): array
             'title'   => 'Terms of Service',
             'summary' => 'The rules for using GoalSpace as a player, manager or admin.',
             'body'    => '
-            <p class="updated-note">Last updated: August 7, 2026</p>
+            <p class="updated-note">Last updated: August 9, 2026</p>
             <p>By creating an account or using GoalSpace, you agree to these terms.</p>
 
             <h2>Your account</h2>
@@ -1827,6 +1830,9 @@ function legal_pages_defaults(): array
 
             <h2>Limitation of liability</h2>
             <p>GoalSpace is a booking platform; court quality, availability and gameplay are the responsibility of each court owner. We are not liable for issues arising at a court, such as cancellations or facilities.</p>
+
+            <h2>Location services</h2>
+            <p>When you use the "Use my location" feature, your browser may request access to your device&rsquo;s geolocation. You can deny or revoke this permission at any time in your browser settings. GoalSpace does not store your precise location; it is used only to sort and display nearby courts during your session. You can use GoalSpace fully without enabling location access by searching by city or area instead.</p>
 
             <h2>Changes and termination</h2>
             <p>We may update these terms or suspend accounts that breach them. Continued use after a change means you accept the updated terms.</p>

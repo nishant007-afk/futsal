@@ -962,7 +962,44 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---- Near-me geolocation ---- */
     const nearMeBtn = document.getElementById('nearMeBtn');
     if (nearMeBtn && navigator.geolocation) {
-        nearMeBtn.addEventListener('click', function () {
+        let locationPromptShown = false;
+
+        function showLocationPrompt() {
+            if (locationPromptShown) return;
+            locationPromptShown = true;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'location-prompt-overlay';
+            overlay.innerHTML = `
+                <div class="location-prompt">
+                    <div class="location-prompt-icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <h3>Find courts near you</h3>
+                    <p>GoalSpace can use your location to show futsal courts sorted by distance.</p>
+                    <ul class="location-prompt-benefits">
+                        <li><i class="fa-solid fa-check"></i> See nearest courts first</li>
+                        <li><i class="fa-solid fa-check"></i> Accurate distance in km</li>
+                        <li><i class="fa-solid fa-check"></i> Filter by radius</li>
+                    </ul>
+                    <p class="location-prompt-note">Your location is only used for sorting. We don't store or share it.</p>
+                    <div class="location-prompt-actions">
+                        <button type="button" class="btn btn-outline" id="locationDeny">Not now</button>
+                        <button type="button" class="btn btn-primary" id="locationAllow">Allow location</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            overlay.querySelector('#locationAllow').addEventListener('click', () => {
+                overlay.remove();
+                requestLocation();
+            });
+            overlay.querySelector('#locationDeny').addEventListener('click', () => {
+                overlay.remove();
+                locationPromptShown = false;
+            });
+        }
+
+        function requestLocation() {
             nearMeBtn.disabled = true;
             nearMeBtn.innerHTML = '<span class="spinner-thin"></span> Finding...';
             navigator.geolocation.getCurrentPosition(function (pos) {
@@ -972,12 +1009,47 @@ document.addEventListener('DOMContentLoaded', function () {
                 params.set('lat', pos.coords.latitude.toFixed(6));
                 params.set('lng', pos.coords.longitude.toFixed(6));
                 window.location.search = params.toString();
-            }, function () {
-                alert('Location access was denied. You can search by city instead.');
+            }, function (err) {
+                let msg = 'Location access was denied. You can search by city instead.';
+                if (err.code === err.PERMISSION_DENIED) {
+                    msg = 'Location permission denied. You can enable it in browser settings or search by city instead.';
+                } else if (err.code === err.TIMEOUT) {
+                    msg = 'Location request timed out. Please try again.';
+                } else if (err.code === err.POSITION_UNAVAILABLE) {
+                    msg = 'Location unavailable. Please try again or search by city.';
+                }
+                alert(msg);
                 nearMeBtn.disabled = false;
                 nearMeBtn.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
-            });
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+
+        nearMeBtn.addEventListener('click', function () {
+            // Check if permission already granted in this session
+            if (sessionStorage.getItem('locationPermissionGranted')) {
+                requestLocation();
+                return;
+            }
+            // Check browser permission state if available
+            if (navigator.permissions) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                    if (result.state === 'granted') {
+                        sessionStorage.setItem('locationPermissionGranted', '1');
+                        requestLocation();
+                    } else {
+                        showLocationPrompt();
+                    }
+                });
+            } else {
+                showLocationPrompt();
+            }
         });
+
+        // Store permission granted for this session
+        navigator.geolocation.getCurrentPosition(
+            () => sessionStorage.setItem('locationPermissionGranted', '1'),
+            () => {}, { timeout: 100 }
+        );
     }
 
     /* ---- Ground photo gallery (ground.php) ---- */

@@ -3369,6 +3369,20 @@ html[data-theme="dark"] .helpful-btn { background: var(--dark-2); border-color: 
 html[data-theme="dark"] .helpful-btn:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
 html[data-theme="dark"] .helpful-btn.helped { background: var(--brand); border-color: var(--brand); }
 
+.location-prompt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; animation: fadeIn .15s ease-out; }
+.location-prompt { background: var(--card); border-radius: 16px; padding: 28px; max-width: 400px; width: 100%; text-align: center; animation: slideUp .2s ease-out; box-shadow: 0 20px 40px rgba(0,0,0,.15); }
+.location-prompt-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; }
+.location-prompt h3 { margin: 0 0 8px; font-size: 1.2rem; color: var(--ink); }
+.location-prompt > p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 16px; }
+.location-prompt-benefits { list-style: none; padding: 0; margin: 0 0 16px; text-align: left; }
+.location-prompt-benefits li { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--ink); font-size: 14px; }
+.location-prompt-benefits i { color: var(--brand); font-size: 12px; }
+.location-prompt-note { font-size: 12px !important; color: var(--muted) !important; margin-top: 8px !important; }
+.location-prompt-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+.location-prompt-actions .btn { flex: 1; max-width: 140px; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+html[data-theme="dark"] .location-prompt { background: var(--dark-2); }
+
 .promo-banner { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .promo-banner-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .promo-banner-inner i { font-size: 22px; color: var(--brand); }

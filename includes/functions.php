@@ -1018,6 +1018,32 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
     return $sent;
 }
 
+function notify_announcement(string $subject, string $message, string $scope = 'all', bool $sendMail = true): int
+{
+    global $conn;
+    $where = '';
+    if ($scope === 'admins')      { $where = "WHERE role = 'admin'"; }
+    elseif ($scope === 'managers'){ $where = "WHERE role = 'manager'"; }
+    elseif ($scope === 'users')  { $where = "WHERE role = 'user'"; }
+
+    $res = $conn->query('SELECT id,email,name FROM users ' . $where);
+    if ($res === false) {
+        return 0;
+    }
+
+    $sent = 0;
+    while ($u = $res->fetch_assoc()) {
+        notify_user((int)$u['id'], $subject, $message, 'fa-bullhorn');
+        if ($sendMail) {
+            $body = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n" . $message . "\r\n\r\n" .
+                "See you on the court!\r\nThe GoalSpace team";
+            @send_mail($u['email'], $subject, $body);
+        }
+        $sent++;
+    }
+    return $sent;
+}
+
 function user_notifications(int $user_id, int $limit = 20): array
 {
     global $conn;

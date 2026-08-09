@@ -1461,7 +1461,7 @@ function ground_card_html(array $ground, ?array $availability = null): void
                        style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>"></i>
                 </button>
             <?php endif; ?>
-            <?php if ($availability !== null): ?>
+                <?php if ($availability !== null): ?>
                 <span class="thumb-tag availability <?php echo $full ? 'is-full' : 'is-free'; ?>">
                     <?php if ($full): ?>
                         <i class="fa-solid fa-circle-xmark"></i> Fully booked
@@ -1469,6 +1469,8 @@ function ground_card_html(array $ground, ?array $availability = null): void
                         <i class="fa-solid fa-circle-check"></i> <?php echo $availability['free']; ?> slot<?php echo $availability['free'] === 1 ? '' : 's'; ?> left
                     <?php endif; ?>
                 </span>
+            <?php elseif (!empty($ground['distance_km'])): ?>
+                <span class="thumb-tag"><i class="fa-solid fa-walkie-talkie"></i> <?php echo number_format((float)$ground['distance_km'], 1); ?> km</span>
             <?php else: ?>
                 <span class="thumb-tag"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['location']); ?></span>
             <?php endif; ?>

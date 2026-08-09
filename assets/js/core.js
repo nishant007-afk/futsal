@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
                 const csrf = btn.getAttribute('data-csrf') || document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value;
                 const xhr = new XMLHttpRequest();
-                xhr.open('POST', base_url('ajax/favorite.php'), true);
+                xhr.open('POST', url, true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4) {
@@ -958,5 +958,26 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-    /* end favorites */
+
+    /* ---- Near-me geolocation ---- */
+    const nearMeBtn = document.getElementById('nearMeBtn');
+    if (nearMeBtn && navigator.geolocation) {
+        nearMeBtn.addEventListener('click', function () {
+            nearMeBtn.disabled = true;
+            nearMeBtn.innerHTML = '<span class="spinner-thin"></span> Finding...';
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                const base = document.body.getAttribute('data-base') || '';
+                const params = new URLSearchParams(window.location.search);
+                params.delete('page');
+                params.set('lat', pos.coords.latitude.toFixed(6));
+                params.set('lng', pos.coords.longitude.toFixed(6));
+                window.location.search = params.toString();
+            }, function () {
+                alert('Location access was denied. You can search by city instead.');
+                nearMeBtn.disabled = false;
+                nearMeBtn.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
+            });
+        });
+    }
+    /* end favorites / near-me */
 });

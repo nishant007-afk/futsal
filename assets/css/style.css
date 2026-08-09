@@ -3333,3 +3333,12 @@ html[data-theme="dark"] .ps-img { background-color: var(--bg-tint); }
 
 /* Footer contact chips keep dark footer look */
 html[data-theme="dark"] .site-footer { background: var(--dark); }
+
+/* tiny inline spinner for loading buttons */
+.spinner-thin {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,.12); border-top-color: currentColor;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+html[data-theme="dark"] .spinner-thin { border-color: rgba(255,255,255,.12); }
+@keyframes spin { to { transform: rotate(360deg); } }

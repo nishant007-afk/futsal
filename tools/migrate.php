@@ -35,4 +35,44 @@ if (!table_exists('favorites')) {
     echo "Applied: added `favorites` table.\n";
 }
 
+// Backfill coordinates for seeded Kathmandu grounds so near-me sorting works.
+$needsCoords = (int)$conn->query("SELECT COUNT(*) c FROM grounds WHERE latitude IS NULL OR longitude IS NULL")->fetch_assoc()['c'];
+if ($needsCoords > 0) {
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.7025, longitude = 85.3116 WHERE name = 'Downtown Futsal Arena' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6719, longitude = 85.3124 WHERE name = 'Golden City Futsal' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6817, longitude = 85.3253 WHERE name = 'Riverside Sports Hub' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.7033, longitude = 85.3146 WHERE name = 'Thamel Sports Complex' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6645, longitude = 85.3190 WHERE name = 'Patan Futsal Dome' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6590, longitude = 85.3200 WHERE name = 'Balkumari Arena' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6800, longitude = 85.3350 WHERE name = 'Koteshwor Kickoff' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.7010, longitude = 85.3159 WHERE name = 'Bouddha Sports House' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6820, longitude = 85.3180 WHERE name = 'Newar Street Court' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.6817, longitude = 85.3253 WHERE name = 'Baneshwor Dome 2' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $conn->query(
+        "UPDATE grounds SET latitude = 27.7106, longitude = 85.3118 WHERE name = 'Gyaneshwor Grid' AND (latitude IS NULL OR longitude IS NULL)"
+    );
+    $applied++;
+    echo "Applied: backfilled coordinates for seeded Kathmandu grounds.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

@@ -19,6 +19,17 @@ if (!in_array($sort, ['price_asc', 'price_desc', 'name_asc'], true)) {
     $sort = 'price_asc';
 }
 
+// Near-me mode: sort by real distance using the browser's location + ground coords.
+$nearLatLng = null;
+if (isset($_GET['lat']) && isset($_GET['lng'])) {
+    $lat = (float)$_GET['lat'];
+    $lng = (float)$_GET['lng'];
+    if ($lat !== 0.0 && $lng !== 0.0 && abs($lat) <= 90 && abs($lng) <= 180) {
+        $nearLatLng = [$lat, $lng];
+        $sort = 'nearest';
+    }
+}
+
 $where = ['g.is_active = 1'];
 $params = [];
 $types = '';
@@ -46,9 +57,22 @@ $perPage = 12;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $perPage;
 
-$sql = 'SELECT g.*, u.name AS owner_name FROM grounds g
-        LEFT JOIN users u ON u.id = g.manager_id
-        WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderBy . ' LIMIT ? OFFSET ?';
+$selectedCols = 'g.*, u.name AS owner_name';
+$having = '';
+if ($nearLatLng !== null) {
+    $R = 6371;
+    $lat1 = $nearLatLng[0];
+    $lng1 = $nearLatLng[1];
+    $maxKm = (float)($_GET['radius'] ?? 40);
+    $selectedCols = 'g.*, u.name AS owner_name,
+        ROUND(' . $R . ' * acos(cos(radians(?)) * cos(radians(g.latitude)) * cos(radians(g.longitude) - radians(?)) + sin(radians(?)) * sin(radians(g.latitude))), 1) AS distance_km';
+    $having = ' HAVING distance_km < ' . $maxKm . '';
+    $params = array_merge([$lat1, $lng1, $lat1], $params);
+    $types = 'ddd' . $types;
+}
+$sql = 'SELECT ' . $selectedCols . ' FROM grounds g
+         LEFT JOIN users u ON u.id = g.manager_id
+         WHERE ' . implode(' AND ', $where) . $having . ' ORDER BY ' . ($nearLatLng !== null ? 'distance_km ASC' : $orderBy) . ' LIMIT ? OFFSET ?';
 $types .= 'ii';
 $params[] = $perPage;
 $params[] = $offset;
@@ -171,6 +195,9 @@ require __DIR__ . '/../includes/header.php';
                 <label for="courtsDate">Date</label>
                 <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
+            <button type="button" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location">
+                <i class="fa-solid fa-walkie-talkie"></i> Use my location
+            </button>
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>

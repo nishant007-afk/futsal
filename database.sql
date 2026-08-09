@@ -240,18 +240,18 @@ INSERT INTO users (name, email, phone, password, role) VALUES
 -- Note: All seeded users share the same bcrypt hash of password "password123"
 -- (hash: $2y$10$OMmkJ9UnTpor8Psg8IeCdelLBzafZCAFJ9unOREXJNUJcfWlMYgFm)
 
-INSERT INTO grounds (name, location, description, price_per_hour, image, capacity, manager_id, address, court_number) VALUES
-  ('Downtown Futsal Arena', 'New Road, Kathmandu', 'Indoor futsal court with wooden flooring, floodlights and changing rooms.', 2500.00, '', 12, 3, 'New Road, Kathmandu 44600, Nepal', 'Court 1'),
-  ('Golden City Futsal', 'Jawalakhel, Lalitpur', 'Outdoor turf pitch, ideal for evening games with floodlights.', 1800.00, '', 10, 3),
-  ('Riverside Sports Hub', 'Baneshwor, Kathmandu', 'Well-maintained court with a cafe and free parking on site.', 2200.00, '', 10, 3),
-  ('Thamel Sports Complex', 'Thamel, Kathmandu', 'Busy indoor arena in the heart of the city with night floodlights.', 2100.00, '', 10, 3),
-  ('Patan Futsal Dome', 'Patan, Lalitpur', 'Covered dome court ideal for evening games, all-weather surface.', 1900.00, '', 10, 3),
-  ('Balkumari Arena', 'Balkumari, Lalitpur', 'Spacious court with clean changing rooms and on-site parking.', 2300.00, '', 12, 3),
-  ('Koteshwor Kickoff', 'Koteshwor, Kathmandu', 'Community favourite with weekend leagues and free coaching.', 1750.00, '', 10, 3),
-  ('Bouddha Sports House', 'Bouddha, Kathmandu', 'Modern facility near Bouddha with roof-top floodlight court.', 2400.00, '', 10, 3),
-  ('Newar Street Court', 'Lalitpur, Pulchowk', 'Compact community court with budget-friendly hourly rates.', 1500.00, '', 8, 3),
-  ('Baneshwor Dome 2', 'Baneshwor, Kathmandu', 'Twin-dome complex with two full-size courts.', 2350.00, '', 12, 3),
-  ('Gyaneshwor Grid', 'Gyaneshwor, Kathmandu', 'Neighbourhood court known for quick pickup games.', 1700.00, '', 10, 3);
+INSERT INTO grounds (name, location, description, price_per_hour, image, capacity, manager_id, address, court_number, latitude, longitude) VALUES
+  ('Downtown Futsal Arena', 'New Road, Kathmandu', 'Indoor futsal court with wooden flooring, floodlights and changing rooms.', 2500.00, '', 12, 3, 'New Road, Kathmandu 44600, Nepal', 'Court 1', 27.7025, 85.3116),
+  ('Golden City Futsal', 'Jawalakhel, Lalitpur', 'Outdoor turf pitch, ideal for evening games with floodlights.', 1800.00, '', 10, 3, 'Jawalakhel, Lalitpur, Nepal', 'Court 1', 27.6719, 85.3124),
+  ('Riverside Sports Hub', 'Baneshwor, Kathmandu', 'Well-maintained court with a cafe and free parking on site.', 2200.00, '', 10, 3, 'Baneshwor, Kathmandu, Nepal', 'Court 1', 27.6817, 85.3253),
+  ('Thamel Sports Complex', 'Thamel, Kathmandu', 'Busy indoor arena in the heart of the city with night floodlights.', 2100.00, '', 10, 3, 'Thamel, Kathmandu, Nepal', 'Court 1', 27.7033, 85.3146),
+  ('Patan Futsal Dome', 'Patan, Lalitpur', 'Covered dome court ideal for evening games, all-weather surface.', 1900.00, '', 10, 3, 'Patan, Lalitpur, Nepal', 'Court 1', 27.6645, 85.3190),
+  ('Balkumari Arena', 'Balkumari, Lalitpur', 'Spacious court with clean changing rooms and on-site parking.', 2300.00, '', 12, 3, 'Balkumari, Lalitpur, Nepal', 'Court 1', 27.6590, 85.3200),
+  ('Koteshwor Kickoff', 'Koteshwor, Kathmandu', 'Community favourite with weekend leagues and free coaching.', 1750.00, '', 10, 3, 'Koteshwor, Kathmandu, Nepal', 'Court 1', 27.6800, 85.3350),
+  ('Bouddha Sports House', 'Bouddha, Kathmandu', 'Modern facility near Bouddha with roof-top floodlight court.', 2400.00, '', 10, 3, 'Bouddha, Kathmandu, Nepal', 'Court 1', 27.7010, 85.3159),
+  ('Newar Street Court', 'Lalitpur, Pulchowk', 'Compact community court with budget-friendly hourly rates.', 1500.00, '', 8, 3, 'Pulchowk, Lalitpur, Nepal', 'Court 1', 27.6820, 85.3180),
+  ('Baneshwor Dome 2', 'Baneshwor, Kathmandu', 'Twin-dome complex with two full-size courts.', 2350.00, '', 12, 3, 'Baneshwor, Kathmandu, Nepal', 'Court 1', 27.6817, 85.3253),
+  ('Gyaneshwor Grid', 'Gyaneshwor, Kathmandu', 'Neighbourhood court known for quick pickup games.', 1700.00, '', 10, 3, 'Gyaneshwor, Kathmandu, Nepal', 'Court 1', 27.7106, 85.3118);
 
 INSERT INTO bookings (booking_ref, user_id, ground_id, booking_date, start_time, end_time, total_price, status, payment_status, payment_type, amount_paid) VALUES
   ('GS-A1B2C3', 2, 1, DATE_ADD(CURDATE(), INTERVAL 1 DAY), '18:00:00', '19:00:00', 2500.00, 'confirmed', 'partial', 'advance', 500.00),

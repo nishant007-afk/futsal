@@ -99,6 +99,7 @@ $f_date_to = trim($_GET['date_to'] ?? '');
 $f_status = trim($_GET['status'] ?? '');
 $f_payment = trim($_GET['payment'] ?? '');
 $f_ground = (int)($_GET['ground'] ?? 0);
+$view = trim($_GET['view'] ?? 'bookings'); // 'bookings' or 'waitlist'
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $f_date_from)) {
     $f_date_from = '';
@@ -111,6 +112,9 @@ if (!in_array($f_status, ['', 'confirmed', 'cancelled'], true)) {
 }
 if (!in_array($f_payment, ['', 'unpaid', 'partial', 'paid'], true)) {
     $f_payment = '';
+}
+if (!in_array($view, ['bookings', 'waitlist'], true)) {
+    $view = 'bookings';
 }
 
 $where = ['g.manager_id = ' . (int)$_SESSION['user_id']];
@@ -146,48 +150,74 @@ $perPage = 15;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $perPage;
 
-$baseSql = 'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.created_at,
-            g.name AS ground_name, u.name AS user_name
-     FROM bookings b
-     JOIN grounds g ON g.id = b.ground_id
-     JOIN users u ON u.id = b.user_id
-     WHERE ' . implode(' AND ', $where) . '
-     ORDER BY b.booking_date DESC, b.start_time ASC';
-
-// Export (CSV/Excel) always uses the full filtered set, not the current page.
-if (isset($_GET['export']) || isset($_GET['export_excel'])) {
-    $stmt = $conn->prepare($baseSql);
-    if ($types !== '') {
-        $stmt->bind_param($types, ...$params);
+if ($view === 'waitlist') {
+    $waitWhere = ['g.manager_id = ' . (int)$_SESSION['user_id']];
+    $waitParams = [];
+    $waitTypes = '';
+    if ($f_date_from !== '') {
+        $waitWhere[] = 'w.booking_date >= ?';
+        $waitParams[] = $f_date_from;
+        $waitTypes .= 's';
+    }
+    if ($f_date_to !== '') {
+        $waitWhere[] = 'w.booking_date <= ?';
+        $waitParams[] = $f_date_to;
+        $waitTypes .= 's';
+    }
+    if ($f_ground > 0) {
+        $waitWhere[] = 'w.ground_id = ?';
+        $waitParams[] = $f_ground;
+        $waitTypes .= 'i';
+    }
+    $waitBaseSql = 'SELECT w.id, w.ground_id, w.booking_date, w.start_time, w.created_at,
+                           g.name AS ground_name, u.name AS user_name, u.email AS user_email
+                    FROM waitlist w
+                    JOIN grounds g ON g.id = w.ground_id
+                    JOIN users u ON u.id = w.user_id
+                    WHERE ' . implode(' AND ', $waitWhere) . '
+                    ORDER BY w.booking_date ASC, w.start_time ASC, w.created_at ASC';
+    $totalSql = 'SELECT COUNT(*) c FROM waitlist w JOIN grounds g ON g.id = w.ground_id WHERE ' . implode(' AND ', $waitWhere);
+    $stmt = $conn->prepare($totalSql);
+    if ($waitTypes !== '') { $stmt->bind_param($waitTypes, ...$waitParams); }
+    $stmt->execute();
+    $total = (int)$stmt->get_result()->fetch_assoc()['c'];
+    $totalPages = max(1, (int)ceil($total / $perPage));
+    $stmt = $conn->prepare($waitBaseSql . ' LIMIT ? OFFSET ?');
+    if ($waitTypes !== '') {
+        $waitBindParams = array_merge($waitParams, [$perPage, $offset]);
+        $stmt->bind_param($waitTypes . 'ii', ...$waitBindParams);
+    } else {
+        $stmt->bind_param('ii', $perPage, $offset);
     }
     $stmt->execute();
-    $exportRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $csv = [['Reference', 'Ground', 'Customer', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Booked At']];
-    foreach ($exportRows as $b) {
-        $csv[] = [
-            $b['booking_ref'] ?? '',
-            $b['ground_name'],
-            $b['user_name'],
-            $b['booking_date'],
-            substr($b['start_time'], 0, 5),
-            substr($b['end_time'], 0, 5),
-            number_format((float)$b['total_price'], 2),
-            $b['status'],
-            $b['payment_status'],
-            number_format((float)$b['amount_paid'], 2),
-            $b['created_at'],
-        ];
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $isWaitlist = true;
+} else {
+    $isWaitlist = false;
+    $baseSql = 'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+                b.payment_status, b.amount_paid, b.created_at,
+                g.name AS ground_name, u.name AS user_name
+             FROM bookings b
+             JOIN grounds g ON g.id = b.ground_id
+             JOIN users u ON u.id = b.user_id
+             WHERE ' . implode(' AND ', $where) . '
+             ORDER BY b.booking_date DESC, b.start_time ASC';
+    $totalSql = 'SELECT COUNT(*) c FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE ' . implode(' AND ', $where);
+    $stmt = $conn->prepare($totalSql);
+    if ($types !== '') { $stmt->bind_param($types, ...$params); }
+    $stmt->execute();
+    $total = (int)$stmt->get_result()->fetch_assoc()['c'];
+    $totalPages = max(1, (int)ceil($total / $perPage));
+    $stmt = $conn->prepare($baseSql . ' LIMIT ? OFFSET ?');
+    if ($types !== '') {
+        $bookBindParams = array_merge($params, [$perPage, $offset]);
+        $stmt->bind_param($types . 'ii', ...$bookBindParams);
+    } else {
+        $stmt->bind_param('ii', $perPage, $offset);
     }
-    if (isset($_GET['export_excel'])) {
-        export_excel($csv, 'bookings.xlsx');
-    }
-    export_csv($csv, 'bookings.csv');
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
-
-$sql = $baseSql . ' LIMIT ? OFFSET ?';
-$stmt = $conn->prepare($sql);
-$dataTypes = $types . 'ii';
 $dataParams = array_merge($params, [$perPage, $offset]);
 $stmt->bind_param($dataTypes, ...$dataParams);
 $stmt->execute();
@@ -276,33 +306,58 @@ require __DIR__ . '/../includes/header.php';
                 <option value="paid" <?php echo $f_payment === 'paid' ? 'selected' : ''; ?>>Paid</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
-        <a href="<?php echo base_url('manager/bookings.php?export_excel=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-excel"></i> Excel</a>
-        <a href="<?php echo base_url('manager/bookings.php?export=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+<button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+        <a href="<?php echo base_url('manager/bookings.php?view=' . $view . '&export_excel=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-excel"></i> Excel</a>
+        <a href="<?php echo base_url('manager/bookings.php?view=' . $view . '&export=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         <?php if ($hasFilters): ?>
-            <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+            <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
         <?php endif; ?>
     </form>
 </div>
 
-<?php if (!$bookings): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3><?php echo $hasFilters ? 'No bookings match your filters' : 'No bookings on your grounds yet'; ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : 'When players reserve a slot, it will appear here.'; ?></p></div>
+<div class="view-tabs reveal" style="margin:12px 0 18px;">
+    <a href="<?php echo base_url('manager/bookings.php?view=bookings' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="view-tab <?php echo $view === 'bookings' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
+    <a href="<?php echo base_url('manager/bookings.php?view=waitlist' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="view-tab <?php echo $view === 'waitlist' ? 'active' : ''; ?>"><i class="fa-solid fa-clock-rotate-left"></i> Waitlist</a>
+</div>
+
+<?php if (empty($rows)): ?>
+    <div class="empty reveal"><span class="big"><i class="fa-regular <?php echo $isWaitlist ? 'fa-clock-rotate-left' : 'fa-calendar-xmark'; ?>"></i></span><h3><?php echo $hasFilters ? 'No ' . ($isWaitlist ? 'waitlist entries' : 'bookings') . ' match your filters' : 'No ' . ($isWaitlist ? 'waitlist entries on your grounds yet' : 'bookings on your grounds yet'); ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : ($isWaitlist ? 'When players join a waitlist, it will appear here.' : 'When players reserve a slot, it will appear here.'); ?></p></div>
 <?php else: ?>
-    <div class="mbookings reveal">
-        <?php foreach ($bookings as $b): ?>
-            <?php
-            $canMarkPaid = $b['status'] === 'confirmed' && in_array($b['payment_status'], ['unpaid', 'partial'], true);
-            $markPaidAction = '';
-            if ($canMarkPaid) {
-                $markPaidAction = '<a href="' . base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token())
-                    . '" class="mb-cta mb-cta-mark" title="Mark as paid (paid at court)" data-confirm="Mark this booking as paid at court?"'
-                    . ' data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel">'
-                    . '<i class="fa-solid fa-coins"></i> Mark paid</a>';
-            }
-            booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status'], $markPaidAction);
-            ?>
-        <?php endforeach; ?>
-    </div>
+    <?php if ($isWaitlist): ?>
+        <div class="mbookings reveal">
+            <?php foreach ($rows as $w): ?>
+                <div class="mbooking waitlist-row">
+                    <div class="mb-left">
+                        <div class="mb-main">
+                            <span class="mb-title"><?php echo e($w['ground_name']); ?></span>
+                            <span class="mb-meta"><i class="fa-regular fa-clock"></i> <?php echo e(date('D, M j', strtotime($w['booking_date']))) . ' · ' . substr($w['start_time'], 0, 5); ?></span>
+                        </div>
+                        <div class="mb-sub"><i class="fa-solid fa-user"></i> <?php echo e($w['user_name']); ?> <span class="muted">(<?php echo e($w['user_email']); ?>)</span></div>
+                        <div class="mb-sub muted"><i class="fa-solid fa-clock-rotate-left"></i> Joined <?php echo e(date('M j, Y g:i A', strtotime($w['created_at']))); ?></div>
+                    </div>
+                    <div class="mb-actions">
+                        <a href="<?php echo base_url('pages/booking_details.php?ground=' . (int)$w['ground_id'] . '&date=' . e($w['booking_date']) . '&time=' . e($w['start_time'])); ?>" class="btn btn-outline btn-sm" title="View slot" target="_blank"><i class="fa-solid fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="mbookings reveal">
+            <?php foreach ($rows as $b): ?>
+                <?php
+                $canMarkPaid = $b['status'] === 'confirmed' && in_array($b['payment_status'], ['unpaid', 'partial'], true);
+                $markPaidAction = '';
+                if ($canMarkPaid) {
+                    $markPaidAction = '<a href="' . base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token())
+                        . '" class="mb-cta mb-cta-mark" title="Mark as paid (paid at court)" data-confirm="Mark this booking as paid at court?"'
+                        . ' data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel">'
+                        . '<i class="fa-solid fa-coins"></i> Mark paid</a>';
+                }
+                booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status'], $markPaidAction);
+                ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
     <?php if ($totalPages > 1): ?>
         <nav class="pagination" aria-label="Bookings pages">

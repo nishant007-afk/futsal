@@ -20,8 +20,10 @@
     RewriteRule ^sitemap.xml$ /futsal/pages/sitemap.xml.php [L]
 </IfModule>
 
-# Serve a styled 404 for missing pages without leaking the Apache default
+# Serve styled error pages without leaking Apache defaults
+ErrorDocument 403 /futsal/pages/403.php
 ErrorDocument 404 /futsal/pages/404.php
+ErrorDocument 500 /futsal/pages/500.php
 
 # Far-future caching for versioned static assets (files are cache-busted with ?v=)
 <IfModule mod_expires.c>

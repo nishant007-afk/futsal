@@ -82,4 +82,36 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `bookings.payment_method` column.\n";
 }
 
+// Add slug column to grounds for SEO-friendly URLs (sitemap + ground detail links).
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'grounds' AND COLUMN_NAME = 'slug'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE grounds ADD COLUMN slug VARCHAR(120) NULL AFTER is_active");
+    // Backfill unique slugs from ground names.
+    $r = $conn->query("SELECT id, name FROM grounds WHERE slug IS NULL");
+    if ($r) {
+        while ($row = $r->fetch_assoc()) {
+            $base      = preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $row['name']));
+            $base      = trim($base, '-');
+            $candidate = $base;
+            $i = 2;
+            while ((int)$conn->query("SELECT COUNT(*) c FROM grounds WHERE slug = '" . $conn->real_escape_string($candidate) . "'")->fetch_assoc()['c'] > 0) {
+                $candidate = $base . '-' . $i;
+                $i++;
+            }
+            $candidate = $candidate !== '' ? $candidate : 'court-' . $row['id'];
+            $conn->query("UPDATE grounds SET slug = '" . $conn->real_escape_string($candidate) . "' WHERE id = " . (int) $row['id']);
+        }
+    }
+    $conn->query("ALTER TABLE grounds ADD UNIQUE KEY uq_grounds_slug (slug)");
+    $applied++;
+    echo "Applied: added `grounds.slug` column and backfilled slugs.\n";
+}
+
+// Add updated_at to grounds so sitemap can report fresh ground listings.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'grounds' AND COLUMN_NAME = 'updated_at'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE grounds ADD COLUMN updated_at TIMESTAMP NULL DEFAULT NULL AFTER created_at");
+    $conn->query("UPDATE grounds SET updated_at = created_at");
+    $applied++;
+    echo "Applied: added `grounds.updated_at` column.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

@@ -86,14 +86,33 @@ $body_class = implode(' ', $body_classes);
     } catch (e) {}
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }</script>
     <title><?php echo isset($page_title) ? e($page_title) . ' | ' : ''; ?>GoalSpace</title>
-    <meta name="description" content="<?php echo isset($page_description) ? e($page_description) : e('Book futsal courts online. Find a free court near you, choose your slot, and pay securely with GoalSpace.'); ?>">
+    <?php
+    $og_title = isset($page_title) ? e($page_title) . ' | GoalSpace' : 'GoalSpace - Book futsal courts online';
+    $og_desc  = isset($page_description) ? e($page_description) : e('Book futsal courts online. Find a free court near you, choose your slot, and pay securely with GoalSpace.');
+    $og_image = isset($page_image) ? e($page_image) : e(absolute_url('assets/img/social-og.png'));
+    $og_url   = isset($page_url)    ? e($page_url) : e(absolute_url());
+    $og_type  = isset($og_type) && $og_type === 'article' ? 'article' : 'website';
+    ?>
+    <meta name="description" content="<?php echo $og_desc; ?>">
+    <meta name="description" content="<?php echo $og_desc; ?>" property="og:description">
+    <meta property="og:title" content="<?php echo $og_title; ?>">
+    <meta property="og:description" content="<?php echo $og_desc; ?>">
+    <meta property="og:image" content="<?php echo $og_image; ?>">
+    <meta property="og:url" content="<?php echo $og_url; ?>">
+    <meta property="og:type" content="<?php echo $og_type; ?>">
+    <meta property="og:site_name" content="GoalSpace">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo $og_title; ?>">
+    <meta name="twitter:description" content="<?php echo $og_desc; ?>">
+    <meta name="twitter:image" content="<?php echo $og_image; ?>">
+    <link rel="canonical" href="<?php echo $og_url; ?>">
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=208'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=209'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -554,8 +573,9 @@ $body_class = implode(' ', $body_classes);
         </a>
     </div>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
-        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"> <i class="fa-solid fa-house"></i> Home</a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>"><i class="fa-solid fa-map-location-dot"></i> Grounds</a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>"><i class="fa-solid fa-layer-group"></i> Map</a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
         <a href="<?php echo base_url('pages/favorites.php'); ?>" class="<?php echo $active === 'favorites.php' ? 'active' : ''; ?>"><i class="fa-solid fa-heart"></i> Saved Courts</a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
@@ -594,6 +614,7 @@ $body_class = implode(' ', $body_classes);
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
         <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-layer-group"></i></a>
         <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $active === 'my_bookings.php' ? 'active' : ''; ?>" title="My Bookings" aria-label="My Bookings"><i class="fa-solid fa-calendar-check"></i></a>
         <a href="<?php echo base_url('pages/profile.php'); ?>" class="<?php echo $active === 'profile.php' ? 'active' : ''; ?>" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i></a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
@@ -612,6 +633,7 @@ $body_class = implode(' ', $body_classes);
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
         <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-map-location-dot"></i></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-layer-group"></i></a>
         <a href="<?php echo base_url('index.php#how'); ?>" title="How it works" aria-label="How it works"><i class="fa-solid fa-circle-info"></i></a>
         <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-chart-line"></i></a>
     <?php endif; ?>

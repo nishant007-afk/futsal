@@ -3269,7 +3269,7 @@ html[data-theme="dark"] .hs-panel,
 html[data-theme="dark"] .hs-overlay { background: var(--bg); }
 html[data-theme="dark"] .hs-thumb,
 html[data-theme="dark"] .hs-bar {
-    background: linear-gradient(100deg, var(--bg-soft) 40%, var(--bg-tint) 50%, var(--bg-soft) 60%);
+    background: var(--bg-soft);
 }
 
 html[data-theme="dark"] .nav-drop-panel,

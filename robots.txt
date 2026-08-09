@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /manager/
+Disallow: /pages/checkout.php
+Disallow: /upload.php
+Disallow: /process_booking.php
+Disallow: /config/
+Crawl-delay: 10
+
+Sitemap: https://goalspace.app/sitemap.xml

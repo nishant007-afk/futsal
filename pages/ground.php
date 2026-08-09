@@ -12,6 +12,9 @@ if (!$ground) {
     http_error_page(404, 'Court not found', 'We couldn\'t find that court. It may have been removed or is no longer active.', 'Browse all courts', 'pages/courts.php');
 }
 
+ground_seo_meta($ground);
+$json_ld = ground_json_ld($ground);
+
 $selected_date = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selected_date)) {
     $selected_date = date('Y-m-d');
@@ -90,7 +93,7 @@ $page_title = $ground['name'];
 $page_description = 'Check availability, pricing, and amenities at ' . $ground['name'] . '. Pick a free slot and book your futsal game online with GoalSpace.';
 require __DIR__ . '/../includes/header.php';
 ?>
-
+<?php echo $json_ld; // JSON-LD structured data ?>
 <nav class="breadcrumb">
     <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
     <a href="<?php echo grounds_list_url(); ?>">Grounds</a> &nbsp;/&nbsp;

@@ -1883,3 +1883,85 @@ function save_page(string $slug, string $title, string $summary, string $body): 
     $stmt->close();
     return $ok;
 }
+
+function render_json_ld(array $data): string
+{
+    return '<script type="application/ld+json">' . "\n" . json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+}
+
+function ground_seo_meta(array $ground): void
+{
+    global $page_title, $page_description, $page_image, $page_url, $og_type;
+    $title = $ground['name'];
+    $loc  = isset($ground['address']) && $ground['address'] !== ''
+        ? $ground['address'] : (isset($ground['city']) && $ground['city'] !== '' ? $ground['city'] : 'GoalSpace');
+    $page_title       = $title . ' - Book futsal court';
+    $page_description = 'Book the ' . $ground['name'] . ' futsal court'
+        . ($loc !== 'GoalSpace' ? ' in ' . $loc : '')
+        . '. Check real-time availability, prices, and pay securely with GoalSpace.';
+    $img = ground_cover($ground['id']);
+    $page_image = $img ? absolute_url($img) : absolute_url('assets/img/social-og.png');
+    $page_url     = absolute_url('pages/ground.php?id=' . (int) $ground['id'] . (isset($ground['slug']) && $ground['slug'] !== '' ? '&slug=' . $ground['slug'] : ''));
+    $og_type      = 'article';
+}
+
+function ground_detail_url(int $ground_id): string
+{
+    $slug = ground_slug($ground_id);
+    if ($slug !== '') {
+        return base_url('pages/ground.php?id=' . $ground_id . '&slug=' . $slug);
+    }
+    return base_url('pages/ground.php?id=' . $ground_id);
+}
+
+function ground_slug(int $ground_id): string
+{
+    global $conn;
+    $slug = '';
+    $stmt = $conn->prepare('SELECT slug FROM grounds WHERE id = ? LIMIT 1');
+    if ($stmt) {
+        $stmt->bind_param('i', $ground_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) {
+            $slug = (string) ($row['slug'] ?? '');
+        }
+        $stmt->close();
+    }
+    return $slug;
+}
+
+function ground_json_ld(array $ground): string
+{
+    $rating = ground_rating($ground['id']);
+    $img    = ground_cover($ground['id']);
+    $price  = isset($ground['price']) ? (float) $ground['price'] : 0.0;
+    $data   = [
+        '@context' => 'https://schema.org',
+        '@type'    => 'SportsActivityLocation',
+        'name'     => $ground['name'],
+        'image'    => $img ? [absolute_url($img)] : [absolute_url('assets/img/social-og.png')],
+        'address'  => [
+            '@type'           => 'PostalAddress',
+            'streetAddress'   => $ground['address'] ?? '',
+            'addressLocality' => $ground['city'] ?? '',
+            'addressRegion'   => $ground['state'] ?? '',
+            'postalCode'      => $ground['zip'] ?? '',
+        ],
+        'geo' => [
+            '@type'      => 'GeoCoordinates',
+            'latitude'   => $ground['lat'] ?? null,
+            'longitude'  => $ground['lng'] ?? null,
+        ],
+        'priceRange'  => $price > 0 ? '$' . number_format($price, 2) : 'Ask',
+        'sport'       => 'Futsal',
+        'aggregateRating' => [
+            '@type'         => 'AggregateRating',
+            'ratingValue'   => $rating['avg'] ?? null,
+            'reviewCount'   => $rating['count'] ?? 0,
+            'bestRating'    => 5,
+            'worstRating'   => 1,
+        ],
+    ];
+    return render_json_ld($data);
+}

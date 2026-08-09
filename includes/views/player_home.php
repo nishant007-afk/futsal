@@ -88,7 +88,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <div class="section-head reveal">
         <h2 class="section-title">Courts available near you</h2>
         <div class="actions">
-            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</a>
+            <button type="button" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
         </div>
     </div>
     <?php if (!$grounds): ?>

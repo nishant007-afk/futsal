@@ -219,11 +219,11 @@ require __DIR__ . '/../includes/header.php';
             <fieldset class="form-group">
                 <legend>Notifications</legend>
                 <div class="check-line">
-                    <input type="checkbox" id="notify_email" name="notify_email" <?php echo (int)$user['notify_email'] ? 'checked' : ''; ?>>
+                    <input type="checkbox" id="notify_email" name="notify_email" <?php echo (int)($user['notify_email'] ?? 1) ? 'checked' : ''; ?>>
                     <label for="notify_email"><strong>Email notifications</strong> - Booking confirmations, reminders, promos.</label>
                 </div>
                 <div class="check-line">
-                    <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)$user['notify_sms'] ? 'checked' : ''; ?>>
+                    <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?>>
                     <label for="notify_sms"><strong>SMS notifications</strong> - Booking confirmations, waitlist alerts.</label>
                 </div>
             </fieldset>

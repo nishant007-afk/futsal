@@ -567,10 +567,10 @@ function booking_card(array $b): void
         </div>
         <div class="mb-main" title="<?php echo e($b['ground_name']); ?>">
             <h3><?php echo e($b['ground_name']); ?></h3>
+            <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
-            <?php booking_price_html($b); ?>
             <div class="mb-actions">
                 <?php if ($needsPayment): ?>
                     <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-pay"><i class="fa-solid fa-wallet"></i> <?php echo $payLabel; ?></a>
@@ -628,10 +628,10 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
             <?php if ($show !== '' && !empty($b[$show . '_name'])): ?>
                 <span class="mb-person"><i class="fa-solid fa-user"></i> <?php echo e($b[$show . '_name']); ?></span>
             <?php endif; ?>
+            <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
-            <?php booking_price_html($b); ?>
             <div class="mb-actions">
                 <?php if ($actions_html !== null): ?><?php echo $actions_html; ?><?php endif; ?>
                 <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
@@ -674,9 +674,8 @@ function booking_refund_policy(string $booking_date, string $start_time, float $
 function cancellation_policy_html(): string
 {
     return '<div class="cancel-policy-notice"><i class="fa-solid fa-circle-info"></i> '
-        . '<strong>Cancellation policy:</strong> Free cancellation up to 24 hours before your game. '
-        . 'Cancellations within 24 hours incur a 50% fee. Once your game has started, no cancellations are possible. '
-        . '<a href="' . e(base_url('pages/page.php?slug=terms')) . '" class="inline-link">See full terms</a>.</div>';
+        . '<strong>Cancellation:</strong> Free up to 24h before. Within 24h: 50% fee. After start: no refund. '
+        . '<a href="' . e(base_url('pages/page.php?slug=terms')) . '" class="inline-link">Full terms</a>.</div>';
 }
 
 /**
@@ -1529,11 +1528,12 @@ function ground_card_html(array $ground, ?array $availability = null): void
                         class="fav-toggle card-fav"
                         data-ground-id="<?php echo (int)$ground['id']; ?>"
                         data-url="<?php echo base_url('ajax/favorite.php'); ?>"
-                        aria-label="Save this court"
-                        title="Save this court"
+                        aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                        title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
                         data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
                     <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>"
-                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>"></i>
+                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>" aria-hidden="true"></i>
+                    <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
                 <?php if ($availability !== null): ?>

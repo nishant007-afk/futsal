@@ -208,7 +208,9 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <?php
-    $activePromos = array_filter(promo_codes_list(), function ($p) { return $p['is_active'] && ($p['usage_limit'] === null || $p['used_count'] < $p['usage_limit']); });
+    $activePromos = array_filter(promo_codes_list(), function ($p) { 
+        return $p['is_active'] && ($p['usage_limit'] === null || $p['used_count'] < $p['usage_limit']); 
+    });
     if ($activePromos):
     ?>
     <div class="promo-banner reveal" style="margin-top:20px;">
@@ -220,7 +222,12 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="promo-codes-list">
                 <?php foreach ($activePromos as $p): ?>
-                    <span class="promo-code-badge" data-code="<?php echo e($p['code']); ?>" title="<?php echo e($p['code']); ?> - <?php echo (float)$p['discount_percent'] > 0 ? (int)$p['discount_percent'] . '% off' : format_price($p['discount_amount'] . ' off'); ?>">
+                    <?php 
+                        $discountText = $p['discount_type'] === 'percent' 
+                            ? (int)$p['discount_value'] . '% off' 
+                            : format_price($p['discount_value'] . ' off');
+                    ?>
+                    <span class="promo-code-badge" data-code="<?php echo e($p['code']); ?>" title="<?php echo e($p['code']); ?> - <?php echo e($discountText); ?>">
                         <?php echo e($p['code']); ?>
                     </span>
                 <?php endforeach; ?>

@@ -11,12 +11,9 @@ $items = $grounds->get_result()->fetch_all(MYSQLI_ASSOC);
 $json = json_encode($items);
 ?>
 
-<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 <div class="container maps-page" style="max-width:1180px;margin:auto;">
-    <div class="section-head reveal">
-        <h2 class="section-title">Courts on the Map</h2>
-        <p class="muted">Pins show active courts. Click a pin to open the court and book a slot.</p>
-    </div>
+    <h1 class="page-title reveal">Courts on the Map</h1>
+    <p class="page-subtitle muted reveal">Pins show active courts. Click a pin to open the court and book a slot.</p>
     <div class="map-browse-wrap reveal">
         <div id="browseMap" style="width:100%;height:640px;border-radius:12px;overflow:hidden;border:1px solid var(--line);"></div>
     </div>

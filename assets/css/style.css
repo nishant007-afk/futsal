@@ -3352,6 +3352,21 @@ html[data-theme="dark"] .spinner-thin { border-color: rgba(255,255,255,.12); }
 }
 html[data-theme="dark"] .cancel-policy-notice { background: var(--dark-2); border-color: var(--dark-line); }
 
+.gallery-thumb { border-radius: 8px; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+.gallery-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.gallery-thumb.active { box-shadow: 0 0 0 2px var(--brand); }
+html[data-theme="dark"] .gallery-thumb.active { box-shadow: 0 0 0 2px var(--brand-400); }
+
+.gallery-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; animation: fadeIn .15s ease-out; }
+.gallery-lightbox img { max-width: 100%; max-height: 85vh; height: auto; border-radius: 8px; box-shadow: 0 16px 48px rgba(0,0,0,.5); }
+.gl-close, .gl-prev, .gl-next { position: absolute; background: rgba(255,255,255,.1); border: none; color: #fff; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+.gl-close { top: 24px; right: 24px; font-size: 20px; }
+.gl-close:hover, .gl-prev:hover, .gl-next:hover { background: rgba(255,255,255,.25); }
+.gl-prev { left: 16px; top: 50%; transform: translateY(-50%); }
+.gl-next { right: 16px; top: 50%; transform: translateY(-50%); }
+html[data-theme="dark"] .gl-close, html[data-theme="dark"] .gl-prev, html[data-theme="dark"] .gl-next { background: rgba(0,0,0,.3); color: #fff; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 .chart-wrap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .chart-legend { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; color: var(--muted); }
 .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 4px 0; }

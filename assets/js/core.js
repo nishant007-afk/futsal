@@ -979,5 +979,68 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-    /* end favorites / near-me */
+
+    /* ---- Ground photo gallery (ground.php) ---- */
+    function initGallery() {
+        const wrap = document.getElementById('galleryWrap');
+        if (!wrap) return;
+
+        const mainImg = document.getElementById('galleryMain');
+        const thumbs = Array.from(wrap.querySelectorAll('.gallery-thumb'));
+        const prevBtn = wrap.querySelector('.gallery-prev');
+        const nextBtn = wrap.querySelector('.gallery-next');
+        const zoomBtn = wrap.querySelector('.gallery-zoom');
+        let current = 0;
+
+        function show(idx) {
+            if (!thumbs[idx]) return;
+            current = idx;
+            mainImg.src = thumbs[idx].dataset.src;
+            mainImg.alt = thumbs[idx].getAttribute('aria-label') || '';
+            thumbs.forEach(function (t, i) {
+                t.classList.toggle('active', i === idx);
+            });
+            if (prevBtn) prevBtn.hidden = idx === 0;
+            if (nextBtn) nextBtn.hidden = idx === thumbs.length - 1;
+        }
+
+        thumbs.forEach(function (thumb, i) {
+            thumb.addEventListener('click', function () { show(i); });
+        });
+
+        if (prevBtn) prevBtn.addEventListener('click', function () { if (current > 0) show(current - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { if (current < thumbs.length - 1) show(current + 1); });
+
+        if (zoomBtn && thumbs.length) {
+            zoomBtn.addEventListener('click', function () {
+                const overlay = document.createElement('div');
+                overlay.className = 'gallery-lightbox';
+                overlay.innerHTML =
+                    '<button class="gl-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+                    '<button class="gl-prev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>' +
+                    '<img src="' + mainImg.src + '" alt="">' +
+                    '<button class="gl-next" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>';
+                document.body.appendChild(overlay);
+                let lbIdx = current;
+                const lbImg = overlay.querySelector('img');
+                function lbShow(idx) {
+                    lbIdx = idx;
+                    lbImg.src = thumbs[idx].dataset.src;
+                    overlay.querySelector('.gl-prev').hidden = idx === 0;
+                    overlay.querySelector('.gl-next').hidden = idx === thumbs.length - 1;
+                }
+                overlay.querySelector('.gl-close').addEventListener('click', function () { overlay.remove(); });
+                overlay.querySelector('.gl-prev').addEventListener('click', function () { if (lbIdx > 0) lbShow(lbIdx - 1); });
+                overlay.querySelector('.gl-next').addEventListener('click', function () { if (lbIdx < thumbs.length - 1) lbShow(lbIdx + 1); });
+                overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+                document.addEventListener('keydown', function esc(e) {
+                    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
+                });
+            });
+        }
+
+        if (thumbs.length) show(0);
+    }
+    initGallery();
+    /* end ground gallery */
 });

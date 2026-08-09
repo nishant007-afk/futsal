@@ -3031,8 +3031,8 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     .mbooking.mbooking--card .mbooking-date .bd-when { font-size: 9px; letter-spacing: .5px; }
     .mbooking.mbooking--card .mbooking-date .bd-time { font-size: 10px; }
     .mbooking.mbooking--card .mb-st { justify-self: end; grid-area: badge; align-self: center; font-size: 11px; padding: 4px 10px; }
-    .mbooking.mbooking--card .mb-main { grid-area: main; gap: 6px; }
-    .mbooking.mbooking--card .mb-main h3 { font-size: 16.5px; }
+    .mbooking.mbooking--card .mb-main { grid-area: main; gap: 6px; display: flex; flex-direction: row; align-items: baseline; flex-wrap: wrap; }
+    .mbooking.mbooking--card .mb-main h3 { font-size: 16.5px; margin-right: 12px; }
     .mbooking.mbooking--card .mb-side { grid-area: side; align-items: stretch; gap: 10px; }
     .mbooking.mbooking--card .mb-side .mb-price { font-size: 22px; align-self: flex-start; }
     .mbooking .mb-side .price-orig { font-size: 13px; margin-inline-start: 8px; }

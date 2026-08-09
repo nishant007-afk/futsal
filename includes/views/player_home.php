@@ -24,8 +24,15 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 ?>
 
 <section class="welcome reveal">
-    <span class="eyebrow">Player dashboard</span>
-    <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
+    <div class="welcome-head">
+        <div>
+            <span class="eyebrow">Player dashboard</span>
+            <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
+        </div>
+        <div class="actions">
+            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</a>
+        </div>
+    </div>
 </section>
 
 <?php if ((int)$stats['unpaid'] > 0): ?>

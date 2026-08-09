@@ -1412,15 +1412,23 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 html[data-theme="dark"] .card-fav { background: rgba(18,42,32,.92); border-color: var(--line); color: var(--ink-3); }
 .ground-fav {
     margin-left: 8px; margin-top: 2px; vertical-align: middle;
-    width: 30px; height: 30px; border-radius: 7px;
+    min-width: 30px; height: 30px; border-radius: 7px;
     background: rgba(255,255,255,(.8)); border: 1px solid var(--line-2);
     color: var(--ink-3); font-size: 15px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: background .15s, color .15s;
+    gap: 4px; padding: 0 8px;
+    transition: background .15s, color .15s, transform .1s;
 }
-.ground-fav:hover { background: #fff; color: var(--danger); }
+.ground-fav:hover { background: #fff; color: var(--danger); transform: scale(1.12); }
 .ground-fav.saved { color: var(--danger); }
+.ground-fav .fav-text { display: none; font-size: 11px; font-weight: 600; white-space: nowrap; }
+@media (min-width: 480px) {
+    .ground-fav .fav-text { display: inline; }
+}
 html[data-theme="dark"] .ground-fav { background: rgba(18,42,32,.92); border-color: var(--line); color: var(--ink-3); }
+
+.ground-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.ground-header h1 { margin: 0; font-size: 1.5rem; }
 .card-rating { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--ink-3); }
 .card-rating .no-rating { color: var(--ink-3); font-size: 12.5px; }
 .thumb-tag {
@@ -3027,10 +3035,13 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     .mbooking.mbooking--card .mb-main h3 { font-size: 16.5px; }
     .mbooking.mbooking--card .mb-side { grid-area: side; align-items: stretch; gap: 10px; }
     .mbooking.mbooking--card .mb-side .mb-price { font-size: 22px; align-self: flex-start; }
-.mbooking .mb-side .price-orig { font-size: 13px; margin-inline-start: 8px; }
+    .mbooking .mb-side .price-orig { font-size: 13px; margin-inline-start: 8px; }
     .mbooking.mbooking--card .mb-actions { flex-direction: column; align-items: stretch; gap: 10px; }
     .mbooking.mbooking--card .mb-actions .mb-cta { justify-content: center; padding: 13px 14px; font-size: 14px; min-height: 47px; }
     .mbooking.mbooking--card .mb-actions .mb-cta-pay { order: -1; }
+    .mbooking.mbooking--card .mb-side .mb-price { display: none; }
+    .mbooking.mbooking--card .mb-side .discount-tag { display: none; }
+    .mbooking.mbooking--card .mb-side .price-orig { display: none; }
     .paybar { flex-direction: column; align-items: stretch; gap: 12px; padding: 13px 14px; }
     .paybar .btn { width: 100%; }
     .mbooking-thumb { display: none; }

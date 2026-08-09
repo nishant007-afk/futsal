@@ -167,20 +167,22 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="detail-box booking-panel reveal">
-        <h1><?php echo e($ground['name']); ?>
+        <div class="ground-header">
+            <h1><?php echo e($ground['name']); ?></h1>
             <?php if (is_logged_in()): ?>
                 <button type="button"
                         class="fav-toggle ground-fav"
                         data-ground-id="<?php echo (int)$ground['id']; ?>"
                         data-url="<?php echo base_url('ajax/favorite.php'); ?>"
-                        aria-label="Save this court"
-                        title="Save this court"
+                        aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                        title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
                         data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
                     <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>"
-                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>"></i>
+                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>" aria-hidden="true"></i>
+                    <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
-        </h1>
+        </div>
         <?php
         $discPrice = $ground['discount_price'] ?? null;
         $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);

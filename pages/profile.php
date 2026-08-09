@@ -7,6 +7,12 @@ $user = current_user();
 $errors = [];
 $flash_success = '';
 
+// Player stats
+$totalBookings = (int)$conn->query("SELECT COUNT(*) c FROM bookings WHERE user_id = " . (int)$_SESSION['user_id'] . " AND status != 'cancelled'")->fetch_assoc()['c'];
+$upcomingBookings = (int)$conn->query("SELECT COUNT(*) c FROM bookings WHERE user_id = " . (int)$_SESSION['user_id'] . " AND status != 'cancelled' AND booking_date >= CURDATE()")->fetch_assoc()['c'];
+$totalSpent = (float)$conn->query("SELECT COALESCE(SUM(amount_paid), 0) s FROM bookings WHERE user_id = " . (int)$_SESSION['user_id'] . " AND status != 'cancelled'")->fetch_assoc()['s'];
+$favoriteCount = (int)$conn->query("SELECT COUNT(*) c FROM favorites WHERE user_id = " . (int)$_SESSION['user_id'])->fetch_assoc()['c'];
+
 $maxBytes = 2 * 1024 * 1024;
 $avatarDir = __DIR__ . '/../uploads/avatars/';
 
@@ -153,6 +159,13 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted profile-email"><?php echo e($user['email']); ?></p>
         <span class="badge badge-<?php echo e($user['role']); ?>"><?php echo e($user['role']); ?></span>
         <p class="form-hint" style="text-align:center;margin-top:14px;">Member since <?php echo e(date('F Y', strtotime($user['created_at']))); ?></p>
+
+        <div class="profile-stats reveal">
+            <div class="pstat"><strong><?php echo $totalBookings; ?></strong><span>Total bookings</span></div>
+            <div class="pstat"><strong><?php echo $upcomingBookings; ?></strong><span>Upcoming</span></div>
+            <div class="pstat"><strong><?php echo format_price($totalSpent); ?></strong><span>Total spent</span></div>
+            <div class="pstat"><strong><?php echo $favoriteCount; ?></strong><span>Saved courts</span></div>
+        </div>
 
         <form method="post" action="" enctype="multipart/form-data" class="avatar-form" id="avatarForm">
             <?php echo csrf_field(); ?>

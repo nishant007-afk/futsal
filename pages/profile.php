@@ -21,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $name = trim($_POST['name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $email = strtolower(trim($_POST['email'] ?? ''));
+    $notifyEmail = isset($_POST['notify_email']) ? 1 : 0;
+    $notifySms = isset($_POST['notify_sms']) ? 1 : 0;
 
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters.';
@@ -48,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (!$errors) {
-        $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ? WHERE id = ?');
-        $stmt->bind_param('ssi', $name, $phone, $_SESSION['user_id']);
+        $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ?, notify_email = ?, notify_sms = ? WHERE id = ?');
+        $stmt->bind_param('ssiii', $name, $phone, $notifyEmail, $notifySms, $_SESSION['user_id']);
         if ($stmt->execute()) {
             if ($emailChanged) {
                 $_SESSION['pending_email_change'] = [
@@ -214,6 +216,17 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <?php field_error($errors, 'phone'); ?>
             </div>
+            <fieldset class="form-group">
+                <legend>Notifications</legend>
+                <div class="check-line">
+                    <input type="checkbox" id="notify_email" name="notify_email" <?php echo (int)$user['notify_email'] ? 'checked' : ''; ?>>
+                    <label for="notify_email"><strong>Email notifications</strong> - Booking confirmations, reminders, promos.</label>
+                </div>
+                <div class="check-line">
+                    <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)$user['notify_sms'] ? 'checked' : ''; ?>>
+                    <label for="notify_sms"><strong>SMS notifications</strong> - Booking confirmations, waitlist alerts.</label>
+                </div>
+            </fieldset>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
         </form>
     </div>

@@ -121,4 +121,12 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `bookings.reminder_sent` column.\n";
 }
 
+// Add notification preferences to users.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'notify_email'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN notify_email TINYINT(1) NOT NULL DEFAULT 1 AFTER role");
+    $conn->query("ALTER TABLE users ADD COLUMN notify_sms TINYINT(1) NOT NULL DEFAULT 0 AFTER notify_email");
+    $applied++;
+    echo "Applied: added `users.notify_email` and `users.notify_sms` columns.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

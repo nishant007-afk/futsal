@@ -1023,7 +1023,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        nearMeBtn.addEventListener('click', function () {
+        nearMeBtn.addEventListener('click', function (e) {
+            e.preventDefault();
             // Check if permission already granted in this session
             if (sessionStorage.getItem('locationPermissionGranted')) {
                 requestLocation();

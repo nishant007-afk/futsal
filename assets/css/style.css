@@ -2145,13 +2145,13 @@ td.strong { font-weight: 700; color: var(--ink); }
 .mb-st.sm-partial { background: var(--warn-soft); color: var(--warn); border-color: rgba(180, 83, 9, .28); }
 .mb-st.sm-unpaid { background: #fdf0f0; color: var(--danger); border-color: #f2c8c8; }
 .mb-st.sm-cancelled { background: var(--bg-soft); color: var(--ink-3); border-color: var(--line-2); }
-.mb-price { font-size: 30px; font-weight: 800; color: var(--ink); white-space: nowrap; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.mb-price-cur { font-size: 15px; font-weight: 600; color: var(--ink-3); margin-right: 2px; vertical-align: baseline; }
+.mb-price { font-size: 34px; font-weight: 800; color: var(--ink); white-space: nowrap; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mb-price-cur { font-size: 17px; font-weight: 600; color: var(--ink-3); margin-right: 2px; vertical-align: baseline; }
 .mb-price-inline { margin-top: 4px; }
-.mb-price-inline .mb-price { font-size: 18px; font-weight: 700; }
-.mb-price-inline .mb-price-cur { font-size: 13px; }
+.mb-price-inline .mb-price { font-size: 22px; font-weight: 800; }
+.mb-price-inline .mb-price-cur { font-size: 15px; }
 .mb-price-inline .price-orig { font-size: 14px; margin-left: 8px; }
-.mb-price-inline .discount-tag { font-size: 11px; padding: 2px 8px; margin-left: 8px; }
+.mb-price-inline .discount-tag { font-size: 12px; padding: 2px 8px; margin-left: 8px; }
 .mb-actions { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .mb-cta {
     display: inline-flex; align-items: center; gap: 8px;
@@ -3034,7 +3034,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
 .mbooking.mbooking--card .mb-main { grid-area: main; gap: 6px; display: flex; flex-direction: row; align-items: baseline; flex-wrap: wrap; }
 .mbooking.mbooking--card .mb-main h3 { font-size: 16.5px; margin-right: auto; }
     .mbooking.mbooking--card .mb-side { grid-area: side; align-items: stretch; gap: 10px; }
-    .mbooking.mbooking--card .mb-side .mb-price { font-size: 22px; align-self: flex-start; }
+    .mbooking.mbooking--card .mb-side .mb-price { font-size: 24px; align-self: flex-start; }
     .mbooking .mb-side .price-orig { font-size: 13px; margin-inline-start: 8px; }
     .mbooking.mbooking--card .mb-actions { flex-direction: column; align-items: stretch; gap: 10px; }
     .mbooking.mbooking--card .mb-actions .mb-cta { justify-content: center; padding: 13px 14px; font-size: 14px; min-height: 47px; }
@@ -3109,7 +3109,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     .mbooking.mbooking--card .mb-main { grid-area: main; gap: 6px; }
     .mbooking.mbooking--card .mb-main h3 { font-size: 16.5px; }
     .mbooking.mbooking--card .mb-side { grid-area: side; align-items: stretch; gap: 10px; }
-    .mbooking.mbooking--card .mb-side .mb-price { font-size: 22px; align-self: flex-start; }
+    .mbooking.mbooking--card .mb-side .mb-price { font-size: 24px; align-self: flex-start; }
 .mbooking .mb-side .price-orig { font-size: 13px; margin-inline-start: 8px; }
 }
 @media (max-width: 400px) {

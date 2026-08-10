@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config/db.php';
 
 require_login();
@@ -21,8 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $name = trim($_POST['name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $email = strtolower(trim($_POST['email'] ?? ''));
-    $notifyEmail = isset($_POST['notify_email']) ? 1 : 0;
-    $notifySms = isset($_POST['notify_sms']) ? 1 : 0;
 
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters.';
@@ -50,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (!$errors) {
-        $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ?, notify_email = ?, notify_sms = ? WHERE id = ?');
-        $stmt->bind_param('ssiii', $name, $phone, $notifyEmail, $notifySms, $_SESSION['user_id']);
+        $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ? WHERE id = ?');
+        $stmt->bind_param('ssi', $name, $phone, $_SESSION['user_id']);
         if ($stmt->execute()) {
             if ($emailChanged) {
                 $_SESSION['pending_email_change'] = [
@@ -142,24 +140,41 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2><i class="fa-solid fa-id-card"></i> My Profile</h2>
+    <h2>My Profile</h2>
 </div>
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
 <div class="profile-grid">
     <div class="profile-side form-card">
+        <span class="profile-status badge badge-<?php echo e($user['role']); ?>"><?php echo e($user['role']); ?></span>
         <div class="profile-avatar">
             <?php if (!empty($user['avatar'])): ?>
                 <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
+                <button type="submit" class="avatar-remove-top" form="removeAvatarForm" data-confirm="Remove your profile photo?" aria-label="Remove photo"><i class="fa-solid fa-trash-can"></i></button>
             <?php else: ?>
                 <span><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
+                <span class="profile-avatar-edit"><i class="fa-solid fa-camera"></i></span>
             <?php endif; ?>
-            <span class="profile-avatar-edit"><i class="fa-solid fa-camera"></i></span>
         </div>
+
         <h3 class="profile-name"><?php echo e($user['name']); ?></h3>
-        <p class="muted profile-email"><?php echo e($user['email']); ?></p>
-        <span class="badge badge-<?php echo e($user['role']); ?>"><?php echo e($user['role']); ?></span>
+
+        <form method="post" action="" enctype="multipart/form-data" class="avatar-form" id="avatarForm">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="action" value="upload_avatar">
+            <label for="avatar" class="btn btn-outline btn-block<?php echo has_error($errors, 'avatar'); ?>"><i class="fa-solid fa-upload"></i> Choose photo</label>
+            <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only">
+            <?php field_error($errors, 'avatar'); ?>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;display:none;"><i class="fa-solid fa-camera-retro"></i> Upload photo</button>
+        </form>
+        <?php if (!empty($user['avatar'])): ?>
+        <form method="post" action="" class="avatar-form" id="removeAvatarForm" style="display:none;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="action" value="remove_avatar">
+        </form>
+        <?php endif; ?>
+
         <p class="form-hint" style="text-align:center;margin-top:14px;">Member since <?php echo e(date('F Y', strtotime($user['created_at']))); ?></p>
 
         <div class="profile-stats reveal">
@@ -168,23 +183,6 @@ require __DIR__ . '/../includes/header.php';
             <div class="pstat"><strong><?php echo format_price($totalSpent); ?></strong><span>Total spent</span></div>
             <div class="pstat"><strong><?php echo $favoriteCount; ?></strong><span>Saved courts</span></div>
         </div>
-
-        <form method="post" action="" enctype="multipart/form-data" class="avatar-form" id="avatarForm">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="action" value="upload_avatar">
-            <label for="avatar" class="btn btn-outline btn-block<?php echo has_error($errors, 'avatar'); ?>"><i class="fa-solid fa-upload"></i> Choose photo</label>
-            <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only">
-            <p class="form-hint" style="text-align:center;margin-top:8px;" id="avatarStatus">JPG, PNG, WebP or GIF &middot; max 2MB</p>
-            <?php field_error($errors, 'avatar'); ?>
-            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;display:none;"><i class="fa-solid fa-camera-retro"></i> Upload photo</button>
-        </form>
-        <?php if (!empty($user['avatar'])): ?>
-            <form method="post" action="" class="avatar-form" style="margin-top:10px;">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="action" value="remove_avatar">
-                <button type="submit" class="btn btn-danger btn-block" data-confirm="Remove your profile photo?"><i class="fa-solid fa-trash-can"></i> Remove photo</button>
-            </form>
-        <?php endif; ?>
     </div>
 
     <div class="form-card lg">
@@ -216,17 +214,6 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <?php field_error($errors, 'phone'); ?>
             </div>
-            <fieldset class="form-group">
-                <legend>Notifications</legend>
-                <div class="check-line">
-                    <input type="checkbox" id="notify_email" name="notify_email" <?php echo (int)($user['notify_email'] ?? 1) ? 'checked' : ''; ?>>
-                    <label for="notify_email"><strong>Email notifications</strong> - Booking confirmations, reminders, promos.</label>
-                </div>
-                <div class="check-line">
-                    <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?>>
-                    <label for="notify_sms"><strong>SMS notifications</strong> - Booking confirmations, waitlist alerts.</label>
-                </div>
-            </fieldset>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
         </form>
     </div>

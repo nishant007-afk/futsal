@@ -172,7 +172,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head bookings-head reveal">
     <div>
-        <h2><i class="fa-solid fa-calendar-check"></i> My Bookings</h2>
+        <h2>My Bookings</h2>
     </div>
     <div class="actions">
         <a href="<?php echo base_url('pages/my_bookings.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>

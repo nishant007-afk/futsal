@@ -26,14 +26,12 @@ if ($fav_ids !== []) {
 
 <div class="container">
     <div class="reveal">
-        <p class="muted">Courts you hearted. Tap the heart on any court to save it here.</p>
-    </div>
 
     <?php if (!$grounds): ?>
         <div class="empty reveal">
             <span class="big"><i class="fa-solid fa-heart"></i></span>
             <h3>No saved courts yet</h3>
-            <p>Browse courts and tap the heart icon to add your favorites here.</p>
+            <p>Browse courts and tap the heart icon to add your favorites.</p>
             <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-sm">Browse courts</a>
         </div>
     <?php else: ?>

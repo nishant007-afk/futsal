@@ -70,6 +70,9 @@ if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'rese
 if ($active === 'page.php' && ($_GET['slug'] ?? '') === 'contact') {
     $body_classes[] = 'contact-page';
 }
+if (in_array($active, ['settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'change_password.php', 'security.php'], true)) {
+    $body_classes[] = 'settings-page';
+}
 $body_class = implode(' ', $body_classes);
 ?>
 <!DOCTYPE html>
@@ -83,6 +86,11 @@ $body_class = implode(' ', $body_classes);
         var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         var theme = savedTheme || (prefersDark ? 'dark' : 'light');
         if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    } catch (e) {}
+    try {
+        if (localStorage.getItem('goalspace-sidebar-collapsed') === '1') {
+            document.documentElement.classList.add('sidebar-collapsed');
+        }
     } catch (e) {}
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }</script>
     <title><?php echo isset($page_title) ? e($page_title) . ' | ' : ''; ?>GoalSpace</title>
@@ -526,13 +534,8 @@ $body_class = implode(' ', $body_classes);
                                 <em><?php echo e($site_user['email']); ?></em>
                             </span>
                         </div>
-                        <button type="button" class="pm-theme" id="themeToggle" role="menuitem" aria-pressed="false">
-                            <i class="fa-solid fa-moon" id="themeIcon" aria-hidden="true"></i>
-                            <span>Dark mode</span>
-                            <span class="pm-switch" aria-hidden="true"><span class="pm-knob"></span></span>
-                        </button>
                         <a href="<?php echo base_url('pages/profile.php'); ?>" role="menuitem"><i class="fa-solid fa-user"></i> My Profile</a>
-                        <a href="<?php echo base_url('pages/change_password.php'); ?>" role="menuitem"><i class="fa-solid fa-lock"></i> Change Password</a>
+                        <a href="<?php echo base_url('pages/settings.php'); ?>" role="menuitem"><i class="fa-solid fa-gear"></i> Settings</a>
                         <?php if (!empty($_SESSION['impersonated_from'])): ?>
                             <a href="<?php echo base_url('admin/users.php?stop_impersonate=1&csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger"><i class="fa-solid fa-user-check"></i> Stop impersonating</a>
                         <?php endif; ?>
@@ -572,8 +575,11 @@ $body_class = implode(' ', $body_classes);
     <div class="nav-sidebar-head">
         <a href="<?php echo base_url('index.php'); ?>" class="brand" aria-label="GoalSpace home">
             <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
-            GoalSpace
+            <span class="brand-name">GoalSpace</span>
         </a>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+            <i class="fa-solid fa-bars"></i>
+        </button>
     </div>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>"> <i class="fa-solid fa-house"></i> Home</a>

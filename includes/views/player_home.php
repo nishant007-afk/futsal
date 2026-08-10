@@ -84,12 +84,9 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <?php endif; ?>
 </section>
 
-<section class="section section-alt" id="courts">
-    <div class="section-head reveal">
+<section class="section section-alt" id="courts" style="padding:46px 0 40px;">
+    <div class="section-head reveal" style="padding-left:18px; margin-top:-6px;">
         <h2 class="section-title">Courts available near you</h2>
-        <div class="actions">
-            <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
-        </div>
     </div>
     <?php if (!$grounds): ?>
         <div class="empty"><span class="big"><i class="fa-solid fa-futbol"></i></span><h3>No grounds available right now</h3><p>Check back soon &middot; courts open for booking will appear here.</p></div>

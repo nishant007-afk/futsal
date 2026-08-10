@@ -11,12 +11,14 @@ $items = $grounds->get_result()->fetch_all(MYSQLI_ASSOC);
 $json = json_encode($items);
 ?>
 
-<div class="container maps-page" style="max-width:1180px;margin:auto;">
-    <h1 class="page-title reveal">Courts on the Map</h1>
-    <p class="page-subtitle muted reveal" style="margin-top:-8px;margin-bottom:2px;">Pins show active courts. Click a pin to open the court and book a slot.</p>
-    <div class="map-browse-wrap reveal" style="margin-top:-20px;">
-        <div id="browseMap" style="width:100%;height:640px;border-radius:12px;overflow:hidden;border:1px solid var(--line);"></div>
+<div class="page-head reveal">
+    <div>
+        <h2>Courts on the Map</h2>
+        <p class="page-sub muted">Pins show active courts. Click a pin to open the court and book a slot.</p>
     </div>
+</div>
+<div class="map-browse-wrap reveal">
+    <div id="browseMap" style="width:100%;height:640px;border-radius:12px;overflow:hidden;border:1px solid var(--line);"></div>
 </div>
 
 <script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>

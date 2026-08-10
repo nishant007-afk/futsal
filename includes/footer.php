@@ -76,7 +76,9 @@ if (in_array($active, ['ground.php', 'book.php', 'payment.php', 'reschedule.php'
 if (in_array($active, [
     'login.php', 'register.php', 'forgot_password.php', 'reset_password.php',
     'verify.php', 'otp_verify.php', 'change_password.php', 'profile.php',
-    'change_email_otp.php', 'change_password_otp.php', 'google_setup.php'
+    'change_email_otp.php', 'change_password_otp.php', 'google_setup.php',
+    'settings.php', 'settings_account.php', 'settings_notifications.php',
+    'settings_preferences.php', 'change_password.php', 'security.php'
 ], true)) {
     $pageModules[] = 'auth';
 }

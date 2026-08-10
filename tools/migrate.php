@@ -129,6 +129,16 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `users.notify_email` and `users.notify_sms` columns.\n";
 }
 
+// Split email notifications into per-type preferences.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'notify_bookings'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN notify_bookings TINYINT(1) NOT NULL DEFAULT 1 AFTER notify_sms");
+    $conn->query("ALTER TABLE users ADD COLUMN notify_promo TINYINT(1) NOT NULL DEFAULT 1 AFTER notify_bookings");
+    $conn->query("ALTER TABLE users ADD COLUMN notify_expiry TINYINT(1) NOT NULL DEFAULT 1 AFTER notify_promo");
+    $conn->query("UPDATE users SET notify_bookings = notify_email, notify_promo = notify_email, notify_expiry = notify_email");
+    $applied++;
+    echo "Applied: split `users.notify_email` into `notify_bookings`, `notify_promo`, `notify_expiry`.\n";
+}
+
 // Add helpful_count to reviews.
 if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'reviews' AND COLUMN_NAME = 'helpful_count'")->fetch_assoc()['c'] === 0) {
     $conn->query("ALTER TABLE reviews ADD COLUMN helpful_count INT NOT NULL DEFAULT 0 AFTER comment");

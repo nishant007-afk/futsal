@@ -20,7 +20,7 @@ $json = json_encode($items);
 <div class="map-browse-wrap reveal">
     <div id="browseMap" style="width:100%;height:640px;border-radius:12px;overflow:hidden;border:1px solid var(--line);"></div>
 </div>
-
+<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 <script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

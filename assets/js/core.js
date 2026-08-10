@@ -365,6 +365,99 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 100);
     autosync();
 
+    // ----- Inline live field validation ------------------------------
+    // Debounced 500ms after the last keystroke: shows a "checking" buffer,
+    // then a tick (valid) or a red mark + box highlight (invalid). Password
+    // fields and OTP boxes are left untouched per design.
+    function wireLiveFieldChecks() {
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const fields = document.querySelectorAll(
+            '.input-group input[type="email"], .input-group input[type="tel"], .input-group input[type="text"]'
+        );
+        fields.forEach(function (input) {
+            if (input.disabled || input.readOnly) return;
+            if (input.closest('.otp-boxes')) return;
+            const group = input.closest('.input-group');
+            if (!group) return;
+            const formGroup = group.closest('.form-group');
+            const required = input.hasAttribute('required');
+
+            // Only fields with an actual rule get live feedback: password/skip
+            // is already excluded by the selector. Email and phone always check.
+            let hasRule = input.type === 'email' || input.type === 'tel';
+            if (!hasRule && required) hasRule = true;
+            if (!hasRule) return;
+
+            const status = document.createElement('span');
+            status.className = 'field-status';
+            status.setAttribute('aria-hidden', 'true');
+            group.appendChild(status);
+
+            let timer = null;
+
+            function valueValid(v) {
+                const t = v.trim();
+                if (t === '') return null; // empty: unknown until blur for required
+                if (input.type === 'email') return EMAIL_RE.test(t);
+                if (input.type === 'tel') {
+                    const digits = t.replace(/[^0-9]/g, '');
+                    return digits.length >= 7 && digits.length <= 15;
+                }
+                if (input.hasAttribute('pattern')) {
+                    try { return new RegExp('^(?:' + input.getAttribute('pattern') + ')$').test(t); } catch (e) { return true; }
+                }
+                return t.length >= 2;
+            }
+
+            function setError(on) {
+                if (formGroup) formGroup.classList.toggle('has-error', on);
+                input.setAttribute('aria-invalid', on ? 'true' : 'false');
+            }
+
+            function show(state, valid) {
+                status.className = 'field-status ' + state;
+                if (state === 'checking') {
+                    status.innerHTML = '<span class="spinner-thin"></span>';
+                } else if (state === 'ok') {
+                    status.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    setError(false);
+                } else if (state === 'bad') {
+                    status.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    setError(true);
+                } else {
+                    status.innerHTML = '';
+                    setError(false);
+                }
+            }
+
+            input.addEventListener('input', function () {
+                clearTimeout(timer);
+                const v = input.value;
+                if (v.trim() === '' && !required) { show(''); return; }
+                show('checking');
+                timer = setTimeout(function () {
+                    const res = valueValid(input.value);
+                    show(res === null ? '' : (res ? 'ok' : 'bad'), res);
+                }, 500);
+            });
+            input.addEventListener('blur', function () {
+                clearTimeout(timer);
+                const res = valueValid(input.value);
+                if (res === null) {
+                    if (required) show('bad'); else show('');
+                } else {
+                    show(res ? 'ok' : 'bad', res);
+                }
+            });
+            // Reflect a server-side error already present on load.
+            if (formGroup && formGroup.classList.contains('has-error') && input.value.trim() !== '') {
+                const res = valueValid(input.value);
+                if (res === false) show('bad');
+            }
+        });
+    }
+    wireLiveFieldChecks();
+
     // ----- OTP boxes (one digit per box) ------------------------------
     // Single shared behaviour: auto-advance on typing, go back with
     // backspace, accept paste, keyboard arrows. Values live in a hidden
@@ -538,7 +631,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function dismissToast(t) {
         if (!t || t.classList.contains('hide')) return;
         t.classList.add('hide');
-        setTimeout(function () { t.remove(); removeBackdropIfEmpty(); }, 250);
+        setTimeout(function () { t.remove(); removeBackdropIfEmpty(); }, 300);
     }
     function removeBackdropIfEmpty() {
         if (!document.querySelector('.toast') && !document.querySelector('.modal')) {
@@ -584,32 +677,63 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         modal.querySelector('[data-modal-cancel]').focus();
     }
-    function openErrorModal(message, title) {
-        showBackdrop();
+    function showSheet(message, opts) {
+        opts = opts || {};
+        const type = opts.type || 'error';
         const esc = function (s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
-        const modal = document.createElement('div');
-        modal.className = 'modal modal-error';
-        modal.innerHTML =
-            '<button type="button" class="modal-x" data-modal-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-            '<div class="modal-head">' +
-                '<span class="modal-icon"><i class="fa-solid fa-circle-xmark"></i></span>' +
-                '<h3>' + esc(title || 'Something went wrong') + '</h3>' +
-            '</div>' +
-            '<p class="modal-msg">' + esc(message) + '</p>';
-        document.body.appendChild(modal);
-        function close() {
-            modal.classList.add('hide');
-            setTimeout(function () { modal.remove(); removeBackdropIfEmpty(); }, 220);
+        const icons = { error: 'fa-circle-xmark', info: 'fa-circle-info', success: 'fa-circle-check', warning: 'fa-triangle-exclamation' };
+
+        // Reuse an open backdrop if there is one; otherwise create it.
+        let backdrop = document.querySelector('.sheet-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'sheet-backdrop';
+            document.body.appendChild(backdrop);
         }
-        modal.querySelector('[data-modal-close]').addEventListener('click', close);
-        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+
+        // Stack multiple sheets a touch apart so they don't fully overlap.
+        const sheets = document.querySelectorAll('.sheet');
+        const sheet = document.createElement('div');
+        sheet.className = 'sheet' + (type === 'error' ? '' : ' sheet-' + type);
+        sheet.style.bottom = 'calc(' + (sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
+        sheet.innerHTML =
+            '<button type="button" class="sheet-x" data-sheet-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+            '<div class="sheet-head">' +
+                '<span class="sheet-icon"><i class="fa-solid ' + icons[type] + '"></i></span>' +
+                '<h3>' + esc(opts.title || (type === 'error' ? 'Something went wrong' : 'Heads up')) + '</h3>' +
+            '</div>' +
+            '<p class="sheet-msg">' + esc(message) + '</p>' +
+            (opts.detail ? '<p class="sheet-detail">' + esc(opts.detail) + '</p>' : '');
+        document.body.appendChild(sheet);
+
+        function close() {
+            if (sheet.classList.contains('hide')) return;
+            sheet.classList.add('hide');
+            setTimeout(function () {
+                sheet.remove();
+                if (!document.querySelector('.sheet')) {
+                    const b = document.querySelector('.sheet-backdrop');
+                    if (b) b.remove();
+                }
+            }, 300);
+        }
+        sheet.querySelector('[data-sheet-close]').addEventListener('click', close);
+        sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
         document.addEventListener('keydown', function handler(e) {
             if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
         });
-        setTimeout(function () { modal.querySelector('[data-modal-close]').focus(); }, 10);
+        setTimeout(function () { sheet.querySelector('[data-sheet-close]').focus(); }, 10);
+
+        const autoDismiss = (type === 'success' || type === 'info'); // errors/warnings stay until dismissed
+        if (autoDismiss) setTimeout(close, 3200);
         return { close: close };
+    }
+    window.showSheet = showSheet;
+
+    function openErrorModal(message, title) {
+        return showSheet(message, { type: 'error', title: title });
     }
     window.openErrorModal = openErrorModal;
     document.querySelectorAll('[data-error-modal-msg]').forEach(function (el) {
@@ -631,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             showBackdrop();
             if (toasts.length > 1) {
-                t.style.top = 'calc(50% + ' + ((i - (toasts.length - 1) / 2) * 64) + 'px)';
+                t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
             }
             if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
         }

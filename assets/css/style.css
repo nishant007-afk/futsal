@@ -1911,7 +1911,7 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1.2fr; 
     background: var(--bg); caret-color: var(--brand);
 }
 .otp-boxes .otp-box:focus { outline: none; border-color: var(--brand-600); box-shadow: var(--ring); }
-.form-group.has-error .otp-boxes .otp-box { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(179, 69, 61, .18); }
+.form-group.has-error .otp-boxes .otp-box { border-color: var(--danger); box-shadow: none; }
 @media (max-width: 420px) {
     .otp-boxes { gap: 6px; }
     .otp-boxes .otp-box { width: 40px; height: 48px; flex-basis: 40px; font-size: 17px; }
@@ -1932,7 +1932,6 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1.2fr; 
 .form-group input.field-error,
 .form-group input.field-error:focus {
     border-color: var(--danger);
-    box-shadow: 0 0 0 3px rgba(214, 69, 61, .18);
 }
 .form-hint {
     font-size: 12px; color: var(--ink-3); margin-top: 6px; line-height: 1.5;
@@ -1951,7 +1950,7 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1.2fr; 
 .form-group.has-error .input-group select,
 .form-group.has-error .input-group textarea {
     border-color: var(--danger);
-    box-shadow: 0 0 0 3px rgba(214, 69, 61, .18);
+    box-shadow: none;
 }
 .form-group.has-error .input-group > i { color: var(--danger); }
 .form-group.has-error > label { color: var(--danger); }
@@ -2414,7 +2413,7 @@ label .muted { font-weight: 400; }
 .role-switch[data-role="manager"] .role-icon { background: var(--warn-soft); color: var(--warn); border-color: #f0dfb6; }
 .role-switch[data-role="user"] .role-icon { background: var(--ok-soft); color: var(--ok); border-color: #c6e7d4; }
 .role-switch.has-error { flex-wrap: wrap; }
-.role-switch.has-error select { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(214, 69, 61, .18); }
+.role-switch.has-error select { border-color: var(--danger); box-shadow: none; }
 .role-switch .role-error {
     flex-basis: 100%; margin-top: 6px; font-size: 11.5px;
 }

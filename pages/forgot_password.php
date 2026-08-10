@@ -127,7 +127,7 @@ require __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
             <div class="input-group floating">
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required>
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required data-check-email="exists">
                 <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>

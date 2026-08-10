@@ -403,6 +403,34 @@ document.addEventListener('DOMContentLoaded', function () {
             group.appendChild(status);
 
             let timer = null;
+            let checkSeq = 0;
+            const ajaxBase = (document.body.getAttribute('data-base') || '').replace(/\/$/, '');
+            const csrf = document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value || '';
+            const emailCheckMode = input.getAttribute('data-check-email'); // 'exists' | 'available'
+
+            function runServerCheck(cb) {
+                if (!emailCheckMode) { cb(null); return; }
+                const seq = ++checkSeq;
+                const query = new URLSearchParams({
+                    email: input.value.trim(),
+                    mode: emailCheckMode,
+                    csrf: csrf
+                });
+                const exclude = input.getAttribute('data-exclude-id');
+                if (exclude) query.set('exclude', exclude);
+                fetch(ajaxBase + '/ajax/check_email.php?' + query.toString(), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (seq !== checkSeq) return;
+                        cb(data && data.ok);
+                    })
+                    .catch(function () {
+                        if (seq !== checkSeq) return;
+                        cb(null);
+                    });
+            }
 
             function valueValid(v) {
                 const t = v.trim();
@@ -439,23 +467,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
+            function finalizeCheck(res) {
+                // Server check result: true => ok, false => bad, null => fall back to format-only
+                if (res === true) { show('ok'); }
+                else if (res === false) { show('bad'); }
+                else {
+                    const local = valueValid(input.value);
+                    show(local === null ? '' : (local ? 'ok' : 'bad'), local);
+                }
+            }
+
             input.addEventListener('input', function () {
                 clearTimeout(timer);
+                checkSeq++;
                 const v = input.value;
                 if (v.trim() === '' && !required) { show(''); return; }
+                if (v.trim() === '') { show('checking'); return; }
                 show('checking');
                 timer = setTimeout(function () {
                     const res = valueValid(input.value);
-                    show(res === null ? '' : (res ? 'ok' : 'bad'), res);
+                    if (res === null) { show(''); return; }
+                    if (res === false) { show('bad'); return; }
+                    runServerCheck(finalizeCheck);
                 }, 500);
             });
             input.addEventListener('blur', function () {
                 clearTimeout(timer);
+                checkSeq++;
                 const res = valueValid(input.value);
                 if (res === null) {
                     if (required) show('bad'); else show('');
+                } else if (res === false) {
+                    show('bad');
                 } else {
-                    show(res ? 'ok' : 'bad', res);
+                    runServerCheck(finalizeCheck);
                 }
             });
             // Reflect a server-side error already present on load.
@@ -712,7 +757,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const sheets = document.querySelectorAll('.sheet');
         const sheet = document.createElement('div');
         sheet.className = 'sheet' + (type === 'error' ? '' : ' sheet-' + type);
-        sheet.style.bottom = 'calc(' + (sheetNavOffset() + sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
+        sheet.style.bottom = 'calc(' + (sheetNavOffset() + 16 + sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
         sheet.innerHTML =
             '<button type="button" class="sheet-x" data-sheet-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="sheet-head">' +

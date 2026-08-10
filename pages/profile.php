@@ -203,7 +203,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
                 <div class="input-group floating">
-                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required>
+                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required data-check-email="available" data-exclude-id="<?php echo (int)$user['id']; ?>">
                     <label for="email">Email <span class="req">*</span></label>
                 </div>
                 <p class="form-hint">Change it and we'll email a 6-digit code to your new address to confirm.</p>

@@ -156,7 +156,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
             <div class="input-group floating">
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required>
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required data-check-email="available">
                 <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>

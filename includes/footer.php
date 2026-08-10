@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/core.js?v=67'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=68'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

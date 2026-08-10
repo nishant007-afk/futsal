@@ -1081,7 +1081,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 
 /* ============ TOASTS ============ */
 .popup-backdrop {
-    position: fixed; inset: 0; z-index: 290;
+    position: fixed; inset: 0; z-index: 1250;
     background: rgba(6, 12, 9, .62);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -1089,7 +1089,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 }
 @keyframes fadeIn { to { opacity: 1; } }
 .toast {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1260;
     margin: 0 auto;
     width: min(560px, 100%);
     display: flex; align-items: center; gap: 12px;
@@ -1195,7 +1195,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 
 /* ============ CONFIRM MODAL ============ */
 .modal-backdrop {
-    position: fixed; inset: 0; z-index: 290;
+    position: fixed; inset: 0; z-index: 1250;
     background: rgba(6, 12, 9, .68);
     display: flex; align-items: center; justify-content: center;
     animation: fadeIn .25s ease;
@@ -1203,7 +1203,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .modal-backdrop[hidden] { display: none; }
 .modal-backdrop .modal { position: static; transform: none; width: min(480px, 92vw); }
 .modal {
-    position: fixed; inset: 0; margin: auto; z-index: 300;
+    position: fixed; inset: 0; margin: auto; z-index: 1260;
     width: min(440px, 92vw);
     max-height: min(620px, 80vh);
     overflow-y: auto;
@@ -1261,14 +1261,14 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 
 /* ============ BOTTOM SHEET POPUP (blur + slide up) ============ */
 .sheet-backdrop {
-    position: fixed; inset: 0; z-index: 290;
+    position: fixed; inset: 0; z-index: 1250;
     background: rgba(6, 12, 9, .62);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     animation: fadeIn .25s ease;
 }
 .sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1260;
     margin: 0 auto;
     width: min(560px, 100%);
     max-height: 82vh; overflow-y: auto;
@@ -3275,6 +3275,8 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
 
     body.auth-page .bottom-nav { display: none; }
     .cookie-banner { bottom: calc(var(--bottomnav-h) + 20px + env(safe-area-inset-bottom, 0px)); }
+    .toast { bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom, 0px)); border-radius: 18px; }
+    .sheet { bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* print */

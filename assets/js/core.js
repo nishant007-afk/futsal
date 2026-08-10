@@ -370,7 +370,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // then a tick (valid) or a red mark + box highlight (invalid). Password
     // fields and OTP boxes are left untouched per design.
     function wireLiveFieldChecks() {
-        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const EMAIL_RE = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
+        function valueValidEmail(t) {
+            if (!EMAIL_RE.test(t)) return false;
+            if (t.includes('..')) return false;
+            if (t.startsWith('.') || t.endsWith('.')) return false;
+            const domain = t.split('@')[1] || '';
+            const labels = domain.split('.');
+            const tld = labels[labels.length - 1] || '';
+            return labels.length >= 2 && tld.length >= 2;
+        }
         const fields = document.querySelectorAll(
             '.input-group input[type="email"], .input-group input[type="tel"], .input-group input[type="text"]'
         );
@@ -398,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
             function valueValid(v) {
                 const t = v.trim();
                 if (t === '') return null; // empty: unknown until blur for required
-                if (input.type === 'email') return EMAIL_RE.test(t);
+                if (input.type === 'email') return valueValidEmail(t);
                 if (input.type === 'tel') {
                     const digits = t.replace(/[^0-9]/g, '');
                     return digits.length >= 7 && digits.length <= 15;
@@ -693,11 +702,17 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.appendChild(backdrop);
         }
 
-        // Stack multiple sheets a touch apart so they don't fully overlap.
+        // Stack multiple sheets a touch apart so they don't fully overlap,
+        // raised above the mobile bottom nav so they never appear hidden.
+        function sheetNavOffset() {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav && getComputedStyle(nav).display !== 'none') return nav.offsetHeight || 62;
+            return 0;
+        }
         const sheets = document.querySelectorAll('.sheet');
         const sheet = document.createElement('div');
         sheet.className = 'sheet' + (type === 'error' ? '' : ' sheet-' + type);
-        sheet.style.bottom = 'calc(' + (sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
+        sheet.style.bottom = 'calc(' + (sheetNavOffset() + sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
         sheet.innerHTML =
             '<button type="button" class="sheet-x" data-sheet-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="sheet-head">' +

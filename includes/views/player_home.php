@@ -30,7 +30,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
             <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
         </div>
         <div class="actions">
-            <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</a>
+            <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
         </div>
     </div>
 </section>
@@ -88,7 +88,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <div class="section-head reveal">
         <h2 class="section-title">Courts available near you</h2>
         <div class="actions">
-            <button type="button" class="btn btn-outline btn-sm" id="nearMeBtn" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
+            <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
         </div>
     </div>
     <?php if (!$grounds): ?>

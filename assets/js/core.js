@@ -1084,8 +1084,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ---- Near-me geolocation ---- */
-    const nearMeBtn = document.getElementById('nearMeBtn');
-    if (nearMeBtn && navigator.geolocation) {
+    const nearMeBtns = document.querySelectorAll('.near-me-btn');
+    if (nearMeBtns.length && navigator.geolocation) {
         let locationPromptShown = false;
 
         function showLocationPrompt() {
@@ -1123,14 +1123,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function requestLocation() {
-            nearMeBtn.disabled = true;
-            nearMeBtn.innerHTML = '<span class="spinner-thin"></span> Finding...';
+            const btn = document.querySelector('.near-me-btn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-thin"></span> Finding...';
             navigator.geolocation.getCurrentPosition(function (pos) {
-                const params = new URLSearchParams(window.location.search);
-                params.delete('page');
-                params.set('lat', pos.coords.latitude.toFixed(6));
-                params.set('lng', pos.coords.longitude.toFixed(6));
-                window.location.search = params.toString();
+                const target = btn.getAttribute('data-courts-url') || (window.location.origin + window.location.pathname);
+                const url = new URL(target, window.location.origin);
+                url.searchParams.delete('page');
+                url.searchParams.set('lat', pos.coords.latitude.toFixed(6));
+                url.searchParams.set('lng', pos.coords.longitude.toFixed(6));
+                window.location.href = url.toString();
             }, function (err) {
                 let msg = 'Location access was denied. You can search by city instead.';
                 if (err.code === err.PERMISSION_DENIED) {
@@ -1140,32 +1143,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (err.code === err.POSITION_UNAVAILABLE) {
                     msg = 'Location unavailable. Please try again or search by city.';
                 }
-                alert(msg);
-                nearMeBtn.disabled = false;
-                nearMeBtn.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
+                showSheet(msg, { type: 'error', title: 'Location unavailable' });
+                nearMeBtns.forEach(function (b) {
+                    b.disabled = false;
+                    b.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
+                });
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        nearMeBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            // Check if permission already granted in this session
-            if (sessionStorage.getItem('locationPermissionGranted')) {
-                requestLocation();
-                return;
-            }
-            // Check browser permission state if available
-            if (navigator.permissions) {
-                navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
-                    if (result.state === 'granted') {
-                        sessionStorage.setItem('locationPermissionGranted', '1');
-                        requestLocation();
-                    } else {
-                        showLocationPrompt();
-                    }
-                });
-            } else {
-                showLocationPrompt();
-            }
+        nearMeBtns.forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                // Check if permission already granted in this session
+                if (sessionStorage.getItem('locationPermissionGranted')) {
+                    requestLocation();
+                    return;
+                }
+                // Check browser permission state if available
+                if (navigator.permissions) {
+                    navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                        if (result.state === 'granted') {
+                            sessionStorage.setItem('locationPermissionGranted', '1');
+                            requestLocation();
+                        } else {
+                            showLocationPrompt();
+                        }
+                    });
+                } else {
+                    showLocationPrompt();
+                }
+            });
         });
 
         // Store permission granted for this session

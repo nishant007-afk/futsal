@@ -21,6 +21,7 @@ A futsal court booking site with three kinds of users. Admins run everything, ma
 - **Promotions.** Managers can make promo codes and discounts for their own grounds.
 - **Star reviews.** Players rate a visit and leave a comment.
 - **Accounts and security.** Bcrypt passwords, email verification, an OTP check on sensitive actions, login throttling with a cooldown, Google sign in, CSRF tokens and security headers. No login state is kept in the browser; every check happens on the server.
+- **Settings hub.** Role-aware Settings pages for profile details, notification preferences (per-type: bookings, promotions, slot expiry), appearance and security.
 - **A fresh look.** The UI got a clean green restyle, with Manrope for text and Barlow Condensed for headings, plain copy with no em dashes, no glassy overlays, and images converted to WebP to keep pages fast.
 - **Mobile friendly.** Font Awesome icons, a bottom bar on phones that tucks away while you scroll, scroll reveal animations, a skeleton loader while pages open, and tables that scroll when there is no room.
 

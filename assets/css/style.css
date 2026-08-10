@@ -683,6 +683,7 @@ a.user-chip:hover { background: var(--bg-soft); }
 
 /* tables */
 .ps-table { display: block; height: 200px; border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 30px; background: var(--bg); }
+.ps-map { width: 100%; height: 460px; border-radius: var(--r-md); background: var(--line); }
 
 /* page / contact / receipt / admin skeletons */
 .ps-prose { padding: 20px 0; }

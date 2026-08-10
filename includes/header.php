@@ -29,6 +29,12 @@ if ($active === 'index.php') {
     $skeletonType = 'payment';
 } elseif ($active === 'profile.php') {
     $skeletonType = 'profile';
+} elseif ($active === 'favorites.php') {
+    $skeletonType = 'favorites';
+} elseif ($active === 'map.php') {
+    $skeletonType = 'map';
+} elseif ($active === 'book.php') {
+    $skeletonType = 'book';
 } elseif ($active === 'notifications.php' || $active === 'notification_details.php') {
     $skeletonType = 'notifications';
 } elseif (in_array($active, ['grounds.php'], true) && $site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
@@ -37,7 +43,7 @@ if ($active === 'index.php') {
     $skeletonType = 'list';
 } elseif (in_array($active, ['dashboard.php'], true)) {
     $skeletonType = 'dashboard';
-} elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php', 'google_setup.php'], true)) {
+} elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php', 'google_setup.php', 'login_google.php'], true)) {
     $skeletonType = 'auth';
 } elseif ($active === 'page.php') {
     $skeletonType = 'page';
@@ -51,7 +57,7 @@ if ($active === 'index.php') {
     $skeletonType = 'reschedule';
 } elseif ($active === 'logout.php') {
     $skeletonType = 'logout';
-} elseif (in_array($active, ['change_email_otp.php', 'change_password_otp.php'], true)) {
+} elseif (in_array($active, ['settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php', 'change_email_otp.php', 'change_password_otp.php'], true)) {
     $skeletonType = 'settings';
 } elseif (in_array($active, ['pages.php', 'edit_page.php'], true) && $site_user && $site_user['role'] === 'admin') {
     $skeletonType = 'admin-pages';
@@ -405,6 +411,26 @@ $body_class = implode(' ', $body_classes);
                 <span class="ps-option-row"></span>
                 <span class="ps-fbtn"></span>
             </div>
+        </div>
+    <?php elseif ($skeletonType === 'map'): ?>
+        <div class="container ps-main"><span class="ps-line ps-line-w60"></span></div>
+        <div class="container ps-body">
+            <div class="ps-map"></div>
+        </div>
+    <?php elseif ($skeletonType === 'favorites'): ?>
+        <div class="container ps-main"><span class="ps-title"></span></div>
+        <div class="container ps-body">
+            <div class="ps-grid ps-grid-2">
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+            </div>
+        </div>
+    <?php elseif ($skeletonType === 'book'): ?>
+        <div class="container ps-main"><span class="ps-title"></span><span class="ps-line ps-line-w45"></span></div>
+        <div class="container ps-body">
+            <div class="ps-fcard tall"><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-field"><i></i></span><span class="ps-fbtn"></span></div>
         </div>
     <?php else: ?>
         <div class="container ps-section pad">

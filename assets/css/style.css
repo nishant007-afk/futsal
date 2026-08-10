@@ -2749,9 +2749,9 @@ body.modal-open { overflow: hidden; }
     box-shadow: var(--s2); padding: 26px 28px;
 }
 .settings-account-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.settings-account-list li { display: flex; align-items: center; gap: 10px; }
+.settings-account-list li { display: block; }
 .settings-account-list a {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 12px; width: 100%;
     padding: 11px 14px; border-radius: 12px; font-size: 14px; font-weight: 600;
     color: var(--ink-2); text-decoration: none;
     transition: background .15s, color .15s;
@@ -2759,6 +2759,7 @@ body.modal-open { overflow: hidden; }
 .settings-account-list a > i { font-size: 15px; color: var(--ink-3); }
 .settings-account-list a:hover { background: var(--bg-soft); color: var(--ink); }
 .settings-account-list a .settings-nav-chevr { margin-left: auto; }
+.settings-page-head .nav-back { align-self: flex-start; }
 .notify-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .notify-options .opt-row { display: flex; align-items: center; gap: 8px; }
 .settings-avatar {

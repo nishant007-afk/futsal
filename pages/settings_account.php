@@ -12,7 +12,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back" aria-label="Back to settings"><i class="fa-solid fa-chevron-left"></i></a>
         <div>
             <h2>Account</h2>
-            <p class="muted" style="font-size:13px;margin-top:4px;">Your GoalSpace profile and security options.</p>
+            <p class="muted" style="font-size:13px;margin-top:4px;">Your GoalSpace profile and preferences.</p>
         </div>
     </div>
 </div>
@@ -20,7 +20,6 @@ require __DIR__ . '/../includes/header.php';
 <ul class="settings-account-list">
     <li><a href="<?php echo base_url('pages/profile.php'); ?>"><i class="fa-solid fa-user"></i> My Profile <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
     <li><a href="<?php echo base_url('pages/change_password.php'); ?>"><i class="fa-solid fa-key"></i> Change Password <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
-    <li><a href="<?php echo base_url('pages/security.php'); ?>"><i class="fa-solid fa-shield-halved"></i> Security <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
 </ul>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

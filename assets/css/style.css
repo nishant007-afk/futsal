@@ -2764,6 +2764,14 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 820px) {
   .settings-page-head .ps-head-row { flex-direction: column; align-items: flex-start; }
 }
+.dash-page-head .mob-back { display: none; }
+.dash-head-main { display: flex; flex-wrap: wrap; flex: 1 1 auto; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; }
+@media (max-width: 820px) {
+    .dash-page-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .dash-page-head .mob-back { display: inline-flex; }
+    .dash-head-main { width: 100%; }
+    .dash-page-head .dash-in-actions { display: none; }
+}
 .notify-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .notify-options .opt-row { display: flex; align-items: center; gap: 8px; }
 .settings-avatar {

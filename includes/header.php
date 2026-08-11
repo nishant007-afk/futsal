@@ -667,9 +667,6 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing" aria-label="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
         <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages" aria-label="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
         <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
-        <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing" aria-label="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
-        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages" aria-label="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
-        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
     <?php else: ?>
         <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
         <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>

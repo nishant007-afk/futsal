@@ -257,9 +257,14 @@ $page_title = 'Manage Bookings';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <h2><i class="fa-solid fa-list-check"></i> Bookings on My Grounds</h2>
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+<div class="page-head dash-page-head">
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-chevron-left"></i></a>
+    <div class="dash-head-main">
+        <h2><i class="fa-solid fa-list-check"></i> Bookings on My Grounds</h2>
+        <div class="actions">
+            <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm dash-in-actions"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        </div>
+    </div>
 </div>
 
 <div class="table-toolbar reveal">

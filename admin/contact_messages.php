@@ -95,14 +95,17 @@ $page_title = 'Contact Messages';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <h2><i class="fa-solid fa-inbox"></i> Contact Messages</h2>
-    <div class="actions">
-        <a href="?filter=all&export=1" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
-        <a href="?filter=all" class="btn btn-outline btn-sm <?php echo $filter === 'all' ? 'btn-primary' : ''; ?>">All (<?php echo count($messages); ?>)</a>
-        <a href="?filter=open" class="btn btn-outline btn-sm <?php echo $filter === 'open' ? 'btn-primary' : ''; ?>">Open</a>
-        <a href="?filter=login_locked" class="btn btn-outline btn-sm <?php echo $filter === 'login_locked' ? 'btn-primary' : ''; ?>">Login locked</a>
-        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+<div class="page-head dash-page-head">
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-chevron-left"></i></a>
+    <div class="dash-head-main">
+        <h2><i class="fa-solid fa-inbox"></i> Contact Messages</h2>
+        <div class="actions">
+            <a href="?filter=all&export=1" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="?filter=all" class="btn btn-outline btn-sm <?php echo $filter === 'all' ? 'btn-primary' : ''; ?>">All (<?php echo count($messages); ?>)</a>
+            <a href="?filter=open" class="btn btn-outline btn-sm <?php echo $filter === 'open' ? 'btn-primary' : ''; ?>">Open</a>
+            <a href="?filter=login_locked" class="btn btn-outline btn-sm <?php echo $filter === 'login_locked' ? 'btn-primary' : ''; ?>">Login locked</a>
+            <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm dash-in-actions"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        </div>
     </div>
 </div>
 

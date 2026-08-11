@@ -190,16 +190,19 @@ require __DIR__ . '/../includes/header.php';
 ?>
 <link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
-<div class="page-head">
-    <h2><i class="fa-solid fa-store"></i> <?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
-    <div class="actions">
-        <?php if ($editing): ?>
-            <a href="<?php echo base_url('admin/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
-        <?php endif; ?>
-        <a href="<?php echo base_url('admin/grounds.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
-        <a href="<?php echo base_url('admin/grounds.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
-        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
-</div>
+<div class="page-head dash-page-head">
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-chevron-left"></i></a>
+    <div class="dash-head-main">
+        <h2><i class="fa-solid fa-store"></i> <?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
+        <div class="actions">
+            <?php if ($editing): ?>
+                <a href="<?php echo base_url('admin/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
+            <?php endif; ?>
+            <a href="<?php echo base_url('admin/grounds.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
+            <a href="<?php echo base_url('admin/grounds.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm dash-in-actions"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        </div>
+    </div>
 </div>
 
 <div class="ground-form-grid">

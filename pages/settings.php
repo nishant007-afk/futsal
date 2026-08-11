@@ -93,6 +93,7 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
+<div class="settings-desktop">
 <!-- desktop tabs -->
 <nav class="settings-nav settings-nav-tabs" role="tablist" id="settingsNav" aria-label="Settings sections">
     <button type="button" class="settings-nav-btn<?php echo $activeTab === 'password' ? ' active' : ''; ?>" data-tab="password" id="tab-password" role="tab" aria-selected="<?php echo $activeTab === 'password' ? 'true' : 'false'; ?>"><i class="fa-solid fa-user-gear"></i> Account</button>
@@ -177,7 +178,8 @@ require __DIR__ . '/../includes/header.php';
                 <button type="button" class="theme-option" data-theme="dark" role="radio" aria-checked="false"><i class="fa-solid fa-moon"></i><span><strong>Dark</strong><em>Easy on the eyes</em></span></button>
             </div>
         </div>
-    </section>
+</section>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

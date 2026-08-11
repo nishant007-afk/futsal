@@ -2812,15 +2812,22 @@ body.modal-open { overflow: hidden; }
 }
 @media (min-width: 821px) {
     .settings-nav-links { display: none; }
-    .settings-panels-desktop { display: block; }
-    .settings-nav-tabs { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; }
-    .settings-nav-tabs > button.settings-nav-btn {
-        padding: 8px 18px; border-radius: 10px; font-size: 13px; border: 1px solid var(--line); background: var(--bg-soft);
+    .settings-desktop { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: start; margin: 8px 0 44px; }
+    .settings-panels-desktop { display: block; min-width: 0; }
+    .settings-nav-tabs {
+        display: flex; flex-direction: column; gap: 4px; margin: 0;
+        padding: 10px; position: sticky; top: 22px;
+        background: var(--bg); border: 1px solid var(--line); border-radius: calc(var(--r-lg) + 4px);
+        box-shadow: var(--s2);
     }
-    .settings-nav-tabs > button.settings-nav-btn:hover { background: var(--bg); }
-    .settings-nav-tabs > button.settings-nav-btn.active { background: var(--brand); color: #fff; }
-    .settings-nav-tabs > button.settings-nav-btn.active > i:first-child { color: #fff; }
-    .settings-nav-tabs > button.settings-nav-btn .settings-nav-chevr { display: none; }
+    .settings-nav-tabs > button.settings-nav-btn {
+        width: 100%; justify-content: flex-start; gap: 12px;
+        padding: 12px 14px; border: 0; background: none; border-radius: 12px; font-size: 14px;
+    }
+    .settings-nav-tabs > button.settings-nav-btn:hover { background: var(--bg-soft); }
+    .settings-nav-tabs > button.settings-nav-btn.active { background: var(--brand-soft); color: var(--brand-700); }
+    .settings-nav-tabs > button.settings-nav-btn.active > i:first-child { color: var(--brand-700); }
+    .settings-panel > .settings-narrow { max-width: 620px; margin: 0; }
 }
 
 /* ============ PAYMENT ============ */

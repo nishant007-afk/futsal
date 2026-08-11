@@ -17,9 +17,16 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<ul class="settings-account-list">
-    <li><a href="<?php echo base_url('pages/profile.php'); ?>"><i class="fa-solid fa-user"></i> My Profile <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
-    <li><a href="<?php echo base_url('pages/change_password.php'); ?>"><i class="fa-solid fa-key"></i> Change Password <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
-</ul>
+<div class="settings-desktop">
+    <?php include __DIR__ . '/../includes/settings_nav.php'; ?>
+    <div class="settings-layout-main">
+        <div class="settings-card settings-narrow">
+            <ul class="settings-account-list">
+                <li><a href="<?php echo base_url('pages/profile.php'); ?>"><i class="fa-solid fa-user"></i> My Profile <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
+                <li><a href="<?php echo base_url('pages/change_password.php'); ?>"><i class="fa-solid fa-key"></i> Change Password <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

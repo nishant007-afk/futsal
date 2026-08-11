@@ -2695,7 +2695,7 @@ body.modal-open { overflow: hidden; }
     font-size: 12px; border: 2px solid var(--bg);
 }
 .avatar-remove-top {
-    position: absolute; top: 8px; right: 18px;
+    position: absolute; top: 10px; right: 24px;
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--danger-soft); color: var(--danger);
     border: 2px solid var(--bg);
@@ -3343,14 +3343,15 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
         padding: 22px 14px 24px; overflow-y: auto; overflow-x: hidden; z-index: 110;
     }
     html.sidebar-collapsed #mainNav { width: var(--sidebar-w-collapsed); padding: 22px 10px 24px; }
-    html.sidebar-collapsed #mainNav > a { justify-content: center; gap: 0; padding: 11px 6px; font-size: 0; transition: font-size .16s ease; }
-    html.sidebar-collapsed #mainNav > a > i { font-size: 17px; }
-    #mainNav > a { display: inline-flex; align-items: center; gap: 12px; padding: 11px 14px; font-size: 14px; white-space: nowrap; min-height: 44px; transition: font-size .18s ease .24s; }
-    #mainNav > a > i { font-size: 17px; }
+    html.sidebar-collapsed #mainNav > a { justify-content: center; gap: 0; padding: 11px 6px; }
+    #mainNav > a > i { font-size: 17px; flex-shrink: 0; }
+    #mainNav > a { display: inline-flex; align-items: center; gap: 12px; padding: 11px 14px; font-size: 14px; white-space: nowrap; min-height: 44px; transition: gap .2s cubic-bezier(.4,0,.2,1), padding .2s cubic-bezier(.4,0,.2,1); }
+    #mainNav > a .nav-label { overflow: hidden; white-space: nowrap; max-width: 14em; opacity: 1; transition: max-width .2s cubic-bezier(.4,0,.2,1), opacity .16s ease; }
+    html.sidebar-collapsed #mainNav > a .nav-label { max-width: 0; opacity: 0; }
     #mainNav .nav-sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px 18px; position: relative; }
-    #mainNav .nav-sidebar-head .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; color: var(--ink); min-width: 0; transition: opacity .12s ease .27s, visibility 0s linear .27s; }
+    #mainNav .nav-sidebar-head .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; color: var(--ink); min-width: 0; transition: opacity .15s ease, visibility 0s; }
     #mainNav .nav-sidebar-head .brand .brand-name { white-space: nowrap; }
-    html.sidebar-collapsed #mainNav .nav-sidebar-head .brand { position: absolute; opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility 0s .28s; }
+    html.sidebar-collapsed #mainNav .nav-sidebar-head .brand { position: absolute; opacity: 0; visibility: hidden; }
     /* desktop sidebar collapse toggle (only meaningful on wide screens) */
     .sidebar-toggle {
         display: inline-flex; align-items: center; justify-content: center;

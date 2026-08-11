@@ -2759,7 +2759,11 @@ body.modal-open { overflow: hidden; }
 .settings-account-list a > i { font-size: 15px; color: var(--ink-3); }
 .settings-account-list a:hover { background: var(--bg-soft); color: var(--ink); }
 .settings-account-list a .settings-nav-chevr { margin-left: auto; }
-.settings-page-head .nav-back { align-self: flex-start; }
+.settings-page-head { align-items: flex-start; }
+.ps-head-row { display: flex; align-items: center; gap: 12px; }
+@media (max-width: 820px) {
+  .settings-page-head .ps-head-row { flex-direction: column; align-items: flex-start; }
+}
 .notify-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .notify-options .opt-row { display: flex; align-items: center; gap: 8px; }
 .settings-avatar {

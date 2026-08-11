@@ -7,8 +7,8 @@ $page_title = 'Preferences';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head settings-page-head" style="align-items:flex-start;">
-    <div style="display:flex;align-items:center;gap:12px;">
+<div class="page-head settings-page-head">
+    <div class="ps-head-row">
         <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back" aria-label="Back to settings"><i class="fa-solid fa-chevron-left"></i></a>
         <div>
             <h2>Appearance</h2>

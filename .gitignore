@@ -29,9 +29,12 @@ DESIGN.md
 design.docx
 PRODUCT.md
 
-# AI tooling & design-agent skill libraries
+# Local tooling & scratch dirs (kept off GitHub)
 /.opencode/
 /.impeccable/
+
+# Local dev preview helper (localhost-only previews)
+tools/preview.php
 
 # Editor folders
 .idea/

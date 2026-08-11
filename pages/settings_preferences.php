@@ -17,25 +17,20 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="settings-desktop">
-    <?php include __DIR__ . '/../includes/settings_nav.php'; ?>
-    <div class="settings-layout-main">
-        <div class="settings-card settings-narrow">
-            <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Colour theme">
-                <button type="button" class="theme-option" data-theme="system" role="radio" aria-checked="false">
-                    <i class="fa-solid fa-circle-half-stroke"></i>
-                    <span><strong>System</strong><em>Follow your device</em></span>
-                </button>
-                <button type="button" class="theme-option" data-theme="light" role="radio" aria-checked="false">
-                    <i class="fa-solid fa-sun"></i>
-                    <span><strong>Light</strong><em>Bright and clean</em></span>
-                </button>
-                <button type="button" class="theme-option" data-theme="dark" role="radio" aria-checked="false">
-                    <i class="fa-solid fa-moon"></i>
-                    <span><strong>Dark</strong><em>Easy on the eyes</em></span>
-                </button>
-            </div>
-        </div>
+<div class="settings-card settings-narrow">
+    <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Colour theme">
+        <button type="button" class="theme-option" data-theme="system" role="radio" aria-checked="false">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+            <span><strong>System</strong><em>Follow your device</em></span>
+        </button>
+        <button type="button" class="theme-option" data-theme="light" role="radio" aria-checked="false">
+            <i class="fa-solid fa-sun"></i>
+            <span><strong>Light</strong><em>Bright and clean</em></span>
+        </button>
+        <button type="button" class="theme-option" data-theme="dark" role="radio" aria-checked="false">
+            <i class="fa-solid fa-moon"></i>
+            <span><strong>Dark</strong><em>Easy on the eyes</em></span>
+        </button>
     </div>
 </div>
 

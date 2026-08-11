@@ -41,23 +41,18 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="settings-desktop">
-    <?php include __DIR__ . '/../includes/settings_nav.php'; ?>
-    <div class="settings-layout-main">
-        <div class="settings-card settings-narrow">
-            <form method="post" action="" novalidate>
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="action" value="update_notifications">
-                <ul class="notify-options">
-                    <li class="opt-row"><input type="checkbox" id="notify_bookings" name="notify_bookings" <?php echo (int)($user['notify_bookings'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_bookings">Booking updates</label></li>
-                    <li class="opt-row"><input type="checkbox" id="notify_promo" name="notify_promo" <?php echo (int)($user['notify_promo'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_promo">Promotional emails</label></li>
-                    <li class="opt-row"><input type="checkbox" id="notify_expiry" name="notify_expiry" <?php echo (int)($user['notify_expiry'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_expiry">Expiry reminders</label></li>
-                    <li class="opt-row"><input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?>> <label for="notify_sms">SMS notifications</label></li>
-                </ul>
-                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save preferences</button>
-            </form>
-        </div>
-    </div>
+<div class="settings-card settings-narrow">
+    <form method="post" action="" novalidate>
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="update_notifications">
+        <ul class="notify-options">
+            <li class="opt-row"><input type="checkbox" id="notify_bookings" name="notify_bookings" <?php echo (int)($user['notify_bookings'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_bookings">Booking updates</label></li>
+            <li class="opt-row"><input type="checkbox" id="notify_promo" name="notify_promo" <?php echo (int)($user['notify_promo'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_promo">Promotional emails</label></li>
+            <li class="opt-row"><input type="checkbox" id="notify_expiry" name="notify_expiry" <?php echo (int)($user['notify_expiry'] ?? 1) ? 'checked' : ''; ?>> <label for="notify_expiry">Expiry reminders</label></li>
+            <li class="opt-row"><input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?>> <label for="notify_sms">SMS notifications</label></li>
+        </ul>
+        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save preferences</button>
+    </form>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

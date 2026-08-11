@@ -22,17 +22,16 @@ require __DIR__ . '/../includes/header.php';
 </nav>
 
 <!-- desktop: settings hierarchy -->
-<div class="settings-desktop">
-    <?php include __DIR__ . '/../includes/settings_nav.php'; ?>
-    <div class="settings-layout-main">
-        <div class="settings-card settings-narrow settings-hub">
-            <div class="settings-hub-list">
-                <a href="<?php echo base_url('pages/settings_account.php'); ?>"><i class="fa-solid fa-user-gear"></i><span class="hub-txt"><strong>Account</strong><em>Profile and password</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                <a href="<?php echo base_url('pages/settings_notifications.php'); ?>"><i class="fa-solid fa-bell"></i><span class="hub-txt"><strong>Notifications</strong><em>What we email or text you about</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                <a href="<?php echo base_url('pages/settings_preferences.php'); ?>"><i class="fa-solid fa-sliders"></i><span class="hub-txt"><strong>Preferences</strong><em>Appearance and theme</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-            </div>
+<div class="settings-hub">
+    <div class="sh-group">
+        <a href="<?php echo base_url('pages/settings_account.php'); ?>" class="sh-row"><i class="fa-solid fa-user-gear"></i><span class="hub-txt"><strong>Account</strong><em>Profile and password</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+        <div class="sh-sub">
+            <a href="<?php echo base_url('pages/profile.php'); ?>" class="sh-row"><i class="fa-solid fa-user"></i><span>My Profile</span></a>
+            <a href="<?php echo base_url('pages/change_password.php'); ?>" class="sh-row"><i class="fa-solid fa-key"></i><span>Change Password</span></a>
         </div>
     </div>
+    <a href="<?php echo base_url('pages/settings_notifications.php'); ?>" class="sh-row"><i class="fa-solid fa-bell"></i><span class="hub-txt"><strong>Notifications</strong><em>What we email or text you about</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+    <a href="<?php echo base_url('pages/settings_preferences.php'); ?>" class="sh-row"><i class="fa-solid fa-sliders"></i><span class="hub-txt"><strong>Preferences</strong><em>Appearance and theme</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

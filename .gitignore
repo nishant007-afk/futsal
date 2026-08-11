@@ -29,6 +29,10 @@ DESIGN.md
 design.docx
 PRODUCT.md
 
+# Local lab work (keep off GitHub)
+/js(lab1)/
+lab1.pdf
+
 # Local tooling & scratch dirs (kept off GitHub)
 /.opencode/
 /.impeccable/

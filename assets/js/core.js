@@ -320,7 +320,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (el.tagName === 'A') {
                     window.location.href = el.href;
                 } else if (el.tagName === 'BUTTON' && el.type === 'submit') {
-                    el.closest('form').submit();
+                    const f = el.form || el.closest('form');
+                    if (f) f.submit();
                 }
             }, {
                 okText: el.dataset.confirmOk || 'Yes, continue',

@@ -221,7 +221,7 @@ html.js .reveal.visible { animation: rise .6s cubic-bezier(.2,.7,.3,1) forwards;
 .app-loader .al-ball {
     position: relative; width: 40px; height: 40px;
     color: var(--brand); font-size: 40px; line-height: 1;
-    animation: al-bounce .9s ease-in-out infinite;
+    animation: al-hop .9s ease-in-out infinite;
 }
 .app-loader .al-ball::before {
     content: '\f1e3'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
@@ -232,7 +232,7 @@ html.js .reveal.visible { animation: rise .6s cubic-bezier(.2,.7,.3,1) forwards;
     background: radial-gradient(closest-side, rgba(0,0,0,.28), transparent);
     animation: al-shadow .9s ease-in-out infinite;
 }
-@keyframes al-bounce {
+@keyframes al-hop {
     0%, 100% { transform: translateY(0); }
     40%      { transform: translateY(-16px); }
     60%      { transform: translateY(-5px); }
@@ -926,7 +926,7 @@ html[data-theme="dark"] .pm-switch .pm-knob { transform: translateX(15px); }
     text-decoration: none; border-radius: var(--r-sm); transition: background .15s; background: var(--brand-soft);
 }
 .bell-viewall:hover { background: var(--brand); color: #fff; }
-.notif-unread { border-left: 2px solid var(--brand); }
+.notif-unread { background: color-mix(in srgb, var(--brand) 8%, transparent); }
 
 /* ============ USERS BY ROLE HEADING ============ */
 .users-role-heading {
@@ -1007,7 +1007,7 @@ html[data-theme="dark"] .pm-switch .pm-knob { transform: translateX(15px); }
     transition: box-shadow .15s, border-color .15s;
 }
 .notif-item:hover { box-shadow: var(--s1); border-color: var(--line-2); }
-.notif-item.notif-unread { border-left: 2px solid var(--brand); background: var(--bg); }
+.notif-item.notif-unread { background: color-mix(in srgb, var(--brand) 7%, var(--bg)); border-color: color-mix(in srgb, var(--brand) 26%, var(--line)); }
 .notif-thumb {
     display: inline-flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; border-radius: 12px; font-size: 17px; flex-shrink: 0;
@@ -1078,7 +1078,6 @@ body[data-role="admin"] { --role: #12958f; --role-dark: #0b7a3f; --role-soft: #e
 .ground-info .info-row i, .card-mini .fa-arrow-right {
     color: var(--role-dark, var(--brand-700));
 }
-.stat::before { background: var(--role, var(--brand)); }
 .thumb-tag i { color: var(--role, var(--brand)); }
 a.card-mini:hover { border-color: var(--role, var(--brand)); }
 
@@ -1125,25 +1124,23 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .toast-close:hover { opacity: 1; }
 .toast-success { background: var(--ok-soft); color: var(--ok); border-color: #c6e7d4; }
 .toast-success .toast-icon {
-    background: #1d9c5c; color: #fff;
+    background: var(--ok); color: #fff;
     box-shadow: 0 3px 8px -2px rgba(18, 138, 78, .5);
 }
 .toast-info {
     background: var(--brand-soft);
-    color: #1d4ed8;
-    border: 1px solid #d4e2ff;
-    border-left: 2px solid #3b82f6;
-    box-shadow: 0 1px 2px rgba(30, 80, 160, .05), 0 12px 30px -10px rgba(59, 130, 246, .3);
+    color: var(--brand-700);
+    border: 1px solid #cdebd6;
+    box-shadow: 0 1px 2px rgba(6, 95, 70, .05), 0 12px 30px -10px rgba(6, 95, 70, .3);
 }
 .toast-info .toast-icon {
-    background: #0f7d45; color: #fff;
-    box-shadow: 0 3px 8px -2px rgba(37, 99, 235, .5);
+    background: var(--brand); color: #fff;
+    box-shadow: 0 3px 8px -2px rgba(6, 95, 70, .5);
 }
 .toast-warning {
     background: #fffaf0;
     color: #92400e;
     border: 1px solid #f4e2c4;
-    border-left: 2px solid #f59e0b;
     box-shadow: 0 1px 2px rgba(150, 90, 10, .05), 0 12px 30px -10px rgba(245, 158, 11, .3);
 }
 .toast-warning .toast-icon {
@@ -1154,7 +1151,6 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     background: #fff9f8;
     color: #9c1c1c;
     border: 1px solid #f4d0cc;
-    border-left: 2px solid #d13a31;
     box-shadow: 0 1px 2px rgba(120, 20, 20, .05), 0 12px 30px -10px rgba(160, 30, 30, .35);
 }
 .toast-error .toast-icon {
@@ -1310,8 +1306,8 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 /* status notice banner - calm neutral container with a slim accent */
 .notice {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    background: var(--bg); border: 1px solid var(--line);
-    border-left: 3px solid var(--warn);
+    background: color-mix(in srgb, var(--warn) 6%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--warn) 24%, var(--line));
     color: var(--ink-2);
     border-radius: var(--r-md); padding: 14px 18px; margin-top: 22px;
     font-size: 14px;
@@ -1329,9 +1325,8 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     position: fixed; left: 50%; bottom: 28px; z-index: 200;
     transform: translate(-50%, 140%);
     width: 90%; max-width: 700px; display: flex; gap: 16px; align-items: flex-start;
-    background: var(--bg);
+    background: linear-gradient(to bottom, var(--role, var(--brand)) 0 3px, var(--bg) 3px);
     border: 1px solid var(--line-2); border-radius: var(--r-lg);
-    border-top: 3px solid var(--role, var(--brand));
     box-shadow: 0 20px 60px rgba(11, 26, 18, .18);
     padding: 22px 24px 20px;
     opacity: 0;
@@ -1524,7 +1519,6 @@ html[data-theme="dark"] .ground-fav { background: rgba(11,17,13,.92); border-col
     background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md);
     padding: 24px 28px; position: relative; overflow: hidden;
 }
-.stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--role, var(--brand)); }
 .stat .stat-icon { display: none; }
 .stat h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-2); font-weight: 700; margin-bottom: 10px; }
 .stat p { font-size: 30px; font-weight: 800; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -1612,8 +1606,8 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 /* next-step guidance callout - neutral with a slim role accent */
 .step-note {
     display: flex; align-items: center; gap: 14px;
-    background: var(--bg); border: 1px solid var(--line);
-    border-left: 3px solid var(--role, var(--brand));
+    background: color-mix(in srgb, var(--role, var(--brand)) 6%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--role, var(--brand)) 24%, var(--line));
     border-radius: var(--r-md); padding: 14px 18px;
     margin: 16px 0 0;
     color: var(--ink-2); font-size: 13.5px;
@@ -1734,7 +1728,7 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1.2fr; 
 .signup-intro .lead { font-size: 15px; line-height: 1.65; color: var(--ink-2); margin: 0 0 32px; }
 .signup-intro .benefit-list { gap: 20px; margin-bottom: 36px; }
 .signup-intro-toggle { display: none; }
-.signup-intro-details { overflow: hidden; max-height: none; opacity: 1; transition: max-height .38s ease, opacity .3s ease, transform .3s ease; }
+.signup-intro-details { overflow: hidden; max-height: none; opacity: 1; transition: all .38s ease; }
 .signup-right { width: min(100%, 520px); justify-self: end; padding-left: 64px; border-left: 1px solid var(--line-2); }
 .auth-topline { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; margin-bottom: 24px; }
 .auth-topline h2 { font-size: 22px; margin: 0; line-height: 1.25; }
@@ -2132,10 +2126,6 @@ td.strong { font-weight: 700; color: var(--ink); }
     overflow: hidden;
     transition: box-shadow .2s, border-color .2s, transform .2s;
 }
-.mbooking::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-    background: var(--role, var(--brand));
-}
 .mbooking:hover { box-shadow: var(--s2); border-color: var(--line-2); transform: translateY(-2px); }
 
 /* Premium booking summary card: date | info | payment as three aligned zones */
@@ -2157,11 +2147,6 @@ td.strong { font-weight: 700; color: var(--ink); }
     transform: translateY(-3px);
     box-shadow: 0 2px 4px rgba(6, 15, 10, .05), 0 22px 44px -20px rgba(6, 15, 10, .28);
     border-color: var(--line-2);
-}
-.mbooking.mbooking--card::before {
-    content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--role, var(--brand));
 }
 .mbooking.mbooking--card .mbooking-date {
     grid-area: date;
@@ -2279,8 +2264,8 @@ td.strong { font-weight: 700; color: var(--ink); }
     background: var(--bg-soft); border: 1px solid var(--line);
     border-radius: var(--r-md);
 }
-.paybar.partial, .paybar.unpaid { background: var(--bg-soft); border-color: var(--line); border-left: 3px solid var(--warn); }
-.paybar.unpaid { border-left-color: var(--danger); }
+.paybar.partial { background: color-mix(in srgb, var(--warn) 6%, var(--bg-soft)); border-color: color-mix(in srgb, var(--warn) 26%, var(--line)); }
+.paybar.unpaid { background: color-mix(in srgb, var(--danger) 6%, var(--bg-soft)); border-color: color-mix(in srgb, var(--danger) 26%, var(--line)); }
 .paybar-info { display: inline-flex; align-items: center; gap: 12px; font-size: 13.5px; color: var(--ink-2); }
 .paybar-info i {
     width: 34px; height: 34px; flex-shrink: 0;
@@ -2909,7 +2894,7 @@ body.modal-open { overflow: hidden; }
 .bar {
     width: 100%; max-width: 46px; min-height: 3px; border-radius: 6px 6px 0 0;
     background: var(--brand-600);
-    transition: height .4s ease;
+    transition: all .4s ease;
 }
 .bar-label { font-size: 11px; color: var(--ink-3); font-weight: 600; }
 .top-grounds { display: flex; flex-direction: column; gap: 16px; }
@@ -2995,7 +2980,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
 .lock-card .lock-progress span {
     display: block; height: 100%; border-radius: 99px;
     background: var(--warn);
-    transition: width 1s linear;
+    transition: all 1s linear;
 }
 
 /* ============ BOOKING DETAILS ============ */
@@ -3344,7 +3329,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
    It is a direct <body> child (sibling of the header) so the header's
    scroll-hide transform can never trap it, and it always spans top to bottom. */
 @media (min-width: 821px) {
-    body { padding-left: var(--sidebar-w); transition: padding-left .28s cubic-bezier(.4,0,.2,1); will-change: padding-left; }
+    body { padding-left: var(--sidebar-w); transition: all .28s cubic-bezier(.4,0,.2,1); will-change: padding-left; }
     html.sidebar-collapsed body { padding-left: var(--sidebar-w-collapsed); }
     body.auth-page { padding-left: 0; }
     html.sidebar-collapsed body.auth-page { padding-left: 0; }
@@ -3352,7 +3337,7 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     #mainNav {
         position: fixed; top: 0; left: 0; bottom: 0;
         width: var(--sidebar-w); height: auto; min-height: 100vh;
-        transition: width .28s cubic-bezier(.4,0,.2,1), padding .28s cubic-bezier(.4,0,.2,1);
+        transition: all .28s cubic-bezier(.4,0,.2,1);
         border-right: 1px solid var(--line); border-bottom: none;
         background: #fff; box-shadow: var(--s2);
         display: flex; flex-direction: column; align-items: stretch; gap: 2px;
@@ -3361,8 +3346,8 @@ body.contact-page .prose h2 { margin: 26px 0 10px; }
     html.sidebar-collapsed #mainNav { width: var(--sidebar-w-collapsed); padding: 22px 10px 24px; }
     html.sidebar-collapsed #mainNav > a { justify-content: center; gap: 0; padding: 11px 6px; }
     #mainNav > a > i { font-size: 17px; flex-shrink: 0; }
-    #mainNav > a { display: inline-flex; align-items: center; gap: 12px; padding: 11px 14px; font-size: 14px; white-space: nowrap; min-height: 44px; transition: gap .2s cubic-bezier(.4,0,.2,1), padding .2s cubic-bezier(.4,0,.2,1); }
-    #mainNav > a .nav-label { overflow: hidden; white-space: nowrap; max-width: 14em; opacity: 1; transition: max-width .2s cubic-bezier(.4,0,.2,1), opacity .16s ease; }
+    #mainNav > a { display: inline-flex; align-items: center; gap: 12px; padding: 11px 14px; font-size: 14px; white-space: nowrap; min-height: 44px; transition: all .2s cubic-bezier(.4,0,.2,1); }
+    #mainNav > a .nav-label { overflow: hidden; white-space: nowrap; max-width: 14em; opacity: 1; transition: all .2s cubic-bezier(.4,0,.2,1); }
     html.sidebar-collapsed #mainNav > a .nav-label { max-width: 0; opacity: 0; }
     #mainNav .nav-sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px 18px; position: relative; }
     #mainNav .nav-sidebar-head .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; color: var(--ink); min-width: 0; transition: opacity .15s ease, visibility 0s; }
@@ -3607,7 +3592,7 @@ html[data-theme="dark"] .stat { box-shadow: var(--s1); }
 html[data-theme="dark"] .ground-card:hover,
 html[data-theme="dark"] .card-mini:hover,
 html[data-theme="dark"] .promo-banner:hover { border-color: var(--line-2); }
-html[data-theme="dark"] .notice { background: var(--dark-2); border-color: var(--dark-line); border-left-color: var(--warn); }
+html[data-theme="dark"] .notice { background: color-mix(in srgb, var(--warn) 8%, var(--bg)); border-color: color-mix(in srgb, var(--warn) 22%, var(--line)); }
 html[data-theme="dark"] .card-fav:hover,
 html[data-theme="dark"] .ground-fav:hover { background: var(--dark-2); color: var(--danger); transform: scale(1.12); }
 

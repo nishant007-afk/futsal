@@ -74,10 +74,12 @@ $page_title = 'Confirm Password Change';
 ?>
 
 <div class="form-card lg" style="margin-top:44px;">
-    <div class="form-head">
+ <div class="form-head">
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Confirm with a security code</h2>
-        <p class="muted">We just sent a 6-digit security code to <strong><?php echo e($me['email']); ?></strong>. Enter it below to finish changing your password.</p>
     </div>
+ </div>
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 

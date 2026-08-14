@@ -141,11 +141,21 @@ if ($date !== '') {
 
 <!-- CTA -->
 <section class="cta-band" id="become-manager">
+    <div class="cta-pitch pitch" aria-hidden="true"></div>
     <div class="container cta-inner reveal">
-        <div>
-            <h2>Own a court? Keep your calendar full.</h2>
-            <p>Join as a manager and keep tabs on every booking across your courts. Cancel a slot when you can't host, and always know what you've been paid.</p>
+        <div class="cta-main">
+            <span class="cta-eyebrow"><i class="fa-solid fa-store"></i> For court owners</span>
+            <h2>Own a court? Keep your <span>calendar full</span>.</h2>
+            <p>Join as a manager to list your courts, take bookings without phone calls, and always know who has paid.</p>
+            <ul class="cta-benefits">
+                <li><i class="fa-solid fa-circle-check"></i> List your court and set your own hours and price</li>
+                <li><i class="fa-solid fa-circle-check"></i> Bookings confirm instantly, no calls needed</li>
+                <li><i class="fa-solid fa-circle-check"></i> Track who has paid and run promos to fill quiet hours</li>
+            </ul>
+            <div class="cta-actions">
+                <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-light btn-lg"><i class="fa-solid fa-store"></i> Become a Manager</a>
+                <a href="<?php echo base_url('pages/how_to_use.php#managers'); ?>" class="btn cta-ghost btn-lg"><i class="fa-solid fa-circle-question"></i> See the manager guide</a>
+            </div>
         </div>
-        <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-light btn-lg">Become a Manager</a>
     </div>
 </section>

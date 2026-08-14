@@ -67,7 +67,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</h2>
+    <h2>Admin Dashboard</h2>
 </div>
 
 <div class="stat-grid">

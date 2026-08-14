@@ -52,7 +52,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="content-hero">
-    <h1>Announce a policy update</h1>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1>Announce a policy update</h1>
+    </div>
     <div class="hero-subtext">
         <p class="muted"><strong>When to use:</strong> Run this after you update legal pages in <code>pages/page.php</code>.</p>
         <p class="muted"><strong>What happens:</strong> Each recipient gets one combined message (every selected page in a single email) and one notification in their tab.</p>

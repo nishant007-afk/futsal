@@ -165,7 +165,12 @@ $page_description = 'Browse all futsal courts in Kathmandu, Bhaktapur, and Lalit
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<h1 class="page-title">All Courts</h1>
+<div class="page-head reveal">
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="page-title">All Courts</h1>
+    </div>
+</div>
 
 <div class="container">
     <div class="courts-toolbar reveal">
@@ -200,6 +205,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
                     <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
                 <?php endif; ?>
+                <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
             </div>
         </form>
     </div>

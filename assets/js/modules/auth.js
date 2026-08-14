@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         setTimeout(function () { wrap.classList.remove('field-error'); }, 2500);
                     }
-                    if (window.openErrorModal) openErrorModal('Please accept the Terms of Service and Privacy Policy to continue.', 'Almost there');
+                    if (window.openErrorModal) openErrorModal('Please accept the Terms of Service and Privacy Policy to continue.', 'Almost there', { button: false });
                 }
             });
         }

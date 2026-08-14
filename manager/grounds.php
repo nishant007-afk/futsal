@@ -291,14 +291,13 @@ require __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-chevron-left"></i></a>
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <h2><i class="fa-solid fa-store"></i> <?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
+        <h2><?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
         <div class="actions">
             <?php if ($editing): ?>
                 <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
             <?php endif; ?>
-            <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="btn btn-outline btn-sm dash-in-actions"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
         </div>
     </div>
 </div>

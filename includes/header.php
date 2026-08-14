@@ -45,7 +45,7 @@ if ($active === 'index.php') {
     $skeletonType = 'dashboard';
 } elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php', 'google_setup.php', 'login_google.php'], true)) {
     $skeletonType = 'auth';
-} elseif ($active === 'page.php') {
+} elseif ($active === 'page.php' || $active === 'how_to_use.php') {
     $skeletonType = 'page';
 } elseif ($active === 'contact_submit.php') {
     $skeletonType = 'contact-form';
@@ -67,6 +67,9 @@ if ($active === 'index.php') {
 $role_label = $site_user ? ucfirst($site_user['role']) : '';
 $body_role = $site_user ? $site_user['role'] : 'guest';
 $body_classes = [$body_role];
+if ($active === 'index.php' && !$site_user) {
+    $body_classes[] = 'landing';
+}
 if ($active === 'login.php') {
     $body_classes[] = 'login-page';
 }
@@ -80,6 +83,20 @@ if (in_array($active, ['settings.php', 'settings_account.php', 'settings_notific
     $body_classes[] = 'settings-page';
 }
 $body_class = implode(' ', $body_classes);
+
+// Back button (mobile-first): injected top-left on form/detail pages. Desktop
+// only where there's no persistent nav.
+$scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
+$pageBack = false;
+$pageBackUrl = base_url('index.php');
+$backPagesPanel = [];
+$backPagesManager = [];
+$backPagesAdmin = [];
+if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
+    || ($scriptDir === 'manager' && in_array($active, $backPagesManager, true))
+    || ($scriptDir === 'admin' && in_array($active, $backPagesAdmin, true))) {
+    $pageBack = true;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,7 +143,7 @@ $body_class = implode(' ', $body_classes);
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=217'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=229'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -562,9 +579,6 @@ $body_class = implode(' ', $body_classes);
                         </div>
                         <a href="<?php echo base_url('pages/profile.php'); ?>" role="menuitem"><i class="fa-solid fa-user"></i> My Profile</a>
                         <a href="<?php echo base_url('pages/settings.php'); ?>" role="menuitem"><i class="fa-solid fa-gear"></i> Settings</a>
-                        <?php if (!empty($_SESSION['impersonated_from'])): ?>
-                            <a href="<?php echo base_url('admin/users.php?stop_impersonate=1&csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger"><i class="fa-solid fa-user-check"></i> Stop impersonating</a>
-                        <?php endif; ?>
                         <a href="<?php echo base_url('pages/logout.php?csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
@@ -604,7 +618,7 @@ $body_class = implode(' ', $body_classes);
             <span class="brand-name">GoalSpace</span>
         </a>
         <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
-            <i class="fa-solid fa-bars"></i>
+            <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
@@ -672,45 +686,54 @@ $body_class = implode(' ', $body_classes);
         <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>
         <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i></a>
         <a href="<?php echo base_url('index.php#how'); ?>" title="How it works" aria-label="How it works"><i class="fa-solid fa-circle-info"></i></a>
-        <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-store"></i></a>
     <?php endif; ?>
 </nav>
 
 <?php if ($flash): ?>
     <?php
         $type = $flash['type'];
-        $toastClass = 'toast-error';
-        $toastIcon = 'fa-triangle-exclamation';
-        $toastRole = 'alert';
-        if ($type === 'success') { $toastClass = 'toast-success'; $toastIcon = 'fa-circle-check'; $toastRole = 'status'; }
-        elseif ($type === 'info') { $toastClass = 'toast-info'; $toastIcon = 'fa-circle-info'; $toastRole = 'status'; }
-        elseif ($type === 'warning') { $toastClass = 'toast-warning'; $toastIcon = 'fa-triangle-exclamation'; }
-        $inline = in_array($type, ['success', 'info'], true) ? 'toast-inline' : '';
+        $isSuccess = $type === 'success';
+        $isError = $type === 'error' || $type === 'warning';
+        $cardType = $isSuccess ? 'msg-success' : 'msg-error';
+        $icon = $isSuccess ? 'fa-check' : 'fa-xmark';
+        $title = $isSuccess ? 'Success' : 'Error';
+        $btnClass = $isSuccess ? 'msg-btn-success' : 'msg-btn-error';
+        $btnLabel = $isSuccess ? 'Continue' : 'Try again';
+        $toastRole = $isSuccess ? 'status' : 'alert';
         $detail = $flash['detail'] ?? null;
-        $hasDetail = is_array($detail) && (($detail['why'] ?? '') !== '' || ($detail['how'] ?? '') !== '');
+        $backUrl = is_array($detail) && !empty($detail['how_url']) ? e($detail['how_url']) : '';
     ?>
-    <?php if ($inline): ?><div class="container"><?php endif; ?>
-    <div class="toast <?php echo $toastClass . ' ' . $inline; ?><?php echo $hasDetail ? ' has-detail' : ''; ?>" role="<?php echo $toastRole; ?>">
-        <div class="toast-icon"><i class="fa-solid <?php echo $toastIcon; ?>"></i></div>
-        <div class="toast-content">
-            <div class="toast-msg"><span><?php echo e($flash['message']); ?></span></div>
-            <?php if ($hasDetail && ($detail['why'] ?? '') !== ''): ?>
-                <p class="toast-detail toast-reason"><i class="fa-solid fa-circle-question"></i> <span><?php echo e($detail['why']); ?></span></p>
-            <?php endif; ?>
-            <?php if ($hasDetail && ($detail['how'] ?? '') !== ''): ?>
-                <?php if (!empty($detail['how_url'])): ?>
-                    <a class="toast-detail toast-fix" href="<?php echo e($detail['how_url']); ?>"><i class="fa-solid fa-lightbulb"></i> <span><?php echo e($detail['how']); ?></span></a>
-                <?php else: ?>
-                    <p class="toast-detail toast-fix"><i class="fa-solid fa-lightbulb"></i> <span><?php echo e($detail['how']); ?></span></p>
-                <?php endif; ?>
-            <?php endif; ?>
+    <?php if ($type === 'success' || $type === 'info'): ?>
+        <div class="container">
+            <div class="toast toast-<?php echo $type === 'success' ? 'success' : 'info'; ?> toast-inline" role="status">
+                <div class="toast-icon"><i class="fa-solid <?php echo $type === 'success' ? 'fa-circle-check' : 'fa-circle-info'; ?>"></i></div>
+                <div class="toast-content">
+                    <div class="toast-msg"><span><?php echo e($flash['message']); ?></span></div>
+                </div>
+                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
-        <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <?php if ($inline): ?></div><?php endif; ?>
+    <?php else: ?>
+        <div class="msg-backdrop" data-msg-backdrop>
+            <div class="msg-card <?php echo $cardType; ?>" role="<?php echo $toastRole; ?>">
+                <button type="button" class="msg-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                <div class="msg-icon"><i class="fa-solid <?php echo $icon; ?>"></i></div>
+                <h3 class="msg-title"><?php echo e($title); ?></h3>
+                <p class="msg-text"><?php echo e($flash['message']); ?></p>
+                <?php if ($backUrl !== ''): ?>
+                <button type="button" class="msg-btn <?php echo $btnClass; ?>" data-msg-back="<?php echo $backUrl; ?>"><?php echo $isSuccess ? '<i class="fa-solid fa-arrow-right-long"></i>' : '<i class="fa-solid fa-arrow-left-long"></i>'; ?> <?php echo e($btnLabel); ?></button>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <main class="container page" id="mainContent" tabindex="-1">
+
+<?php if ($pageBack): ?>
+<a href="<?php echo e($pageBackUrl); ?>" class="nav-back page-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+<?php endif; ?>
 
 
 

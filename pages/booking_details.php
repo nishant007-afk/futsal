@@ -56,10 +56,13 @@ require __DIR__ . '/../includes/header.php';
     </nav>
 
     <div class="bd-head">
-        <div>
-            <span class="eyebrow">Booking details</span>
-            <h1><?php echo e($b['ground_name']); ?></h1>
-            <p class="muted"><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></p>
+        <div class="title-back-row bd-title-row">
+            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="nav-back mob-title-back" aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <span class="eyebrow">Booking details</span>
+                <h1><?php echo e($b['ground_name']); ?></h1>
+                <p class="muted"><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></p>
+            </div>
         </div>
         <div class="bd-head-badges">
             <span class="status-badge status-<?php echo e($b['status']); ?>">
@@ -188,7 +191,6 @@ require __DIR__ . '/../includes/header.php';
         <?php elseif ($me['role'] === 'admin' && $b['status'] !== 'cancelled'): ?>
             <a href="<?php echo base_url('admin/bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>
         <?php endif; ?>
-        <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Back to bookings</a>
     </div>
 </div>
 

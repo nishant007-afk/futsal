@@ -31,17 +31,14 @@ $page_title = 'Notifications';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head settings-page-head">
-    <div class="ps-head-row">
-        <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back" aria-label="Back to settings"><i class="fa-solid fa-chevron-left"></i></a>
-        <div>
+    <div class="page-head settings-page-head">
+        <div class="ps-head-row">
+            <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Notifications</h2>
-            <p class="muted" style="font-size:13px;margin-top:4px;">Choose what we email or text you about.</p>
         </div>
     </div>
-</div>
 
-<div class="settings-card settings-narrow">
+    <div class="settings-card settings-narrow">
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="update_notifications">

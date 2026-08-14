@@ -61,7 +61,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="notif-page-head reveal">
-    <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
+    </div>
 </div>
 <div class="notif-actions reveal" style="margin-bottom:18px;">
     <?php if ($notifications): ?>

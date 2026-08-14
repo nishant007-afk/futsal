@@ -2,56 +2,6 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
-if (isset($_GET['impersonate'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['impersonate'];
-    if ($id === (int)$_SESSION['user_id']) {
-        set_flash_error('You cannot impersonate yourself.', 'That would be redundant.', 'Pick another user.', 'admin/users.php');
-    } else {
-        $stmt = $conn->prepare('SELECT id, name, email, role FROM users WHERE id = ?');
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $target = $stmt->get_result()->fetch_assoc();
-        if ($target) {
-            $_SESSION['impersonated_from'] = (int)$_SESSION['user_id'];
-            $_SESSION['user_id'] = (int)$target['id'];
-            $_SESSION['user_name'] = $target['name'];
-            $_SESSION['user_email'] = $target['email'];
-            $_SESSION['user_role'] = $target['role'];
-            set_flash('success', 'Now impersonating ' . $target['name'] . ' (' . $target['role'] . ').');
-            redirect(base_url('index.php'));
-        } else {
-            set_flash_error('User not found.', 'The account may have been deleted.', 'Refresh the user list.', 'admin/users.php');
-        }
-    }
-    redirect('admin/users.php');
-}
-
-if (isset($_GET['stop_impersonate'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    if (!empty($_SESSION['impersonated_from'])) {
-        $orig = (int)$_SESSION['impersonated_from'];
-        $stmt = $conn->prepare('SELECT id, name, email, role FROM users WHERE id = ?');
-        $stmt->bind_param('i', $orig);
-        $stmt->execute();
-        $origUser = $stmt->get_result()->fetch_assoc();
-        if ($origUser) {
-            $_SESSION['user_id'] = $origUser['id'];
-            $_SESSION['user_name'] = $origUser['name'];
-            $_SESSION['user_email'] = $origUser['email'];
-            $_SESSION['user_role'] = $origUser['role'];
-            unset($_SESSION['impersonated_from']);
-            set_flash('success', 'Stopped impersonating. You are back as ' . $origUser['name'] . '.');
-            redirect(base_url('admin/users.php'));
-        }
-    }
-    redirect('admin/users.php');
-}
-
 if (isset($_GET['delete'])) {
     if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
         exit('Invalid request.');
@@ -131,13 +81,12 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-chevron-left"></i></a>
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <h2><i class="fa-solid fa-users"></i> Manage Users</h2>
+        <h2>Manage Users</h2>
         <div class="actions">
             <a href="<?php echo base_url('admin/users.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
             <a href="<?php echo base_url('admin/users.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
-            <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="btn btn-outline btn-sm dash-in-actions"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
         </div>
     </div>
 </div>
@@ -158,7 +107,7 @@ require __DIR__ . '/../includes/header.php';
         <tbody>
             <?php foreach ($users as $u): ?>
                 <tr>
-                    <td><i class="fa-solid fa-user muted"></i> <?php echo e($u['name']); ?></td>
+                    <td><i class="fa-solid fa-user muted" style="margin-right:4px"></i><?php echo e($u['name']); ?></td>
                     <td><?php echo e($u['email']); ?></td>
                     <td><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo e($u['role']); ?></span></td>
                     <td><?php echo (int)$u['grounds_owned']; ?></td>
@@ -180,7 +129,6 @@ require __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
-                                <a href="<?php echo base_url('admin/users.php?impersonate=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" data-confirm="Log in as this user?" aria-label="Impersonate user"><i class="fa-solid fa-user-secret"></i></a>
                                 <a href="<?php echo base_url('admin/users.php?delete=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this user?" aria-label="Delete user"><i class="fa-solid fa-trash"></i></a>
                             <?php endif; ?>
                         </div>

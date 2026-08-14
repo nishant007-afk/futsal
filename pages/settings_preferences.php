@@ -7,17 +7,14 @@ $page_title = 'Preferences';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head settings-page-head">
-    <div class="ps-head-row">
-        <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back" aria-label="Back to settings"><i class="fa-solid fa-chevron-left"></i></a>
-        <div>
+    <div class="page-head settings-page-head">
+        <div class="ps-head-row">
+            <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Appearance</h2>
-            <p class="muted" style="font-size:13px;margin-top:4px;">Pick how GoalSpace looks on this device.</p>
         </div>
     </div>
-</div>
 
-<div class="settings-card settings-narrow">
+    <div class="settings-card settings-narrow">
     <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Colour theme">
         <button type="button" class="theme-option" data-theme="system" role="radio" aria-checked="false">
             <i class="fa-solid fa-circle-half-stroke"></i>

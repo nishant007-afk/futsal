@@ -12,6 +12,7 @@
 
         <div class="footer-col">
             <h4>Players</h4>
+            <a href="<?php echo base_url('pages/how_to_use.php'); ?>">How to use GoalSpace</a>
             <a href="<?php echo grounds_list_url(); ?>">Browse grounds</a>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My bookings</a>
             <a href="<?php echo base_url('pages/register.php'); ?>">Create account</a>
@@ -20,6 +21,7 @@
 
         <div class="footer-col">
             <h4>For owners</h4>
+            <a href="<?php echo base_url('pages/how_to_use.php#managers'); ?>">Manager guide</a>
             <a href="<?php echo base_url('pages/register.php?role=manager'); ?>">Become a manager</a>
             <a href="<?php echo base_url('pages/page.php?slug=help#for-managers'); ?>">Manager help</a>
             <a href="<?php echo base_url('pages/page.php?slug=terms#for-managers'); ?>">Manager terms</a>
@@ -66,7 +68,7 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/core.js?v=70'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=71'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

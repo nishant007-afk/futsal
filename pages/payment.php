@@ -107,80 +107,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('pages/payment.php?booking_id=' . $booking_id);
     }
 
-    $stmt = $conn->prepare('UPDATE bookings SET payment_status = ?, payment_type = ?, amount_paid = ?, paid_at = NOW() WHERE id = ? AND user_id = ?');
-    $stmt->bind_param('ssdii', $payment_status, $payment_type, $amount_paid, $booking_id, $_SESSION['user_id']);
-    if ($stmt->execute()) {
-        notify_user(
-            (int)$_SESSION['user_id'],
-            $payment_status === 'paid' ? 'Payment received' : 'Advance paid',
-            $booking['ground_name'] . ' &middot; Rs ' . number_format($amount_paid, 0) . ' received',
-            'fa-sack-dollar',
-            'pages/booking_details.php?id=' . $booking_id
-        );
-        $mgrStmt = $conn->prepare('SELECT g.manager_id FROM grounds g JOIN bookings b ON b.ground_id = g.id WHERE b.id = ?');
-        $mgrStmt->bind_param('i', $booking_id);
-        $mgrStmt->execute();
-        $mgr = $mgrStmt->get_result()->fetch_assoc();
-        if ($mgr && (int)$mgr['manager_id'] !== (int)$_SESSION['user_id']) {
-            notify_user(
-                (int)$mgr['manager_id'],
-                $payment_status === 'paid' ? 'Payment received' : 'Advance paid',
-                $booking['ground_name'] . ' &middot; Rs ' . number_format($amount_paid, 0) . ' received from a player',
-                'fa-sack-dollar',
-                'pages/booking_details.php?id=' . $booking_id
-            );
-        }
-        $playerEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
-        $playerEmail->bind_param('i', $_SESSION['user_id']);
-        $playerEmail->execute();
-        $playerRow = $playerEmail->get_result()->fetch_assoc();
-        if ($playerRow) {
-            send_booking_email(
-                $playerRow['email'],
-                $payment_status === 'paid' ? 'Payment confirmed!' : 'Advance payment received',
-                $payment_status === 'paid' ? 'Payment confirmed for your booking' : 'Your advance is confirmed',
-                [
-                    'Booking ref' => $booking['booking_ref'],
-                    'Court' => $booking['ground_name'],
-                    'Date' => date('D, M j, Y', strtotime($booking['booking_date'])),
-                    'Time' => substr($booking['start_time'], 0, 5) . ' - ' . substr($booking['end_time'], 0, 5),
-                    'Paid' => 'Rs ' . number_format($amount_paid, 0),
-                ],
-                $payment_status === 'paid'
-                    ? 'Your booking is fully paid. See you on the court!'
-                    : 'The rest is payable at the court on game day.'
-            );
-        }
-        if ($mgr && (int)$mgr['manager_id'] !== (int)$_SESSION['user_id']) {
-            $mgrEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
-            $mgrEmail->bind_param('i', $mgr['manager_id']);
-            $mgrEmail->execute();
-            $mgrRow = $mgrEmail->get_result()->fetch_assoc();
-            if ($mgrRow) {
-                send_booking_email(
-                    $mgrRow['email'],
-                    'Payment received: ' . $booking['ground_name'],
-                    $payment_status === 'paid' ? 'Booking fully paid' : 'Advance paid',
-                    [
-                        'Court' => $booking['ground_name'],
-                        'Date' => date('D, M j, Y', strtotime($booking['booking_date'])),
-                        'Time' => substr($booking['start_time'], 0, 5) . ' - ' . substr($booking['end_time'], 0, 5),
-                        'Received' => 'Rs ' . number_format($amount_paid, 0),
-                    ],
-                    'Open your manager dashboard to track your money.'
-                );
-            }
-        }
-        redirect('pages/confirmation.php?booking_id=' . $booking_id);
-    } else {
-        set_flash_error(
-            'Your payment couldn\'t be completed.',
-            'The checkout hit an unexpected problem.',
-            'Check your details and try again - nothing has been charged.',
-            'pages/payment.php?booking_id=' . $booking_id
-        );
-    }
-    redirect('pages/my_bookings.php');
+    $fields = esewa_payment_fields($booking_id, $amount_paid);
+    $txnUuid = $fields['transaction_uuid'];
+
+    $stmt = $conn->prepare('UPDATE bookings SET esewa_txn_uuid = ? WHERE id = ? AND user_id = ?');
+    $stmt->bind_param('sii', $txnUuid, $booking_id, $_SESSION['user_id']);
+    $stmt->execute();
+
+    $_SESSION['esewa_pending'] = [
+        'booking_id'      => $booking_id,
+        'transaction_uuid' => $txnUuid,
+        'total_amount'    => (int) round($amount_paid),
+        'payment_type'    => $payment_type,
+        'payment_status'  => $payment_status,
+        'amount_paid'     => $amount_paid,
+    ];
+
+    $action = esewa_form_url();
+    $page_title = 'Redirecting to eSewa...';
+    require __DIR__ . '/../includes/header.php';
+    ?>
+    <div class="confirm-wrap reveal">
+        <div class="confirm-card">
+            <div class="confirm-check"><i class="fa-solid fa-arrow-right-arrow-left fa-pulse"></i></div>
+            <h1>Redirecting to eSewa</h1>
+            <p class="muted">If you aren't taken to eSewa automatically, use the button below.</p>
+            <form method="post" action="<?php echo e($action); ?>" id="esewaForm">
+                <?php foreach ($fields as $name => $value): ?>
+                    <input type="hidden" name="<?php echo e($name); ?>" value="<?php echo e((string) $value); ?>">
+                <?php endforeach; ?>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Continue to eSewa</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var f = document.getElementById('esewaForm');
+            if (f) setTimeout(function () { f.submit(); }, 600);
+        });
+    </script>
+    <?php
+    require __DIR__ . '/../includes/footer.php';
+    exit;
 }
 
 $page_title = 'Payment';
@@ -192,7 +160,10 @@ require __DIR__ . '/../includes/header.php';
     <div class="payment-card">
         <div class="payment-head">
             <span class="eyebrow"><?php echo $isPartial ? 'One step left' : 'Almost there'; ?></span>
-            <h1><?php echo $isPartial ? 'Pay your remaining balance' : 'Complete your payment'; ?></h1>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1><?php echo $isPartial ? 'Pay your remaining balance' : 'Complete your payment'; ?></h1>
+            </div>
             <p><?php echo $isPartial ? 'Your slot is locked in. Pay the rest to complete this booking.' : 'Your slot is locked in. Choose how you\'d like to pay for it.'; ?></p>
         </div>
 

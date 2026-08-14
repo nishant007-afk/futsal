@@ -22,7 +22,10 @@ if ($fav_ids !== []) {
 }
 ?>
 
-<h1 class="page-title">Saved Courts</h1>
+<div class="title-back-row favorites-title-row">
+    <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+    <h1 class="page-title">Saved Courts</h1>
+</div>
 
 <div class="container">
     <div class="reveal">

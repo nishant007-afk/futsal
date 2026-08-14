@@ -134,10 +134,12 @@ require __DIR__ . '/../includes/header.php';
     <section class="signup-right">
         <div class="auth-topline">
             <div class="auth-toprow">
-                <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
                 <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-switch">Already have an account? <strong>Sign in</strong> <i class="fa-solid fa-arrow-right"></i></a>
             </div>
-            <h2>Sign up for GoalSpace</h2>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h2>Sign up for GoalSpace</h2>
+            </div>
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
         <a href="<?php echo base_url('pages/login_google.php?intent=signup'); ?>" class="btn-google" id="googleLink">

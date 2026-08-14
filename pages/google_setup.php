@@ -72,9 +72,11 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card lg">
     <div class="form-head">
-        <a href="<?php echo base_url($back); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back</a>
         <p class="muted" style="font-size:15px; margin:0 0 4px;">Hi, <?php echo e($gName); ?></p>
-        <h2>One last step to set up your account</h2>
+        <div class="title-back-row">
+            <a href="<?php echo base_url($back); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>One last step to set up your account</h2>
+        </div>
         <p class="muted">Choose how you'll use GoalSpace and confirm your preferences below.</p>
     </div>
 

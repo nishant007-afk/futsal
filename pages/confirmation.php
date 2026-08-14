@@ -59,9 +59,11 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="confirm-wrap reveal">
     <div class="confirm-card">
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="confirm-back"><i class="fa-solid fa-arrow-left"></i> My Bookings</a>
         <div class="confirm-check"><i class="fa-solid fa-circle-check"></i></div>
-        <h1>Payment completed</h1>
+        <div class="title-back-row confirm-title-row">
+            <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back confirm-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Payment completed</h1>
+        </div>
         <div class="confirm-ref">Booking reference: <strong><?php echo e($booking['booking_ref']); ?></strong></div>
 
         <table class="confirm-table">

@@ -171,14 +171,15 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head bookings-head reveal">
-    <div>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>My Bookings</h2>
     </div>
     <div class="actions">
         <a href="<?php echo base_url('pages/my_bookings.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
     </div>
 </div>
-<div class="bookings-stats">
+<div class="bookings-stats reveal">
         <div class="bstat">
             <i class="fa-solid fa-calendar-day"></i>
             <span class="bstat-in"><strong><?php echo count($upcoming); ?></strong><span class="bstat-lbl">Upcoming</span></span>
@@ -192,7 +193,6 @@ require __DIR__ . '/../includes/header.php';
             <span class="bstat-in"><strong><?php echo count($past); ?></strong><span class="bstat-lbl">Past</span></span>
         </div>
     </div>
-</div>
 
 <?php if (!$bookings): ?>
     <div class="empty reveal">

@@ -8,9 +8,9 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head settings-page-head">
-    <div>
+    <div class="ps-head-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Settings</h2>
-        <p class="muted" style="font-size:13px;margin-top:4px;">Manage your account, notifications and preferences.</p>
     </div>
 </div>
 

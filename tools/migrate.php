@@ -159,4 +159,13 @@ if (!table_exists('review_votes')) {
     echo "Applied: added `review_votes` table.\n";
 }
 
+// Add payment_ref + esewa transaction fields to bookings for gateway tracking.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'payment_ref'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE bookings ADD COLUMN payment_ref VARCHAR(64) DEFAULT NULL AFTER paid_at");
+    $conn->query("ALTER TABLE bookings ADD COLUMN esewa_txn_uuid VARCHAR(64) DEFAULT NULL AFTER payment_ref");
+    $conn->query("ALTER TABLE bookings ADD COLUMN esewa_ref_id VARCHAR(64) DEFAULT NULL AFTER esewa_txn_uuid");
+    $applied++;
+    echo "Applied: added `bookings.payment_ref`, `bookings.esewa_txn_uuid`, `bookings.esewa_ref_id` columns.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

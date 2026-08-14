@@ -9,7 +9,7 @@ $booking_id = (int)($_GET['booking_id'] ?? 0);
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.paid_at, b.discount, b.promo_code,
-            g.name AS ground_name, g.location, u.name AS owner_name
+            g.name AS ground_name, g.location, g.slug AS slug, u.name AS owner_name
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      LEFT JOIN users u ON u.id = g.manager_id
@@ -51,7 +51,7 @@ $rows[] = ['Court', 40, 694, 9, 'n', '6B7280'];
 $rows[] = [$booking['ground_name'], 300, 694, 12, 'b', '111111'];
 
 $rows[] = ['Managed by', 40, 670, 9, 'n', '6B7280'];
-$rows[] = [$booking['owner_name'] ?: '-', 300, 670, 12, 'n', '111111'];
+$rows[] = [ground_owner_label($booking) ?: '-', 300, 670, 12, 'n', '111111'];
 
 $rows[] = ['Location', 40, 646, 9, 'n', '6B7280'];
 $rows[] = [$booking['location'], 300, 646, 12, 'n', '111111'];

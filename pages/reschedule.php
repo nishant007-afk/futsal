@@ -160,9 +160,11 @@ $page_title = 'Reschedule booking';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <h2><i class="fa-solid fa-arrows-rotate"></i> Reschedule</h2>
-    <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> My bookings</a>
+<div class="page-head settings-page-head">
+    <div class="ps-head-row">
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2><i class="fa-solid fa-arrows-rotate"></i> Reschedule</h2>
+    </div>
 </div>
 <p class="muted" style="margin-bottom:8px;">Pick a new day and hour for <strong><?php echo e($booking['ground_name']); ?></strong>. Your payment is carried over.</p>
 

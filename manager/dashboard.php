@@ -72,11 +72,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2><i class="fa-solid fa-gauge-high"></i> Manager Dashboard</h2>
+    <h2>Manager Dashboard</h2>
     <div class="actions">
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> All Bookings</a>
-        <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
     </div>
 </div>
 

@@ -97,7 +97,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2><i class="fa-solid fa-tags"></i> My Promo Codes</h2>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>My Promo Codes</h2>
+    </div>
 </div>
 <p class="muted page-sub">Create discount codes players can use <strong>only on your courts</strong>. Codes you make here won't work at other managers' grounds.</p>
 

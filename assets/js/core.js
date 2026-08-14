@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sidebarToggle) {
             sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
             sidebarToggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            sidebarToggle.innerHTML = collapsed ? '<i class="fa-solid fa-bars"></i>' : '<i class="fa-solid fa-xmark"></i>';
         }
         const navLinks = mainNav ? mainNav.querySelectorAll('a[href]') : [];
         navLinks.forEach(function (a) {
@@ -282,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!(t instanceof Element)) return;
             if (t.closest('.site-header') || t.closest('.bottom-nav')) return;
             if (t.closest('a, button, input, textarea, select, label, [data-confirm], .otp-box')) return;
-            if (t.closest('.toast, .modal, .popup-backdrop, .cookie-banner, .drawer')) return;
+            if (t.closest('.toast, .modal, .popup-backdrop, .msg-backdrop, .msg-card, .cookie-banner, .drawer')) return;
             const hidden = siteHeader.classList.contains('collapsed') && bottomNav.classList.contains('hidden');
             if (hidden) {
                 hideTopBar();
@@ -328,6 +329,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 cancelText: el.dataset.confirmCancel || 'Cancel'
             });
         });
+    });
+
+    // Back buttons: return to the previous page, or the href when there's no history.
+    document.addEventListener('click', function (e) {
+        const target = e.target.closest('[data-back]');
+        if (!target) return;
+        e.preventDefault();
+        if (history.length > 1) {
+            history.back();
+        } else {
+            const href = target.getAttribute('href');
+            if (href && href !== '#') {
+                window.location.href = href;
+            }
+        }
     });
 
     document.querySelectorAll('form').forEach(function (form) {
@@ -718,8 +734,17 @@ document.addEventListener('DOMContentLoaded', function () {
         t.classList.add('hide');
         setTimeout(function () { t.remove(); removeBackdropIfEmpty(); }, 300);
     }
+    function dismissMsgCard(card) {
+        if (!card || card.classList.contains('hide')) return;
+        card.classList.add('hide');
+        const back = card.closest('.msg-backdrop');
+        setTimeout(function () {
+            card.remove();
+            if (back) back.remove();
+        }, 220);
+    }
     function removeBackdropIfEmpty() {
-        if (!document.querySelector('.toast') && !document.querySelector('.modal')) {
+        if (!document.querySelector('.toast') && !document.querySelector('.modal') && !document.querySelector('.msg-card')) {
             const b = document.querySelector('.popup-backdrop');
             if (b) b.remove();
         }
@@ -740,6 +765,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML =
+            '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="modal-head">' +
                 '<span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>' +
                 '<h3>Are you sure?</h3>' +
@@ -755,6 +781,8 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.classList.add('hide');
             setTimeout(function () { modal.remove(); removeBackdropIfEmpty(); }, 220);
         }
+        const closeBtn = modal.querySelector('.modal-x');
+        if (closeBtn) closeBtn.addEventListener('click', close);
         modal.querySelector('[data-modal-cancel]').addEventListener('click', close);
         modal.querySelector('[data-modal-ok]').addEventListener('click', function () {
             close();
@@ -823,8 +851,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     window.showSheet = showSheet;
 
-    function openErrorModal(message, title) {
-        return showSheet(message, { type: 'error', title: title });
+    function openErrorModal(message, title, opts) {
+        opts = opts || {};
+        const esc = function (s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+        const showButton = opts.button !== false;
+        const btnLabel = opts.button === true ? 'Try again' : (opts.button || 'Try again');
+        const backdrop = document.createElement('div');
+        backdrop.className = 'msg-backdrop';
+        const card = document.createElement('div');
+        card.className = 'msg-card msg-error';
+        card.innerHTML =
+            '<button type="button" class="msg-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+            '<div class="msg-icon"><i class="fa-solid fa-xmark"></i></div>' +
+            '<h3 class="msg-title">' + esc(title || 'Error') + '</h3>' +
+            '<p class="msg-text">' + esc(message) + '</p>' +
+            (showButton ? '<button type="button" class="msg-btn msg-btn-error">' + esc(btnLabel) + '</button>' : '');
+        backdrop.appendChild(card);
+        document.body.appendChild(backdrop);
+
+        function close() {
+            if (card.classList.contains('hide')) return;
+            card.classList.add('hide');
+            setTimeout(function () { backdrop.remove(); }, 220);
+        }
+        const closeBtn = card.querySelector('.msg-close');
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        const btn = card.querySelector('.msg-btn');
+        if (btn) btn.addEventListener('click', close);
+        backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+        });
+        setTimeout(function () { (btn || closeBtn).focus(); }, 10);
     }
     window.openErrorModal = openErrorModal;
     document.querySelectorAll('[data-error-modal-msg]').forEach(function (el) {
@@ -835,6 +895,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         openErrorModal(el.getAttribute('data-error-modal-msg'), el.getAttribute('data-error-modal-title'));
     });
+    const msgCards = document.querySelectorAll('.msg-card');
+    msgCards.forEach(function (card) {
+        const btn = card.querySelector('.msg-btn');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                const back = btn.getAttribute('data-msg-back');
+                dismissMsgCard(card);
+                if (back) setTimeout(function () { window.location.href = back; }, 200);
+            });
+        }
+        const closeBtn = card.querySelector('.msg-close');
+        if (closeBtn) closeBtn.addEventListener('click', function () { dismissMsgCard(card); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !card.classList.contains('hide')) dismissMsgCard(card);
+        });
+    });
+
     toasts.forEach(function (t, i) {
         const close = t.querySelector('.toast-close');
         if (close) close.addEventListener('click', function () { dismissToast(t); });

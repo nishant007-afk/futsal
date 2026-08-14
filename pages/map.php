@@ -12,9 +12,9 @@ $json = json_encode($items);
 ?>
 
 <div class="page-head reveal">
-    <div>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Courts on the Map</h2>
-        <p class="page-sub muted">Pins show active courts. Click a pin to open the court and book a slot.</p>
     </div>
 </div>
 <div class="map-browse-wrap reveal">
@@ -33,11 +33,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }).addTo(map);
 
     var base = document.body.getAttribute('data-base') || '';
+    var icon = L.divIcon({
+        className: 'gs-ground-marker',
+        html: '<span class="gs-ground-pin"><i class="fa-solid fa-futbol"></i></span>',
+        iconSize: [40, 48],
+        iconAnchor: [20, 46],
+        popupAnchor: [0, -42]
+    });
     data.forEach(function (g) {
         var price = g.discount_price && parseFloat(g.discount_price) > 0 && parseFloat(g.discount_price) < parseFloat(g.price_per_hour)
             ? 'Rs ' + parseFloat(g.discount_price).toFixed(0)
             : 'Rs ' + parseFloat(g.price_per_hour).toFixed(0);
-        var marker = L.marker([parseFloat(g.latitude), parseFloat(g.longitude)]).addTo(map);
+        var marker = L.marker([parseFloat(g.latitude), parseFloat(g.longitude)], { icon: icon }).addTo(map);
         var html = '<div style="font-size:13px;">'
             + '<strong style="font-size:15px;">' + g.name + '</strong><br>'
             + g.location + '<br>'
@@ -49,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (data.length > 0) {
         var group = L.featureGroup(data.map(function (g) {
-            return L.marker([parseFloat(g.latitude), parseFloat(g.longitude)]);
+            return L.marker([parseFloat(g.latitude), parseFloat(g.longitude)], { icon: icon });
         }));
         map.fitBounds(group.getBounds().padding([40, 40]));
     }

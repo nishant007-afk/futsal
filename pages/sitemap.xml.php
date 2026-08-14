@@ -15,6 +15,7 @@ $urls[] = ['loc' => absolute_url('pages/my_bookings.php'), 'changefreq' => 'week
 $urls[] = ['loc' => absolute_url('pages/login.php'), 'changefreq' => 'monthly', 'priority' => '0.4'];
 $urls[] = ['loc' => absolute_url('pages/register.php'), 'changefreq' => 'monthly', 'priority' => '0.4'];
 $urls[] = ['loc' => absolute_url('pages/page.php?slug=contact'), 'changefreq' => 'monthly', 'priority' => '0.5'];
+$urls[] = ['loc' => absolute_url('pages/how_to_use.php'), 'changefreq' => 'monthly', 'priority' => '0.6'];
 $legal = legal_pages_defaults();
 foreach ($legal as $slug => $info) {
     $urls[] = ['loc' => absolute_url('pages/page.php?slug=' . $slug), 'changefreq' => 'monthly', 'priority' => '0.3'];

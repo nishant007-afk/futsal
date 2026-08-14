@@ -20,21 +20,13 @@ $end_time = $parts[1] ?? '';
 $errors = [];
 
 if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) || !preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
-    $errors[] = 'Please select a valid time slot.';
+    $errors[] = ['what' => 'Please select a time slot.'];
 }
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $booking_date)) {
-    $errors[] = [
-        'what' => 'That date doesn\'t look valid.',
-        'why' => 'We need a real calendar date to check the court\'s schedule.',
-        'how' => 'Pick a date from the calendar and try again.',
-    ];
+    $errors[] = ['what' => 'Please pick a valid date.'];
 }
 if ($booking_date < date('Y-m-d')) {
-    $errors[] = [
-        'what' => 'That date is in the past.',
-        'why' => 'Slots can only be booked for today or a future date.',
-        'how' => 'Choose today or a later date.',
-    ];
+    $errors[] = ['what' => 'Please pick today or a future date.'];
 }
 
 if (isset($_POST['join_waitlist']) && !$errors) {
@@ -76,18 +68,12 @@ $ground = $stmt->get_result()->fetch_assoc();
 if (!$ground) {
     $errors[] = [
         'what' => 'We couldn\'t find that court.',
-        'why' => 'The court may have been removed or is no longer taking bookings.',
-        'how' => 'Browse the courts list to pick one that\'s available.',
         'how_url' => 'pages/courts.php',
     ];
 }
 
 if (!$errors && date_is_blocked($ground_id, $booking_date)) {
-    $errors[] = [
-        'what' => 'This court is closed on that day.',
-        'why' => 'The manager has blocked this date.',
-        'how' => 'Pick another date to see open slots.',
-    ];
+    $errors[] = ['what' => 'This court is closed on that day.'];
 }
 
 if (!$errors) {
@@ -98,11 +84,7 @@ if (!$errors) {
     $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
-        $errors[] = [
-            'what' => 'That time slot was just taken.',
-            'why' => 'Someone else booked it while you were choosing.',
-            'how' => 'Pick a different time - there are usually plenty of open slots.',
-        ];
+        $errors[] = ['what' => 'That time slot was just taken.'];
     }
 }
 
@@ -110,8 +92,8 @@ if ($errors) {
     foreach ($errors as $err) {
         set_flash_error(
             $err['what'],
-            $err['why'] ?? null,
-            $err['how'] ?? null,
+            null,
+            null,
             $err['how_url'] ?? null
         );
     }
@@ -120,7 +102,7 @@ if ($errors) {
 
 $conn->begin_transaction();
 
-$repeat_weeks = (int)($_POST['repeat_weeks'] ?? 1);
+$repeat_weeks = isset($_POST['repeat_booking']) ? (int)($_POST['repeat_weeks'] ?? 1) : 1;
 if ($repeat_weeks < 1 || $repeat_weeks > 8) {
     $repeat_weeks = 1;
 }
@@ -161,8 +143,8 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
         $conn->rollback();
         set_flash_error(
             'That time slot was just taken.',
-            'Someone else booked it while you were paying.',
-            'Pick a different time - there are usually plenty of open slots.',
+            null,
+            null,
             'pages/ground.php?id=' . $ground_id . '&date=' . $booking_date
         );
         redirect('pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);
@@ -178,8 +160,8 @@ if ($createdCount === 0) {
     $conn->rollback();
     set_flash_error(
         'None of those slots could be booked.',
-        'Every selected date was either already taken or closed by the court.',
-        'Try a different day or a later time.',
+        null,
+        null,
         'pages/ground.php?id=' . $ground_id . '&date=' . $booking_date
     );
     redirect('pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);

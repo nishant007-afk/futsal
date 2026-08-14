@@ -9,17 +9,14 @@ $page_title = 'Security';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head settings-page-head">
-    <div class="ps-head-row">
-        <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back" aria-label="Back to settings"><i class="fa-solid fa-chevron-left"></i></a>
-        <div>
+    <div class="page-head settings-page-head">
+        <div class="ps-head-row">
+            <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Security</h2>
-            <p class="muted" style="font-size:13px;margin-top:4px;">Keep your GoalSpace account secure.</p>
         </div>
     </div>
-</div>
 
-<nav class="settings-nav" aria-label="Security sections">
+    <nav class="settings-nav" aria-label="Security sections">
     <a href="<?php echo base_url('pages/change_password.php'); ?>"><i class="fa-solid fa-key"></i> Change password <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a>
     <a href="<?php echo base_url('pages/security.php'); ?>" class="active" aria-current="page"><i class="fa-solid fa-shield-halved"></i> Security <i class="fa-solid fa-chevron-right settings-nav-chevr" aria-hidden="true"></i></a>
 </nav>

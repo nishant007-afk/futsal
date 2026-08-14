@@ -8,7 +8,7 @@ $booking_id = (int)($_GET['booking_id'] ?? 0);
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.payment_type, b.amount_paid, b.paid_at, b.discount, b.promo_code, b.created_at,
-            g.name AS ground_name, g.location, g.price_per_hour, u.name AS owner_name
+            g.name AS ground_name, g.location, g.price_per_hour, g.slug AS slug, u.name AS owner_name
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      LEFT JOIN users u ON u.id = g.manager_id
@@ -48,7 +48,10 @@ require __DIR__ . '/../includes/header.php';
             <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
         </div>
         <div class="receipt-meta">
-            <h1>Receipt of payment</h1>
+            <div class="title-back-row receipt-title-row">
+                <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1>Receipt of payment</h1>
+            </div>
             <p class="muted">Show this to the court manager when you arrive.</p>
         </div>
 
@@ -61,10 +64,10 @@ require __DIR__ . '/../includes/header.php';
                 <span>Court</span>
                 <strong><?php echo e($booking['ground_name']); ?></strong>
             </div>
-            <?php if ($booking['owner_name']): ?>
+            <?php $ownerLabel = ground_owner_label($booking); if ($ownerLabel !== ''): ?>
                 <div class="receipt-row">
                     <span>Managed by</span>
-                    <strong><?php echo e($booking['owner_name']); ?></strong>
+                    <strong><?php echo e($ownerLabel); ?></strong>
                 </div>
             <?php endif; ?>
             <div class="receipt-row">

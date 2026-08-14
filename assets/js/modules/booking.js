@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const repeatToggle = document.getElementById('repeatToggle');
+    const repeatWeeksWrap = document.getElementById('repeatWeeksWrap');
+    if (repeatToggle && repeatWeeksWrap) {
+        repeatToggle.addEventListener('change', function () {
+            repeatWeeksWrap.style.display = repeatToggle.checked ? 'flex' : 'none';
+        });
+    }
+
     const dateInput = document.getElementById('bookingDate');
     if (dateInput && dateInput.closest('form')) {
         const today = new Date();

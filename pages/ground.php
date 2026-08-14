@@ -100,6 +100,13 @@ require __DIR__ . '/../includes/header.php';
     <span><?php echo e($ground['name']); ?></span>
 </nav>
 
+<?php if (is_demo_ground($ground)): ?>
+    <div class="notice">
+        <i class="fa-solid fa-circle-info"></i>
+        <span><strong>Practice court.</strong> This is a demo for trying GoalSpace. Feel free to book and pay with test data, nothing here is real.</span>
+    </div>
+<?php endif; ?>
+
 <div class="ground-detail">
     <div class="reveal">
         <div class="gallery-wrap" id="galleryWrap">
@@ -148,8 +155,8 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
             <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open 08:00 - 22:00</span></div>
-            <?php if (!empty($ground['owner_name'])): ?>
-                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ground['owner_name']); ?></strong></span></div>
+            <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
+                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
             <?php endif; ?>
             <div class="rating-summary">
                 <?php if ($rating['count'] > 0): ?>
@@ -168,7 +175,10 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="detail-box booking-panel reveal">
         <div class="ground-header">
-            <h1><?php echo e($ground['name']); ?></h1>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('pages/courts.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1><?php echo e($ground['name']); ?></h1>
+            </div>
             <?php if (is_logged_in()): ?>
                 <button type="button"
                         class="fav-toggle ground-fav"
@@ -232,7 +242,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php elseif (is_player()): ?>
                     <div class="repeat-row" id="repeatRow">
                         <label class="repeat-check" for="repeatToggle">
-                            <input type="checkbox" id="repeatToggle">
+                            <input type="checkbox" id="repeatToggle" name="repeat_booking" value="1">
                             <span><i class="fa-solid fa-arrows-rotate"></i> Repeat this booking weekly</span>
                         </label>
                         <div class="repeat-weeks" id="repeatWeeksWrap" style="display:none;">
@@ -263,7 +273,7 @@ require __DIR__ . '/../includes/header.php';
                         <?php foreach ($takenSlots as $ts): ?>
                             <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
                             <?php $joined = is_logged_in() && on_waitlist((int)$ground['id'], $selected_date, $ts['start'], (int)$site_user['id']); ?>
-                            <form method="post" action="<?php echo base_url('pages/book.php'); ?>">
+<form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
                                 <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">

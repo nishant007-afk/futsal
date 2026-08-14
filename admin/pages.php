@@ -38,7 +38,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="content-hero">
-    <h1>Legal pages</h1>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1>Legal pages</h1>
+    </div>
 </div>
 
 <div class="admin-legal-list">

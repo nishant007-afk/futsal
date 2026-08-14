@@ -140,7 +140,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2>My Profile</h2>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>My Profile</h2>
+    </div>
 </div>
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>

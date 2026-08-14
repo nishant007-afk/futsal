@@ -2026,3 +2026,85 @@ function ground_json_ld(array $ground): string
     ];
     return render_json_ld($data);
 }
+
+/**
+ * True when the court is the dedicated demo/practice court.
+ */
+function is_demo_ground(array $ground): bool
+{
+    return isset($ground['slug']) && $ground['slug'] === 'demo-court';
+}
+
+/**
+ * Human-friendly owner label. The demo court is presented as GoalSpace itself.
+ */
+function ground_owner_label(array $ground): string
+{
+    if (is_demo_ground($ground)) {
+        return 'GoalSpace';
+    }
+    return (string) ($ground['owner_name'] ?? '');
+}
+
+/* ============ eSewa Payment Gateway ============ */
+
+/**
+ * Build the signed signature eSewa expects for the legacy /v2/form flow.
+ * eSewa signs the exact fields listed in signed_field_names in order.
+ */
+function esewa_signature(float $total_amount, string $transaction_uuid): string
+{
+    $data = 'total_amount=' . (int) round($total_amount)
+        . ',transaction_uuid=' . $transaction_uuid
+        . ',product_code=' . ESEWA_PRODUCT_CODE;
+    return base64_encode(hash_hmac('sha256', $data, ESEWA_SECRET_KEY, true));
+}
+
+/**
+ * The hidden form fields posted to eSewa to start a payment.
+ */
+function esewa_payment_fields(int $booking_id, float $total_amount): array
+{
+    $total = (int) round($total_amount);
+    $uuid  = strtoupper('GS-' . $booking_id . '-' . bin2hex(random_bytes(8)));
+    return [
+        'amount'                    => $total,
+        'tax_amount'                => 0,
+        'total_amount'              => $total,
+        'transaction_uuid'          => $uuid,
+        'product_code'              => ESEWA_PRODUCT_CODE,
+        'product_service_charge'    => 0,
+        'product_delivery_charge'   => 0,
+        'success_url'               => esewa_success_url($booking_id),
+        'failure_url'               => esewa_failure_url($booking_id),
+        'signed_field_names'        => 'total_amount,transaction_uuid,product_code',
+        'signature'                 => esewa_signature($total, $uuid),
+    ];
+}
+
+/**
+ * Verify a transaction with eSewa's status endpoint.
+ *
+ * @return string[] verified data ['status' => 'COMPLETE', 'ref_id' => ...] or [] on error
+ */
+function esewa_verify(string $transaction_uuid, float $total_amount): array
+{
+    $url = esewa_status_url()
+        . '?product_code=' . urlencode(ESEWA_PRODUCT_CODE)
+        . '&total_amount=' . (int) round($total_amount)
+        . '&transaction_uuid=' . urlencode($transaction_uuid);
+
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout' => 15,
+            'header'  => "Accept: application/json\r\n",
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $ctx);
+    if ($body === false) {
+        return [];
+    }
+    $data = json_decode($body, true);
+    return is_array($data) ? $data : [];
+}

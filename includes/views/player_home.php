@@ -29,9 +29,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
             <span class="eyebrow">Player dashboard</span>
             <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
         </div>
-        <div class="actions">
-            <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
-        </div>
     </div>
 </section>
 
@@ -80,12 +77,14 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
                 <?php booking_card($b); ?>
             <?php endforeach; ?>
         </div>
-        <p class="section-foot"><a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="inline-link">View all bookings <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></a></p>
+        <div class="section-foot reveal" style="text-align:center;">
+            <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-calendar-check"></i> View all bookings</a>
+        </div>
     <?php endif; ?>
 </section>
 
-<section class="section section-alt" id="courts" style="padding:46px 0 40px;">
-    <div class="section-head reveal" style="padding-left:18px; margin-top:-6px;">
+<section class="section section-alt" id="courts" style="padding:30px 0 40px;">
+    <div class="section-head reveal" style="padding-left:18px; margin-top:-22px;">
         <h2 class="section-title">Courts available near you</h2>
     </div>
     <?php if (!$grounds): ?>

@@ -59,8 +59,10 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card chg-pass">
     <div class="form-head">
-        <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
-        <h2>Change your password</h2>
+        <div class="title-back-row">
+            <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>Change your password</h2>
+        </div>
     </div>
 
     <?php if (!empty($errors['general'])): ?>

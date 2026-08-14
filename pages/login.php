@@ -11,6 +11,7 @@ $lock = null;
 $suspended = false;
 $suspendedEmail = '';
 $failuresLeft = null;
+$errorTitle = 'Login failed';
 
 if (isset($_SESSION['login_lock']) && is_array($_SESSION['login_lock'])) {
     $ll = $_SESSION['login_lock'];
@@ -108,7 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['general'] = 'Too many failed attempts. Try again in ' . gmdate('i:s', $after['lock_seconds']) . '.';
             } elseif (!$ok) {
                 $failuresLeft = 5 - $after['failures'];
-                $errors['general'] = 'The password you entered is incorrect. You have ' . max(0, $failuresLeft) . ' attempt' . (max(0, $failuresLeft) === 1 ? '' : 's') . ' left before a 1-minute pause.';
+                $errorTitle = 'Incorrect password';
+                $errors['general'] = 'Attempts remaining: ' . max(0, $failuresLeft);
             } else {
                 $errors['general'] = 'Please verify your email before logging in. Check your inbox for the verification link.';
             }
@@ -123,8 +125,10 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card">
     <div class="form-head">
-        <a href="<?php echo base_url('index.php'); ?>" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
-        <h2 >Sign in to GoalSpace</h2>
+        <div class="title-back-row">
+            <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2 >Sign in to GoalSpace</h2>
+        </div>
     </div>
 
     <?php if ($suspended): ?>
@@ -171,7 +175,7 @@ require __DIR__ . '/../includes/header.php';
         </form>
     <?php else: ?>
         <?php if (!empty($errors['general'])): ?>
-            <div hidden data-error-modal-title="Login failed" data-error-modal-msg="<?php echo e($errors['general']); ?>"></div>
+            <div hidden data-error-modal-title="<?php echo e($errorTitle); ?>" data-error-modal-msg="<?php echo e($errors['general']); ?>"></div>
         <?php endif; ?>
 
         <?php if ($lock): ?>

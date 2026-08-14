@@ -76,7 +76,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2><i class="fa-solid fa-hand-holding-dollar"></i> Manager Billing</h2>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>Manager Billing</h2>
+    </div>
     <div class="actions">
         <a href="<?php echo base_url('admin/settlements.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
         <a href="<?php echo base_url('admin/settlements.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>

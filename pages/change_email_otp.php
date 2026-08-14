@@ -89,10 +89,12 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="form-card lg" style="margin-top:44px;">
-    <div class="form-head">
+ <div class="form-head">
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Confirm your new email</h2>
-        <p class="muted">We sent a 6-digit code to <strong><?php echo e($newEmail); ?></strong>. Enter it below to finish updating your email. Your current email (<strong><?php echo e($me['email']); ?></strong>) stays unchanged until you confirm.</p>
     </div>
+ </div>
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 

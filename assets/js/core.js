@@ -1303,13 +1303,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 url.searchParams.set('lng', pos.coords.longitude.toFixed(6));
                 window.location.href = url.toString();
             }, function (err) {
-                let msg = 'Location access was denied. You can search by city instead.';
+                let msg = 'Location access was denied. Search by city instead.';
                 if (err.code === err.PERMISSION_DENIED) {
-                    msg = 'Location permission denied. Please enable it in browser settings (lock icon in address bar) or search by city instead.';
+                    msg = 'Location permission denied. Enable it in browser settings, or search by city instead.';
                 } else if (err.code === err.TIMEOUT) {
-                    msg = 'Location request timed out. Please try again.';
+                    msg = 'Location request timed out. Try again.';
                 } else if (err.code === err.POSITION_UNAVAILABLE) {
-                    msg = 'Location unavailable. Please try again or search by city.';
+                    msg = 'Location unavailable. Try again, or search by city.';
                 }
                 openErrorModal(msg, 'Location unavailable', { button: false });
                 nearMeBtns.forEach(function (b) {

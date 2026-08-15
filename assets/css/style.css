@@ -1228,12 +1228,12 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .msg-error .msg-icon { background: #ef4444; box-shadow: 0 14px 30px -10px rgba(239, 68, 68, .5); }
 
 .msg-title {
-    font-size: 22px; font-weight: 700; letter-spacing: -.02em;
-    color: var(--ink); margin: 0 0 8px;
+    font-size: 21px; font-weight: 700; letter-spacing: -.02em;
+    color: var(--ink); margin: 0 0 6px;
 }
 .msg-text {
-    font-size: 14.5px; line-height: 1.65; color: var(--ink-2);
-    margin: 0 auto; max-width: 330px;
+    font-size: 13.5px; line-height: 1.6; color: var(--ink-2);
+    margin: 0 auto; max-width: 340px;
 }
 .msg-details {
     margin: 20px 0 4px;

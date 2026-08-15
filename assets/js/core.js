@@ -1311,17 +1311,43 @@ document.addEventListener('DOMContentLoaded', function () {
             nearMeToggle.addEventListener('change', function () {
                 const on = nearMeToggle.checked;
                 setNearMePref(on);
-                if (on) {
-                    // Ask the browser for permission right away.
-                    navigator.geolocation.getCurrentPosition(function () {
-                        showNearMeSuccess();
-                    }, function (err) {
-                        openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
+                if (on) grantNearMePermission();
+            });
+        }
+
+        function grantNearMePermission() {
+            // Trigger the browser's own permission prompt (or confirm it is on).
+            const ask = function () {
+                navigator.geolocation.getCurrentPosition(function () {
+                    showNearMeSuccess();
+                }, function (err) {
+                    if (err && err.code === err.PERMISSION_DENIED) {
                         nearMeToggle.checked = false;
                         setNearMePref(false);
-                    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-                }
-            });
+                        openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
+                    } else {
+                        // Permission granted but a fix/timeout — that's fine for the toggle;
+                        // courts.php will retry for an actual position.
+                        showNearMeSuccess();
+                    }
+                }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
+            };
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                    if (result.state === 'denied') {
+                        // Already rejected once: browsers won't re-ask, so guide them.
+                        nearMeToggle.checked = false;
+                        setNearMePref(false);
+                        openErrorModal(nearMeError({ code: 1 }), 'Location unavailable', { button: false });
+                    } else if (result.state === 'granted') {
+                        showNearMeSuccess();
+                    } else {
+                        ask();
+                    }
+                }).catch(function () { ask(); });
+            } else {
+                ask();
+            }
         }
 
         function showNearMeSuccess() {

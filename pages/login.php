@@ -181,10 +181,9 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($lock): ?>
             <div class="lock-card" data-lock-ends="<?php echo e($lock['ends']); ?>" data-lock-total="<?php echo (int)$lock['seconds']; ?>" id="lockNotice">
                 <div class="lock-head">
-                    <i class="fa-solid fa-hourglass-half"></i>
                     <strong>Too many attempts</strong>
                 </div>
-                <p class="lock-msg">Too many wrong attempts, so we've paused logins for a minute.</p>
+                <p class="lock-msg">Logins are paused briefly.</p>
                 <div class="lock-timer-row">
                     <span class="lock-label">Retry in</span>
                     <span class="lock-timer" id="lockTimer"><?php echo gmdate('i:s', $lock['seconds']); ?></span>

@@ -68,7 +68,7 @@
     </div>
 </div>
 
-<script src="<?php echo base_url('assets/js/core.js?v=71'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=72'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];
@@ -88,7 +88,7 @@ if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
     $pageModules[] = 'manager';
 }
 foreach ($pageModules as $module) {
-    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=1') . '" defer></script>' . "\n";
+    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=2') . '" defer></script>' . "\n";
 }
 ?>
 </body>

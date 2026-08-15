@@ -10,7 +10,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="page-head settings-page-head">
         <div class="ps-head-row">
             <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>Appearance</h2>
+            <h2>Appearance &amp; location</h2>
         </div>
     </div>
 
@@ -30,6 +30,19 @@ require __DIR__ . '/../includes/header.php';
         </button>
     </div>
 </div>
+
+    <div class="settings-card settings-narrow">
+        <div class="pref-row">
+            <div class="pref-row-text">
+                <strong>Use my location</strong>
+                <em>Show courts near you and sort by distance</em>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="nearmeToggle">
+                <span class="switch-track" aria-hidden="true"></span>
+            </label>
+        </div>
+    </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 <script>

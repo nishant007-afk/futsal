@@ -31,7 +31,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <a href="<?php echo base_url('pages/settings_notifications.php'); ?>" class="sh-row"><i class="fa-solid fa-bell"></i><span class="hub-txt"><strong>Notifications</strong><em>What we email or text you about</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-    <a href="<?php echo base_url('pages/settings_preferences.php'); ?>" class="sh-row"><i class="fa-solid fa-sliders"></i><span class="hub-txt"><strong>Preferences</strong><em>Appearance and theme</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+    <a href="<?php echo base_url('pages/settings_preferences.php'); ?>" class="sh-row"><i class="fa-solid fa-sliders"></i><span class="hub-txt"><strong>Preferences</strong><em>Appearance and location</em></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

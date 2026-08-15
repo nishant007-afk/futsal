@@ -174,7 +174,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="courts-toolbar reveal">
-        <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search">
+        <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
             <div class="search-field">
                 <label for="courtsQ">Search</label>
                 <input type="text" id="courtsQ" name="q" placeholder="Court name or location" value="<?php echo e($q); ?>">
@@ -205,7 +205,6 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
                     <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
                 <?php endif; ?>
-                <button type="button" class="btn btn-outline btn-sm near-me-btn" data-courts-url="<?php echo grounds_list_url(); ?>" aria-label="Use my location"><i class="fa-solid fa-walkie-talkie"></i> Use my location</button>
             </div>
         </form>
     </div>

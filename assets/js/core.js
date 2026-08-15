@@ -1251,103 +1251,67 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ---- Near-me geolocation ---- */
-    const nearMeBtns = document.querySelectorAll('.near-me-btn');
-    if (nearMeBtns.length && navigator.geolocation) {
-        let locationPromptShown = false;
+    /* ---- Near-me geolocation (preference-driven) ---- */
+    const NEARME_KEY = 'goalspace-nearme';
+    const nearMePage = document.querySelector('[data-nearme]');
+    const nearMeToggle = document.getElementById('nearmeToggle');
 
-        function showLocationPrompt() {
-            if (locationPromptShown) return;
-            locationPromptShown = true;
+    function getNearMePref() {
+        try { return localStorage.getItem(NEARME_KEY) === '1'; } catch (e) { return false; }
+    }
+    function setNearMePref(on) {
+        try { localStorage.setItem(NEARME_KEY, on ? '1' : '0'); } catch (e) {}
+    }
 
-            const overlay = document.createElement('div');
-            overlay.className = 'location-prompt-overlay';
-            overlay.innerHTML = `
-                <div class="location-prompt">
-                    <div class="location-prompt-icon"><i class="fa-solid fa-location-dot"></i></div>
-                    <h3>Find courts near you</h3>
-                    <p>GoalSpace can use your location to show futsal courts sorted by distance.</p>
-                    <ul class="location-prompt-benefits">
-                        <li><i class="fa-solid fa-check"></i> See nearest courts first</li>
-                        <li><i class="fa-solid fa-check"></i> Accurate distance in km</li>
-                        <li><i class="fa-solid fa-check"></i> Filter by radius</li>
-                    </ul>
-                    <div class="location-prompt-actions">
-                        <button type="button" class="btn btn-outline" id="locationDeny">Not now</button>
-                        <button type="button" class="btn btn-primary" id="locationAllow">Allow location</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            overlay.querySelector('#locationAllow').addEventListener('click', () => {
-                overlay.remove();
-                requestLocation();
-            });
-            overlay.querySelector('#locationDeny').addEventListener('click', () => {
-                overlay.remove();
-                locationPromptShown = false;
-            });
+    if (navigator.geolocation) {
+        function nearMeError(err) {
+            if (err.code === err.PERMISSION_DENIED) {
+                return 'Location permission denied. Enable it in browser settings, or search by city instead.';
+            }
+            if (err.code === err.TIMEOUT) {
+                return 'Location request timed out. Try again.';
+            }
+            if (err.code === err.POSITION_UNAVAILABLE) {
+                return 'Location unavailable. Try again, or search by city.';
+            }
+            return 'Location access was denied. Search by city instead.';
         }
-
-        function requestLocation() {
-            const btn = document.querySelector('.near-me-btn');
-            if (!btn) return;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-thin"></span> Finding...';
+        function requestLocation(target) {
             navigator.geolocation.getCurrentPosition(function (pos) {
-                const target = btn.getAttribute('data-courts-url') || (window.location.origin + window.location.pathname);
-                const url = new URL(target, window.location.origin);
+                const base = target || (window.location.origin + window.location.pathname);
+                const url = new URL(base, window.location.origin);
+                // Keep the user's active filters when redirecting within the courts page.
+                const current = new URL(window.location.href);
+                ['q', 'location', 'date', 'sort'].forEach(function (k) {
+                    const v = current.searchParams.get(k);
+                    if (v !== null) url.searchParams.set(k, v);
+                });
                 url.searchParams.delete('page');
                 url.searchParams.set('lat', pos.coords.latitude.toFixed(6));
                 url.searchParams.set('lng', pos.coords.longitude.toFixed(6));
                 window.location.href = url.toString();
             }, function (err) {
-                let msg = 'Location access was denied. Search by city instead.';
-                if (err.code === err.PERMISSION_DENIED) {
-                    msg = 'Location permission denied. Enable it in browser settings, or search by city instead.';
-                } else if (err.code === err.TIMEOUT) {
-                    msg = 'Location request timed out. Try again.';
-                } else if (err.code === err.POSITION_UNAVAILABLE) {
-                    msg = 'Location unavailable. Try again, or search by city.';
-                }
-                openErrorModal(msg, 'Location unavailable', { button: false });
-                nearMeBtns.forEach(function (b) {
-                    b.disabled = false;
-                    b.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
-                });
+                openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
 
-        nearMeBtns.forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                // Check if permission already granted in this session
-                if (sessionStorage.getItem('locationPermissionGranted')) {
-                    requestLocation();
-                    return;
-                }
-                // Check browser permission state if available
-                if (navigator.permissions) {
-                    navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
-                        if (result.state === 'granted') {
-                            sessionStorage.setItem('locationPermissionGranted', '1');
-                            requestLocation();
-                        } else {
-                            showLocationPrompt();
-                        }
-                    });
-                } else {
-                    showLocationPrompt();
-                }
-            });
-        });
+        // Auto near-me on courts.php when the preference is on (no coords yet).
+        // Guarded so we only auto-attempt once per session to avoid re-prompting.
+        if (nearMePage && getNearMePref() && !sessionStorage.getItem('nearmeAutoTried')) {
+            const url = new URL(window.location.href);
+            if (!url.searchParams.get('lat') && !url.searchParams.get('lng')) {
+                sessionStorage.setItem('nearmeAutoTried', '1');
+                requestLocation(nearMePage.getAttribute('data-nearme-url'));
+            }
+        }
 
-        // Store permission granted for this session
-        navigator.geolocation.getCurrentPosition(
-            () => sessionStorage.setItem('locationPermissionGranted', '1'),
-            () => {}, { timeout: 100 }
-        );
+        // Preferences toggle.
+        if (nearMeToggle) {
+            nearMeToggle.checked = getNearMePref();
+            nearMeToggle.addEventListener('change', function () {
+                setNearMePref(nearMeToggle.checked);
+            });
+        }
     }
 
     /* ---- Ground photo gallery (ground.php) ---- */

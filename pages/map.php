@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var group = L.featureGroup(data.map(function (g) {
             return L.marker([parseFloat(g.latitude), parseFloat(g.longitude)], { icon: icon });
         }));
-        map.fitBounds(group.getBounds().padding([40, 40]));
+        map.fitBounds(group.getBounds(), { padding: [40, 40] });
     }
 });
 </script>

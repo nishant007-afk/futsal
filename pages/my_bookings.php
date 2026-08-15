@@ -6,7 +6,7 @@ require_player();
 if (isset($_GET['export'])) {
     $stmt = $conn->prepare(
         'SELECT b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-                b.payment_status, b.amount_paid, b.discount, b.promo_code, b.repeat_weeks,
+                b.payment_status, b.amount_paid, b.discount, b.promo_code, b.repeat_weeks, b.payment_method,
                 g.name AS ground_name, g.location
          FROM bookings b
          JOIN grounds g ON g.id = b.ground_id
@@ -18,7 +18,7 @@ if (isset($_GET['export'])) {
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    $csv = [['Reference', 'Ground', 'Location', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Discount (Rs)', 'Promo', 'Repeat Weeks']];
+    $csv = [['Reference', 'Ground', 'Location', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Method', 'Paid (Rs)', 'Discount (Rs)', 'Promo', 'Repeat Weeks']];
     foreach ($rows as $b) {
         $csv[] = [
             $b['booking_ref'],
@@ -30,6 +30,7 @@ if (isset($_GET['export'])) {
             number_format((float)$b['total_price'], 2),
             $b['status'],
             $b['payment_status'],
+            $b['payment_method'] ?? '',
             number_format((float)$b['amount_paid'], 2),
             number_format((float)$b['discount'], 2),
             $b['promo_code'] ?? '',
@@ -147,7 +148,7 @@ $today = date('Y-m-d');
 
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.discount, b.promo_code, b.repeat_weeks,
+            b.payment_status, b.amount_paid, b.discount, b.promo_code, b.repeat_weeks, b.payment_method,
             g.name AS ground_name, g.location
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id

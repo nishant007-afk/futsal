@@ -86,12 +86,8 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-    <?php if ($demoCode || (!empty($pending['otp']) && empty($pending['sent']))): ?>
-        <div class="notice" style="margin-top:14px;">
-            <i class="fa-solid fa-circle-info"></i>
-            <span><strong>Email couldn't be sent</strong> right now, so use this code: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);"><?php echo e($demoCode ?? $pending['otp']); ?></strong></span>
-        </div>
-    <?php endif; ?>
+    <!-- ...notice removed... -->
+    <!-- OTP code display removed for security - codes are delivered via email only -->
 
     <form method="post" action="" style="margin-top:18px;" novalidate>
         <?php echo csrf_field(); ?>

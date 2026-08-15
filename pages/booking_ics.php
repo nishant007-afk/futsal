@@ -24,6 +24,10 @@ $uid = 'booking-' . $b['booking_ref'] . '@goalspace.app';
 $dtStamp = new DateTime();
 $desc = "Booking at {$b['ground_name']} ({$b['location']})\nRef: {$b['booking_ref']}\nPrice: " . format_price((float)$b['total_price']) . "\nStatus: {$b['status']}\nPayment: {$b['payment_status']}";
 
+// Sanitize CR/LF from DB fields so managers cannot inject iCal lines.
+$groundName = str_replace(["\r", "\n"], ' ', $b['ground_name']);
+$location   = str_replace(["\r", "\n"], ' ', $b['location']);
+
 $ics = "BEGIN:VCALENDAR\r\n";
 $ics .= "VERSION:2.0\r\n";
 $ics .= "PRODID:-//GoalSpace//Booking Calendar//EN\r\n";
@@ -34,9 +38,9 @@ $ics .= "UID:" . $uid . "\r\n";
 $ics .= "DTSTAMP:" . $dtStamp->format('Ymd\THis\Z') . "\r\n";
 $ics .= "DTSTART:" . $dtStart->format('Ymd\THis') . "\r\n";
 $ics .= "DTEND:" . $dtEnd->format('Ymd\THis') . "\r\n";
-$ics .= "SUMMARY:GoalSpace - " . $b['ground_name'] . "\r\n";
-$ics .= "DESCRIPTION:" . str_replace("\n", "\\n", $desc) . "\r\n";
-$ics .= "LOCATION:" . $b['ground_name'] . ", " . $b['location'] . "\r\n";
+$ics .= "SUMMARY:GoalSpace - " . $groundName . "\r\n";
+$ics .= "DESCRIPTION:" . str_replace(["\r", "\n"], "\\n", $desc) . "\r\n";
+$ics .= "LOCATION:" . $groundName . ", " . $location . "\r\n";
 $ics .= "STATUS:CONFIRMED\r\n";
 $ics .= "END:VEVENT\r\n";
 $ics .= "END:VCALENDAR\r\n";

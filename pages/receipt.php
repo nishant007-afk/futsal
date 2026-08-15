@@ -44,9 +44,6 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="receipt-wrap reveal">
     <div class="receipt-card">
-        <div class="receipt-brand">
-            <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
-        </div>
         <div class="receipt-meta">
             <div class="title-back-row receipt-title-row">
                 <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>

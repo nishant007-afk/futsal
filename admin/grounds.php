@@ -125,12 +125,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id === 0) {
                 $new_id = (int)$conn->insert_id;
                 [$uploaded, $failed] = save_ground_photos($new_id);
+                $res = save_ground_qr($new_id);
+
+                $parts = [];
                 if ($uploaded > 0 && $failed > 0) {
-                    set_flash('success', $msg . ' ' . $uploaded . ' photo(s) uploaded. ' . $failed . ' could not be saved.');
+                    $parts[] = $uploaded . ' photo(s) uploaded. ' . $failed . ' could not be saved.';
                 } elseif ($uploaded > 0) {
-                    set_flash('success', $msg . ' ' . $uploaded . ' photo(s) uploaded.');
-                } else {
-                    set_flash('success', $msg);
+                    $parts[] = $uploaded . ' photo(s) uploaded.';
+                }
+                if ($res['ok']) {
+                    $parts[] = 'Payment QR code saved.';
+                }
+                if ($parts) {
+                    set_flash('success', $msg . ' ' . implode(', ', $parts));
+                }
+                if (!$res['ok'] && $res['error'] !== null) {
+                    set_flash_error(
+                        'Could not save the payment QR code.',
+                        $res['error'],
+                        'Try a clear image of your payment QR code.',
+                        'admin/grounds.php?edit=' . $new_id
+                    );
                 }
                 redirect('admin/grounds.php?edit=' . $new_id);
             }
@@ -152,6 +167,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photos']) && $
     if ($failed > 0) {
         set_flash('error', $failed . ' photo(s) could not be uploaded. Use JPG, PNG, WebP or GIF.');
     }
+    redirect('admin/grounds.php?edit=' . $ground_id);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_qr']) && $editing) {
+    verify_csrf();
+    $ground_id = (int)$editing['id'];
+    $res = save_ground_qr($ground_id);
+    if ($res['ok']) {
+        set_flash('success', 'Payment QR code saved.');
+    } elseif ($res['error'] !== null) {
+        set_flash_error(
+            'Could not save the payment QR code.',
+            $res['error'],
+            'Try a clear image of your payment QR code.',
+            'admin/grounds.php?edit=' . $ground_id
+        );
+    }
+    redirect('admin/grounds.php?edit=' . $ground_id);
+}
+
+if (isset($_GET['delete_qr']) && $editing) {
+    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
+        exit('Invalid request.');
+    }
+    $ground_id = (int)$editing['id'];
+    $oldQr = ground_qr($ground_id);
+    $stmt = $conn->prepare('UPDATE grounds SET payment_qr = \'\' WHERE id = ?');
+    $stmt->bind_param('i', $ground_id);
+    $stmt->execute();
+    if ($oldQr !== '') {
+        $path = __DIR__ . '/../uploads/grounds/' . $oldQr;
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+    set_flash('success', 'Payment QR code removed.');
     redirect('admin/grounds.php?edit=' . $ground_id);
 }
 
@@ -337,6 +388,51 @@ require __DIR__ . '/../includes/header.php';
                     <span class="file-name" id="fileNames">No files selected</span>
                 </div>
                 <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+            <?php endif; ?>
+        </div>
+
+        <div class="form-card sub">
+            <h3><i class="fa-solid fa-qrcode"></i> Payment QR code</h3>
+            <p class="muted">Upload your payment QR so players can scan and pay you directly.</p>
+            <?php if ($editing): ?>
+                <?php $groundQr = ground_qr((int)$editing['id']); ?>
+                <?php if ($groundQr !== ''): ?>
+                    <div class="photo-item qr-item mb">
+                        <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
+                        <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$editing['id'] . '&delete_qr=1&csrf=' . csrf_token()); ?>"
+                           class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></a>
+                    </div>
+                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                        <?php echo csrf_field(); ?>
+                        <input type="hidden" name="upload_qr" value="1">
+                        <div class="form-group file-pick">
+                            <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Replace QR image</label>
+                            <input type="file" id="qrInputEdit" name="payment_qr" accept="image/*">
+                            <span class="file-name" id="qrFileNameEdit">No file selected</span>
+                        </div>
+                        <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-upload"></i> Save QR</button>
+                    </form>
+                <?php else: ?>
+                    <p class="muted">No payment QR yet.</p>
+                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                        <?php echo csrf_field(); ?>
+                        <input type="hidden" name="upload_qr" value="1">
+                        <div class="form-group file-pick">
+                            <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
+                            <input type="file" id="qrInput" name="payment_qr" accept="image/*">
+                            <span class="file-name" id="qrFileName">No file selected</span>
+                        </div>
+                        <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-upload"></i> Upload QR</button>
+                    </form>
+                <?php endif; ?>
+            <?php else: ?>
+                <p class="muted">No payment QR yet.</p>
+                <div class="form-group file-pick">
+                    <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
+                    <input type="file" id="qrInput" name="payment_qr" accept="image/*" form="groundForm">
+                    <span class="file-name" id="qrFileName">No file selected</span>
+                </div>
+                <p class="muted">The QR will be saved when you add the ground below.</p>
             <?php endif; ?>
         </div>
 

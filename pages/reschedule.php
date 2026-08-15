@@ -39,7 +39,7 @@ $stmt->bind_param('is', $booking['ground_id'], $selected_date);
 $stmt->execute();
 $rows = $stmt->get_result();
 while ($row = $rows->fetch_assoc()) {
-    $taken[] = substr($row['start_time'], 0, 2);
+    $taken[] = $row['start_time'];
 }
 
 $slots = slots_for_day($selected_date, $booking['ground_id']);
@@ -66,6 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'why' => 'We need to know which hour you want before rescheduling.',
             'how' => 'Tap an available time slot, then save your changes.',
         ];
+    }
+    if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
+        if ($end_time <= $start_time) {
+            $errors[] = [
+                'what' => 'End time must be after start time.',
+                'why' => 'The booking end time must be later than the start time.',
+                'how' => 'Select a slot where the end time comes after the start time.',
+            ];
+        }
     }
     if ($new_date < date('Y-m-d')) {
         $errors[] = [
@@ -192,7 +201,7 @@ require __DIR__ . '/../includes/header.php';
         <?php else: ?>
         <div class="slot-grid" id="slotGrid">
             <?php foreach ($slots as $slot): ?>
-                <?php $isTaken = in_array(substr($slot['start'], 0, 2), $taken, true); ?>
+                <?php $isTaken = in_array($slot['start'], $taken, true); ?>
                 <?php $isCurrent = $selected_date === $booking['booking_date'] && $slot['start'] === $booking['start_time']; ?>
                 <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?> <?php echo $isCurrent ? 'current' : ''; ?>"
                      data-start="<?php echo e($slot['start']); ?>"

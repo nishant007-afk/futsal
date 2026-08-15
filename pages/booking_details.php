@@ -73,8 +73,12 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : ($b['payment_status'] === 'partial' ? 'coins' : 'clock'); ?>"></i>
                 <?php echo ucfirst(e($b['payment_status'])); ?>
             </span>
-            <?php if (!empty($b['payment_method']) && $b['payment_status'] === 'paid' && $b['payment_method'] === 'at_court'): ?>
+            <?php if ($b['payment_method'] === 'at_court' && $b['payment_status'] === 'paid'): ?>
                 <span class="status-badge status-pending" style="border-color:var(--warn);color:var(--warn);background:var(--warn-soft);"><i class="fa-solid fa-coins"></i> Paid at court</span>
+            <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'paid'): ?>
+                <span class="status-badge status-qr"><i class="fa-solid fa-qrcode"></i> Paid via QR</span>
+            <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'partial'): ?>
+                <span class="status-badge status-qr"><i class="fa-solid fa-qrcode"></i> Partially paid via QR</span>
             <?php endif; ?>
         </div>
     </div>
@@ -140,7 +144,7 @@ require __DIR__ . '/../includes/header.php';
         <?php endif; ?>
 
         <?php if ($b['status'] !== 'cancelled' && ($balance > 0 || $b['payment_status'] !== 'paid')): ?>
-        <section class="bd-section" id="paymentCard">
+        <section class="bd-section" id="paymentCard" <?php if ($b['payment_method'] === 'qr'): ?>data-payment-qr="1"<?php endif; ?>>
             <h2><i class="fa-solid fa-receipt"></i> Payment</h2>
             <div class="bd-price">
                 <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong></div>

@@ -37,7 +37,7 @@ $settlements = $conn->query(
 
 $recent = $conn->query(
     "SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.created_at,
+            b.payment_status, b.amount_paid, b.payment_method, b.created_at,
             g.name AS ground_name, u.name AS user_name
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id

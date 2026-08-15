@@ -8,7 +8,7 @@ $booking_id = (int)($_GET['booking_id'] ?? 0);
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.ground_id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status, b.payment_status, b.amount_paid, b.payment_type,
             b.discount, b.promo_code, b.promo_id,
-            g.name AS ground_name, g.location, g.price_per_hour
+            g.name AS ground_name, g.location, g.price_per_hour, g.manager_id
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      WHERE b.id = ? AND b.user_id = ?'
@@ -66,7 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare('UPDATE bookings SET discount = ?, promo_code = ?, promo_id = ? WHERE id = ? AND user_id = ?');
         $stmt->bind_param('dsiii', $discount, $code, $promoId, $booking_id, $_SESSION['user_id']);
         $stmt->execute();
-        increment_promo_usage($promoId);
+// Promo usage now incremented after payment processing (not at apply time),
+// so the max_uses limit only counts bookings that actually reached payment status.
         $netTotal = round($total - $discount, 2);
         $advance = round($netTotal * 0.2, 2);
         $balance = round($netTotal - $advance, 2);
@@ -101,51 +102,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash_error(
             'No payment option was selected.',
             'We need to know how you want to pay before processing.',
-            'Pick "Pay 20% now" or "Pay in full online", then tap the pay button.',
+            'Pick "Pay 20% now" or "Pay in full", then tap the pay button.',
             'pages/payment.php?booking_id=' . $booking_id
         );
         redirect('pages/payment.php?booking_id=' . $booking_id);
     }
 
-    $fields = esewa_payment_fields($booking_id, $amount_paid);
-    $txnUuid = $fields['transaction_uuid'];
-
-    $stmt = $conn->prepare('UPDATE bookings SET esewa_txn_uuid = ? WHERE id = ? AND user_id = ?');
-    $stmt->bind_param('sii', $txnUuid, $booking_id, $_SESSION['user_id']);
+    $stmt = $conn->prepare(
+        'UPDATE bookings SET payment_type = ?, payment_method = "qr", amount_paid = ?, payment_status = ?, paid_at = NOW()
+         WHERE id = ? AND user_id = ? AND status = "confirmed"'
+    );
+    $stmt->bind_param('sdsii', $payment_type, $amount_paid, $payment_status, $booking_id, $_SESSION['user_id']);
     $stmt->execute();
 
-    $_SESSION['esewa_pending'] = [
-        'booking_id'      => $booking_id,
-        'transaction_uuid' => $txnUuid,
-        'total_amount'    => (int) round($amount_paid),
-        'payment_type'    => $payment_type,
-        'payment_status'  => $payment_status,
-        'amount_paid'     => $amount_paid,
+    // Increment promo usage after payment processing so max_uses only counts
+    // bookings that actually reached payment status.
+    increment_promo_usage($promoId);
+
+    $paySummary = [
+        'Booking ref' => $booking['booking_ref'],
+        'Court' => $booking['ground_name'],
+        'Date' => date('D, M j, Y', strtotime($booking['booking_date'])),
+        'Time' => substr($booking['start_time'], 0, 5) . ' - ' . substr($booking['end_time'], 0, 5),
+        'Amount' => 'Rs ' . number_format($amount_paid, 0),
+        'Status' => $payment_status === 'paid' ? 'Paid in full' : 'Advance paid',
     ];
 
-    $action = esewa_form_url();
-    $page_title = 'Redirecting to eSewa...';
+    $playerRow = $conn->prepare('SELECT email FROM users WHERE id = ?');
+    $playerRow->bind_param('i', $_SESSION['user_id']);
+    $playerRow->execute();
+    $playerEmail = $playerRow->get_result()->fetch_assoc();
+    if ($playerEmail) {
+        send_booking_email(
+            $playerEmail['email'],
+            'Payment received for booking ' . $booking['booking_ref'],
+            'We received your payment',
+            $paySummary,
+            'Your receipt is available in My Bookings.'
+        );
+    }
+
+    if ((int)$booking['manager_id'] > 0) {
+        notify_user(
+            (int)$booking['manager_id'],
+            'Payment received via QR',
+            $booking['ground_name'] . ' &middot; Rs ' . number_format($amount_paid, 0) . ' &middot; ' . $booking['booking_ref'],
+            'fa-qrcode',
+            'pages/booking_details.php?id=' . $booking_id
+        );
+    }
+
+    $page_title = 'Pay with QR';
     require __DIR__ . '/../includes/header.php';
     ?>
     <div class="confirm-wrap reveal">
         <div class="confirm-card">
-            <div class="confirm-check"><i class="fa-solid fa-arrow-right-arrow-left fa-pulse"></i></div>
-            <h1>Redirecting to eSewa</h1>
-            <p class="muted">If you aren't taken to eSewa automatically, use the button below.</p>
-            <form method="post" action="<?php echo e($action); ?>" id="esewaForm">
-                <?php foreach ($fields as $name => $value): ?>
-                    <input type="hidden" name="<?php echo e($name); ?>" value="<?php echo e((string) $value); ?>">
-                <?php endforeach; ?>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Continue to eSewa</button>
-            </form>
+            <h1>Scan to pay</h1>
+            <?php $qrFile = ground_qr((int)$booking['ground_id']); ?>
+            <?php if ($qrFile !== ''): ?>
+                <p class="muted">Your booking is recorded as <strong><?php echo $payment_type === 'full' ? 'fully paid' : 'partially paid'; ?></strong>. Scan the QR below with your payment app to transfer Rs <?php echo number_format($amount_paid, 0); ?> to <?php echo e($booking['ground_name']); ?>.</p>
+                <div class="pay-qr-box">
+                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($qrFile)); ?>" alt="Payment QR code for <?php echo e($booking['ground_name']); ?>" loading="lazy" decoding="async">
+                </div>
+                <p class="muted">Once the transfer is done, your slot is confirmed. The court may ask you to confirm the payment at arrival.</p>
+            <?php else: ?>
+                <p class="muted">This court collects payment at the venue. Bring Rs <?php echo number_format($amount_paid, 0); ?> when you arrive.</p>
+            <?php endif; ?>
+            <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="btn btn-primary" style="margin-top: 16px;"><i class="fa-solid fa-check"></i> View my booking</a>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var f = document.getElementById('esewaForm');
-            if (f) setTimeout(function () { f.submit(); }, 600);
-        });
-    </script>
     <?php
     require __DIR__ . '/../includes/footer.php';
     exit;
@@ -238,7 +263,7 @@ require __DIR__ . '/../includes/header.php';
                         <input type="radio" name="payment_option" value="full">
                         <span class="pay-icon"><i class="fa-solid fa-credit-card"></i></span>
                         <span class="pay-text">
-                            <span class="pay-name">Pay in full online</span>
+                            <span class="pay-name">Pay in full</span>
                             <span class="pay-desc">Rs <?php echo number_format($netTotal, 0); ?> now &middot; nothing to pay later</span>
                         </span>
                         <span class="pay-check"><i class="fa-solid fa-check"></i></span>

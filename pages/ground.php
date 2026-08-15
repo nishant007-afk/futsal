@@ -26,7 +26,7 @@ $stmt->bind_param('is', $ground['id'], $selected_date);
 $stmt->execute();
 $rows = $stmt->get_result();
 while ($row = $rows->fetch_assoc()) {
-    $taken[] = substr($row['start_time'], 0, 2);
+    $taken[] = $row['start_time'];
 }
 
 $slots = slots_for_day($selected_date, $ground['id']);
@@ -220,7 +220,7 @@ require __DIR__ . '/../includes/header.php';
             <p class="slot-hint" id="priceHint">Choose an hour that works for your team</p>
             <div class="slot-grid" id="slotGrid">
                 <?php foreach ($slots as $slot): ?>
-                    <?php $isTaken = in_array(substr($slot['start'], 0, 2), $taken, true); ?>
+                    <?php $isTaken = in_array($slot['start'], $taken, true); ?>
                     <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
                          data-start="<?php echo e($slot['start']); ?>"
                          data-end="<?php echo e($slot['end']); ?>"

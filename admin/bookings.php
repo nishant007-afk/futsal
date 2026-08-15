@@ -33,7 +33,7 @@ if (isset($_GET['cancel'])) {
 
 $bookingsAll = $conn->query(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid, b.created_at,
+            b.payment_status, b.amount_paid, b.payment_method, b.created_at,
             g.name AS ground_name, u.name AS user_name, u.email AS user_email,
             m.name AS manager_name
      FROM bookings b
@@ -51,7 +51,7 @@ $totalPages = (int)ceil($totalRows / $perPage);
 $bookings = array_slice($bookingsAll, $offset, $perPage);
 
 if (isset($_GET['export']) || isset($_GET['export_excel'])) {
-    $csv = [['Reference', 'Ground', 'Manager', 'Customer', 'Customer Email', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Paid (Rs)', 'Booked At']];
+    $csv = [['Reference', 'Ground', 'Manager', 'Customer', 'Customer Email', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Method', 'Paid (Rs)', 'Booked At']];
     foreach ($bookingsAll as $b) {
         $csv[] = [
             $b['booking_ref'] ?? '',
@@ -65,6 +65,7 @@ if (isset($_GET['export']) || isset($_GET['export_excel'])) {
             number_format((float)$b['total_price'], 2),
             $b['status'],
             $b['payment_status'],
+            $b['payment_method'] ?? '',
             number_format((float)$b['amount_paid'], 2),
             $b['created_at'],
         ];

@@ -6,7 +6,8 @@ if (is_logged_in()) {
 }
 
 $verified = $_SESSION['reset_verified'] ?? null;
-if (!$verified || !isset($verified['email'])) {
+if (!$verified || !isset($verified['email']) || !isset($verified['ts']) || time() - (int)$verified['ts'] > 600) {
+    unset($_SESSION['reset_verified']);
     redirect('pages/forgot_password.php');
 }
 

@@ -74,13 +74,10 @@ if (isset($reset_email)) {
             <p class="muted">First, confirm it's you. Enter the 6-digit code from <strong><?php echo e($reset_email); ?></strong>.</p>
         </div>
         <?php if (isset($email_sent)): ?>
-            <div class="notice">
-                <i class="fa-solid fa-envelope-circle-check"></i>
-                <span><?php echo $email_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'We couldn\'t send the email, so here\'s your code:'; ?></span>
-                <?php if (!$email_sent && isset($reset_code)): ?>
-                    <span style="display:block;margin-top:8px;font-weight:800;letter-spacing:3px;font-size:20px;color:var(--brand-700);"><?php echo e($reset_code); ?></span>
-                <?php endif; ?>
-            </div>
+<div class="notice">
+    <i class="fa-solid fa-envelope-circle-check"></i>
+    <span><?php echo $email_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'We couldn\'t send the email.'; ?></span>
+</div>
         <?php endif; ?>
         <?php if (!empty($errors['code'])): ?>
             <div class="toast toast-error" role="alert">

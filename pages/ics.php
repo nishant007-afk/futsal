@@ -25,6 +25,10 @@ $start = new DateTime($b['booking_date'] . ' ' . $b['start_time']);
 $end = new DateTime($b['booking_date'] . ' ' . $b['end_time']);
 $uid = $b['booking_ref'] . '@goalspace.com';
 
+// Sanitize CR/LF from DB fields so managers cannot inject iCal lines.
+$groundName = str_replace(["\r", "\n"], ' ', $b['ground_name']);
+$location   = str_replace(["\r", "\n"], ' ', $b['location']);
+
 header('Content-Type: text/calendar; charset=utf-8');
 header('Content-Disposition: attachment; filename="goalspace-booking-' . $b['booking_ref'] . '.ics"');
 echo "BEGIN:VCALENDAR\r\n";
@@ -35,8 +39,8 @@ echo "UID:" . $uid . "\r\n";
 echo "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
 echo "DTSTART:" . $start->format('Ymd\THis') . "\r\n";
 echo "DTEND:" . $end->format('Ymd\THis') . "\r\n";
-echo "SUMMARY:Futsal at " . $b['ground_name'] . "\r\n";
-echo "LOCATION:" . $b['location'] . "\r\n";
+echo "SUMMARY:Futsal at " . $groundName . "\r\n";
+echo "LOCATION:" . $location . "\r\n";
 echo "DESCRIPTION:Booking reference " . $b['booking_ref'] . " on GoalSpace\r\n";
 echo "END:VEVENT\r\n";
 echo "END:VCALENDAR\r\n";

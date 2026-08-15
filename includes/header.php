@@ -140,10 +140,10 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=233'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=236'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -648,6 +648,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
         <a href="<?php echo base_url('index.php#how'); ?>"><i class="fa-solid fa-circle-info"></i> <span class="nav-label">How it works</span></a>
         <a href="<?php echo base_url('index.php#become-manager'); ?>" class="show-sm"><i class="fa-solid fa-chart-line"></i> <span class="nav-label">Become a Manager</span></a>
     <?php endif; ?>
+    <a href="<?php echo base_url('pages/faq.php'); ?>" class="nav-faq <?php echo $active === 'faq.php' ? 'active' : ''; ?>"><i class="fa-solid fa-circle-question"></i> <span class="nav-label">FAQ</span></a>
     <div class="nav-sidebar-foot">
         <div class="nsf-wrap">
             <p class="nsf-meta">GoalSpace &middot; v1.0</p>

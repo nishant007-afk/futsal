@@ -22,6 +22,11 @@ $errors = [];
 if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) || !preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
     $errors[] = ['what' => 'Please select a time slot.'];
 }
+if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
+    if ($end_time <= $start_time) {
+        $errors[] = ['what' => 'End time must be after start time.'];
+    }
+}
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $booking_date)) {
     $errors[] = ['what' => 'Please pick a valid date.'];
 }
@@ -39,13 +44,20 @@ if (isset($_POST['join_waitlist']) && !$errors) {
     if ($stmt->execute()) {
         $pos = waitlist_position($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id']);
         $user = current_user();
+        $groundName = '';
+        if ($ground_id > 0) {
+            $gn = $conn->prepare('SELECT name FROM grounds WHERE id = ?');
+            $gn->bind_param('i', $ground_id);
+            $gn->execute();
+            $groundName = $gn->get_result()->fetch_assoc()['name'] ?? 'the court';
+        }
         if ($user && $pos !== null) {
             send_booking_email(
                 $user['email'],
                 'You\'re on the waitlist!',
-                'Your position in the queue for ' . $ground['name'],
+                'Your position in the queue for ' . $groundName,
                 [
-                    'Ground'  => $ground['name'],
+                    'Ground'  => $groundName,
                     'Date'    => date('D, M j, Y', strtotime($booking_date)),
                     'Time'    => substr($start_time, 0, 5),
                     'Position' => (int)$pos,

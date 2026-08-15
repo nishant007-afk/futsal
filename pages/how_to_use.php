@@ -15,8 +15,8 @@ if (!$demo_ground) {
     }
 }
 
-$page_title = 'How to Use GoalSpace';
-$page_description = 'Step-by-step guides for players and managers, from creating an account to booking a court to tracking payments.';
+$page_title = 'How to use';
+$page_description = 'Step-by-step guides for players and managers, from finding your first court to booking a slot and paying with a QR code.';
 
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -24,7 +24,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="content-hero">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1>How to Use GoalSpace</h1>
+        <h1>How to use</h1>
     </div>
     <p>Here&rsquo;s how to get going, step by step. Pick your role and follow along. Every step links to the real page, so you can try it as you read.</p>
     <div class="howto-hero-actions">
@@ -89,7 +89,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="detail-box howto-step">
         <span class="step-num">Step 5</span>
         <h3>Pay for your game</h3>
-        <p>Pay a small advance online and settle the rest at the court, or pay the full amount now. You get instant confirmation and a receipt.</p>
+        <p>Choose to pay a small advance now and settle the rest at the court, or pay the full amount upfront. When you pick an option, the court&rsquo;s QR code is shown. Scan it with your payment app (Khalti/eSewa/IME Pay etc.) to transfer the amount. Your slot is confirmed instantly and a receipt is emailed to you.</p>
         <div class="howto-actions">
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-wallet"></i> Manage payments</a>
         </div>

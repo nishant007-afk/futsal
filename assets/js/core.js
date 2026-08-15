@@ -1477,4 +1477,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     /* end review helpful */
+
+    /* Back to top */
+    (function () {
+        var btn = document.getElementById('backToTop');
+        if (!btn) return;
+        var onScroll = function () {
+            if (window.scrollY > 320) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        btn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            btn.classList.remove('show');
+        });
+    })();
 });

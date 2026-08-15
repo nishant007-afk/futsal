@@ -36,8 +36,7 @@ $remaining = max(0, $netTotal - $paid);
 $rows = [];
 
 // Brand header
-$rows[] = ['GoalSpace', 40, 795, 24, 'b', '16A35A'];
-$rows[] = ['PAYMENT RECEIPT', 40, 772, 11, 'n', '6B7280'];
+$rows[] = ['PAYMENT RECEIPT', 40, 795, 11, 'n', '6B7280'];
 $rows[] = ['Show this at the court when you arrive', 40, 756, 9, 'n', '9CA3AF'];
 
 // divider

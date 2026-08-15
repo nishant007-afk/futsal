@@ -141,7 +141,7 @@ require __DIR__ . '/../includes/header.php';
 
         <div class="nd-actions">
             <?php if ($n['link']): ?>
-                <a href="<?php echo base_url($n['link']); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Go to related page</a>
+                <a href="<?php echo e(base_url($n['link'])); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Go to related page</a>
             <?php endif; ?>
             <form method="post" action="" style="display:inline;">
                 <?php echo csrf_field(); ?>

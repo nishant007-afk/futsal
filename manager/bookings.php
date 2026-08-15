@@ -195,7 +195,7 @@ if ($view === 'waitlist') {
 } else {
     $isWaitlist = false;
     $baseSql = 'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-                b.payment_status, b.amount_paid, b.created_at,
+                b.payment_status, b.amount_paid, b.payment_method, b.created_at,
                 g.name AS ground_name, u.name AS user_name
              FROM bookings b
              JOIN grounds g ON g.id = b.ground_id
@@ -218,10 +218,6 @@ if ($view === 'waitlist') {
     $stmt->execute();
     $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
-$dataParams = array_merge($params, [$perPage, $offset]);
-$stmt->bind_param($dataTypes, ...$dataParams);
-$stmt->execute();
-$bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // count for pagination
 $countSql = 'SELECT COUNT(*) c FROM bookings b
@@ -242,6 +238,43 @@ if ($countParams) {
 $stmt->execute();
 $totalRows = (int)$stmt->get_result()->fetch_assoc()['c'];
 $totalPages = (int)ceil($totalRows / $perPage);
+
+if (isset($_GET['export']) || isset($_GET['export_excel'])) {
+    $exportSql = 'SELECT b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+                         b.payment_status, b.payment_method, b.amount_paid, b.created_at,
+                         g.name AS ground_name, u.name AS user_name, u.email AS user_email
+                  FROM bookings b
+                  JOIN grounds g ON g.id = b.ground_id
+                  JOIN users u ON u.id = b.user_id
+                  WHERE ' . implode(' AND ', $where) . '
+                  ORDER BY b.booking_date DESC, b.start_time ASC';
+    $stmt = $conn->prepare($exportSql);
+    if ($types !== '') { $stmt->bind_param($types, ...$params); }
+    $stmt->execute();
+    $exportRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $csv = [['Reference', 'Ground', 'Customer', 'Customer Email', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Method', 'Paid (Rs)', 'Booked At']];
+    foreach ($exportRows as $x) {
+        $csv[] = [
+            $x['booking_ref'] ?? '',
+            $x['ground_name'],
+            $x['user_name'],
+            $x['user_email'],
+            $x['booking_date'],
+            substr($x['start_time'], 0, 5),
+            substr($x['end_time'], 0, 5),
+            number_format((float)$x['total_price'], 2),
+            $x['status'],
+            $x['payment_status'],
+            $x['payment_method'] ?? '',
+            number_format((float)$x['amount_paid'], 2),
+            $x['created_at'],
+        ];
+    }
+    if (isset($_GET['export_excel'])) {
+        export_excel($csv, 'my-bookings.xlsx');
+    }
+    export_csv($csv, 'my-bookings.csv');
+}
 
 $hasFilters = $f_date_from !== '' || $f_date_to !== '' || $f_status !== '' || $f_payment !== '' || $f_ground > 0;
 

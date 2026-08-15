@@ -12,11 +12,10 @@
 
         <div class="footer-col">
             <h4>Players</h4>
-            <a href="<?php echo base_url('pages/how_to_use.php'); ?>">How to use GoalSpace</a>
+            <a href="<?php echo base_url('pages/how_to_use.php'); ?>">How to use</a>
             <a href="<?php echo grounds_list_url(); ?>">Browse grounds</a>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My bookings</a>
-            <a href="<?php echo base_url('pages/register.php'); ?>">Create account</a>
-            <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a>
+            <a href="<?php echo base_url('pages/register.php'); ?>">Become a member</a>
         </div>
 
         <div class="footer-col">
@@ -33,6 +32,7 @@
             <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">Contact</a>
             <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms of service</a>
             <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy policy</a>
+            <a href="<?php echo base_url('pages/faq.php'); ?>">FAQ</a>
         </div>
 
         <div class="footer-col footer-contact">
@@ -49,10 +49,12 @@
             <p>
                 <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy</a> &middot;
                 <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms</a> &middot;
-                <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help</a>
+                <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help</a> &middot;
+                <a href="<?php echo base_url('pages/faq.php'); ?>">FAQ</a>
             </p>
         </div>
     </div>
+<button type="button" id="backToTop" aria-label="Back to top" title="Back to top"><i class="fa-solid fa-angles-up"></i></button>
 </footer>
 
 <!-- Cookie consent -->

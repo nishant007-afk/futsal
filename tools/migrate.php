@@ -77,9 +77,17 @@ if ($needsCoords > 0) {
 
 // Add payment_method column for the pay-at-court flow.
 if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'payment_method'")->fetch_assoc()['c'] === 0) {
-    $conn->query("ALTER TABLE bookings ADD COLUMN payment_method ENUM('online','at_court') NOT NULL DEFAULT 'online' AFTER payment_type");
+    $conn->query("ALTER TABLE bookings ADD COLUMN payment_method ENUM('online','at_court','qr') NOT NULL DEFAULT 'online' AFTER payment_type");
     $applied++;
     echo "Applied: added `bookings.payment_method` column.\n";
+}
+
+// Add the `qr` value to the payments_method enum (QR-code / scan-to-pay flow).
+$pmType = (string)($conn->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'payment_method'")->fetch_assoc()['COLUMN_TYPE'] ?? '');
+if (strpos($pmType, "'qr'") === false) {
+    $conn->query("ALTER TABLE bookings MODIFY COLUMN payment_method ENUM('online','at_court','qr') NOT NULL DEFAULT 'online' AFTER payment_type");
+    $applied++;
+    echo "Applied: added `qr` value to `bookings.payment_method` enum.\n";
 }
 
 // Add slug column to grounds for SEO-friendly URLs (sitemap + ground detail links).
@@ -159,13 +167,11 @@ if (!table_exists('review_votes')) {
     echo "Applied: added `review_votes` table.\n";
 }
 
-// Add payment_ref + esewa transaction fields to bookings for gateway tracking.
-if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'payment_ref'")->fetch_assoc()['c'] === 0) {
-    $conn->query("ALTER TABLE bookings ADD COLUMN payment_ref VARCHAR(64) DEFAULT NULL AFTER paid_at");
-    $conn->query("ALTER TABLE bookings ADD COLUMN esewa_txn_uuid VARCHAR(64) DEFAULT NULL AFTER payment_ref");
-    $conn->query("ALTER TABLE bookings ADD COLUMN esewa_ref_id VARCHAR(64) DEFAULT NULL AFTER esewa_txn_uuid");
+// Add payment QR for owner's payment account to grounds.
+if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'grounds' AND COLUMN_NAME = 'payment_qr'")->fetch_assoc()['c'] === 0) {
+    $conn->query("ALTER TABLE grounds ADD COLUMN payment_qr VARCHAR(255) DEFAULT '' AFTER image");
     $applied++;
-    echo "Applied: added `bookings.payment_ref`, `bookings.esewa_txn_uuid`, `bookings.esewa_ref_id` columns.\n";
+    echo "Applied: added `grounds.payment_qr` column.\n";
 }
 
 echo $applied . " migration(s) applied. Done.\n";

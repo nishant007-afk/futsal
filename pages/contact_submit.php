@@ -15,6 +15,12 @@ $topic   = trim((string)($_POST['topic'] ?? 'general'));
 $subject = trim((string)($_POST['subject'] ?? ''));
 $message = trim((string)($_POST['message'] ?? ''));
 
+// Strip CR/LF from free-text fields used in email headers / notifications
+// to prevent email header injection via the subject line.
+$name    = str_replace(["\r", "\n"], ' ', $name);
+$subject = str_replace(["\r", "\n"], ' ', $subject);
+$message = str_replace(["\r", "\n"], ' ', $message);
+
 if ($name === '') { $errors['name'] = 'Your name is required.'; }
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'A valid email is required.'; }
 if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback'], true)) { $errors['topic'] = 'Please choose a topic.'; }
@@ -24,9 +30,7 @@ if ($errors) {
     foreach ($errors as $field => $msg) {
         set_flash('error', $msg);
     }
-    foreach ($_POST as $k => $v) {
-        if (is_string($v)) { set_form_old($k, $v); }
-    }
+    flash_form($errors, $_POST);
     redirect('pages/page.php?slug=contact');
 }
 
@@ -34,8 +38,8 @@ $ip = client_ip();
 $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 $uid  = is_logged_in() ? (int)$_SESSION['user_id'] : null;
 
-$stmt = $conn->prepare('INSERT INTO contact_messages (name, email, topic, subject, message, ip, user_agent, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-$stmt->bind_param('sssssssi', $name, $email, $topic, $subject, $message, $ip, $ua, $uid);
+$stmt = $conn->prepare('INSERT INTO contact_messages (name, email, topic, subject, message, ip, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+$stmt->bind_param('ssssssi', $name, $email, $topic, $subject, $message, $ip, $uid);
 $stmt->execute();
 $msgId = (int)$stmt->insert_id;
 $stmt->close();

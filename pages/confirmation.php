@@ -48,7 +48,7 @@ if ($booking['payment_status'] === 'paid') {
 } elseif ($booking['payment_status'] === 'partial') {
     $amountCell = '<span class="pay-net">Rs ' . number_format($amountPaid, 0) . '</span> <span class="pay-subtext">Rs ' . number_format(max(0, $netDue - $amountPaid), 0) . ' due at court</span>';
 } else {
-    $amountCell = '<span class="muted">Not yet paid &middot; pay online or at court</span>';
+    $amountCell = '<span class="muted">Not yet paid &middot; pay via QR or at the court</span>';
 }
 $bookingDate = date('M j, Y', strtotime($booking['booking_date']));
 

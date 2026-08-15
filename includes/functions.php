@@ -568,6 +568,7 @@ function booking_card(array $b): void
         <div class="mb-main" title="<?php echo e($b['ground_name']); ?>">
             <h3><?php echo e($b['ground_name']); ?></h3>
             <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
+            <?php echo booking_payment_method_html($b); ?>
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
@@ -629,6 +630,7 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
                 <span class="mb-person"><i class="fa-solid fa-user"></i> <?php echo e($b[$show . '_name']); ?></span>
             <?php endif; ?>
             <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
+            <?php echo booking_payment_method_html($b); ?>
         </div>
         <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
         <div class="mb-side">
@@ -639,6 +641,35 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
         </div>
     </div>
     <?php
+}
+
+/**
+ * Badge showing how a booking was paid (QR / at court / online).
+ * Returns '' when there is nothing meaningful to show.
+ */
+function booking_payment_method_html(array $b): string
+{
+    $method = (string)($b['payment_method'] ?? '');
+    $status = (string)($b['payment_status'] ?? '');
+    if ($method === '') {
+        return '';
+    }
+    if ($status === 'partial' && $method === 'qr') {
+        return '<span class="mb-paymethod pm-qr"><i class="fa-solid fa-qrcode"></i> Partially paid via QR</span>';
+    }
+    if ($status !== 'paid') {
+        return '';
+    }
+    $map = [
+        'qr'       => ['Paid via QR', 'fa-qrcode', 'pm-qr'],
+        'at_court' => ['Paid at court', 'fa-coins', 'pm-court'],
+        'online'   => ['Paid online', 'fa-credit-card', 'pm-online'],
+    ];
+    if (!isset($map[$method])) {
+        return '';
+    }
+    [$label, $icon, $class] = $map[$method];
+    return '<span class="mb-paymethod ' . $class . '"><i class="fa-solid ' . $icon . '"></i> ' . $label . '</span>';
 }
 
 function booking_refund_policy(string $booking_date, string $start_time, float $amount_paid): array
@@ -775,6 +806,55 @@ function save_ground_photos(int $ground_id): array
     }
     finfo_close($finfo);
     return [$uploaded, $failed];
+}
+
+/**
+ * Get the stored payment QR filename for a ground ('' when not set).
+ */
+function ground_qr(int $ground_id): string
+{
+    global $conn;
+    $stmt = $conn->prepare('SELECT payment_qr FROM grounds WHERE id = ?');
+    $stmt->bind_param('i', $ground_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return (string)($row['payment_qr'] ?? '');
+}
+
+/**
+ * Save an uploaded QR image for a ground's payment account.
+ * Returns ['ok' => bool, 'filename' => string, 'error' => ?string].
+ */
+function save_ground_qr(int $ground_id): array
+{
+    global $conn;
+    if (empty($_FILES['payment_qr']['name'])) {
+        return ['ok' => false, 'filename' => '', 'error' => null];
+    }
+    $file = $_FILES['payment_qr'];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['ok' => false, 'filename' => '', 'error' => 'Upload failed. Try again.'];
+    }
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    $allowed = ['image/jpeg' => true, 'image/png' => true, 'image/webp' => true, 'image/gif' => true];
+    if (!isset($allowed[$mime])) {
+        return ['ok' => false, 'filename' => '', 'error' => 'Only JPG, PNG, WebP or GIF images are accepted.'];
+    }
+    $filename = 'qr_' . $ground_id . '_' . bin2hex(random_bytes(6)) . '.webp';
+    $dest = __DIR__ . '/../uploads/grounds/' . $filename;
+    if (!convert_image_to_webp($file['tmp_name'], $dest, 90, 800)) {
+        @unlink($dest);
+        return ['ok' => false, 'filename' => '', 'error' => 'Could not process that image. Try another one.'];
+    }
+    $stmt = $conn->prepare('UPDATE grounds SET payment_qr = ? WHERE id = ?');
+    $stmt->bind_param('si', $filename, $ground_id);
+    if (!$stmt->execute()) {
+        @unlink($dest);
+        return ['ok' => false, 'filename' => '', 'error' => 'Could not save the QR code.'];
+    }
+    return ['ok' => true, 'filename' => $filename, 'error' => null];
 }
 
 function setting(string $key, string $default = ''): string
@@ -1091,6 +1171,7 @@ function notification_icon_color(string $icon): string
         'fa-calendar-check' => 'green',
         'fa-store' => 'blue',
         'fa-sack-dollar' => 'gold',
+        'fa-qrcode' => 'green',
         'fa-circle-xmark' => 'red',
         'fa-bell' => 'brand',
         'fa-calendar-xmark' => 'red',
@@ -1119,7 +1200,7 @@ function client_ip(): string
 
 function login_attempt_key(string $email): string
 {
-    return strtolower(trim($email)) . '|' . client_ip();
+    return strtolower(trim($email));
 }
 
 function login_lock_seconds(int $failures): int
@@ -1153,9 +1234,8 @@ function get_login_attempt(string $key): ?array
 function record_login_failure(string $key): void
 {
     global $conn;
-    $stmt = $conn->prepare('INSERT INTO login_attempts (identifier, ip, attempts, locked_until) VALUES (?, ?, 1, NULL) ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt_at = NOW()');
-    $ip = client_ip();
-    $stmt->bind_param('ss', $key, $ip);
+    $stmt = $conn->prepare('INSERT INTO login_attempts (identifier, attempts, locked_until) VALUES (?, 1, NULL) ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt_at = NOW()');
+    $stmt->bind_param('s', $key);
     $stmt->execute();
 
     $row = get_login_attempt($key);
@@ -1391,7 +1471,17 @@ function export_csv(array $rows, string $filename): void
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
     foreach ($rows as $row) {
-        fputcsv($out, $row);
+        $safe = [];
+        foreach ($row as $cell) {
+            $cell = (string)$cell;
+            // CSV formula injection: cells starting with = + - @ (or tab/CR)
+            // would execute as formulas when opened in Excel/LibreOffice.
+            if ($cell !== '' && strpbrk($cell[0], "=+-@\t\r") !== false) {
+                $cell = "'" . $cell;
+            }
+            $safe[] = $cell;
+        }
+        fputcsv($out, $safe);
     }
     fclose($out);
     exit;
@@ -1950,7 +2040,7 @@ function save_page(string $slug, string $title, string $summary, string $body): 
 
 function render_json_ld(array $data): string
 {
-    return '<script type="application/ld+json">' . "\n" . json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n" . '</script>';
+    return '<script type="application/ld+json">' . "\n" . json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) . "\n" . '</script>';
 }
 
 function ground_seo_meta(array $ground): void
@@ -2049,65 +2139,4 @@ function ground_owner_label(array $ground): string
     return (string) ($ground['owner_name'] ?? '');
 }
 
-/* ============ eSewa Payment Gateway ============ */
 
-/**
- * Build the signed signature eSewa expects for the legacy /v2/form flow.
- * eSewa signs the exact fields listed in signed_field_names in order.
- */
-function esewa_signature(float $total_amount, string $transaction_uuid): string
-{
-    $data = 'total_amount=' . (int) round($total_amount)
-        . ',transaction_uuid=' . $transaction_uuid
-        . ',product_code=' . ESEWA_PRODUCT_CODE;
-    return base64_encode(hash_hmac('sha256', $data, ESEWA_SECRET_KEY, true));
-}
-
-/**
- * The hidden form fields posted to eSewa to start a payment.
- */
-function esewa_payment_fields(int $booking_id, float $total_amount): array
-{
-    $total = (int) round($total_amount);
-    $uuid  = strtoupper('GS-' . $booking_id . '-' . bin2hex(random_bytes(8)));
-    return [
-        'amount'                    => $total,
-        'tax_amount'                => 0,
-        'total_amount'              => $total,
-        'transaction_uuid'          => $uuid,
-        'product_code'              => ESEWA_PRODUCT_CODE,
-        'product_service_charge'    => 0,
-        'product_delivery_charge'   => 0,
-        'success_url'               => esewa_success_url($booking_id),
-        'failure_url'               => esewa_failure_url($booking_id),
-        'signed_field_names'        => 'total_amount,transaction_uuid,product_code',
-        'signature'                 => esewa_signature($total, $uuid),
-    ];
-}
-
-/**
- * Verify a transaction with eSewa's status endpoint.
- *
- * @return string[] verified data ['status' => 'COMPLETE', 'ref_id' => ...] or [] on error
- */
-function esewa_verify(string $transaction_uuid, float $total_amount): array
-{
-    $url = esewa_status_url()
-        . '?product_code=' . urlencode(ESEWA_PRODUCT_CODE)
-        . '&total_amount=' . (int) round($total_amount)
-        . '&transaction_uuid=' . urlencode($transaction_uuid);
-
-    $ctx = stream_context_create([
-        'http' => [
-            'timeout' => 15,
-            'header'  => "Accept: application/json\r\n",
-        ],
-    ]);
-
-    $body = @file_get_contents($url, false, $ctx);
-    if ($body === false) {
-        return [];
-    }
-    $data = json_decode($body, true);
-    return is_array($data) ? $data : [];
-}

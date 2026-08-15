@@ -13,4 +13,8 @@ if (!is_string($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
 
 $_SESSION = [];
 session_destroy();
+
+// Clear the session cookie
+setcookie(session_name(), '', time() - 60, '/', '', false, true);
+
 redirect('index.php');

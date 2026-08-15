@@ -133,4 +133,23 @@ document.addEventListener('DOMContentLoaded', function () {
             mergeFiles(Array.from(photoInput.files || []));
         });
     }
+
+    const qrInput = document.getElementById('qrInput');
+    const qrFileName = document.getElementById('qrFileName');
+    if (qrInput && qrFileName) {
+        qrInput.addEventListener('change', function () {
+            qrFileName.textContent = qrInput.files && qrInput.files.length
+                ? qrInput.files[0].name
+                : 'No file selected';
+        });
+    }
+    var qrInputEdit = document.getElementById('qrInputEdit');
+    var qrFileNameEdit = document.getElementById('qrFileNameEdit');
+    if (qrInputEdit && qrFileNameEdit) {
+        qrInputEdit.addEventListener('change', function () {
+            qrFileNameEdit.textContent = qrInputEdit.files && qrInputEdit.files.length
+                ? qrInputEdit.files[0].name
+                : 'No file selected';
+        });
+    }
 });

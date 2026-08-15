@@ -1309,8 +1309,42 @@ document.addEventListener('DOMContentLoaded', function () {
         if (nearMeToggle) {
             nearMeToggle.checked = getNearMePref();
             nearMeToggle.addEventListener('change', function () {
-                setNearMePref(nearMeToggle.checked);
+                const on = nearMeToggle.checked;
+                setNearMePref(on);
+                if (on) {
+                    // Ask the browser for permission right away.
+                    navigator.geolocation.getCurrentPosition(function () {
+                        showNearMeSuccess();
+                    }, function (err) {
+                        openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
+                        nearMeToggle.checked = false;
+                        setNearMePref(false);
+                    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+                }
             });
+        }
+
+        function showNearMeSuccess() {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-success toast-inline';
+            toast.setAttribute('role', 'status');
+            toast.innerHTML =
+                '<div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>' +
+                '<div class="toast-content"><div class="toast-msg"><span>Location enabled — courts will be sorted by distance.</span></div></div>' +
+                '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
+            const wrap = document.createElement('div');
+            wrap.className = 'container';
+            wrap.appendChild(toast);
+            const main = document.querySelector('main.page');
+            if (main) main.insertBefore(wrap, main.firstChild);
+            else document.body.appendChild(wrap);
+            const close = toast.querySelector('.toast-close');
+            function dismiss() {
+                toast.classList.add('hide');
+                setTimeout(function () { wrap.remove(); }, 300);
+            }
+            if (close) close.addEventListener('click', dismiss);
+            setTimeout(dismiss, 3000);
         }
     }
 

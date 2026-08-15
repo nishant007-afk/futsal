@@ -890,7 +890,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-error-modal-msg]').forEach(function (el) {
         const pws = document.querySelectorAll('.form-card input[type="password"]');
         if (pws.length) {
-            pws.forEach(function (p) { p.classList.add('field-error'); });
+            pws.forEach(function (p) {
+                const group = p.closest('.form-group');
+                if (group) group.classList.add('has-error');
+            });
             setTimeout(function () { if (pws[0]) pws[0].focus(); }, 150);
         }
         openErrorModal(el.getAttribute('data-error-modal-msg'), el.getAttribute('data-error-modal-title'));
@@ -936,10 +939,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const scope = card || document;
         const pws = scope.querySelectorAll('input[type="password"]');
         if (!pws.length) return;
-        pws.forEach(function (p) { p.classList.add('field-error'); });
+        pws.forEach(function (p) {
+            const group = p.closest('.form-group');
+            if (group) group.classList.add('has-error');
+        });
         setTimeout(function () { pws[0].focus(); }, 120);
         pws.forEach(function (p) {
-            p.addEventListener('input', function () { p.classList.remove('field-error'); }, { once: true });
+            const group = p.closest('.form-group');
+            p.addEventListener('input', function () { if (group) group.classList.remove('has-error'); }, { once: true });
         });
     }
 

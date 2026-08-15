@@ -1311,7 +1311,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (err.code === err.POSITION_UNAVAILABLE) {
                     msg = 'Location unavailable. Please try again or search by city.';
                 }
-                showSheet(msg, { type: 'error', title: 'Location unavailable' });
+                openErrorModal(msg, 'Location unavailable', { button: false });
                 nearMeBtns.forEach(function (b) {
                     b.disabled = false;
                     b.innerHTML = '<i class="fa-solid fa-walkie-talkie"></i> Use my location';
@@ -1454,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (countEl) countEl.textContent = data.count;
                     } else {
                         btn.disabled = false;
-                        alert(data.error || 'Could not vote');
+                        openErrorModal(data.error || 'Could not vote', 'Could not vote');
                     }
                 })
                 .catch(function () { btn.disabled = false; });

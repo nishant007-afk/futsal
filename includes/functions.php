@@ -1648,10 +1648,13 @@ function field_error(array $errors, string $field): void
  */
 function render_inline(string $message): void
 {
-    echo '<div class="toast toast-error toast-inline" role="alert">'
-        . '<div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>'
-        . '<div class="toast-content"><div class="toast-msg">' . e($message) . '</div></div>'
-        . '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>'
+    echo '<div class="msg-backdrop" data-msg-backdrop>'
+        . '<div class="msg-card msg-error" role="alert">'
+        . '<button type="button" class="msg-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>'
+        . '<div class="msg-icon"><i class="fa-solid fa-xmark"></i></div>'
+        . '<h3 class="msg-title">Error</h3>'
+        . '<p class="msg-text">' . e($message) . '</p>'
+        . '</div>'
         . '</div>';
 }
 

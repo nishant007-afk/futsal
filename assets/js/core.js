@@ -1263,19 +1263,49 @@ document.addEventListener('DOMContentLoaded', function () {
         try { localStorage.setItem(NEARME_KEY, on ? '1' : '0'); } catch (e) {}
     }
 
-    if (navigator.geolocation) {
-        function nearMeError(err) {
-            if (err.code === err.PERMISSION_DENIED) {
-                return 'Location permission denied. Enable it in browser settings, or search by city instead.';
-            }
-            if (err.code === err.TIMEOUT) {
-                return 'Location request timed out. Try again.';
-            }
-            if (err.code === err.POSITION_UNAVAILABLE) {
-                return 'Location unavailable. Try again, or search by city.';
-            }
-            return 'Location access was denied. Search by city instead.';
+    function nearMeError(err) {
+        if (err && err.code === 1) {
+            return 'Location permission denied. Enable it in browser settings, or search by city instead.';
         }
+        if (err && err.code === 3) {
+            return 'Location request timed out. Try again.';
+        }
+        if (err && err.code === 2) {
+            return 'Location unavailable. Try again, or search by city.';
+        }
+        return 'Location access was denied. Search by city instead.';
+    }
+
+    // Preferences toggle — always responsive, triggers the browser prompt directly.
+    if (nearMeToggle) {
+        nearMeToggle.checked = getNearMePref();
+        nearMeToggle.addEventListener('change', function () {
+            const on = nearMeToggle.checked;
+            setNearMePref(on);
+            if (!on) return;
+            if (!navigator.geolocation) {
+                nearMeToggle.checked = false;
+                setNearMePref(false);
+                openErrorModal('Location is unavailable on this device or connection. Use HTTPS (or localhost) and enable Location services, then try again.', 'Location unavailable', { button: false });
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(function () {
+                showNearMeSuccess();
+            }, function (err) {
+                if (err && err.code === 1) {
+                    // Already rejected once: browsers won't re-ask — guide them.
+                    nearMeToggle.checked = false;
+                    setNearMePref(false);
+                    openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
+                } else {
+                    // Granted but no fix/timeout yet — courts.php retries for a real position.
+                    showNearMeSuccess();
+                }
+            }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
+        });
+    }
+
+    if (navigator.geolocation) {
         function requestLocation(target) {
             navigator.geolocation.getCurrentPosition(function (pos) {
                 const base = target || (window.location.origin + window.location.pathname);
@@ -1304,74 +1334,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 requestLocation(nearMePage.getAttribute('data-nearme-url'));
             }
         }
+    }
 
-        // Preferences toggle.
-        if (nearMeToggle) {
-            nearMeToggle.checked = getNearMePref();
-            nearMeToggle.addEventListener('change', function () {
-                const on = nearMeToggle.checked;
-                setNearMePref(on);
-                if (on) grantNearMePermission();
-            });
+    function showNearMeSuccess() {
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-success toast-inline';
+        toast.setAttribute('role', 'status');
+        toast.innerHTML =
+            '<div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>' +
+            '<div class="toast-content"><div class="toast-msg"><span>Location enabled — courts will be sorted by distance.</span></div></div>' +
+            '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
+        const wrap = document.createElement('div');
+        wrap.className = 'container';
+        wrap.appendChild(toast);
+        const main = document.querySelector('main.page');
+        if (main) main.insertBefore(wrap, main.firstChild);
+        else document.body.appendChild(wrap);
+        const close = toast.querySelector('.toast-close');
+        function dismiss() {
+            toast.classList.add('hide');
+            setTimeout(function () { wrap.remove(); }, 300);
         }
-
-        function grantNearMePermission() {
-            // Trigger the browser's own permission prompt (or confirm it is on).
-            const ask = function () {
-                navigator.geolocation.getCurrentPosition(function () {
-                    showNearMeSuccess();
-                }, function (err) {
-                    if (err && err.code === err.PERMISSION_DENIED) {
-                        nearMeToggle.checked = false;
-                        setNearMePref(false);
-                        openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
-                    } else {
-                        // Permission granted but a fix/timeout — that's fine for the toggle;
-                        // courts.php will retry for an actual position.
-                        showNearMeSuccess();
-                    }
-                }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
-            };
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
-                    if (result.state === 'denied') {
-                        // Already rejected once: browsers won't re-ask, so guide them.
-                        nearMeToggle.checked = false;
-                        setNearMePref(false);
-                        openErrorModal(nearMeError({ code: 1 }), 'Location unavailable', { button: false });
-                    } else if (result.state === 'granted') {
-                        showNearMeSuccess();
-                    } else {
-                        ask();
-                    }
-                }).catch(function () { ask(); });
-            } else {
-                ask();
-            }
-        }
-
-        function showNearMeSuccess() {
-            const toast = document.createElement('div');
-            toast.className = 'toast toast-success toast-inline';
-            toast.setAttribute('role', 'status');
-            toast.innerHTML =
-                '<div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>' +
-                '<div class="toast-content"><div class="toast-msg"><span>Location enabled — courts will be sorted by distance.</span></div></div>' +
-                '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
-            const wrap = document.createElement('div');
-            wrap.className = 'container';
-            wrap.appendChild(toast);
-            const main = document.querySelector('main.page');
-            if (main) main.insertBefore(wrap, main.firstChild);
-            else document.body.appendChild(wrap);
-            const close = toast.querySelector('.toast-close');
-            function dismiss() {
-                toast.classList.add('hide');
-                setTimeout(function () { wrap.remove(); }, 300);
-            }
-            if (close) close.addEventListener('click', dismiss);
-            setTimeout(dismiss, 3000);
-        }
+        if (close) close.addEventListener('click', dismiss);
+        setTimeout(dismiss, 3000);
     }
 
     /* ---- Ground photo gallery (ground.php) ---- */

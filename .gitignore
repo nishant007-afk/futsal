@@ -37,6 +37,9 @@ lab1.pdf
 /.opencode/
 /.impeccable/
 
+# Deployment build output
+/dist/
+
 # Local dev preview helper (localhost-only previews)
 tools/preview.php
 

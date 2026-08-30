@@ -210,6 +210,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* ---- Admin bottom-nav "More" overflow menu ---- */
+    const bnMoreBtn = document.getElementById('bnMoreBtn');
+    const bnMorePanel = document.getElementById('bnMorePanel');
+    if (bnMoreBtn && bnMorePanel) {
+        bnMoreBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const open = bnMorePanel.hidden;
+            bnMorePanel.hidden = !open;
+            bnMoreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+            if (!bnMorePanel.hidden && !bnMorePanel.contains(e.target) && e.target !== bnMoreBtn) {
+                bnMorePanel.hidden = true;
+                bnMoreBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !bnMorePanel.hidden) {
+                bnMorePanel.hidden = true;
+                bnMoreBtn.setAttribute('aria-expanded', 'false');
+                bnMoreBtn.focus();
+            }
+        });
+    }
+
     const navDrop = document.querySelector('.nav-drop');
     if (navDrop) {
         const navDropLink = navDrop.querySelector('.nav-link');
@@ -298,6 +323,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* Reveal-on-scroll: above-the-fold content appears instantly, everything
+       else fades up as it enters the viewport. A load-time safety net catches
+       anything the observer misses, so content is never left invisible. */
     const reveals = document.querySelectorAll('.reveal');
     if ('IntersectionObserver' in window) {
         const revealObserver = new IntersectionObserver(function (entries) {
@@ -307,8 +335,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     revealObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 });
-        reveals.forEach(function (el) { revealObserver.observe(el); });
+        }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+        reveals.forEach(function (el) {
+            const r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) {
+                el.classList.add('visible');
+            } else {
+                revealObserver.observe(el);
+            }
+        });
+        window.addEventListener('load', function () {
+            reveals.forEach(function (el) {
+                if (!el.classList.contains('visible')) {
+                    const r = el.getBoundingClientRect();
+                    if (r.top < window.innerHeight && r.bottom > 0) { el.classList.add('visible'); }
+                }
+            });
+        });
     } else {
         reveals.forEach(function (el) { el.classList.add('visible'); });
     }
@@ -1181,6 +1224,134 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* ---- Command palette (Ctrl/Cmd + K) ---- */
+    (function () {
+        const backdrop = document.getElementById('paletteBackdrop');
+        const input = document.getElementById('paletteInput');
+        const body = document.getElementById('paletteBody');
+        if (!backdrop || !input || !body) return;
+        const commands = window.GS_COMMANDS || [];
+        let items = [];
+        let active = -1;
+        let abort = null;
+
+        function escText(v) {
+            const d = document.createElement('div');
+            d.textContent = v;
+            return d.innerHTML;
+        }
+        function rowEl(cmd) {
+            const a = document.createElement('a');
+            a.className = 'pl-item';
+            a.href = cmd.url;
+            const icon = document.createElement('i');
+            icon.className = 'fa-solid ' + (cmd.icon || 'fa-angle-right');
+            const meta = document.createElement('span');
+            meta.className = 'pl-meta';
+            const b = document.createElement('b');
+            b.textContent = cmd.label;
+            const s = document.createElement('span');
+            s.textContent = cmd.hint || '';
+            meta.appendChild(b);
+            meta.appendChild(s);
+            a.appendChild(icon);
+            a.appendChild(meta);
+            return a;
+        }
+        function highlight() {
+            const rows = body.querySelectorAll('.pl-item');
+            rows.forEach(function (r, i) {
+                r.classList.toggle('active', i === active);
+                if (i === active) { r.scrollIntoView({ block: 'nearest' }); }
+            });
+        }
+        function render() {
+            body.innerHTML = '';
+            if (items.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'pl-empty';
+                empty.textContent = 'No matches. Try a court name, city or page.';
+                body.appendChild(empty);
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            items.slice(0, 8).forEach(function (it) { frag.appendChild(rowEl(it)); });
+            body.appendChild(frag);
+            active = -1;
+            highlight();
+        }
+        function setQuery(q) {
+            q = (q || '').trim().toLowerCase();
+            const staticMatches = commands.filter(function (c) {
+                return (c.label + ' ' + (c.hint || '')).toLowerCase().indexOf(q) !== -1;
+            });
+            if (q.length < 2) {
+                items = staticMatches;
+                render();
+                return;
+            }
+            if (abort) { abort.abort(); }
+            abort = new AbortController();
+            fetch(base + '/ajax/search_suggest.php?q=' + encodeURIComponent(q), { signal: abort.signal })
+                .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
+                .then(function (data) {
+                    if (abort && abort.signal.aborted) { return; }
+                    const courts = (data && data.results) ? data.results : [];
+                    const courtItems = courts.map(function (c) {
+                        return {
+                            label: c.name,
+                            hint: c.location + ' · Rs ' + (Number(c.price) || 0).toLocaleString('en-NP'),
+                            url: base + '/pages/ground.php?id=' + c.id,
+                            icon: 'fa-futbol',
+                        };
+                    });
+                    items = staticMatches.concat(courtItems).slice(0, 8);
+                    render();
+                })
+                .catch(function () { /* keep last rendered list on network errors */ });
+        }
+        function open() {
+            backdrop.hidden = false;
+            document.body.classList.add('palette-open');
+            input.value = '';
+            items = commands;
+            render();
+            setTimeout(function () { input.focus(); }, 30);
+        }
+        function close() {
+            backdrop.hidden = true;
+            document.body.classList.remove('palette-open');
+            if (abort) { abort.abort(); }
+        }
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) { close(); }
+        });
+        body.addEventListener('click', function (e) {
+            const a = e.target.closest('.pl-item');
+            if (a) { window.location.href = a.href; }
+        });
+        input.addEventListener('input', function () { setQuery(input.value); });
+        input.addEventListener('keydown', function (e) {
+            const rows = body.querySelectorAll('.pl-item');
+            if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, rows.length - 1); highlight(); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); highlight(); }
+            else if (e.key === 'Enter') { e.preventDefault(); const row = rows[active >= 0 ? active : 0]; if (row) { window.location.href = row.href; } }
+            else if (e.key === 'Escape') { close(); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !backdrop.hidden) {
+                e.preventDefault();
+                close();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                backdrop.hidden ? open() : close();
+            }
+        });
+        const trigger = document.getElementById('paletteTrigger');
+        if (trigger) { trigger.addEventListener('click', open); }
+    })();
+
     /* ---- Dark/light theme toggle ---- */
     const themeToggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
@@ -1193,8 +1364,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function currentTheme() {
         const saved = themeFromStorage();
-        if (saved === 'dark' || saved === 'light') return saved;
-        return themeSystemPrefersDark() ? 'dark' : 'light';
+        if (saved === 'dark') return 'dark';
+        if (saved === 'light') return 'light';
+        if (saved === 'system') return themeSystemPrefersDark() ? 'dark' : 'light';
+        return 'light'; // default theme when nothing is saved
     }
     function syncThemeUI(theme) {
         const isDark = theme === 'dark';
@@ -1214,6 +1387,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             applyTheme(next);
             try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage unavailable */ }
+            // keep any open settings picker in sync
+            const themeOptions = document.getElementById('themeOptions');
+            if (themeOptions) {
+                const opts = themeOptions.querySelectorAll('.theme-option');
+                for (let i = 0; i < opts.length; i++) {
+                    const active = opts[i].getAttribute('data-theme') === next;
+                    opts[i].classList.toggle('active', active);
+                    opts[i].setAttribute('aria-checked', active ? 'true' : 'false');
+                }
+            }
         });
     }
 
@@ -1494,5 +1677,100 @@ document.addEventListener('DOMContentLoaded', function () {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             btn.classList.remove('show');
         });
+    })();
+
+    /* ---- Install as app (PWA) ---- */
+    (function () {
+        var base = document.body.getAttribute('data-base') || '';
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        var deferredPrompt = null;
+        var installShown = false;
+
+        function dismissedRecently() {
+            try {
+                var t = parseInt(localStorage.getItem('gs_install_dismissed_at') || '0', 10);
+                return t > 0 && (Date.now() - t < 7 * 24 * 60 * 60 * 1000);
+            } catch (e) { return false; }
+        }
+        function markDismissed() {
+            try { localStorage.setItem('gs_install_dismissed_at', String(Date.now())); } catch (e) {}
+        }
+
+        function showInstallPrompt() {
+            if (installShown || dismissedRecently() || isStandalone) return;
+            if (document.querySelector('.install-prompt')) return;
+
+            installShown = true;
+            var card = document.createElement('div');
+            card.className = 'install-prompt';
+            card.setAttribute('role', 'dialog');
+            card.setAttribute('aria-label', 'Install GoalSpace');
+            card.innerHTML =
+                '<div class="install-card">' +
+                    '<img class="install-icon" src="' + base + '/assets/img/icon-192.png" alt="" width="46" height="46">' +
+                    '<div class="install-text">' +
+                        '<strong>Install GoalSpace</strong>' +
+                        '<span>' + (isIOS
+                            ? 'Tap the Share button, then \'Add to Home Screen\' to get GoalSpace on your phone.'
+                            : 'Get quick access right from your home screen, just like an app.') + '</span>' +
+                    '</div>' +
+                    '<button type="button" class="install-x" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>' +
+                '</div>' +
+                '<div class="install-actions">' +
+                    '<button type="button" class="btn btn-ghost btn-sm" data-install-later>Not now</button>' +
+                    (isIOS
+                        ? '<a class="btn btn-primary btn-sm" href="' + base + '/pages/how_to_use.php">How to install</a>'
+                        : '<button type="button" class="btn btn-primary btn-sm" data-install-ok>Install</button>') +
+                '</div>';
+            document.body.appendChild(card);
+
+            function hide() {
+                if (card.classList.contains('hide')) return;
+                card.classList.add('hide');
+                setTimeout(function () { card.remove(); }, 300);
+            }
+            card.querySelector('.install-x').addEventListener('click', function () { hide(); markDismissed(); });
+            card.querySelector('[data-install-later]').addEventListener('click', function () { hide(); markDismissed(); });
+            var okBtn = card.querySelector('[data-install-ok]');
+            if (okBtn) {
+                okBtn.addEventListener('click', function () {
+                    if (deferredPrompt && !isIOS) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then(function (choice) {
+                            if (choice.outcome !== 'accepted') markDismissed();
+                            deferredPrompt = null;
+                            hide();
+                        }).catch(function () { deferredPrompt = null; hide(); });
+                    } else {
+                        hide();
+                    }
+                });
+            }
+            requestAnimationFrame(function () { card.classList.add('show'); });
+        }
+
+        // The browser tells us the site is installable; we ask, it decides.
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(showInstallPrompt, 12000);
+        });
+        window.addEventListener('appinstalled', function () {
+            deferredPrompt = null;
+            try { localStorage.removeItem('gs_install_dismissed_at'); } catch (e) {}
+            var p = document.querySelector('.install-prompt');
+            if (p) p.remove();
+        });
+
+        // iOS Safari has no beforeinstallprompt: offer manual instructions once.
+        if (isIOS && !isStandalone) {
+            setTimeout(showInstallPrompt, 12000);
+        }
+
+        // Register the service worker so the site can be installed as an app.
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(base + '/sw.js').catch(function () {});
+        }
     })();
 });

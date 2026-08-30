@@ -23,7 +23,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1>How to use</h1>
     </div>
     <p>Here&rsquo;s how to get going, step by step. Pick your role and follow along. Every step links to the real page, so you can try it as you read.</p>

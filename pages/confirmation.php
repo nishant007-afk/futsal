@@ -51,6 +51,7 @@ if ($booking['payment_status'] === 'paid') {
     $amountCell = '<span class="muted">Not yet paid &middot; pay via QR or at the court</span>';
 }
 $bookingDate = date('M j, Y', strtotime($booking['booking_date']));
+$confTitle = $booking['payment_status'] === 'paid' ? 'Payment completed' : 'Booking confirmed';
 
 $page_title = 'Booking confirmed';
 $page_description = 'Your futsal court booking on GoalSpace is confirmed. Review your slot details and get ready for the game.';
@@ -61,8 +62,8 @@ require __DIR__ . '/../includes/header.php';
     <div class="confirm-card">
         <div class="confirm-check"><i class="fa-solid fa-circle-check"></i></div>
         <div class="title-back-row confirm-title-row">
-            <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back confirm-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
-            <h1>Payment completed</h1>
+            <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="page-back-arrow" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1><?php echo e($confTitle); ?></h1>
         </div>
         <div class="confirm-ref">Booking reference: <strong><?php echo e($booking['booking_ref']); ?></strong></div>
 

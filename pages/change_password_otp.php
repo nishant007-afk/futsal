@@ -7,7 +7,7 @@ if (!is_logged_in()) {
 
 $pending = $_SESSION['pending_password_change'] ?? null;
 if (!$pending || !isset($pending['user_id'], $pending['hash']) || (int)$pending['user_id'] !== (int)$_SESSION['user_id']) {
-    redirect('pages/change_password.php');
+    redirect('pages/security.php');
 }
 
 $me = current_user();
@@ -76,7 +76,7 @@ $page_title = 'Confirm Password Change';
 <div class="form-card lg" style="margin-top:44px;">
  <div class="form-head">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Confirm with a security code</h2>
     </div>
  </div>
@@ -114,6 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm & change password</button>
         <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
-        <p class="form-foot"><a href="<?php echo base_url('pages/change_password.php'); ?>">Start over</a></p>
+        <p class="form-foot"><a href="<?php echo base_url('pages/security.php'); ?>">Start over</a></p>
     </form>
 </div>

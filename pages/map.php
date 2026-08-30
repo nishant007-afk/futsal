@@ -13,7 +13,7 @@ $json = json_encode($items);
 
 <div class="page-head reveal">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Courts on the Map</h2>
     </div>
 </div>
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '<strong style="font-size:15px;">' + g.name + '</strong><br>'
             + g.location + '<br>'
             + price + ' / hour'
-            + '<br><a href="' + (base + '/pages/ground.php?id=' + g.id) + '" style="color:#059669;font-weight:600;">View and book</a>'
+            + '<br><a href="' + (base + '/pages/ground.php?id=' + g.id) + '" style="color:#16a34a;font-weight:600;">View and book</a>'
             + '</div>';
         marker.bindPopup(html, { minWidth: 260 });
     });

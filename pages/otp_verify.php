@@ -78,7 +78,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
     <div class="form-head">
         <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Two-step login</h2>
         </div>
         <p class="muted">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>

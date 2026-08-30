@@ -126,7 +126,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
     <div class="form-head">
         <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2 >Sign in to GoalSpace</h2>
         </div>
     </div>
@@ -153,14 +153,12 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
                 <div class="input-group floating">
-                    <i class="fa-solid fa-heading"></i>
                     <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " required>
                     <label for="subj">Subject <span class="req">*</span></label>
                 </div>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
                 <div class="input-group floating">
-                    <i class="fa-solid fa-envelope"></i>
                     <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" placeholder=" " required>
                     <label for="em">Your email <span class="req">*</span></label>
                 </div>

@@ -43,7 +43,7 @@ if (isset($_GET['mark_paid'])) {
         exit('Invalid request.');
     }
     $booking_id = (int)$_GET['mark_paid'];
-    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.amount_paid FROM bookings b
+    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.amount_paid, g.name AS ground_name FROM bookings b
          JOIN grounds g ON g.id = b.ground_id
          WHERE b.id = ? AND g.manager_id = ? AND b.status = "confirmed" AND b.payment_status IN ("unpaid", "partial")');
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
@@ -63,22 +63,24 @@ if (isset($_GET['mark_paid'])) {
                 'fa-sack-dollar',
                 'pages/booking_details.php?id=' . $booking_id
             );
-            $playerEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+            $playerEmail = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
             $playerEmail->bind_param('i', $target['user_id']);
             $playerEmail->execute();
             $playerRow = $playerEmail->get_result()->fetch_assoc();
             if ($playerRow) {
                 send_booking_email(
                     $playerRow['email'],
-                    'Payment confirmed by the court',
-                    'Your booking is now paid (paid at court)',
+                    'Payment confirmed at ' . ($target['ground_name'] ?? 'the court'),
+                    'Your booking is marked as paid',
                     [
                         'Booking ref' => $target['booking_ref'],
-                        'Court' => '',
+                        'Court' => $target['ground_name'] ?? 'the court',
                         'Date' => date('D, M j, Y', strtotime($target['booking_date'])),
                         'Time' => substr($target['start_time'], 0, 5) . ' - ' . substr($target['end_time'], 0, 5),
                         'Paid' => 'Rs ' . number_format((float)$target['total_price'], 0) . ' (at court)',
-                    ]
+                    ],
+                    'Nothing left to do: your booking is fully settled. Enjoy your game!',
+                    $playerRow['name'] ?? ''
                 );
             }
             notify_user((int)$_SESSION['user_id'], 'Payment confirmed', 'You marked booking ' . $target['booking_ref'] . ' as paid at court.', 'fa-sack-dollar', 'manager/bookings.php');
@@ -100,6 +102,22 @@ $f_status = trim($_GET['status'] ?? '');
 $f_payment = trim($_GET['payment'] ?? '');
 $f_ground = (int)($_GET['ground'] ?? 0);
 $view = trim($_GET['view'] ?? 'bookings'); // 'bookings' or 'waitlist'
+$quick = trim($_GET['quick'] ?? ''); // 'today' | 'upcoming' | 'unpaid'
+if (!in_array($quick, ['', 'today', 'upcoming', 'unpaid'], true)) {
+    $quick = '';
+}
+if ($quick === 'today') {
+    $f_date_from = date('Y-m-d');
+    $f_date_to = date('Y-m-d');
+}
+if ($quick === 'upcoming') {
+    $f_date_from = date('Y-m-d');
+    $f_status = 'confirmed';
+}
+if ($quick === 'unpaid') {
+    $f_payment = 'unpaid';
+    $f_status = 'confirmed';
+}
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $f_date_from)) {
     $f_date_from = '';
@@ -291,7 +309,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2>Bookings on My Grounds</h2>
         <div class="actions">
@@ -352,10 +370,19 @@ require __DIR__ . '/../includes/header.php';
     </form>
 </div>
 
-<div class="view-tabs reveal" style="margin:12px 0 18px;">
+<div class="view-tabs reveal" style="margin:12px 0 6px;">
     <a href="<?php echo base_url('manager/bookings.php?view=bookings' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="view-tab <?php echo $view === 'bookings' ? 'active' : ''; ?>"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
     <a href="<?php echo base_url('manager/bookings.php?view=waitlist' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="view-tab <?php echo $view === 'waitlist' ? 'active' : ''; ?>"><i class="fa-solid fa-clock-rotate-left"></i> Waitlist</a>
 </div>
+
+<?php if ($view === 'bookings'): ?>
+<div class="quick-tabs reveal" role="group" aria-label="Quick booking filters">
+    <a href="<?php echo base_url('manager/bookings.php?view=bookings'); ?>" class="quick-tab <?php echo $quick === '' ? 'active' : ''; ?>">All</a>
+    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=today'); ?>" class="quick-tab <?php echo $quick === 'today' ? 'active' : ''; ?>">Today</a>
+    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=upcoming'); ?>" class="quick-tab <?php echo $quick === 'upcoming' ? 'active' : ''; ?>">Upcoming</a>
+    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=unpaid'); ?>" class="quick-tab <?php echo $quick === 'unpaid' ? 'active' : ''; ?>">Unpaid</a>
+</div>
+<?php endif; ?>
 
 <?php if (empty($rows)): ?>
     <div class="empty reveal"><span class="big"><i class="fa-regular <?php echo $isWaitlist ? 'fa-clock-rotate-left' : 'fa-calendar-xmark'; ?>"></i></span><h3><?php echo $hasFilters ? 'No ' . ($isWaitlist ? 'waitlist entries' : 'bookings') . ' match your filters' : 'No ' . ($isWaitlist ? 'waitlist entries on your grounds yet' : 'bookings on your grounds yet'); ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : ($isWaitlist ? 'When players join a waitlist, it will appear here.' : 'When players reserve a slot, it will appear here.'); ?></p></div>

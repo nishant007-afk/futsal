@@ -55,6 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!isset($errors['general'])) {
+            // Use the Google profile picture as the new account's avatar.
+            if (!empty($pending['picture'])) {
+                $avatar = save_google_avatar($pending['picture'], $uid);
+                if ($avatar !== '') {
+                    $stmt = $conn->prepare('UPDATE users SET avatar = ? WHERE id = ?');
+                    $stmt->bind_param('si', $avatar, $uid);
+                    $stmt->execute();
+                }
+            }
             session_regenerate_id(true);
             $_SESSION['user_id'] = $uid;
             unset($_SESSION['google_pending']);
@@ -74,7 +83,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="form-head">
         <p class="muted" style="font-size:15px; margin:0 0 4px;">Hi, <?php echo e($gName); ?></p>
         <div class="title-back-row">
-            <a href="<?php echo base_url($back); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url($back); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>One last step to set up your account</h2>
         </div>
         <p class="muted">Choose how you'll use GoalSpace and confirm your preferences below.</p>

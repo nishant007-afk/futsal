@@ -13,18 +13,25 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1>Frequently Asked Questions</h1>
     </div>
 </div>
 
-<form class="faq-search" role="search" aria-label="Search FAQs">
+<div class="faq-search" role="search">
     <input type="search" id="faqSearch" placeholder="Search questions…" autocomplete="off">
-    <button type="submit" class="btn btn-ghost btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-</form>
+</div>
+<div class="faq-cats" aria-label="Jump to a topic">
+    <a href="#cat-booking">Booking</a>
+    <a href="#cat-payment">Payments</a>
+    <a href="#cat-account">Account</a>
+    <a href="#cat-cancel">Cancellations</a>
+    <a href="#cat-owners">For owners</a>
+    <a href="#cat-tech">Technical</a>
+</div>
 
 <div class="faq-list">
-    <h2 class="faq-section-title"><i class="fa-solid fa-calendar-check"></i> Booking</h2>
+    <h2 class="faq-section-title" id="cat-booking">Booking</h2>
     <details class="faq-item">
         <summary>How do I book a court?</summary>
         <p>In a few taps you can lock in a slot:</p>
@@ -49,7 +56,7 @@ require __DIR__ . '/../includes/header.php';
         <p>Yes, as long as the court&rsquo;s cancellation window allows it. Open the booking in <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a> and choose Reschedule.</p>
     </details>
 
-    <h2 class="faq-section-title"><i class="fa-solid fa-wallet"></i> Payments</h2>
+    <h2 class="faq-section-title" id="cat-payment">Payments</h2>
     <details class="faq-item">
         <summary>How do I pay for a booking?</summary>
         <p>After you choose a slot, you pick how to pay, then scan to transfer the money:</p>
@@ -78,7 +85,7 @@ require __DIR__ . '/../includes/header.php';
         <p>A receipt is emailed as soon as the payment is recorded. You can also view and download it anytime from the booking details. Open the booking in <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a> and tap <strong>Receipt</strong>.</p>
     </details>
 
-    <h2 class="faq-section-title"><i class="fa-solid fa-user"></i> Account</h2>
+    <h2 class="faq-section-title" id="cat-account">Account</h2>
     <details class="faq-item">
         <summary>How do I create an account?</summary>
         <p>Tap <strong>Sign up</strong> in the top right, enter your name and email, set a password, and pick the <strong>Player</strong> role. You&rsquo;ll get a verification email to confirm your address.</p>
@@ -92,7 +99,7 @@ require __DIR__ . '/../includes/header.php';
         <p>Yes, in <a href="<?php echo base_url('pages/profile.php'); ?>">Profile</a> you can update your details. Changing email or phone may require re-verifying.</p>
     </details>
 
-    <h2 class="faq-section-title"><i class="fa-solid fa-right-left"></i> Cancellations &amp; refunds</h2>
+    <h2 class="faq-section-title" id="cat-cancel">Cancellations &amp; refunds</h2>
     <details class="faq-item">
         <summary>What is the cancellation policy?</summary>
         <ul>
@@ -116,7 +123,7 @@ require __DIR__ . '/../includes/header.php';
         <p>If you cancel in time you get a full refund. Late cancellations or no-shows are non-refundable, though the advance may be kept as credit for your next booking.</p>
     </details>
 
-    <h2 class="faq-section-title"><i class="fa-solid fa-store"></i> For court owners</h2>
+    <h2 class="faq-section-title" id="cat-owners">For court owners</h2>
     <details class="faq-item">
         <summary>How do I add my court?</summary>
         <p>Sign up with the Manager role, then open <strong>My Grounds</strong> and click <strong>Add Ground</strong>. Fill in the details and the map pin, then Save.</p>
@@ -147,7 +154,7 @@ require __DIR__ . '/../includes/header.php';
         <p>Yes, on the ground edit page, open <strong>Blocked dates</strong>, pick a date and add an optional note.</p>
     </details>
 
-    <h2 class="faq-section-title"><i class="fa-solid fa-circle-question"></i> Technical</h2>
+    <h2 class="faq-section-title" id="cat-tech">Technical</h2>
     <details class="faq-item">
         <summary>The site isn&rsquo;t loading on mobile</summary>
         <p>Make sure you&rsquo;re using a modern browser (Chrome, Safari, Firefox, Edge) and that JavaScript is enabled. Clear your cache and try again.</p>
@@ -162,6 +169,10 @@ require __DIR__ . '/../includes/header.php';
     </details>
 </div>
 
+<div class="faq-empty" id="faqEmpty" hidden>
+    <p>No questions match &ldquo;<span id="faqEmptyTerm"></span>&rdquo;. Try a different word.</p>
+</div>
+
 <?php if ($logged_in && $isManager): ?>
 <div class="notice faq-help">
     <i class="fa-solid fa-circle-info"></i>
@@ -171,29 +182,37 @@ require __DIR__ . '/../includes/header.php';
 
 <script>
 (function () {
-    var form = document.querySelector('.faq-search');
-    if (!form) return;
-    var input = form.querySelector('input[type="search"]');
+    var input = document.getElementById('faqSearch');
+    var empty = document.getElementById('faqEmpty');
+    var termEl = document.getElementById('faqEmptyTerm');
+    if (!input) return;
     var items = document.querySelectorAll('.faq-item');
     var filter = function () {
-        var term = (input.value || '').toLowerCase();
+        var term = (input.value || '').trim().toLowerCase();
+        var shown = 0;
         items.forEach(function (item) {
             var summary = item.querySelector('summary');
             var text = summary ? summary.textContent.toLowerCase() : '';
-            var shown = text.indexOf(term) !== -1;
-            item.style.display = shown ? '' : 'none';
-            if (shown && term.length > 0) {
-                item.open = true;
+            var match = text.indexOf(term) !== -1;
+            item.style.display = match ? '' : 'none';
+            if (match) {
+                shown++;
+                if (term.length > 0) item.open = true;
             }
         });
+        if (empty && termEl) {
+            empty.hidden = shown !== 0;
+            termEl.textContent = input.value.trim();
+        }
     };
     input.addEventListener('input', filter);
-    form.addEventListener('submit', function (e) {
+    input.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
         e.preventDefault();
         filter();
-        var visible = Array.prototype.filter.call(items, function (i) { return i.style.display !== 'none'; });
-        if (visible.length && visible[0].parentNode) {
-            visible[0].parentNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        var first = Array.prototype.find.call(items, function (i) { return i.style.display !== 'none'; });
+        if (first) {
+            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 })();

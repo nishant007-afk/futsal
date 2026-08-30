@@ -167,7 +167,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head reveal">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1 class="page-title">All Courts</h1>
     </div>
 </div>
@@ -209,16 +209,47 @@ require __DIR__ . '/../includes/header.php';
         </form>
     </div>
 
+    <?php
+    $filterChips = [];
+    if ($q !== '') {
+        $filterChips[] = ['q', 'Search: "' . $q . '"'];
+    }
+    if ($city !== '') {
+        $filterChips[] = ['location', 'Location: ' . city_label($city)];
+    }
+    if ($date !== '') {
+        $filterChips[] = ['date', 'Date: ' . date('M j, Y', strtotime($date))];
+    }
+    if ($sort !== 'price_asc') {
+        $sortLabels = ['price_desc' => 'Price: high to low', 'name_asc' => 'Name: A to Z'];
+        $filterChips[] = ['sort', 'Sort: ' . ($sortLabels[$sort] ?? 'Custom')];
+    }
+    ?>
+    <?php if ($filterChips): ?>
+        <div class="filter-chips" aria-label="Active filters">
+            <?php foreach ($filterChips as [$key, $label]): ?>
+                <a class="fc-chip" href="<?php echo base_url('pages/courts.php?' . build_query([$key => ''])); ?>"><?php echo e($label); ?> <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+            <?php endforeach; ?>
+            <?php if (count($filterChips) > 1): ?>
+                <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Clear all <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <div class="popular-searches courts-popular" aria-label="Popular locations">
+            <span class="ps-label">Popular:</span>
+            <a href="<?php echo base_url('pages/courts.php?location=Kathmandu'); ?>">Kathmandu</a>
+            <a href="<?php echo base_url('pages/courts.php?location=Lalitpur'); ?>">Lalitpur</a>
+            <a href="<?php echo base_url('pages/courts.php?location=Bhaktapur'); ?>">Bhaktapur</a>
+            <a href="<?php echo base_url('pages/courts.php?sort=name_asc'); ?>">By name</a>
+        </div>
+    <?php endif; ?>
+
     <p class="courts-count muted">
         <?php echo $total; ?> court<?php echo $total === 1 ? '' : 's'; ?><?php echo $q !== '' ? ' matching "' . e($q) . '"' : ''; ?>
     </p>
 
     <?php if (!$grounds): ?>
-        <div class="empty reveal">
-            <span class="big"><i class="fa-solid fa-futbol"></i></span>
-            <h3>No courts match your filters</h3>
-            <p><a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline btn-sm">Clear filters &amp; browse all</a></p>
-        </div>
+        <?php empty_state('fa-solid fa-futbol', 'No courts match your filters', 'Try removing a filter or searching for something else.', 'pages/courts.php', 'Clear filters & browse all'); ?>
     <?php else: ?>
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground, $availability[(int)$ground['id']] ?? null); } ?>

@@ -11,7 +11,7 @@ function current_user(): ?array
         return null;
     }
     global $conn;
-    $stmt = $conn->prepare('SELECT id, name, email, phone, avatar, role, email_verified, created_at FROM users WHERE id = ?');
+    $stmt = $conn->prepare('SELECT id, name, email, phone, avatar, role, email_verified, created_at, notify_bookings, notify_promo, notify_expiry, notify_sms FROM users WHERE id = ?');
     $stmt->bind_param('i', $_SESSION['user_id']);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -88,16 +88,32 @@ function require_player(): void
 
 function base_url(string $path = ''): string
 {
-    $root = '/futsal';
-    return $root . '/' . ltrim($path, '/');
+    // Works at any install location: computes the app's URL subdirectory from
+    // its folder on disk relative to the web root ('' at the domain root,
+    // '/futsal' under htdocs/futsal, etc.). An explicit BASE_PATH in .env wins.
+    $root = '';
+    $override = env('BASE_PATH');
+    if ($override !== null) {
+        $root = '/' . trim($override, '/');
+    } else {
+        $docRoot = str_replace('\\', '/', (string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+        $appDir  = str_replace('\\', '/', (string)realpath(dirname(__DIR__)));
+        if ($docRoot !== '' && $appDir !== '' && strpos($appDir . '/', $docRoot . '/') === 0) {
+            $root = rtrim(substr($appDir, strlen($docRoot)), '/');
+        }
+    }
+    return rtrim($root, '/') . '/' . ltrim($path, '/');
 }
 
 function absolute_url(string $path = ''): string
 {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $root   = '/futsal';
-    return $scheme . '://' . $host . $root . '/' . ltrim($path, '/');
+    $scheme = env('APP_SCHEME');
+    if ($scheme === null) {
+        $fwd = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+        $scheme = ($fwd === 'https' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')) ? 'https' : 'http';
+    }
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return $scheme . '://' . $host . base_url($path);
 }
 
 function grounds_list_url(): string
@@ -323,7 +339,7 @@ function notify_waitlist_freed(int $ground_id, string $booking_date, string $sta
     $rows = $stmt->get_result();
     while ($row = $rows->fetch_assoc()) {
         notify_user((int)$row['user_id'], 'A slot opened up!', $groundName . ' is free on ' . $label . '. Book before someone else does.', 'fa-bell', 'pages/ground.php?id=' . (int)$ground_id . '&date=' . urlencode($booking_date));
-        $uStmt = $conn->prepare('SELECT email FROM users WHERE id = ?');
+        $uStmt = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
         $uStmt->bind_param('i', $row['user_id']);
         $uStmt->execute();
         $uRow = $uStmt->get_result()->fetch_assoc();
@@ -331,15 +347,16 @@ function notify_waitlist_freed(int $ground_id, string $booking_date, string $sta
             $bookUrl = absolute_url('pages/ground.php?id=' . (int)$ground_id . '&date=' . urlencode($booking_date));
             send_booking_email(
                 $uRow['email'],
-                'A slot opened up at ' . $groundName,
-                'Your waitlist slot just freed up',
+                'A slot opened at ' . $groundName,
+                'Your waitlist spot just freed up',
                 [
                     'Court'      => $groundName,
                     'Date'       => date('D, M j, Y', strtotime($booking_date)),
                     'Time'       => substr($start_time, 0, 5) . ' onwards',
                     'Book now'   => $bookUrl,
                 ],
-                'Slots go fast. Book it now before someone else grabs it.'
+                'Slots like this go fast, so do not wait. We would love to see you on the court!',
+                $uRow['name'] ?? ''
             );
         }
         $upd = $conn->prepare('UPDATE waitlist SET is_notified = 1 WHERE id = ?');
@@ -764,6 +781,50 @@ function convert_image_to_webp(string $src, string $dest, int $quality = 82, ?in
     return $ok;
 }
 
+/**
+ * Download a user's Google profile picture and save it as a local WebP avatar.
+ * Returns the stored filename on success, or '' on failure (caller should
+ * fall back to the letter avatar).
+ */
+function save_google_avatar(string $url, int $userId): string
+{
+    if ($url === '' || $userId < 1) {
+        return '';
+    }
+    // Ask Google for a 512px version instead of the tiny default thumbnail.
+    $url = preg_replace('/=s\d+-c$/', '=s512-c', $url);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_USERAGENT      => 'GoalSpace-Avatar/1.0',
+    ]);
+    $data = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($data === false || $code !== 200 || $data === '') {
+        return '';
+    }
+
+    $tmp = tempnam(sys_get_temp_dir(), 'gav');
+    if ($tmp === false || @file_put_contents($tmp, $data) === false) {
+        @unlink($tmp);
+        return '';
+    }
+
+    $dest = dirname(__DIR__) . '/uploads/avatars/user_' . $userId . '_' . bin2hex(random_bytes(8)) . '.webp';
+    $ok = convert_image_to_webp($tmp, $dest, 85, 512);
+    @unlink($tmp);
+    if (!$ok || !is_file($dest)) {
+        @unlink($dest);
+        return '';
+    }
+    return basename($dest);
+}
+
 function save_ground_photos(int $ground_id): array
 {
     global $conn;
@@ -982,38 +1043,51 @@ function notify_user(int $user_id, string $title, string $body = '', string $ico
  * Small HTML email shell shared by all transactional messages.
  * Inline styles only so it renders in every client. No em dashes.
  *
- * @param array $rows key => value pairs shown as a summary table
+ * @param array  $rows key => value pairs shown as a summary table
+ * @param string $name optional first name for a personal greeting
  */
-function booking_email_html(string $heading, array $rows = [], string $note = ''): string
+function booking_email_html(string $heading, array $rows = [], string $note = '', string $name = ''): string
 {
     $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    $greeting = $name !== '' ? 'Hi ' . $esc($name) . ',' : 'Hi there,';
     $table = '';
     if ($rows) {
         $cells = '';
         foreach ($rows as $k => $v) {
-            $cells .= '<tr><td style="padding:7px 0;color:#425349;width:130px;font-size:14px;vertical-align:top;">'
-                . $esc($k) . '</td><td style="padding:7px 0;color:#101814;font-size:14px;font-weight:600;">'
-                . $esc($v) . '</td></tr>';
+            $cells .= '<tr>'
+                . '<td style="padding:9px 0;color:#5b6b62;width:140px;font-size:14px;vertical-align:top;">' . $esc($k) . '</td>'
+                . '<td style="padding:9px 0;color:#101814;font-size:14px;font-weight:600;">' . $esc($v) . '</td>'
+                . '</tr>';
         }
-        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">' . $cells . '</table>';
+        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:4px 0 0;">'
+            . '<tr><td style="border-bottom:1px solid #eef2ef;"></td></tr>'
+            . $cells
+            . '<tr><td style="border-top:1px solid #eef2ef;"></td></tr>'
+            . '</table>';
     }
-    $noteBlock = $note !== '' ? '<p style="margin:18px 0 0;color:#6e8175;font-size:13px;line-height:1.6;">'
+    $noteBlock = $note !== '' ? '<p style="margin:18px 0 0;color:#5b6b62;font-size:14px;line-height:1.65;">'
         . $esc($note) . '</p>' : '';
 
-    return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f7f5;">
-<table role="presentation" width="100%" style="background:#f4f7f5;padding:28px 12px;">
-<tr><td align="center">
-<table role="presentation" width="560" style="max-width:560px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e1e5e1;">
-    <tr><td style="background:#0a120e;padding:22px 28px;">
-        <span style="color:#6ee7a8;font-size:15px;font-weight:800;">GoalSpace</span>
-    </td></tr>
-    <tr><td style="padding:28px;">
-        <h1 style="margin:0 0 6px;color:#101814;font-size:20px;font-family:Arial,sans-serif;">' . $esc($heading) . '</h1>
-        ' . $table . $noteBlock . '
-        <p style="margin:22px 0 0;color:#6e8175;font-size:12px;line-height:1.5;">You got this email because it relates to your GoalSpace account.
-        <br><a href="' . base_url('index.php') . '" style="color:#059669;">goalspace.com</a></p>
-    </td></tr>
-</table></td></tr></table></body></html>';
+    return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f1;">'
+        . '<table role="presentation" width="100%" style="background:#f0f4f1;padding:32px 12px;"><tr><td align="center">'
+        . '<table role="presentation" width="560" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e7e3;">'
+        . '<tr><td style="background:#0a120e;padding:24px 28px;">'
+        . '<span style="color:#ffffff;font-size:17px;font-weight:800;letter-spacing:.2px;">GoalSpace</span>'
+        . '<span style="color:#8aa296;font-size:12px;margin-left:10px;">Futsal, booked in seconds</span>'
+        . '</td></tr>'
+        . '<tr><td style="padding:30px 28px 26px;">'
+        . '<p style="margin:0 0 14px;color:#5b6b62;font-size:14px;font-family:Arial,sans-serif;">' . $greeting . '</p>'
+        . '<h1 style="margin:0 0 4px;color:#101814;font-size:21px;line-height:1.35;font-family:Arial,sans-serif;">' . $esc($heading) . '</h1>'
+        . $table . $noteBlock
+        . '<p style="margin:26px 0 0;color:#101814;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">Thanks for being part of GoalSpace. '
+        . '<span style="color:#5b6b62;">See you on the court!</span></p>'
+        . '<p style="margin:6px 0 0;color:#5b6b62;font-size:14px;font-family:Arial,sans-serif;">The GoalSpace team</p>'
+        . '</td></tr>'
+        . '<tr><td style="background:#f7faf8;padding:16px 28px;border-top:1px solid #eef2ef;">'
+        . '<p style="margin:0;color:#8a958e;font-size:12px;line-height:1.6;font-family:Arial,sans-serif;">You received this email because it relates to your GoalSpace account. '
+        . 'Need help? <a href="' . base_url('pages/page.php?slug=contact') . '" style="color:#16a34a;text-decoration:none;">Contact us</a> anytime.</p>'
+        . '</td></tr>'
+        . '</table></td></tr></table></body></html>';
 }
 
 /**
@@ -1021,9 +1095,9 @@ function booking_email_html(string $heading, array $rows = [], string $note = ''
  *
  * @return bool true if a mail was actually sent (SMTP configured + ack)
  */
-function send_booking_email(string $to, string $subject, string $heading, array $rows = [], string $note = ''): bool
+function send_booking_email(string $to, string $subject, string $heading, array $rows = [], string $note = '', string $name = ''): bool
 {
-    return send_mail($to, $subject, booking_email_html($heading, $rows, $note), true);
+    return send_mail($to, $subject, booking_email_html($heading, $rows, $note, $name), true);
 }
 
 /**
@@ -1090,9 +1164,10 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
         $subject = 'GoalSpace update: ' . $labelText;
         $msg  = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n";
         $msg .= "We have updated the following on GoalSpace:\r\n" . implode("\r\n", $lines) . "\r\n\r\n";
-        $msg .= "Last reviewed: " . $date . "\r\n";
-        $msg .= "Take a look when you have a moment so you know what changed. Thanks for being part of GoalSpace.\r\n\r\n";
-        $msg .= "See you on the court!\r\nThe GoalSpace team";
+        $msg .= "These changes take effect on " . $date . ".\r\n\r\n";
+        $msg .= "We believe in being open about how the platform works, so please take a moment to review them when you can. ";
+        $msg .= "Your trust matters to us, and we are always happy to answer any questions you have.\r\n\r\n";
+        $msg .= "Thanks for being part of the GoalSpace community.\r\nThe GoalSpace team";
         @send_mail($u['email'], $subject, $msg);
         $sent++;
     }
@@ -1117,7 +1192,8 @@ function notify_announcement(string $subject, string $message, string $scope = '
         notify_user((int)$u['id'], $subject, $message, 'fa-bullhorn');
         if ($sendMail) {
             $body = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n" . $message . "\r\n\r\n" .
-                "See you on the court!\r\nThe GoalSpace team";
+                "We appreciate you being part of GoalSpace, and we hope to see you on the court soon.\r\n\r\n" .
+                "Warm regards,\r\nThe GoalSpace team";
             @send_mail($u['email'], $subject, $body);
         }
         $sent++;
@@ -1141,6 +1217,24 @@ function unread_notification_count(int $user_id): int
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
     return (int)$stmt->get_result()->fetch_assoc()['c'];
+}
+
+/**
+ * Standard empty-state block: soft icon chip + title + optional text and action.
+ * Used across bookings, favorites, notifications, search results and dashboards.
+ */
+function empty_state(string $icon, string $title, string $text = '', ?string $action_url = null, ?string $action_label = null, string $action_class = 'btn btn-outline btn-sm'): void
+{
+    echo '<div class="empty reveal">';
+    echo '<span class="big"><i class="' . e($icon) . '"></i></span>';
+    echo '<h3>' . e($title) . '</h3>';
+    if ($text !== '') {
+        echo '<p>' . $text . '</p>';
+    }
+    if ($action_url !== null && $action_label !== null) {
+        echo '<a href="' . e($action_url) . '" class="' . e($action_class) . '">' . e($action_label) . '</a>';
+    }
+    echo '</div>';
 }
 
 function notification_time(?string $created_at): string
@@ -1418,15 +1512,17 @@ function otp_subject(string $purpose): string
 {
     switch ($purpose) {
         case 'email_verify':
-            return 'Verify your email';
+            return 'Confirm your email address';
         case 'password_reset':
-            return 'Your password reset code';
+            return 'Reset your password';
         case 'login':
-            return 'Your login code';
+            return 'Your GoalSpace sign-in code';
         case 'password_change':
-            return 'Your security code';
+            return 'Your GoalSpace security code';
         case 'email_change':
-            return 'Verify your new email';
+            return 'Confirm your new email';
+        case 'delete_account':
+            return 'Confirm account deletion';
         default:
             return 'Your GoalSpace security code';
     }
@@ -1435,14 +1531,30 @@ function otp_subject(string $purpose): string
 
 function send_otp_mail(string $email, string $code, string $purpose): bool
 {
+    global $conn;
+    // Personalize the greeting when the email belongs to an existing account.
+    $firstName = '';
+    if (!empty($conn) && $email !== '') {
+        $stmt = $conn->prepare('SELECT name FROM users WHERE email = ?');
+        if ($stmt) {
+            $stmt->bind_param('s', $email);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            if ($row && !empty($row['name'])) {
+                $firstName = preg_split('/\s+/', trim($row['name']))[0] ?? '';
+            }
+        }
+    }
+    $greeting = $firstName !== '' ? 'Hi ' . $firstName . ',' : 'Hi there,';
+
     $title = otp_subject($purpose);
-    $body = 'Hi there,' . "\r\n\r\n";
-    $body .= 'You asked to ' . otp_purpose_verb($purpose) . '. Here is your code:' . "\r\n\r\n";
-    $body .= '<span style="font-size:22px;font-weight:bold;letter-spacing:3px;">' . $code . '</span>' . "\r\n\r\n";
-    $body .= 'This code works for the next 5 minutes.' . "\r\n\r\n";
-    $body .= "If this wasn't you, just ignore this email. Nothing will change." . "\r\n\r\n";
-    $body .= 'See you on the court!' . "\r\n\r\n";
-    $body .= 'The GoalSpace team';
+    $body  = $greeting . "\r\n\r\n";
+    $body .= 'We received a request to ' . otp_purpose_verb($purpose) . '. Your one-time code is:' . "\r\n\r\n";
+    $body .= '   ' . $code . "\r\n\r\n";
+    $body .= 'This code expires in 5 minutes, so please use it soon.' . "\r\n\r\n";
+    $body .= "Didn't ask for this? No action needed. Your account stays exactly as it is, and you can safely ignore this email." . "\r\n\r\n";
+    $body .= 'Questions? Visit ' . rtrim(base_url(''), '/') . ' and we will be happy to help.' . "\r\n\r\n";
+    $body .= "See you on the court!\r\nThe GoalSpace team";
     return send_mail($email, $title, $body);
 }
 
@@ -1459,9 +1571,38 @@ function otp_purpose_verb(string $purpose): string
             return 'change your password';
         case 'email_change':
             return 'verify your new email address';
+        case 'delete_account':
+            return 'delete your GoalSpace account';
         default:
             return 'continue with what you were doing';
     }
+}
+
+/**
+ * Permanently delete a user account (self-serve, OTP-confirmed).
+ * Grounds owned by the user are hidden so orphaned courts don't keep
+ * accepting bookings; identifier-keyed rows are removed explicitly;
+ * everything else cascades via the schema's ON DELETE CASCADE.
+ */
+function delete_user_account(int $user_id, string $email): bool
+{
+    global $conn;
+    // A manager leaving the platform shouldn't leave live, unowned courts.
+    $conn->query('UPDATE grounds SET is_active = 0 WHERE manager_id = ' . $user_id);
+    // Clean up identifier-keyed tables (no FK to users).
+    $key = login_attempt_key($email);
+    $stmt = $conn->prepare('DELETE FROM otps WHERE identifier = ?');
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $stmt = $conn->prepare('DELETE FROM login_attempts WHERE identifier = ?');
+    $stmt->bind_param('s', $key);
+    $stmt->execute();
+    $stmt = $conn->prepare('DELETE FROM contact_messages WHERE user_id = ?');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt = $conn->prepare('DELETE FROM users WHERE id = ?');
+    $stmt->bind_param('i', $user_id);
+    return $stmt->execute() && $stmt->affected_rows > 0;
 }
 
 function export_csv(array $rows, string $filename): void

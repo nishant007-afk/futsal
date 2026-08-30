@@ -28,13 +28,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $filter = $_GET['filter'] ?? 'all';
-$notifications = user_notifications((int)$_SESSION['user_id'], 100);
+$allNotifications = user_notifications((int)$_SESSION['user_id'], 100);
+$notifications = $allNotifications;
 if ($filter === 'unread') {
     $notifications = array_values(array_filter($notifications, fn($n) => (int)$n['is_read'] === 0));
 } elseif ($filter === 'read') {
     $notifications = array_values(array_filter($notifications, fn($n) => (int)$n['is_read'] === 1));
 }
 $unreadTotal = unread_notification_count((int)$_SESSION['user_id']);
+
+// Group by recency: Today / Yesterday / Earlier
+$todayStart = strtotime(date('Y-m-d'));
+$yesterdayStart = strtotime('-1 day', $todayStart);
+$groups = ['today' => [], 'yesterday' => [], 'earlier' => []];
+foreach ($notifications as $n) {
+    $ts = strtotime((string)$n['created_at']);
+    if ($ts >= $todayStart) {
+        $groups['today'][] = $n;
+    } elseif ($ts >= $yesterdayStart) {
+        $groups['yesterday'][] = $n;
+    } else {
+        $groups['earlier'][] = $n;
+    }
+}
 
 $bookingRefs = [];
 $linkedIds = [];
@@ -62,12 +78,12 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="notif-page-head reveal">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2><i class="fa-solid fa-bell"></i> Notifications</h2>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>Notifications</h2>
     </div>
 </div>
 <div class="notif-actions reveal" style="margin-bottom:18px;">
-    <?php if ($notifications): ?>
+    <?php if ($allNotifications): ?>
         <form method="post" action="">
             <?php echo csrf_field(); ?>
             <button type="submit" name="mark_read" value="1" class="btn btn-outline btn-sm"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
@@ -87,41 +103,43 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php if (!$notifications): ?>
-    <div class="empty reveal">
-        <span class="big"><i class="fa-regular fa-bell"></i></span>
-        <h3><?php echo $filter === 'all' ? "You're all caught up" : 'Nothing in this view'; ?></h3>
-        <p>When something happens with your bookings, updates land here.</p>
-    </div>
+    <?php empty_state('fa-regular fa-bell', $filter === 'all' ? "You're all caught up" : 'Nothing in this view', 'When something happens with your bookings, updates land here.', grounds_list_url(), 'Browse courts'); ?>
 <?php else: ?>
     <div class="notif-list reveal">
-        <?php foreach ($notifications as $n): ?>
-            <div class="notif-item <?php echo $n['is_read'] ? '' : 'notif-unread'; ?>">
-                <div class="notif-thumb c-<?php echo notification_icon_color($n['icon']); ?>">
-                    <i class="fa-solid <?php echo e($n['icon']); ?>"></i>
-                </div>
-                <div class="notif-body">
-                    <h3><?php echo e($n['title']); ?>
-                        <?php if (!$n['is_read']): ?>
-                            <span class="notif-badge unread">New</span>
-                        <?php endif; ?>
-                    </h3>
-                    <div class="notif-meta"><i class="fa-regular fa-clock"></i> <?php echo e(notification_time($n['created_at'])); ?></div>
-                    <?php if (preg_match('/booking_details\.php\?id=(\d+)/', (string)$n['link'], $bm) && isset($bookingRefs[(int)$bm[1]])): ?>
-                        <div class="notif-ref"><i class="fa-solid fa-receipt"></i> Booking <?php echo e($bookingRefs[(int)$bm[1]]); ?></div>
-                    <?php endif; ?>
-                    <?php if ($n['body'] !== ''): ?>
-                        <div class="notif-desc"><?php echo e($n['body']); ?></div>
-                    <?php endif; ?>
-                </div>
-                <div class="notif-side">
-                    <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id'] . '&view=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
-                    <form method="post" action="" style="display:inline;">
-                        <?php echo csrf_field(); ?>
-                        <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
-                        <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>
-                    </form>
-                </div>
+        <?php foreach ($groups as $groupKey => $groupItems): ?>
+            <?php if (!$groupItems) continue; ?>
+            <div class="notif-group-head">
+                <?php echo $groupKey === 'today' ? 'Today' : ($groupKey === 'yesterday' ? 'Yesterday' : 'Earlier'); ?>
             </div>
+            <?php foreach ($groupItems as $n): ?>
+                <div class="notif-item <?php echo $n['is_read'] ? '' : 'notif-unread'; ?>">
+                    <div class="notif-thumb c-<?php echo notification_icon_color($n['icon']); ?>">
+                        <i class="fa-solid <?php echo e($n['icon']); ?>"></i>
+                    </div>
+                    <div class="notif-body">
+                        <h3><?php echo e($n['title']); ?>
+                            <?php if (!$n['is_read']): ?>
+                                <span class="notif-badge unread">New</span>
+                            <?php endif; ?>
+                        </h3>
+                        <div class="notif-meta"><i class="fa-regular fa-clock"></i> <?php echo e(notification_time($n['created_at'])); ?></div>
+                        <?php if (preg_match('/booking_details\.php\?id=(\d+)/', (string)$n['link'], $bm) && isset($bookingRefs[(int)$bm[1]])): ?>
+                            <div class="notif-ref"><i class="fa-solid fa-receipt"></i> Booking <?php echo e($bookingRefs[(int)$bm[1]]); ?></div>
+                        <?php endif; ?>
+                        <?php if ($n['body'] !== ''): ?>
+                            <div class="notif-desc"><?php echo e($n['body']); ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notif-side">
+                        <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id'] . '&view=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
+                        <form method="post" action="" style="display:inline;">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
+                            <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>

@@ -15,7 +15,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1><?php echo e($page['title']); ?></h1>
     </div>
     <p><?php echo e($page['summary']); ?></p>
@@ -30,7 +30,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="contact-layout reveal">
     <div class="contact-form-col">
         <div class="detail-box">
-            <h3><i class="fa-solid fa-paper-plane"></i> Send us a message</h3>
+            <h3>Send us a message</h3>
             <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" novalidate>
                 <?php echo csrf_field(); ?>
                 <div class="grid-2">
@@ -81,7 +81,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
     <div class="contact-info-col">
         <div class="detail-box">
-            <h3><i class="fa-solid fa-address-book"></i> Contact us</h3>
+            <h3>Contact us</h3>
             <div class="contact-channels">
                 <div class="contact-channel">
                     <span class="contact-ico"><i class="fa-solid fa-envelope"></i></span>

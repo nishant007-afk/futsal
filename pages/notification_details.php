@@ -73,10 +73,6 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="nd-wrap reveal">
-    <nav class="breadcrumb">
-        <a href="<?php echo base_url('pages/notifications.php'); ?>">Notifications</a> &nbsp;/&nbsp;
-        <span><?php echo e($n['title']); ?></span>
-    </nav>
 
     <?php if ($prevN || $nextN): ?>
         <div class="nd-nav">
@@ -107,7 +103,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="nd-title-col">
                 <div class="title-back-row">
-                    <a href="<?php echo base_url('pages/notifications.php'); ?>" class="nav-back mob-title-back" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
+                    <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
                     <h1><?php echo e($n['title']); ?></h1>
                 </div>
                 <p class="muted" style="font-size:13px;"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>
@@ -127,7 +123,7 @@ require __DIR__ . '/../includes/header.php';
                     <div>
                         <span class="eyebrow">Related booking</span>
                         <h3><?php echo e($relatedBooking['ground_name']); ?></h3>
-                        <p class="muted" style="font-size:13px;"><i class="fa-solid fa-receipt"></i> <?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
+                        <p class="muted" style="font-size:13px;"><?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
                     </div>
                 </div>
                 <dl class="bd-list">

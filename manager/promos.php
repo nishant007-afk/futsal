@@ -98,14 +98,14 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head">
     <div class="title-back-row">
-        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>My Promo Codes</h2>
     </div>
 </div>
-<p class="muted page-sub">Create discount codes players can use <strong>only on your courts</strong>. Codes you make here won't work at other managers' grounds.</p>
 
+<div class="promos-layout">
 <div class="form-card reveal md">
-    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> New promo code</h3>
+    <h3>New promo code</h3>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
@@ -149,15 +149,16 @@ require __DIR__ . '/../includes/header.php';
     </form>
 </div>
 
-<h3 class="reveal block-title"><i class="fa-solid fa-list-check"></i> My promo codes (applies to your <?php echo (int)$myGroundCount; ?> courts)</h3>
+<div class="promos-list">
+<h3 class="reveal block-title">My promo codes <span class="muted">· applies to your <?php echo (int)$myGroundCount; ?> court<?php echo $myGroundCount == 1 ? '' : 's'; ?></span></h3>
 <div class="table-wrap reveal">
     <table>
         <thead>
             <tr>
                 <th>Code</th>
-                <th>Discount</th>
-                <th>Min booking</th>
-                <th>Uses</th>
+                <th class="num">Discount</th>
+                <th class="num">Min booking</th>
+                <th class="num">Uses</th>
                 <th>Valid</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -174,9 +175,9 @@ require __DIR__ . '/../includes/header.php';
                     ?>
                     <tr>
                         <td class="strong"><span class="promo-chip"><?php echo e($p['code']); ?></span></td>
-                        <td><?php echo $p['discount_type'] === 'percent' ? number_format((float)$p['discount_value'], 0) . '% off' : 'Rs ' . number_format((float)$p['discount_value'], 0) . ' off'; ?></td>
-                        <td><?php echo (float)$p['min_total'] > 0 ? 'Rs ' . number_format((float)$p['min_total'], 0) : '-'; ?></td>
-                        <td><?php echo (int)$p['used_count']; ?><?php echo $p['max_uses'] > 0 ? ' / ' . (int)$p['max_uses'] : ' / ∞'; ?></td>
+                        <td class="num"><?php echo $p['discount_type'] === 'percent' ? number_format((float)$p['discount_value'], 0) . '% off' : 'Rs ' . number_format((float)$p['discount_value'], 0) . ' off'; ?></td>
+                        <td class="num"><?php echo (float)$p['min_total'] > 0 ? 'Rs ' . number_format((float)$p['min_total'], 0) : '-'; ?></td>
+                        <td class="num"><?php echo (int)$p['used_count']; ?><?php echo $p['max_uses'] > 0 ? ' / ' . (int)$p['max_uses'] : ' / ∞'; ?></td>
                         <td><?php echo $p['expires_at'] ? 'until ' . e(date('M j, Y', strtotime($p['expires_at']))) : 'no expiry'; ?></td>
                         <td>
                             <?php if ($expired || $maxed): ?>
@@ -198,6 +199,8 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </tbody>
     </table>
+</div>
+</div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

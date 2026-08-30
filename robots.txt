@@ -13,7 +13,6 @@ Disallow: /pages/forgot_password.php
 Disallow: /pages/reset_password.php
 Disallow: /pages/verify.php
 Disallow: /pages/google_setup.php
-Disallow: /pages/change_password.php
 Disallow: /pages/change_password_otp.php
 Disallow: /pages/change_email_otp.php
 Disallow: /pages/profile.php

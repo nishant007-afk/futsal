@@ -117,7 +117,7 @@ if ($name === '') {
     $name = explode('@', $email)[0];
 }
 
-$stmt = $conn->prepare('SELECT id, name FROM users WHERE email = ?');
+$stmt = $conn->prepare('SELECT id, name, avatar FROM users WHERE email = ?');
 $stmt->bind_param('s', $email);
 $stmt->execute();
 $existing = $stmt->get_result()->fetch_assoc();
@@ -125,6 +125,17 @@ $existing = $stmt->get_result()->fetch_assoc();
 if ($existing) {
     $uid = (int)$existing['id'];
     $greeting = $existing['name'];
+
+    // Bring the Google profile picture in as the avatar (only when the
+    // account doesn't have one of its own yet).
+    if (empty($existing['avatar']) && !empty($me['picture'])) {
+        $avatar = save_google_avatar($me['picture'], $uid);
+        if ($avatar !== '') {
+            $stmt = $conn->prepare('UPDATE users SET avatar = ? WHERE id = ?');
+            $stmt->bind_param('si', $avatar, $uid);
+            $stmt->execute();
+        }
+    }
 
     session_regenerate_id(true);
     $_SESSION['user_id'] = $uid;
@@ -142,11 +153,12 @@ if ($existing) {
 
 // Brand-new Google account: ask for role + consent on a card before creating it.
 $_SESSION['google_pending'] = [
-    'name'  => $name,
-    'email' => $email,
-    'role'  => $role,
-    'back'  => $back,
-    'popup' => $popup,
+    'name'    => $name,
+    'email'   => $email,
+    'picture' => $me['picture'] ?? '',
+    'role'    => $role,
+    'back'    => $back,
+    'popup'   => $popup,
 ];
 unset($_SESSION['google_oauth']);
 

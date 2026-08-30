@@ -35,15 +35,16 @@ $sent = 0;
 foreach ($bookings as $b) {
     $success = send_booking_email(
         $b['email'],
-        'Reminder: Your game is tomorrow!',
-        'Your booking at ' . $b['ground_name'] . ' is coming up',
+        'Reminder: your game is tomorrow',
+        'See you tomorrow at ' . $b['ground_name'],
         [
             'Booking ref' => $b['booking_ref'],
             'Court'       => $b['ground_name'],
             'Date'        => date('D, M j, Y', strtotime($b['booking_date'])),
             'Time'        => substr($b['start_time'], 0, 5) . ' - ' . substr($b['end_time'], 0, 5),
-            'Reminder'    => 'This is your 24-hour reminder. See you on the court!',
-        ]
+        ],
+        'Everything is set for your game. Arrive a few minutes early, warm up well, and enjoy the match!',
+        $b['user_name'] ?? ''
     );
     if ($success) {
         $upd = $conn->prepare('UPDATE bookings SET reminder_sent = 1 WHERE id = ?');

@@ -54,12 +54,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role'])) {
     redirect('admin/users.php');
 }
 
-$users = $conn->query(
-    'SELECT u.id, u.name, u.email, u.phone, u.role, u.created_at,
+$search = trim($_GET['search'] ?? '');
+$roleFilter = trim($_GET['role'] ?? '');
+if (mb_strlen($search) > 80) { $search = mb_substr($search, 0, 80); }
+if (!in_array($roleFilter, ['', 'admin', 'manager', 'user'], true)) { $roleFilter = ''; }
+
+$uWhere = ['1=1'];
+$uParams = [];
+$uTypes = '';
+if ($search !== '') {
+    $uWhere[] = '(u.name LIKE ? OR u.email LIKE ?)';
+    $like = '%' . $search . '%';
+    $uParams[] = $like;
+    $uParams[] = $like;
+    $uTypes .= 'ss';
+}
+if ($roleFilter !== '') {
+    $uWhere[] = 'u.role = ?';
+    $uParams[] = $roleFilter;
+    $uTypes .= 's';
+}
+$uSql = 'SELECT u.id, u.name, u.email, u.phone, u.role, u.created_at,
             (SELECT COUNT(*) FROM grounds g WHERE g.manager_id = u.id) AS grounds_owned
      FROM users u
-     ORDER BY u.id'
-)->fetch_all(MYSQLI_ASSOC);
+     WHERE ' . implode(' AND ', $uWhere) . '
+     ORDER BY u.id';
+$uStmt = $conn->prepare($uSql);
+if ($uTypes !== '') { $uStmt->bind_param($uTypes, ...$uParams); }
+$uStmt->execute();
+$users = $uStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $errors = form_errors();
 $old = form_old();
@@ -81,7 +104,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2>Manage Users</h2>
         <div class="actions">
@@ -93,6 +116,30 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
+<div class="table-toolbar reveal" style="margin-bottom:14px;">
+    <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search" style="max-width:640px;">
+        <div class="search-field">
+            <label for="uSearch">Search</label>
+            <input type="text" id="uSearch" name="search" placeholder="Name or email" value="<?php echo e($search); ?>">
+        </div>
+        <div class="search-field">
+            <label for="uRole">Role</label>
+            <select id="uRole" name="role">
+                <option value="">All roles</option>
+                <option value="user" <?php echo $roleFilter === 'user' ? 'selected' : ''; ?>>Player</option>
+                <option value="manager" <?php echo $roleFilter === 'manager' ? 'selected' : ''; ?>>Manager</option>
+                <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>>Admin</option>
+            </select>
+        </div>
+        <div class="toolbar-actions">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+            <?php if ($search !== '' || $roleFilter !== ''): ?>
+                <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
 <div class="table-wrap reveal">
     <table>
         <thead>
@@ -100,17 +147,20 @@ require __DIR__ . '/../includes/header.php';
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Grounds Owned</th>
+                <th class="num">Grounds Owned</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
+            <?php if (!$users): ?>
+                <tr><td colspan="5" class="muted table-empty"><?php echo $search !== '' || $roleFilter !== '' ? 'No users match your search.' : 'No users yet.'; ?></td></tr>
+            <?php endif; ?>
             <?php foreach ($users as $u): ?>
                 <tr>
-                    <td><i class="fa-solid fa-user muted" style="margin-right:4px"></i><?php echo e($u['name']); ?></td>
+                    <td><?php echo e($u['name']); ?></td>
                     <td><?php echo e($u['email']); ?></td>
                     <td><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo e($u['role']); ?></span></td>
-                    <td><?php echo (int)$u['grounds_owned']; ?></td>
+                    <td class="num"><?php echo (int)$u['grounds_owned']; ?></td>
                     <td>
                         <div class="actions">
                             <form method="post" action="" class="role-switch<?php echo (int)$u['id'] === $affectedId ? ' has-error' : ''; ?>" data-role="<?php echo e($u['role']); ?>">

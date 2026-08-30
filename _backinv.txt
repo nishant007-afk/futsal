@@ -1,0 +1,152 @@
+admin\announce.php:34 > <div class="title-back-row">
+admin\announce.php:35 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+admin\bookings.php:84 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+admin\contact_messages.php:99 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+admin\edit_page.php:48 > <div class="title-back-row">
+admin\edit_page.php:49 > <a href="<?php echo base_url('admin/pages.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+admin\grounds.php:245 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+admin\notify_policy.php:55 > <div class="title-back-row">
+admin\notify_policy.php:56 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+admin\pages.php:41 > <div class="title-back-row">
+admin\pages.php:42 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+admin\settlements.php:79 > <div class="title-back-row">
+admin\settlements.php:80 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+admin\users.php:107 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\announce.php:34 > <div class="title-back-row">
+dist\stage\admin\announce.php:35 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\bookings.php:84 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\contact_messages.php:99 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\edit_page.php:48 > <div class="title-back-row">
+dist\stage\admin\edit_page.php:49 > <a href="<?php echo base_url('admin/pages.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\grounds.php:245 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\notify_policy.php:55 > <div class="title-back-row">
+dist\stage\admin\notify_policy.php:56 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\pages.php:41 > <div class="title-back-row">
+dist\stage\admin\pages.php:42 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\settlements.php:79 > <div class="title-back-row">
+dist\stage\admin\settlements.php:80 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\admin\users.php:107 > <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\includes\header.php:840 > <a href="<?php echo e($pageBackUrl); ?>" class="nav-back page-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\manager\bookings.php:312 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\manager\grounds.php:345 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\manager\promos.php:100 > <div class="title-back-row">
+dist\stage\manager\promos.php:101 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\booking_details.php:55 > <div class="title-back-row bd-title-row">
+dist\stage\pages\booking_details.php:56 > <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="nav-back m
+dist\stage\pages\change_email_otp.php:93 > <div class="title-back-row">
+dist\stage\pages\change_email_otp.php:94 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\change_password_otp.php:78 > <div class="title-back-row">
+dist\stage\pages\change_password_otp.php:79 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\confirmation.php:64 > <div class="title-back-row confirm-title-row">
+dist\stage\pages\confirmation.php:65 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back confirm-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\courts.php:169 > <div class="title-back-row">
+dist\stage\pages\courts.php:170 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\delete_account_otp.php:87 > <div class="title-back-row">
+dist\stage\pages\delete_account_otp.php:88 > <a href="<?php echo base_url('pages/security.php'); ?>" class="nav-back mob-title-back" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\faq.php:15 > <div class="title-back-row">
+dist\stage\pages\faq.php:16 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\favorites.php:25 > <div class="title-back-row favorites-title-row">
+dist\stage\pages\favorites.php:26 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\forgot_password.php:70 > <div class="title-back-row">
+dist\stage\pages\forgot_password.php:71 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\forgot_password.php:122 > <div class="title-back-row">
+dist\stage\pages\forgot_password.php:123 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\google_setup.php:85 > <div class="title-back-row">
+dist\stage\pages\google_setup.php:86 > <a href="<?php echo base_url($back); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\ground.php:207 > <div class="title-back-row">
+dist\stage\pages\ground.php:208 > <a href="<?php echo base_url('pages/courts.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\how_to_use.php:25 > <div class="title-back-row">
+dist\stage\pages\how_to_use.php:26 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\login.php:128 > <div class="title-back-row">
+dist\stage\pages\login.php:129 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\map.php:15 > <div class="title-back-row">
+dist\stage\pages\map.php:16 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\my_bookings.php:191 > <div class="title-back-row">
+dist\stage\pages\my_bookings.php:192 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\notifications.php:80 > <div class="title-back-row">
+dist\stage\pages\notifications.php:81 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\notification_details.php:105 > <div class="title-back-row">
+dist\stage\pages\notification_details.php:106 > <a href="<?php echo base_url('pages/notifications.php'); ?>" class="nav-back mob-title-back" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\otp_verify.php:80 > <div class="title-back-row">
+dist\stage\pages\otp_verify.php:81 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\page.php:17 > <div class="title-back-row">
+dist\stage\pages\page.php:18 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\payment.php:189 > <div class="title-back-row">
+dist\stage\pages\payment.php:190 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\profile.php:143 > <div class="title-back-row">
+dist\stage\pages\profile.php:144 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\receipt.php:48 > <div class="title-back-row receipt-title-row">
+dist\stage\pages\receipt.php:49 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\register.php:139 > <div class="title-back-row">
+dist\stage\pages\register.php:140 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\reschedule.php:175 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\reset_password.php:54 > <div class="title-back-row">
+dist\stage\pages\reset_password.php:55 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\security.php:73 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\settings.php:15 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\settings_notifications.php:38 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\settings_preferences.php:14 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+dist\stage\pages\verify.php:72 > <div class="title-back-row">
+dist\stage\pages\verify.php:73 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+includes\header.php:860 > <a href="<?php echo e($pageBackUrl); ?>" class="nav-back page-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+manager\bookings.php:312 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+manager\grounds.php:345 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+manager\promos.php:100 > <div class="title-back-row">
+manager\promos.php:101 > <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\booking_details.php:55 > <div class="title-back-row bd-title-row">
+pages\booking_details.php:56 > <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="nav-back m
+pages\change_email_otp.php:93 > <div class="title-back-row">
+pages\change_email_otp.php:94 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\change_password_otp.php:78 > <div class="title-back-row">
+pages\change_password_otp.php:79 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\confirmation.php:64 > <div class="title-back-row confirm-title-row">
+pages\confirmation.php:65 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back confirm-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+pages\courts.php:169 > <div class="title-back-row">
+pages\courts.php:170 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\delete_account_otp.php:87 > <div class="title-back-row">
+pages\delete_account_otp.php:88 > <a href="<?php echo base_url('pages/security.php'); ?>" class="nav-back mob-title-back" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\faq.php:15 > <div class="title-back-row">
+pages\faq.php:16 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\favorites.php:25 > <div class="title-back-row favorites-title-row">
+pages\favorites.php:26 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\forgot_password.php:70 > <div class="title-back-row">
+pages\forgot_password.php:71 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\forgot_password.php:122 > <div class="title-back-row">
+pages\forgot_password.php:123 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\google_setup.php:85 > <div class="title-back-row">
+pages\google_setup.php:86 > <a href="<?php echo base_url($back); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\ground.php:207 > <div class="title-back-row">
+pages\ground.php:208 > <a href="<?php echo base_url('pages/courts.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\how_to_use.php:25 > <div class="title-back-row">
+pages\how_to_use.php:26 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\login.php:128 > <div class="title-back-row">
+pages\login.php:129 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\map.php:15 > <div class="title-back-row">
+pages\map.php:16 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\my_bookings.php:191 > <div class="title-back-row">
+pages\my_bookings.php:192 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\notifications.php:80 > <div class="title-back-row">
+pages\notifications.php:81 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\notification_details.php:105 > <div class="title-back-row">
+pages\notification_details.php:106 > <a href="<?php echo base_url('pages/notifications.php'); ?>" class="nav-back mob-title-back" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
+pages\otp_verify.php:80 > <div class="title-back-row">
+pages\otp_verify.php:81 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\page.php:17 > <div class="title-back-row">
+pages\page.php:18 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\payment.php:189 > <div class="title-back-row">
+pages\payment.php:190 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\profile.php:143 > <div class="title-back-row">
+pages\profile.php:144 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\receipt.php:48 > <div class="title-back-row receipt-title-row">
+pages\receipt.php:49 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\register.php:139 > <div class="title-back-row">
+pages\register.php:140 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\reschedule.php:175 > <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+pages\reset_password.php:54 > <div class="title-back-row">
+pages\reset_password.php:55 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\security.php:73 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+pages\settings.php:15 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+pages\settings_notifications.php:38 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+pages\settings_preferences.php:14 > <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+pages\verify.php:72 > <div class="title-back-row">
+pages\verify.php:73 > <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>

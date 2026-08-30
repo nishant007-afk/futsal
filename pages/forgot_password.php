@@ -68,7 +68,7 @@ if (isset($reset_email)) {
     <div class="form-card lg">
         <div class="form-head">
             <div class="title-back-row">
-                <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
                 <h2>Enter reset code</h2>
             </div>
             <p class="muted">First, confirm it's you. Enter the 6-digit code from <strong><?php echo e($reset_email); ?></strong>.</p>
@@ -76,7 +76,9 @@ if (isset($reset_email)) {
         <?php if (isset($email_sent)): ?>
 <div class="notice">
     <i class="fa-solid fa-envelope-circle-check"></i>
-    <span><?php echo $email_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'We couldn\'t send the email.'; ?></span>
+    <span><?php echo $email_sent
+        ? 'Check your inbox (and spam folder). The code expires in 5 minutes.'
+        : 'Email delivery is unavailable right now, so use this code: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($reset_code) . '</strong>'; ?></span>
 </div>
         <?php endif; ?>
         <?php if (!empty($errors['code'])): ?>
@@ -118,7 +120,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
     <div class="form-head">
         <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Forgot your password?</h2>
         </div>
         <p class="muted">Enter the email on your account and we'll send you a 6-digit reset code.</p>

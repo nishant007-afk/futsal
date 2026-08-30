@@ -26,7 +26,6 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <section class="welcome reveal">
     <div class="welcome-head">
         <div>
-            <span class="eyebrow">Player dashboard</span>
             <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
         </div>
     </div>
@@ -65,12 +64,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     </div>
 
     <?php if (!$upcoming): ?>
-        <div class="empty">
-            <span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>
-            <h3>Nothing scheduled yet</h3>
-            <p>Pick a court below and make it a match.</p>
-            <a href="<?php echo grounds_list_url(); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Browse courts</a>
-        </div>
+        <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing scheduled yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
     <?php else: ?>
         <div class="mbookings reveal">
             <?php foreach ($upcoming as $b): ?>
@@ -88,7 +82,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
         <h2 class="section-title">Courts available near you</h2>
     </div>
     <?php if (!$grounds): ?>
-        <div class="empty"><span class="big"><i class="fa-solid fa-futbol"></i></span><h3>No grounds available right now</h3><p>Check back soon &middot; courts open for booking will appear here.</p></div>
+        <?php empty_state('fa-solid fa-futbol', 'No grounds available right now', 'Check back soon &middot; courts open for booking will appear here.'); ?>
     <?php else: ?>
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>

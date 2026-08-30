@@ -80,21 +80,23 @@ if (isset($_GET['cancel'])) {
                 if ($stmt->execute() && $stmt->affected_rows > 0) {
                     notify_waitlist_freed((int)$target['ground_id'], $target['booking_date'], $target['start_time']);
                     notify_user((int)$_SESSION['user_id'], 'Weekly series cancelled', 'All ' . $stmt->affected_rows . ' bookings in your series were cancelled.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $rootId);
-                    $cancelEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+                    $cancelEmail = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
                     $cancelEmail->bind_param('i', $_SESSION['user_id']);
                     $cancelEmail->execute();
                     $cancelRow = $cancelEmail->get_result()->fetch_assoc();
                     if ($cancelRow) {
                         send_booking_email(
                             $cancelRow['email'],
-                            'Your weekly series at GoalSpace was cancelled',
+                            'Your weekly series has been cancelled',
                             'Your weekly booking series was cancelled',
                             [
                                 'Court' => $target['ground_name'] ?? 'the court',
                                 'First date' => date('D, M j, Y', strtotime($target['booking_date'])),
                                 'Time' => substr($target['start_time'], 0, 5),
                                 'Cancelled' => $stmt->affected_rows . ' bookings',
-                            ]
+                            ],
+                            'Sorry to see you go. If you change your mind, the same slots may still be open for you to book again.',
+                            $cancelRow['name'] ?? ''
                         );
                     }
                     set_flash('success', 'Your whole weekly series (' . $stmt->affected_rows . ' bookings) was cancelled.');
@@ -106,15 +108,15 @@ if (isset($_GET['cancel'])) {
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 notify_waitlist_freed((int)$target['ground_id'], $target['booking_date'], $target['start_time']);
                 notify_user((int)$_SESSION['user_id'], 'Booking cancelled', 'Your booking was cancelled.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $booking_id);
-                $cancelEmail = $conn->prepare('SELECT email FROM users WHERE id = ?');
+                $cancelEmail = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
                 $cancelEmail->bind_param('i', $_SESSION['user_id']);
                 $cancelEmail->execute();
                 $cancelRow = $cancelEmail->get_result()->fetch_assoc();
                 if ($cancelRow) {
                     send_booking_email(
                         $cancelRow['email'],
+                        'Your booking has been cancelled',
                         'Your booking was cancelled',
-                        'Your booking at the court was cancelled',
                         [
                             'Booking ref' => $target['booking_ref'] ?? $booking_id,
                             'Court' => $target['ground_name'] ?? 'the court',
@@ -122,8 +124,9 @@ if (isset($_GET['cancel'])) {
                             'Time' => substr($target['start_time'], 0, 5) . ' onwards',
                         ],
                         $policy['refund'] > 0
-                            ? 'A refund of Rs ' . number_format($policy['refund'], 0) . ' is on its way back to your account.'
-                            : 'The freed slot will show up as available again.'
+                            ? 'A refund of Rs ' . number_format($policy['refund'], 0) . ' is on its way back to you. We hope to see you on another court soon!'
+                            : 'The freed slot will show up as available again. We hope to see you on another court soon!',
+                        $cancelRow['name'] ?? ''
                     );
                 }
                 if ($policy['refund'] > 0) {
@@ -165,6 +168,19 @@ $upcoming = array_values(array_filter($bookings, function ($b) use ($today) {
 $past = array_values(array_filter($bookings, function ($b) use ($today) {
     return !($b['booking_date'] >= $today && $b['status'] !== 'cancelled');
 }));
+$unpaid = array_values(array_filter($bookings, function ($b) use ($today) {
+    return $b['payment_status'] === 'unpaid' && $b['status'] !== 'cancelled';
+}));
+
+// View filter: all / upcoming / unpaid / past
+$view = $_GET['view'] ?? 'all';
+if (!in_array($view, ['all', 'upcoming', 'unpaid', 'past'], true)) {
+    $view = 'all';
+}
+function mb_view_url(string $v): string
+{
+    return $v === 'all' ? base_url('pages/my_bookings.php') : base_url('pages/my_bookings.php?view=' . $v);
+}
 
 $page_title = 'My Bookings';
 $page_description = 'View your upcoming and past futsal court bookings on GoalSpace, check payment status, and manage your schedule.';
@@ -173,7 +189,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head bookings-head reveal">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>My Bookings</h2>
     </div>
     <div class="actions">
@@ -196,29 +212,53 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
 <?php if (!$bookings): ?>
-    <div class="empty reveal">
-        <span class="big"><i class="fa-regular fa-calendar-xmark"></i></span>
-        <h3>Nothing booked yet</h3>
-        <p>When you reserve a court, your games will show up here.</p>
-        <a href="<?php echo base_url('index.php#grounds'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass-location"></i> Find a ground &amp; grab a slot</a>
-    </div>
+    <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing booked yet', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
 <?php else: ?>
-    <?php if ($upcoming): ?>
-        <div class="section-head reveal push tight">
-            <h2 class="section-title sm">Upcoming</h2>
-        </div>
-        <div class="mbookings reveal">
-            <?php foreach ($upcoming as $b) { booking_card($b); } ?>
-        </div>
-    <?php endif; ?>
+    <div class="view-tabs reveal" style="margin:6px 0 20px;">
+        <a href="<?php echo mb_view_url('all'); ?>" class="view-tab <?php echo $view === 'all' ? 'active' : ''; ?>">All (<?php echo count($bookings); ?>)</a>
+        <a href="<?php echo mb_view_url('upcoming'); ?>" class="view-tab <?php echo $view === 'upcoming' ? 'active' : ''; ?>">Upcoming (<?php echo count($upcoming); ?>)</a>
+        <a href="<?php echo mb_view_url('unpaid'); ?>" class="view-tab <?php echo $view === 'unpaid' ? 'active' : ''; ?>">Unpaid (<?php echo count($unpaid); ?>)</a>
+        <a href="<?php echo mb_view_url('past'); ?>" class="view-tab <?php echo $view === 'past' ? 'active' : ''; ?>">Past &amp; cancelled (<?php echo count($past); ?>)</a>
+    </div>
 
-    <?php if ($past): ?>
-        <div class="section-head reveal gap tight">
-            <h2 class="section-title sm">Past &amp; cancelled</h2>
-        </div>
-        <div class="mbookings reveal">
-            <?php foreach ($past as $b) { booking_card($b); } ?>
-        </div>
+    <?php
+    $showUpcoming = ($view === 'all' || $view === 'upcoming') && $upcoming;
+    $showUnpaid = $view === 'unpaid' && $unpaid;
+    $showPast = ($view === 'all' || $view === 'past') && $past;
+
+    if ($view === 'unpaid' && !$unpaid): ?>
+        <?php empty_state('fa-solid fa-circle-check', "You're all paid up", '', 'pages/my_bookings.php', 'View all bookings'); ?>
+    <?php elseif ($view === 'upcoming' && !$upcoming): ?>
+        <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing upcoming', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
+    <?php elseif ($view === 'past' && !$past): ?>
+        <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
+    <?php else: ?>
+        <?php if ($showUpcoming): ?>
+            <div class="section-head reveal push tight">
+                <h2 class="section-title sm">Upcoming</h2>
+            </div>
+            <div class="mbookings reveal">
+                <?php foreach ($upcoming as $b) { booking_card($b); } ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($showUnpaid): ?>
+            <div class="section-head reveal gap tight">
+                <h2 class="section-title sm">Needs payment</h2>
+            </div>
+            <div class="mbookings reveal">
+                <?php foreach ($unpaid as $b) { booking_card($b); } ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($showPast): ?>
+            <div class="section-head reveal gap tight">
+                <h2 class="section-title sm">Past &amp; cancelled</h2>
+            </div>
+            <div class="mbookings reveal">
+                <?php foreach ($past as $b) { booking_card($b); } ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
 

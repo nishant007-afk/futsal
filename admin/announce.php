@@ -32,7 +32,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="content-hero">
     <div class="title-back-row">
-        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1>Send announcement</h1>
     </div>
     <p class="muted">Send a one-off message to all users, managers, or players. Creates an in-app notification; optionally also sends an email.</p>

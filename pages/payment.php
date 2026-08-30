@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'Status' => $payment_status === 'paid' ? 'Paid in full' : 'Advance paid',
     ];
 
-    $playerRow = $conn->prepare('SELECT email FROM users WHERE id = ?');
+    $playerRow = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
     $playerRow->bind_param('i', $_SESSION['user_id']);
     $playerRow->execute();
     $playerEmail = $playerRow->get_result()->fetch_assoc();
@@ -136,9 +136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         send_booking_email(
             $playerEmail['email'],
             'Payment received for booking ' . $booking['booking_ref'],
-            'We received your payment',
+            'Your payment is in',
             $paySummary,
-            'Your receipt is available in My Bookings.'
+            'Your receipt is saved under My Bookings whenever you need it. Thanks for playing with us!',
+            $playerEmail['name'] ?? ''
         );
     }
 
@@ -186,7 +187,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="payment-head">
             <span class="eyebrow"><?php echo $isPartial ? 'One step left' : 'Almost there'; ?></span>
             <div class="title-back-row">
-                <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
                 <h1><?php echo $isPartial ? 'Pay your remaining balance' : 'Complete your payment'; ?></h1>
             </div>
             <p><?php echo $isPartial ? 'Your slot is locked in. Pay the rest to complete this booking.' : 'Your slot is locked in. Choose how you\'d like to pay for it.'; ?></p>

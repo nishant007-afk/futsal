@@ -9,7 +9,7 @@ $mapLat = $lpLat !== null ? $lpLat : 27.7172;
 $mapLng = $lpLng !== null ? $lpLng : 85.3240;
 ?>
 <div class="form-group map-picker-group">
-    <label for="mapSearch"><i class="fa-solid fa-map-location-dot"></i> Location pin <span class="muted">(search a place, pick a result or click the map)</span></label>
+    <label for="mapSearch">Location pin <span class="muted">(search a place, pick a result or click the map)</span></label>
     <div class="map-search-row">
         <i class="fa-solid fa-magnifying-glass map-search-ico"></i>
         <input type="text" id="mapSearch" class="map-search-input" placeholder="Search for a place, address or landmark in Nepal…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="mapResults">

@@ -5,7 +5,6 @@ require_login();
 
 $user = current_user();
 $errors = [];
-$flash_success = '';
 
 // Player stats
 $totalBookings = (int)$conn->query("SELECT COUNT(*) c FROM bookings WHERE user_id = " . (int)$_SESSION['user_id'] . " AND status != 'cancelled'")->fetch_assoc()['c'];
@@ -15,56 +14,6 @@ $favoriteCount = (int)$conn->query("SELECT COUNT(*) c FROM favorites WHERE user_
 
 $maxBytes = 2 * 1024 * 1024;
 $avatarDir = __DIR__ . '/../uploads/avatars/';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
-    verify_csrf();
-    $name = trim($_POST['name'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $email = strtolower(trim($_POST['email'] ?? ''));
-
-    if ($name === '' || strlen($name) < 2) {
-        $errors['name'] = 'Please enter your full name, at least 2 characters.';
-    }
-    if (strlen($phone) > 20) {
-        $errors['phone'] = 'Phone number is too long. Keep it under 20 characters.';
-    }
-
-    $emailChanged = $email !== '' && $email !== strtolower($user['email']);
-    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
-    } elseif ($emailChanged) {
-        if (is_disposable_email($email)) {
-            $errors['email'] = 'One-time email addresses aren\'t allowed. Please use a real email.';
-        } elseif (!email_has_mx($email)) {
-            $errors['email'] = 'This email domain does not accept mail. Please use a real email address.';
-        } else {
-            $check = $conn->prepare('SELECT id FROM users WHERE email = ? AND id <> ?');
-            $check->bind_param('si', $email, $_SESSION['user_id']);
-            $check->execute();
-            if ($check->get_result()->fetch_assoc()) {
-                $errors['email'] = 'An account with this email already exists. Try logging in instead.';
-            }
-        }
-    }
-
-    if (!$errors) {
-        $stmt = $conn->prepare('UPDATE users SET name = ?, phone = ? WHERE id = ?');
-        $stmt->bind_param('ssi', $name, $phone, $_SESSION['user_id']);
-        if ($stmt->execute()) {
-            if ($emailChanged) {
-                $_SESSION['pending_email_change'] = [
-                    'user_id' => (int)$_SESSION['user_id'],
-                    'new_email' => $email,
-                ];
-                redirect('pages/change_email_otp.php');
-            }
-            set_flash('success', 'Profile updated.');
-            redirect('pages/profile.php');
-        } else {
-            $errors['general'] = 'Could not save your changes. Please try again.';
-        }
-    }
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_avatar') {
     verify_csrf();
@@ -135,91 +84,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     redirect('pages/profile.php');
 }
 
+// Upcoming bookings for the grid
+$today = date('Y-m-d');
+$upcoming = $conn->query(
+    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, g.name AS ground_name, g.location
+     FROM bookings b
+     JOIN grounds g ON g.id = b.ground_id
+     WHERE b.user_id = ' . (int)$_SESSION['user_id'] . " AND b.booking_date >= '$today' AND b.status != 'cancelled'
+     ORDER BY b.booking_date ASC, b.start_time ASC LIMIT 12"
+)->fetch_all(MYSQLI_ASSOC);
+
 $page_title = 'My Profile';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>My Profile</h2>
-    </div>
-</div>
-
-<?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
-
-<div class="profile-grid">
-    <div class="profile-side form-card">
-        <span class="profile-status badge badge-<?php echo e($user['role']); ?>"><?php echo e($user['role']); ?></span>
-        <div class="profile-avatar">
+<div class="ig-profile">
+    <!-- Profile Header -->
+    <div class="ig-profile-header">
+        <div class="ig-profile-avatar-wrap">
+            <label for="avatar" class="ig-avatar-label" title="Change profile photo">
+                <?php if (!empty($user['avatar'])): ?>
+                    <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
+                <?php else: ?>
+                    <span class="ig-avatar-letter"><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
+                <?php endif; ?>
+                <span class="ig-avatar-edit" aria-hidden="true"><i class="fa-solid fa-camera"></i></span>
+            </label>
             <?php if (!empty($user['avatar'])): ?>
-                <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
-                <button type="submit" class="avatar-remove-top" form="removeAvatarForm" data-confirm="Remove your profile photo?" aria-label="Remove photo"><i class="fa-solid fa-trash-can"></i></button>
-            <?php else: ?>
-                <span><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
-                <span class="profile-avatar-edit"><i class="fa-solid fa-camera"></i></span>
+            <form method="post" action="" class="sr-only" id="removeAvatarForm">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="action" value="remove_avatar">
+            </form>
             <?php endif; ?>
         </div>
 
-        <h3 class="profile-name"><?php echo e($user['name']); ?></h3>
-
-        <form method="post" action="" enctype="multipart/form-data" class="avatar-form" id="avatarForm">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="action" value="upload_avatar">
-            <label for="avatar" class="btn btn-outline btn-block<?php echo has_error($errors, 'avatar'); ?>"><i class="fa-solid fa-upload"></i> Choose photo</label>
-            <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only">
-            <?php field_error($errors, 'avatar'); ?>
-            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;display:none;"><i class="fa-solid fa-camera-retro"></i> Upload photo</button>
-        </form>
-        <?php if (!empty($user['avatar'])): ?>
-        <form method="post" action="" class="avatar-form" id="removeAvatarForm" style="display:none;">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="action" value="remove_avatar">
-        </form>
-        <?php endif; ?>
-
-        <p class="form-hint" style="text-align:center;margin-top:14px;">Member since <?php echo e(date('F Y', strtotime($user['created_at']))); ?></p>
-
-        <div class="profile-stats reveal">
-            <div class="pstat"><strong><?php echo $totalBookings; ?></strong><span>Total bookings</span></div>
-            <div class="pstat"><strong><?php echo $upcomingBookings; ?></strong><span>Upcoming</span></div>
-            <div class="pstat"><strong><?php echo format_price($totalSpent); ?></strong><span>Total spent</span></div>
-            <div class="pstat"><strong><?php echo $favoriteCount; ?></strong><span>Saved courts</span></div>
+        <div class="ig-profile-info">
+            <div class="ig-profile-name-row">
+                <h1 class="ig-profile-username"><?php echo e($user['name']); ?></h1>
+                <span class="badge badge-<?php echo e($user['role']); ?>"><?php echo e($user['role']); ?></span>
+            </div>
+            <p class="ig-profile-email"><?php echo e($user['email']); ?></p>
+            <p class="ig-profile-member">Member since <?php echo e(date('M Y', strtotime($user['created_at']))); ?></p>
         </div>
     </div>
 
-    <div class="form-card lg">
-        <div class="form-head">
-            <h2>Edit details</h2>
+    <!-- Stats Row -->
+    <div class="ig-profile-stats">
+        <div class="ig-stat">
+            <strong><?php echo $totalBookings; ?></strong>
+            <span>Bookings</span>
         </div>
-        <form method="post" action="" novalidate>
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="action" value="update_profile">
-            <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                <div class="input-group floating">
-                    <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" placeholder=" " required>
-                    <label for="name">Full name <span class="req">*</span></label>
-                </div>
-                <?php field_error($errors, 'name'); ?>
-            </div>
-            <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-                <div class="input-group floating">
-                    <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required data-check-email="available" data-exclude-id="<?php echo (int)$user['id']; ?>">
-                    <label for="email">Email <span class="req">*</span></label>
-                </div>
-                <p class="form-hint">Change it and we'll email a 6-digit code to your new address to confirm.</p>
-                <?php field_error($errors, 'email'); ?>
-            </div>
-            <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
-                <div class="input-group floating">
-                    <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder=" ">
-                    <label for="phone">Phone</label>
-                </div>
-                <?php field_error($errors, 'phone'); ?>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
-        </form>
+        <div class="ig-stat">
+            <strong><?php echo $upcomingBookings; ?></strong>
+            <span>Upcoming</span>
+        </div>
+        <div class="ig-stat">
+            <strong><?php echo format_price($totalSpent); ?></strong>
+            <span>Spent</span>
+        </div>
+        <div class="ig-stat">
+            <strong><?php echo $favoriteCount; ?></strong>
+            <span>Saved</span>
+        </div>
     </div>
+
+    <!-- Action Buttons -->
+    <div class="ig-profile-actions">
+        <a href="<?php echo base_url('pages/settings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-gear"></i> Settings</a>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+    </div>
+
+    <!-- Avatar Upload Form -->
+    <form method="post" action="" enctype="multipart/form-data" class="sr-only" id="avatarForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="upload_avatar">
+        <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif">
+    </form>
 </div>
+
+<!-- Upcoming Bookings Grid -->
+<?php if ($upcoming): ?>
+<section class="section" style="padding-top:0;">
+    <div class="container">
+        <div class="section-head reveal">
+            <h2 class="section-title">Upcoming bookings</h2>
+        </div>
+        <div class="ig-grid">
+            <?php foreach ($upcoming as $b): ?>
+                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="ig-grid-item reveal">
+                    <span class="ig-grid-date"><?php echo date('M j', strtotime($b['booking_date'])); ?></span>
+                    <span class="ig-grid-time"><?php echo substr($b['start_time'], 0, 5); ?></span>
+                    <span class="ig-grid-court"><?php echo e($b['ground_name']); ?></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

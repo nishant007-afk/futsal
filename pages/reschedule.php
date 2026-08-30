@@ -140,15 +140,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($reschedUser) {
             send_booking_email(
                 $reschedUser['email'],
-                'Your booking was rescheduled',
-                'Your booking has moved to a new slot',
+                'Your booking has a new time',
+                'You are all set: new slot confirmed',
                 [
                     'Court' => $booking['ground_name'],
                     'New date' => date('D, M j, Y', strtotime($new_date)),
                     'New time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
                     'New price' => 'Rs ' . number_format($new_price, 0),
                 ],
-                'Your payment and balance carry over to the new slot.'
+                'Your payment and any balance carry straight over to the new slot. See you there!',
+                $reschedUser['name'] ?? ''
             );
         }
         set_flash('success', 'Your booking was rescheduled. Check the new details below.');
@@ -171,8 +172,8 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head settings-page-head">
     <div class="ps-head-row">
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2><i class="fa-solid fa-arrows-rotate"></i> Reschedule</h2>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="page-back-arrow" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2>Reschedule</h2>
     </div>
 </div>
 <p class="muted" style="margin-bottom:8px;">Pick a new day and hour for <strong><?php echo e($booking['ground_name']); ?></strong>. Your payment is carried over.</p>

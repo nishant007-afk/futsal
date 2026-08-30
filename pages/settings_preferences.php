@@ -3,18 +3,25 @@ require_once __DIR__ . '/../config/db.php';
 
 require_login();
 
+$activeSettings = 'preferences';
+
 $page_title = 'Preferences';
 require __DIR__ . '/../includes/header.php';
 ?>
 
     <div class="page-head settings-page-head">
         <div class="ps-head-row">
-            <a href="<?php echo base_url('pages/settings.php'); ?>" class="nav-back mob-title-back" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('pages/settings.php'); ?>" class="page-back-arrow" aria-label="Back to settings"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Appearance &amp; location</h2>
         </div>
     </div>
 
+    <div class="settings-layout">
+    <?php require __DIR__ . '/../includes/views/settings_sidebar.php'; ?>
+
+    <div class="settings-content">
     <div class="settings-card settings-narrow">
+    <div class="settings-group-title"><i class="fa-solid fa-palette"></i> Appearance</div>
     <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Colour theme">
         <button type="button" class="theme-option" data-theme="system" role="radio" aria-checked="false">
             <i class="fa-solid fa-circle-half-stroke"></i>
@@ -29,9 +36,11 @@ require __DIR__ . '/../includes/header.php';
             <span><strong>Dark</strong><em>Easy on the eyes</em></span>
         </button>
     </div>
+    <p class="form-hint theme-hint"><i class="fa-solid fa-circle-info"></i> You can also flip the theme instantly from the <strong>profile menu</strong> in the top-right corner.</p>
 </div>
 
     <div class="settings-card settings-narrow">
+        <div class="settings-group-title"><i class="fa-solid fa-location-dot"></i> Location &amp; privacy</div>
         <div class="pref-row">
             <div class="pref-row-text">
                 <strong>Use my location</strong>
@@ -42,7 +51,10 @@ require __DIR__ . '/../includes/header.php';
                 <span class="switch-track" aria-hidden="true"></span>
             </label>
         </div>
+        <p class="form-hint theme-hint"><i class="fa-solid fa-shield-halved"></i> Your exact position is only used in your browser to find nearby courts. It is never stored or shared.</p>
     </div>
+    </div>
+</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 <script>
@@ -56,7 +68,8 @@ require __DIR__ . '/../includes/header.php';
     }
     function activeTheme() {
         var s = savedTheme();
-        if (s) { return s; }
+        if (s === 'dark') { return 'dark'; }
+        if (s === 'light') { return 'light'; }
         return systemPrefersDark() ? 'dark' : 'light';
     }
     var themeOptions = document.getElementById('themeOptions');
@@ -80,8 +93,7 @@ require __DIR__ . '/../includes/header.php';
             if (!opt) { return; }
             var selected = opt.getAttribute('data-theme');
             try {
-                if (selected === 'system') { localStorage.removeItem(THEME_KEY); }
-                else { localStorage.setItem(THEME_KEY, selected); }
+                localStorage.setItem(THEME_KEY, selected);
             } catch (err) { /* ignore */ }
             syncThemeOptions();
         });

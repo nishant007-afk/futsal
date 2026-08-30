@@ -44,7 +44,13 @@ function _goalspace_load_env(): void
 function env(string $key, ?string $default = null): ?string
 {
     $value = getenv($key);
-    return $value === false ? $default : $value;
+    if ($value === false) {
+        // Some hosts (e.g. InfinityFree/LiteSpeed) ignore putenv(), so getenv()
+        // never sees values set in-process. Fall back to $_ENV, which
+        // _goalspace_load_env() populates directly as it parses the file.
+        $value = $_ENV[$key] ?? null;
+    }
+    return ($value === false || $value === null) ? $default : $value;
 }
 
 _goalspace_load_env();

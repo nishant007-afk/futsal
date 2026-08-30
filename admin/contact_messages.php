@@ -96,7 +96,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2>Contact Messages</h2>
         <div class="actions">
@@ -134,11 +134,11 @@ require __DIR__ . '/../includes/header.php';
                     <p class="msg-body"><?php echo e($m['message']); ?></p>
                 </div>
                 <div class="mbooking-side">
-                    <div class="mbooking-actions">
+                    <div class="mbooking-actions actions-tight">
                         <?php if (!$m['is_resolved']): ?>
-                            <a href="<?php echo base_url('admin/contact_messages.php?resolve=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-check"></i> Resolve</a>
+                            <a href="<?php echo base_url('admin/contact_messages.php?resolve=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" title="Mark as resolved" aria-label="Mark as resolved"><i class="fa-solid fa-check"></i></a>
                         <?php endif; ?>
-                        <a href="<?php echo base_url('admin/contact_messages.php?delete=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this message?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash"></i> Delete</a>
+                        <a href="<?php echo base_url('admin/contact_messages.php?delete=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" title="Delete" aria-label="Delete message" data-confirm="Delete this message?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash"></i></a>
                     </div>
                 </div>
             </div>

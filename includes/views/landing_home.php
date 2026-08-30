@@ -1,57 +1,5 @@
 <?php
-$q = trim($_GET['q'] ?? '');
-$date = trim($_GET['date'] ?? '');
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-    $date = '';
-}
-
-$sql = 'SELECT g.*, u.name AS owner_name FROM grounds g
-        LEFT JOIN users u ON u.id = g.manager_id
-        WHERE g.is_active = 1';
-$params = [];
-$types = '';
-if ($q !== '') {
-    $sql .= ' AND (g.name LIKE ? OR g.location LIKE ?)';
-    $like = '%' . $q . '%';
-    $params[] = $like;
-    $params[] = $like;
-    $types .= 'ss';
-}
-$sql .= ' ORDER BY g.id LIMIT 6';
-
-$stmt = $conn->prepare($sql);
-if ($types !== '') {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$featured = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-if ($date !== '') {
-    $ids = array_map(fn($g) => (int)$g['id'], $featured);
-    if ($ids === []) {
-        $takenMap = [];
-    } else {
-        $idPlaceholders = implode(',', array_fill(0, count($ids), '?'));
-        $takenStmt = $conn->prepare(
-            "SELECT ground_id, COUNT(*) c FROM bookings
-             WHERE booking_date = ? AND status != 'cancelled' AND ground_id IN ($idPlaceholders)
-             GROUP BY ground_id"
-        );
-        $takenTypes = 's' . str_repeat('i', count($ids));
-        $takenStmt->bind_param($takenTypes, $date, ...$ids);
-        $takenStmt->execute();
-        $takenRows = $takenStmt->get_result();
-        $takenMap = [];
-        while ($row = $takenRows->fetch_assoc()) {
-            $takenMap[(int)$row['ground_id']] = (int)$row['c'];
-        }
-    }
-    $featured = array_values(array_filter($featured, function ($g) use ($takenMap) {
-        $taken = $takenMap[(int)$g['id']] ?? 0;
-        $gTotal = count(slots_for_day(date('Y-m-d'), (int)$g['id']));
-        return $gTotal - $taken > 0;
-    }));
-}
+$grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 ORDER BY g.id LIMIT 6')->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- HERO -->
@@ -59,54 +7,19 @@ if ($date !== '') {
     <div class="hero-media pitch"></div>
     <div class="container">
         <div class="hero-content">
-            <span class="hero-tag"><i class="fa-solid fa-bolt"></i> No calls needed</span>
             <h1>Pick a court, grab a slot, <span>play</span></h1>
             <p>Find a free court near you and book your game in under a minute.</p>
+            <div class="hero-actions">
+                <a href="#courts" class="btn btn-primary btn-lg"><i class="fa-solid fa-futbol"></i> Browse Courts</a>
+                <a href="#how" class="btn btn-light btn-lg"><i class="fa-solid fa-circle-question"></i> How It Works</a>
+            </div>
+            <div class="hero-trust">
+                <span><i class="fa-solid fa-circle-check"></i> Instant booking</span>
+                <span><i class="fa-solid fa-circle-check"></i> No phone calls</span>
+                <span><i class="fa-solid fa-circle-check"></i> Pay online</span>
+                <span><i class="fa-solid fa-circle-check"></i> Free to browse</span>
+            </div>
         </div>
-    </div>
-</section>
-
-<!-- SEARCH -->
-<div class="container">
-    <div class="search-card reveal">
-        <form method="get" action="<?php echo base_url('index.php#grounds'); ?>">
-            <div class="search-field">
-                <label for="searchQ">Location</label>
-                <input type="text" id="searchQ" name="q" placeholder="City or area, e.g. Kathmandu" value="<?php echo e($q); ?>">
-            </div>
-            <div class="search-field">
-                <label for="searchDate">Date</label>
-                <input type="date" id="searchDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
-            </div>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-        </form>
-    </div>
-</div>
-
-<!-- GROUNDS -->
-<section class="section" id="grounds">
-    <div class="container">
-        <div class="section-head reveal">
-            <span class="eyebrow"><?php echo $q !== '' || $date !== '' ? 'Search results' : 'Courts near you'; ?></span>
-            <h2 class="section-title">
-                <?php echo $q !== '' ? 'Grounds in "' . e($q) . '"' : ($date !== '' ? 'Available on ' . e(date('M j, Y', strtotime($date))) : 'Ready to play today'); ?>
-            </h2>
-        </div>
-
-        <?php if (!$featured): ?>
-            <div class="empty">
-                <span class="big"><i class="fa-solid fa-futbol"></i></span>
-                <h3>No grounds match your search</h3>
-                <p><a href="<?php echo base_url('index.php#grounds'); ?>" class="btn btn-outline btn-sm">Clear search &amp; browse all</a></p>
-            </div>
-        <?php else: ?>
-            <div class="grid grid-3">
-                <?php foreach ($featured as $ground) { ground_card_html($ground); } ?>
-            </div>
-            <div class="section-foot reveal" style="text-align:center;">
-                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
-            </div>
-        <?php endif; ?>
     </div>
 </section>
 
@@ -136,6 +49,27 @@ if ($date !== '') {
                 <p>Your slot locks in instantly. Pay a small advance online or settle at the court.</p>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- COURTS -->
+<section class="section" id="courts">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="eyebrow">Courts near you</span>
+            <h2 class="section-title">Ready to play today</h2>
+        </div>
+
+        <?php if (!$grounds): ?>
+            <?php empty_state('fa-solid fa-futbol', 'No grounds available right now', 'Check back soon &middot; courts open for booking will appear here.'); ?>
+        <?php else: ?>
+            <div class="grid grid-3">
+                <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
+            </div>
+            <div class="section-foot reveal" style="text-align:center;">
+                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 

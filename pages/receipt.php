@@ -46,7 +46,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="receipt-card">
         <div class="receipt-meta">
             <div class="title-back-row receipt-title-row">
-                <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
                 <h1>Receipt of payment</h1>
             </div>
             <p class="muted">Show this to the court manager when you arrive.</p>

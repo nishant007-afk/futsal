@@ -43,7 +43,7 @@ if ($active === 'index.php') {
     $skeletonType = 'list';
 } elseif (in_array($active, ['dashboard.php'], true)) {
     $skeletonType = 'dashboard';
-} elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php', 'google_setup.php', 'login_google.php'], true)) {
+} elseif (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'login_google.php'], true)) {
     $skeletonType = 'auth';
 } elseif ($active === 'page.php' || $active === 'how_to_use.php') {
     $skeletonType = 'page';
@@ -57,8 +57,10 @@ if ($active === 'index.php') {
     $skeletonType = 'reschedule';
 } elseif ($active === 'logout.php') {
     $skeletonType = 'logout';
-} elseif (in_array($active, ['settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php', 'change_email_otp.php', 'change_password_otp.php'], true)) {
+} elseif (in_array($active, ['settings.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php'], true)) {
     $skeletonType = 'settings';
+} elseif (in_array($active, ['change_email_otp.php', 'change_password_otp.php'], true)) {
+    $skeletonType = 'otp';
 } elseif (in_array($active, ['pages.php', 'edit_page.php'], true) && $site_user && $site_user['role'] === 'admin') {
     $skeletonType = 'admin-pages';
 } elseif ($active === 'notify_policy.php') {
@@ -73,13 +75,13 @@ if ($active === 'index.php' && !$site_user) {
 if ($active === 'login.php') {
     $body_classes[] = 'login-page';
 }
-if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'change_password.php', 'google_setup.php'], true)) {
+if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php'], true)) {
     $body_classes[] = 'auth-page';
 }
 if ($active === 'page.php' && ($_GET['slug'] ?? '') === 'contact') {
     $body_classes[] = 'contact-page';
 }
-if (in_array($active, ['settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'change_password.php', 'security.php'], true)) {
+if (in_array($active, ['settings.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php'], true)) {
     $body_classes[] = 'settings-page';
 }
 $body_class = implode(' ', $body_classes);
@@ -107,7 +109,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     try {
         var savedTheme = localStorage.getItem('goalspace-theme');
         var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        var theme = savedTheme === 'dark' ? 'dark' : (savedTheme === 'system' ? (prefersDark ? 'dark' : 'light') : 'light');
         if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     } catch (e) {}
     try {
@@ -115,7 +117,16 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
             document.documentElement.classList.add('sidebar-collapsed');
         }
     } catch (e) {}
-    if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }</script>
+    if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+    // The host's anti-bot challenge reloads the page with ?i=1; clean it from the
+    // address bar so the URL always stays / and the installed app opens clean.
+    try {
+        var __gsUrl = new URL(location.href);
+        if (__gsUrl.searchParams.has('i') && __gsUrl.searchParams.get('i') === '1') {
+            __gsUrl.searchParams.delete('i');
+            history.replaceState(null, '', __gsUrl.pathname + __gsUrl.search + __gsUrl.hash);
+        }
+    } catch (e) {}</script>
     <title><?php echo isset($page_title) ? e($page_title) . ' | ' : ''; ?>GoalSpace</title>
     <?php
     $og_title = isset($page_title) ? e($page_title) . ' | GoalSpace' : 'GoalSpace - Book futsal courts online';
@@ -125,7 +136,6 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     $og_type  = isset($og_type) && $og_type === 'article' ? 'article' : 'website';
     ?>
     <meta name="description" content="<?php echo $og_desc; ?>">
-    <meta name="description" content="<?php echo $og_desc; ?>" property="og:description">
     <meta property="og:title" content="<?php echo $og_title; ?>">
     <meta property="og:description" content="<?php echo $og_desc; ?>">
     <meta property="og:image" content="<?php echo $og_image; ?>">
@@ -138,12 +148,32 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     <meta name="twitter:image" content="<?php echo $og_image; ?>">
     <link rel="canonical" href="<?php echo $og_url; ?>">
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
+    <link rel="manifest" href="<?php echo base_url('manifest.json'); ?>">
+    <meta name="theme-color" content="#0a120e">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('service-worker.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GoalSpace">
+    <link rel="apple-touch-icon" href="<?php echo base_url('assets/img/icon-192.png'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=236'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=263'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -373,14 +403,28 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
                 <span class="ps-fbtn"></span>
             </div>
         </div>
+    <?php elseif ($skeletonType === 'otp'): ?>
+        <div class="container ps-main narrow"><span class="ps-title"></span><span class="ps-line ps-line-w45"></span></div>
+        <div class="container ps-body narrow">
+            <div class="ps-fcard">
+                <span class="ps-field"><i></i></span>
+                <span class="ps-fbtn"></span>
+            </div>
+        </div>
     <?php elseif ($skeletonType === 'settings'): ?>
-        <div class="container ps-authbody">
-            <div class="ps-brandcenter ps-desktop"></div>
-            <div class="ps-form">
-                <span class="ps-gtitle ps-center"></span>
-                <span class="ps-line ps-center"></span>
-                <div class="ps-fcard-vertical">
-                    <i></i><i></i><i></i>
+        <div class="container ps-main"><span class="ps-title"></span></div>
+        <div class="container ps-body">
+            <div class="ps-settings-layout">
+                <div class="ps-sidebar">
+                    <span class="ps-nav-item"></span>
+                    <span class="ps-nav-item"></span>
+                    <span class="ps-nav-item"></span>
+                    <span class="ps-nav-item"></span>
+                </div>
+                <div class="ps-settings-content">
+                    <span class="ps-gtitle"></span>
+                    <span class="ps-gline"></span>
+                    <span class="ps-gline"></span>
                     <span class="ps-fbtn"></span>
                 </div>
             </div>
@@ -433,6 +477,73 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
         <div class="container ps-main"><span class="ps-line ps-line-w60"></span></div>
         <div class="container ps-body">
             <div class="ps-map"></div>
+        </div>
+    <?php elseif ($skeletonType === 'home'): ?>
+        <?php if ($site_user && $site_user['role'] === 'user'): ?>
+            <div class="container ps-main">
+                <span class="ps-title"></span>
+                <span class="ps-stats"><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="container ps-body">
+                <span class="ps-subtitle"></span>
+                <span class="ps-mbooking"></span>
+                <span class="ps-subtitle"></span>
+                <div class="ps-grid ps-grid-3">
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span></div>
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span></div>
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span></div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="container ps-section pad">
+                <div class="ps-hero">
+                    <span class="ps-hero-tag"></span>
+                    <span class="ps-title-lg"></span>
+                    <span class="ps-title-lg short"></span>
+                    <span class="ps-line-lg"></span>
+                    <span class="ps-line-lg half"></span>
+                </div>
+                <div class="ps-fcard">
+                    <span class="ps-field"><i></i></span>
+                    <span class="ps-field"><i></i></span>
+                    <span class="ps-fbtn"></span>
+                </div>
+            </div>
+            <div class="ps-section">
+                <div class="container ps-head">
+                    <span class="ps-eyebrow"></span>
+                    <span class="ps-title-sec"></span>
+                </div>
+                <div class="container ps-grid">
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                    <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                </div>
+            </div>
+            <div class="ps-section soft">
+                <div class="container ps-head center">
+                    <span class="ps-eyebrow"></span>
+                    <span class="ps-title-sec"></span>
+                </div>
+                <div class="container ps-steps">
+                    <span class="ps-step"></span>
+                    <span class="ps-step"></span>
+                    <span class="ps-step"></span>
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php elseif ($skeletonType === 'list'): ?>
+        <div class="container ps-main"><span class="ps-title"></span></div>
+        <div class="container ps-body">
+            <div class="ps-toolbar"><i></i><i></i><i></i><i></i><span class="ps-fbtn"></span></div>
+            <div class="ps-grid ps-grid-3">
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+                <div class="ps-gcard"><span class="ps-img"></span><span class="ps-gtitle"></span><span class="ps-gline"></span><span class="ps-gmeta"></span><span class="ps-gbtn"></span></div>
+            </div>
         </div>
     <?php elseif ($skeletonType === 'favorites'): ?>
         <div class="container ps-main"><span class="ps-title"></span></div>
@@ -517,6 +628,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
                 <input type="search" id="headerSearchInput" name="q" placeholder="Search courts by name or city..."
                        aria-label="Search courts" autocomplete="off" role="combobox"
                        aria-expanded="false" aria-controls="headerSearchPanel" aria-autocomplete="list">
+                <button type="button" class="header-kbd" id="paletteTrigger" aria-label="Open quick navigation (Ctrl K)" title="Quick navigation (Ctrl K)"><kbd>Ctrl</kbd><kbd>K</kbd></button>
             </form>
             <div class="hs-panel" id="headerSearchPanel" hidden></div>
         </div>
@@ -579,11 +691,15 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
                         </div>
                         <a href="<?php echo base_url('pages/profile.php'); ?>" role="menuitem"><i class="fa-solid fa-user"></i> My Profile</a>
                         <a href="<?php echo base_url('pages/settings.php'); ?>" role="menuitem"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <button type="button" class="pm-theme" id="themeToggle" role="menuitem" aria-label="Toggle dark mode" aria-pressed="false">
+                            <i class="fa-solid fa-moon" id="themeIcon"></i>
+                            <span>Dark mode</span>
+                            <span class="pm-switch" aria-hidden="true"><span class="pm-knob"></span></span>
+                        </button>
                         <a href="<?php echo base_url('pages/logout.php?csrf=' . csrf_token()); ?>" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                     </div>
                 </div>
             <?php else: ?>
-                <span class="nav-divider hide-sm"></span>
                 <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline-dark btn-sm">Log in</a>
                 <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-primary btn-sm">Sign up</a>
             <?php endif; ?>
@@ -662,32 +778,40 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
 </nav>
 
 <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation">
+    <?php
+    $bnMorePages = ['announce.php', 'settlements.php', 'contact_messages.php', 'pages.php', 'notify_policy.php'];
+    $bnMoreActive = in_array($active, $bnMorePages, true);
+    ?>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>
-        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>
-        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i></a>
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $active === 'my_bookings.php' ? 'active' : ''; ?>" title="My Bookings" aria-label="My Bookings"><i class="fa-solid fa-calendar-check"></i></a>
-        <a href="<?php echo base_url('pages/profile.php'); ?>" class="<?php echo $active === 'profile.php' ? 'active' : ''; ?>" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i><span class="bn-label" hidden>Home</span></a>
+        <a href="<?php echo grounds_list_url(); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i><span class="bn-label" hidden>Grounds</span></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i><span class="bn-label" hidden>Map</span></a>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="<?php echo $active === 'my_bookings.php' ? 'active' : ''; ?>" title="My Bookings" aria-label="My Bookings"><i class="fa-solid fa-calendar-check"></i><span class="bn-label" hidden>Bookings</span></a>
+        <a href="<?php echo base_url('pages/profile.php'); ?>" class="<?php echo $active === 'profile.php' ? 'active' : ''; ?>" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i><span class="bn-label" hidden>Profile</span></a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
-        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="My Grounds" aria-label="My Grounds"><i class="fa-solid fa-store"></i></a>
-        <a href="<?php echo base_url('manager/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i></a>
-        <a href="<?php echo base_url('manager/promos.php'); ?>" class="<?php echo $active === 'promos.php' ? 'active' : ''; ?>" title="Promos" aria-label="Promos"><i class="fa-solid fa-tags"></i></a>
+        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i><span class="bn-label" hidden>Home</span></a>
+        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="My Grounds" aria-label="My Grounds"><i class="fa-solid fa-store"></i><span class="bn-label" hidden>Grounds</span></a>
+        <a href="<?php echo base_url('manager/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i><span class="bn-label" hidden>Bookings</span></a>
+        <a href="<?php echo base_url('manager/promos.php'); ?>" class="<?php echo $active === 'promos.php' ? 'active' : ''; ?>" title="Promos" aria-label="Promos"><i class="fa-solid fa-tags"></i><span class="bn-label" hidden>Promos</span></a>
     <?php elseif ($site_user && $site_user['role'] === 'admin'): ?>
-        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>" title="Users" aria-label="Users"><i class="fa-solid fa-users"></i></a>
-        <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-store"></i></a>
-        <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i></a>
-        <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>" title="Announce" aria-label="Announce"><i class="fa-solid fa-bullhorn"></i></a>
-        <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>" title="Billing" aria-label="Billing"><i class="fa-solid fa-hand-holding-dollar"></i></a>
-        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>" title="Legal pages" aria-label="Legal pages"><i class="fa-solid fa-file-pen"></i></a>
-        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>" title="Announce policy update" aria-label="Announce policy update"><i class="fa-solid fa-paper-plane"></i></a>
+        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i><span class="bn-label" hidden>Home</span></a>
+        <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>" title="Users" aria-label="Users"><i class="fa-solid fa-users"></i><span class="bn-label" hidden>Users</span></a>
+        <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-store"></i><span class="bn-label" hidden>Grounds</span></a>
+        <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i><span class="bn-label" hidden>Bookings</span></a>
+        <button type="button" class="bn-more <?php echo $bnMoreActive ? 'active' : ''; ?>" id="bnMoreBtn" aria-expanded="false" aria-haspopup="true" title="More" aria-label="More"><i class="fa-solid fa-ellipsis"></i><span class="bn-label" hidden>More</span></button>
+        <div class="bn-more-panel" id="bnMorePanel" hidden>
+            <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> Announce</a>
+            <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> Billing</a>
+            <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> Messages</a>
+            <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> Legal pages</a>
+            <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> Announce update</a>
+        </div>
     <?php else: ?>
-        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i></a>
-        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i></a>
-        <a href="<?php echo base_url('index.php#how'); ?>" title="How it works" aria-label="How it works"><i class="fa-solid fa-circle-info"></i></a>
-        <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-store"></i></a>
+        <a href="<?php echo base_url('index.php'); ?>" class="<?php echo $active === 'index.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i><span class="bn-label" hidden>Home</span></a>
+        <a href="<?php echo base_url('index.php#grounds'); ?>" class="<?php echo $activeSection === 'grounds' ? 'active' : ''; ?>" title="Grounds" aria-label="Grounds"><i class="fa-solid fa-layer-group"></i><span class="bn-label" hidden>Grounds</span></a>
+        <a href="<?php echo base_url('pages/map.php'); ?>" class="<?php echo $active === 'map.php' ? 'active' : ''; ?>" title="Map" aria-label="Map"><i class="fa-solid fa-map-location-dot"></i><span class="bn-label" hidden>Map</span></a>
+        <a href="<?php echo base_url('index.php#how'); ?>" title="How it works" aria-label="How it works"><i class="fa-solid fa-circle-info"></i><span class="bn-label" hidden>How it works</span></a>
+        <a href="<?php echo base_url('index.php#become-manager'); ?>" title="Become a Manager" aria-label="Become a Manager"><i class="fa-solid fa-store"></i><span class="bn-label" hidden>Join as manager</span></a>
     <?php endif; ?>
 </nav>
 
@@ -733,7 +857,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
 <main class="container page" id="mainContent" tabindex="-1">
 
 <?php if ($pageBack): ?>
-<a href="<?php echo e($pageBackUrl); ?>" class="nav-back page-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+<a href="<?php echo e($pageBackUrl); ?>" class="page-back-arrow page-back-main" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
 <?php endif; ?>
 
 

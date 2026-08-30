@@ -342,7 +342,7 @@ require __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="nav-back mob-back" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2><?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
         <div class="actions">
@@ -371,64 +371,64 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
             <div class="grid grid-2">
                 <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                    <label for="name"><i class="fa-solid fa-signature"></i> Ground Name <span class="req">*</span></label>
+                    <label for="name">Ground Name <span class="req">*</span></label>
                     <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" required>
                     <?php field_error($errors, 'name'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'location'); ?>">
-                    <label for="location"><i class="fa-solid fa-location-dot"></i> Location <span class="req">*</span></label>
+                    <label for="location">Location <span class="req">*</span></label>
                     <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" required>
                     <?php field_error($errors, 'location'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
-                    <label for="price_per_hour"><i class="fa-solid fa-tag"></i> Price per Hour (Rs.) <span class="req">*</span></label>
+                    <label for="price_per_hour">Price per Hour (Rs.) <span class="req">*</span></label>
                     <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" required>
                     <?php field_error($errors, 'price_per_hour'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
-                    <label for="discount_price"><i class="fa-solid fa-percent"></i> Discounted price/hr (Rs.) <span class="muted">(optional)</span></label>
+                    <label for="discount_price">Discounted price/hr (Rs.) <span class="muted">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Lower than regular price for a sale">
                     <?php field_error($errors, 'discount_price'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
-                    <label for="capacity"><i class="fa-solid fa-users"></i> Capacity <span class="req">*</span></label>
+                    <label for="capacity">Capacity <span class="req">*</span></label>
                     <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" required>
                     <?php field_error($errors, 'capacity'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
-                    <label for="open_time"><i class="fa-solid fa-sun"></i> Opens at</label>
+                    <label for="open_time">Opens at</label>
                     <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
                     <?php field_error($errors, 'open_time'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
-                    <label for="close_time"><i class="fa-solid fa-moon"></i> Closes at</label>
+                    <label for="close_time">Closes at</label>
                     <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
                     <?php field_error($errors, 'close_time'); ?>
                 </div>
                 <div class="form-group">
-                    <label for="slot_interval"><i class="fa-solid fa-hourglass-half"></i> Slot length</label>
+                    <label for="slot_interval">Slot length</label>
                     <select id="slot_interval" name="slot_interval">
                         <option value="60" <?php echo (int)($editing['slot_interval'] ?? 60) === 60 ? 'selected' : ''; ?>>60 minutes</option>
                         <option value="30" <?php echo (int)($editing['slot_interval'] ?? 60) === 30 ? 'selected' : ''; ?>>30 minutes</option>
                     </select>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
-                    <label for="price_weekend"><i class="fa-solid fa-calendar-week"></i> Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
+                    <label for="price_weekend">Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
                     <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
                     <?php field_error($errors, 'price_weekend'); ?>
                  </div>
                  <div class="form-group">
-                     <label for="address"><i class="fa-solid fa-location-dot"></i> Full address (for maps)</label>
+                     <label for="address">Full address (for maps)</label>
                      <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
                  </div>
 <div class="form-group">
-                     <label for="court_number"><i class="fa-solid fa-number-dot"></i> Court number/name (optional)</label>
+                     <label for="court_number">Court number/name (optional)</label>
                      <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
                  </div>
              </div>
              <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
             <div class="form-group">
-                <label for="description"><i class="fa-solid fa-align-left"></i> Description</label>
+                <label for="description">Description</label>
                 <textarea id="description" name="description" rows="3"><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
             </div>
             <div class="form-group">
@@ -449,7 +449,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="ground-form-side">
         <div class="form-card sub">
-            <h3><i class="fa-solid fa-images"></i> Photos</h3>
+            <h3>Photos</h3>
             <p class="muted">Upload photos to showcase your court.
             JPG, PNG, WebP, GIF • Max 5 MB each</p>
             <?php if ($editing): ?>
@@ -488,7 +488,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="form-card sub">
-            <h3><i class="fa-solid fa-qrcode"></i> Payment QR code</h3>
+            <h3>Payment QR code</h3>
             <p class="muted">Upload your payment QR so players can scan and pay you directly.</p>
             <?php if ($editing): ?>
                 <?php $groundQr = ground_qr((int)$editing['id']); ?>
@@ -534,8 +534,38 @@ require __DIR__ . '/../includes/header.php';
 
         <?php if ($editing): ?>
             <div class="form-card sub">
-                <h3><i class="fa-solid fa-ban"></i> Blocked dates</h3>
-                <p class="muted">Close the court for private events, maintenance or holidays.</p>
+                <h3>Blocked dates</h3>
+                <p class="muted">Tap a day below to block it for private events, maintenance or holidays.</p>
+                <?php
+                $blockedSet = [];
+                foreach ($blockedDates as $bd) {
+                    $blockedSet[$bd['block_date']] = true;
+                }
+                ?>
+                <div class="block-cal" data-picked="">
+                    <?php for ($mOff = 0; $mOff < 2; $mOff++):
+                        $cy = (int)date('Y');
+                        $cm = (int)date('n') + $mOff;
+                        while ($cm > 12) { $cm -= 12; $cy++; }
+                        $firstDow = (int)date('w', mktime(0, 0, 0, $cm, 1, $cy));
+                        $daysInMonth = (int)date('t', mktime(0, 0, 0, $cm, 1, $cy));
+                    ?>
+                        <div class="block-cal-month">
+                            <div class="block-cal-head"><?php echo e(date('F Y', mktime(0, 0, 0, $cm, 1, $cy))); ?></div>
+                            <div class="block-cal-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                            <div class="block-cal-grid">
+                                <?php for ($i = 0; $i < $firstDow; $i++): ?><span class="block-cal-empty"></span><?php endfor; ?>
+                                <?php for ($d = 1; $d <= $daysInMonth; $d++):
+                                    $ds = sprintf('%04d-%02d-%02d', $cy, $cm, $d);
+                                    $isBlocked = isset($blockedSet[$ds]);
+                                    $isPast = $ds < date('Y-m-d');
+                                ?>
+                                    <button type="button" class="block-cal-day<?php echo $isBlocked ? ' blocked' : ''; ?><?php echo $isPast ? ' past' : ''; ?>" data-date="<?php echo $ds; ?>" <?php echo $isPast ? 'disabled' : ''; ?> title="<?php echo $isBlocked ? 'Already blocked' : 'Block this date'; ?>"><?php echo $d; ?></button>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+                    <?php endfor; ?>
+                </div>
                 <div class="blocked-list">
                     <?php if (!$blockedDates): ?>
                         <p class="muted">No blocked dates.</p>
@@ -548,7 +578,7 @@ require __DIR__ . '/../includes/header.php';
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
-                <form method="post" action="">
+                <form method="post" action="" id="blockDateForm">
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="add_blocked_date" value="1">
                     <div class="form-group">
@@ -632,4 +662,24 @@ require __DIR__ . '/../includes/header.php';
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 <script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
 <script src="<?php echo base_url('assets/js/map-picker.js'); ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var cal = document.querySelector('.block-cal');
+    var dateInput = document.getElementById('blockDate');
+    if (!cal || !dateInput) { return; }
+    cal.addEventListener('click', function (e) {
+        var day = e.target.closest('.block-cal-day');
+        if (!day || day.disabled || day.classList.contains('blocked')) { return; }
+        cal.querySelectorAll('.block-cal-day').forEach(function (el) { el.classList.remove('picked'); });
+        day.classList.add('picked');
+        dateInput.value = day.getAttribute('data-date');
+        dateInput.focus();
+    });
+    dateInput.addEventListener('change', function () {
+        cal.querySelectorAll('.block-cal-day').forEach(function (el) {
+            el.classList.toggle('picked', el.getAttribute('data-date') === dateInput.value);
+        });
+    });
+});
+</script>
 

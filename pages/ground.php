@@ -38,6 +38,35 @@ $rating = ground_rating((int)$ground['id']);
 $my_review = user_rating_for((int)$ground['id']);
 $is_blocked = date_is_blocked((int)$ground['id'], $selected_date);
 
+// Similar courts: same city first, then fill with any other active courts.
+$similar = [];
+$cityMatch = '';
+foreach (['Kathmandu', 'Bhaktapur', 'Lalitpur'] as $cityName) {
+    if (mb_stripos((string)$ground['location'], $cityName) !== false) {
+        $cityMatch = $cityName;
+        break;
+    }
+}
+if ($cityMatch !== '') {
+    $stmt = $conn->prepare('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 AND g.id <> ? AND g.location LIKE ? ORDER BY g.id LIMIT 3');
+    $cityLike = '%' . $cityMatch . '%';
+    $stmt->bind_param('is', $ground['id'], $cityLike);
+    $stmt->execute();
+    $similar = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+if (count($similar) < 3) {
+    $exclude = [(int)$ground['id']];
+    foreach ($similar as $s) { $exclude[] = (int)$s['id']; }
+    $exclude = array_values(array_unique($exclude));
+    $ph = implode(',', array_fill(0, count($exclude), '?'));
+    $types = str_repeat('i', count($exclude));
+    $fillLimit = 3 - count($similar);
+    $stmt = $conn->prepare("SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 AND g.id NOT IN ($ph) ORDER BY RAND() LIMIT $fillLimit");
+    $stmt->bind_param($types, ...$exclude);
+    $stmt->execute();
+    $similar = array_merge($similar, $stmt->get_result()->fetch_all(MYSQLI_ASSOC));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
     verify_csrf();
     if (!is_logged_in()) {
@@ -154,7 +183,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </div>
             <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
-            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open 08:00 - 22:00</span></div>
+            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> - <?php echo e(substr($ground['close_time'], 0, 5)); ?></span></div>
             <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
                 <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
             <?php endif; ?>
@@ -176,7 +205,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="detail-box booking-panel reveal">
         <div class="ground-header">
             <div class="title-back-row">
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="nav-back mob-title-back" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="<?php echo base_url('pages/courts.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
                 <h1><?php echo e($ground['name']); ?></h1>
             </div>
             <?php if (is_logged_in()): ?>
@@ -202,7 +231,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
             <strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?>
         </p>
-        <p class="muted" style="font-size:12.5px;margin:-8px 0 14px;">Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> - <?php echo e(substr($ground['close_time'], 0, 5)); ?> &middot; <?php echo $ground['slot_interval'] == 60 ? 'hourly' : $ground['slot_interval'] . '-min'; ?> slots</p>
+        <p class="muted" style="font-size:12.5px;margin:-8px 0 14px;"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : $ground['slot_interval'] . '-minute'; ?> slots</p>
 
         <form method="get" action="">
             <div class="form-group">
@@ -268,7 +297,7 @@ require __DIR__ . '/../includes/header.php';
             if ($takenSlots && (is_logged_in())): ?>
                 <div class="waitlist-box">
                     <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Sold out? Join the waitlist</div>
-                    <p class="muted" style="font-size:12.5px;margin-bottom:10px;">Fully booked slots below. Join a waitlist and we'll ping you the second someone cancels.</p>
+                    <p class="muted" style="font-size:12.5px;margin-bottom:10px;">Join a waitlist and we'll ping you the moment a slot frees up.</p>
                     <div class="waitlist-list">
                         <?php foreach ($takenSlots as $ts): ?>
                             <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
@@ -367,5 +396,17 @@ require __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 </div>
+
+<?php if ($similar): ?>
+    <section class="section similar-courts" style="padding:40px 0 8px;">
+        <div class="section-head reveal" style="max-width:none;margin-bottom:18px;">
+            <span class="eyebrow">Keep exploring</span>
+            <h2 class="section-title" style="font-size:22px;">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
+        </div>
+        <div class="grid grid-3">
+            <?php foreach ($similar as $sg) { ground_card_html($sg); } ?>
+        </div>
+    </section>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

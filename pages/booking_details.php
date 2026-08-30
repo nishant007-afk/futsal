@@ -50,14 +50,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="bd-wrap reveal">
-    <nav class="breadcrumb">
-        <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>">Bookings</a> &nbsp;/&nbsp;
-        <span><?php echo e($b['booking_ref']); ?></span>
-    </nav>
 
     <div class="bd-head">
         <div class="title-back-row bd-title-row">
-            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="nav-back mob-title-back" aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="page-back-arrow" aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
                 <span class="eyebrow">Booking details</span>
                 <h1><?php echo e($b['ground_name']); ?></h1>
@@ -108,7 +104,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="bd-grid">
         <section class="bd-section">
-            <h2><i class="fa-solid fa-calendar-day"></i> Schedule</h2>
+            <h2>Schedule</h2>
             <dl class="bd-list">
                 <div><dt>Date</dt><dd><?php echo e(date('D, M j, Y', strtotime($b['booking_date']))); ?></dd></div>
                 <div><dt>Time</dt><dd><?php echo e(substr($b['start_time'], 0, 5)); ?> - <?php echo e(substr($b['end_time'], 0, 5)); ?></dd></div>
@@ -123,7 +119,7 @@ require __DIR__ . '/../includes/header.php';
 
         <?php if (!empty($b['address'])): ?>
         <section class="bd-section bd-map">
-            <h2><i class="fa-solid fa-location-dot"></i> Venue location</h2>
+            <h2>Venue location</h2>
             <p class="muted"><?php echo e($b['address']); ?></p>
             <iframe
                 width="100%" height="210" style="border:0;border-radius:var(--r-sm)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
@@ -134,7 +130,7 @@ require __DIR__ . '/../includes/header.php';
 
         <?php if ($me['role'] !== 'user'): ?>
             <section class="bd-section">
-                <h2><i class="fa-solid fa-user"></i> Customer</h2>
+                <h2>Customer</h2>
                 <dl class="bd-list">
                     <div><dt>Name</dt><dd><?php echo e($b['user_name']); ?></dd></div>
                     <div><dt>Email</dt><dd><?php echo e($b['user_email']); ?></dd></div>
@@ -145,7 +141,7 @@ require __DIR__ . '/../includes/header.php';
 
         <?php if ($b['status'] !== 'cancelled' && ($balance > 0 || $b['payment_status'] !== 'paid')): ?>
         <section class="bd-section" id="paymentCard" <?php if ($b['payment_method'] === 'qr'): ?>data-payment-qr="1"<?php endif; ?>>
-            <h2><i class="fa-solid fa-receipt"></i> Payment</h2>
+            <h2>Payment</h2>
             <div class="bd-price">
                 <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong></div>
                 <?php if ((float)$b['discount'] > 0): ?>
@@ -167,10 +163,22 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <?php if ($b['status'] === 'confirmed'): ?>
-        <div class="notice bd-notice">
-            <i class="fa-solid fa-circle-info"></i>
-            <span><?php echo e($policy['label']); ?></span>
-        </div>
+        <?php if (!$policy['allowed']): ?>
+            <div class="notice bd-notice notice-danger">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <span><strong>This booking has already started</strong> and can no longer be cancelled online. Contact the court directly if you need help.</span>
+            </div>
+        <?php elseif ($policy['fee'] > 0): ?>
+            <div class="notice bd-notice notice-strong">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>Less than 24 hours to kick-off.</strong> If you cancel, a <strong>50% cancellation fee (Rs <?php echo number_format($policy['fee'], 0); ?>)</strong> applies and you'd be refunded Rs <?php echo number_format($policy['refund'], 0); ?>.</span>
+            </div>
+        <?php else: ?>
+            <div class="notice bd-notice">
+                <i class="fa-solid fa-circle-info"></i>
+                <span><strong>Free cancellation.</strong> You can cancel this booking any time up to 24 hours before your slot with a full refund.</span>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 
     <div class="bd-actions">

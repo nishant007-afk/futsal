@@ -54,15 +54,16 @@ if (isset($_POST['join_waitlist']) && !$errors) {
         if ($user && $pos !== null) {
             send_booking_email(
                 $user['email'],
-                'You\'re on the waitlist!',
-                'Your position in the queue for ' . $groundName,
+                'You are in line at ' . $groundName,
+                'You are on the waitlist at ' . $groundName,
                 [
                     'Ground'  => $groundName,
                     'Date'    => date('D, M j, Y', strtotime($booking_date)),
                     'Time'    => substr($start_time, 0, 5),
                     'Position' => (int)$pos,
                 ],
-                'We\'ll email you the moment this slot frees up. If you\'d like to book another slot, check the courts list.'
+                'The moment this slot frees up, we will let you know right away. In the meantime, plenty more courts are waiting to be explored.',
+                $user['name'] ?? ''
             );
         }
         set_flash('success', 'You\'re on the waitlist. We\'ll ping you the moment this slot frees up.');
@@ -213,26 +214,28 @@ if ($user) {
             'Price' => format_price($week_price),
         ],
         $createdCount > 1
-            ? 'This is a weekly repeat for the same slot. Your other weeks show up under My bookings.'
-            : 'Pay now to lock this slot in, or settle at the court.'
+            ? 'This is a weekly repeat for the same slot. Your other weeks are waiting for you under My Bookings.'
+            : 'Pay now to lock in your spot, or settle at the court when you arrive. Either way, we cannot wait to see you play!',
+        $user['name'] ?? ''
     );
 }
 if ((int)$ground['manager_id'] > 0) {
-    $mgrLookup = $conn->prepare('SELECT email FROM users WHERE id = ?');
+    $mgrLookup = $conn->prepare('SELECT email, name FROM users WHERE id = ?');
     $mgrLookup->bind_param('i', $ground['manager_id']);
     $mgrLookup->execute();
     $mgrRow = $mgrLookup->get_result()->fetch_assoc();
     if ($mgrRow) {
         send_booking_email(
             $mgrRow['email'],
-            'A new booking arrived at ' . $ground['name'],
+            'A new booking came in at ' . $ground['name'],
             $createdCount > 1 ? $createdCount . ' new bookings on your court' : 'You have a new booking',
             [
                 'Court' => $ground['name'],
                 'Date' => date('D, M j, Y', strtotime($booking_date)),
                 'Time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
             ],
-            'Open your manager dashboard to manage this booking.'
+            'Head to your dashboard to view the details and manage the booking. Lovely to see your court staying busy!',
+            $mgrRow['name'] ?? ''
         );
     }
 }

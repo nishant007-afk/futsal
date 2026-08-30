@@ -62,6 +62,19 @@ $topGrounds = $conn->query(
 )->fetch_all(MYSQLI_ASSOC);
 $maxTop = max(1, max(array_map(fn($t) => (float)$t['revenue'], $topGrounds) ?: [1]));
 
+// Managers who haven't paid the setup fee yet
+$setupPending = $conn->query(
+    "SELECT u.id, u.name, u.email, g.ground_count
+     FROM users u
+     LEFT JOIN (
+         SELECT manager_id, COUNT(*) ground_count FROM grounds GROUP BY manager_id
+     ) g ON g.manager_id = u.id
+     LEFT JOIN manager_subscriptions ms ON ms.manager_id = u.id
+     WHERE u.role = 'manager' AND (ms.id IS NULL OR ms.setup_paid_at IS NULL)
+     ORDER BY u.name
+     LIMIT 6"
+)->fetch_all(MYSQLI_ASSOC);
+
 $page_title = 'Admin Dashboard';
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -72,20 +85,16 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="stat-grid">
     <div class="stat reveal">
-        <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
         <h3>Bookings Revenue</h3><p class="stat-amount"><?php echo format_price($revenue); ?></p>
     </div>
     <div class="stat reveal">
-        <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
         <h3>Subscription Revenue</h3><p class="stat-amount"><?php echo format_price($subRevenue); ?></p>
     </div>
     <div class="stat reveal">
-        <div class="stat-icon"><i class="fa-solid fa-percentage"></i></div>
         <h3>Platform Fees</h3><p class="stat-amount"><?php echo format_price($platformTake); ?></p>
         <span class="muted" style="font-size:12px;"><?php echo (int)platform_fee_percent(); ?>% of gross bookings</span>
     </div>
     <div class="stat reveal">
-        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
         <h3>Manager Payouts</h3><p class="stat-amount"><?php echo format_price($managerPayout); ?></p>
         <span class="muted" style="font-size:12px;">to be paid out to court owners</span>
     </div>
@@ -97,9 +106,19 @@ require __DIR__ . '/../includes/header.php';
     <div class="card-mini"><div class="mini-icon user"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Overdue</span><strong><?php echo $overdueSubs; ?></strong></div>
 </div>
 
+<?php if ($setupPending): ?>
+    <div class="attention-strip reveal">
+        <a href="<?php echo base_url('admin/settlements.php'); ?>" class="attention-item">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span><strong><?php echo count($setupPending); ?> manager<?php echo count($setupPending) > 1 ? 's' : ''; ?> haven't paid the setup fee</strong> <em><?php echo e(implode(', ', array_map(fn($m) => $m['name'], array_slice($setupPending, 0, 3)))); ?><?php echo count($setupPending) > 3 ? ' +' . (count($setupPending) - 3) . ' more' : ''; ?></em></span>
+            <i class="fa-solid fa-arrow-right attention-go"></i>
+        </a>
+    </div>
+<?php endif; ?>
+
 <div class="dash-grid reveal">
     <div class="chart-card">
-        <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> Revenue, last 6 months</h3>
+        <h3 class="chart-title">Revenue, last 6 months</h3>
         <div class="bar-chart">
             <?php foreach ($months as $ym => $m): ?>
                 <div class="bar-col" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['gross'], 0); ?> (<?php echo $m['count']; ?> bookings)">
@@ -110,7 +129,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="chart-card">
-        <h3 class="chart-title"><i class="fa-solid fa-trophy"></i> Top grounds by revenue</h3>
+        <h3 class="chart-title">Top grounds by revenue</h3>
         <?php if (!$topGrounds): ?>
             <p class="muted" style="padding:10px 0;">No revenue yet.</p>
         <?php else: ?>
@@ -130,9 +149,9 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<h3 class="reveal dash-section"><i class="fa-solid fa-clock-rotate-left"></i> Recent Bookings</h3>
+<h3 class="reveal dash-section">Recent Bookings</h3>
 <?php if (!$recent): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings from across the platform will appear here.</p></div>
+    <?php empty_state('fa-regular fa-calendar-xmark', 'No bookings yet', 'New bookings from across the platform will appear here.'); ?>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($recent as $b): ?>

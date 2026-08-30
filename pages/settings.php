@@ -85,7 +85,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="stg-section">
         <div class="stg-list">
-            <a href="<?php echo base_url('pages/logout.php'); ?>" class="stg-item stg-item-danger">
+            <a href="<?php echo base_url('pages/logout.php?csrf=' . csrf_token()); ?>" class="stg-item stg-item-danger">
                 <span class="stg-item-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
                 <span class="stg-item-label">Log out</span>
             </a>

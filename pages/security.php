@@ -115,7 +115,7 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <?php field_error($pwErrors, 'confirm_password'); ?>
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-key"></i> Update password</button>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Update password</button>
             </form>
         </div>
     </div>
@@ -129,7 +129,7 @@ require __DIR__ . '/../includes/header.php';
                     <em>Permanently removes your account, bookings and reviews. This can't be undone.</em>
                 </div>
             </div>
-            <form method="post" action="" novalidate style="margin-top:14px;">
+            <form method="post" action="" novalidate>
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="delete_account">
                 <button type="submit" class="btn btn-danger btn-block" data-confirm="Delete your account permanently?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash-can"></i> Delete my account</button>

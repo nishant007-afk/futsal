@@ -67,10 +67,10 @@ require __DIR__ . '/../includes/header.php';
         <h1>Edit Profile</h1>
     </div>
 
-    <div class="settings-content">
+    <div class="stg-section">
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-        <div class="settings-card">
+        <div class="settings-card settings-narrow">
             <form method="post" action="" novalidate>
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="update_profile">

@@ -11,42 +11,13 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
             <p>Find a free court near you and book your game in under a minute.</p>
             <div class="hero-actions">
                 <a href="#courts" class="btn btn-primary btn-lg"><i class="fa-solid fa-futbol"></i> Browse Courts</a>
-                <a href="#how" class="btn btn-light btn-lg"><i class="fa-solid fa-circle-question"></i> How It Works</a>
+                <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-light btn-lg"><i class="fa-solid fa-user-plus"></i> Get Started</a>
             </div>
             <div class="hero-trust">
                 <span><i class="fa-solid fa-circle-check"></i> Instant booking</span>
                 <span><i class="fa-solid fa-circle-check"></i> No phone calls</span>
                 <span><i class="fa-solid fa-circle-check"></i> Pay online</span>
                 <span><i class="fa-solid fa-circle-check"></i> Free to browse</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="section section-alt" id="how">
-    <div class="container">
-        <div class="section-head reveal">
-            <h2 class="section-title">Booking a game takes three steps</h2>
-        </div>
-        <div class="grid grid-3">
-            <div class="step reveal">
-                <span class="step-num">Step 1</span>
-                <div class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
-                <h3>Find your court</h3>
-                <p>Type your area, compare prices and see how many players each court fits.</p>
-            </div>
-            <div class="step reveal">
-                <span class="step-num">Step 2</span>
-                <div class="step-icon"><i class="fa-solid fa-calendar-check"></i></div>
-                <h3>Pick a slot</h3>
-                <p>See the free hours on your chosen day and grab the one that suits your team.</p>
-            </div>
-            <div class="step reveal">
-                <span class="step-num">Step 3</span>
-                <div class="step-icon"><i class="fa-solid fa-futbol"></i></div>
-                <h3>Show up &amp; play</h3>
-                <p>Your slot locks in instantly. Pay a small advance online or settle at the court.</p>
             </div>
         </div>
     </div>

@@ -61,15 +61,11 @@ $page_title = 'Edit Profile';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head settings-page-head">
-    <div class="ps-head-row">
+<div class="stg-page">
+    <div class="stg-back">
         <a href="<?php echo base_url('pages/settings.php'); ?>" class="page-back-arrow" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Edit Profile</h2>
+        <h1>Edit Profile</h1>
     </div>
-</div>
-
-<div class="settings-layout">
-    <?php require __DIR__ . '/../includes/views/settings_sidebar.php'; ?>
 
     <div class="settings-content">
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>

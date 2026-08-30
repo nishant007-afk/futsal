@@ -1939,15 +1939,15 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 .search-pill:hover, .search-pill:focus-within { border-color: var(--line); box-shadow: var(--s1); }
 .search-pill i.fa-circle-xmark { color: var(--ink-3); font-size: 12px; cursor: pointer; }
 .courts-search {
-    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto;
-    gap: 12px; align-items: end; padding: 18px;
+    display: grid; grid-template-columns: 2fr 1.25fr 1.25fr 1.1fr auto;
+    gap: 14px; align-items: end; padding: 18px;
     background: var(--bg); border: 1px solid var(--line);
     border-radius: var(--r-lg); box-shadow: var(--s1);
 }
-.toolbar-actions { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+.toolbar-actions { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
 .courts-search .search-field input,
-.courts-search .search-field select { height: 42px; }
-.courts-search .toolbar-actions .btn { height: 42px; padding: 0 14px; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; }
+.courts-search .search-field select { height: 46px; }
+.courts-search .toolbar-actions .btn { height: 46px; display: inline-flex; align-items: center; justify-content: center; }
 .courts-count { margin: 4px 0 22px; font-size: 14px; }
 
 /* removable active-filter chips on the courts page */
@@ -1975,12 +1975,12 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 .page-link.active { background: var(--brand); border-color: var(--brand); color: #fff; }
 @media (max-width: 900px) {
     .courts-search { grid-template-columns: 1fr 1fr; }
-    .toolbar-actions { grid-column: span 2; justify-content: flex-end; flex-wrap: wrap; }
+    .toolbar-actions { grid-column: span 2; justify-content: flex-end; }
 }
 @media (max-width: 560px) {
-    .courts-search { grid-template-columns: 1fr; gap: 10px; }
+    .courts-search { grid-template-columns: 1fr 1fr; gap: 12px; }
     .courts-search .search-field { min-width: 0; }
-    .toolbar-actions { grid-column: span 1; flex-wrap: wrap; }
+    .toolbar-actions { grid-column: span 2; flex-wrap: wrap; }
     .toolbar-actions .btn { flex: 1 1 auto; justify-content: center; }
 }
 
@@ -3889,6 +3889,8 @@ html[data-theme="dark"] .pl-item.active { background: color-mix(in srgb, var(--b
         font-size: 13px; cursor: pointer; flex-shrink: 0;
         transition: color .15s, background .15s, border-color .15s;
     }
+    .sidebar-toggle i { transition: transform .28s cubic-bezier(.4,0,.2,1); }
+    html.sidebar-collapsed .sidebar-toggle i { transform: rotate(180deg); }
     .sidebar-toggle:hover { color: var(--ink); background: var(--bg-soft); border-color: var(--line-2); }
     html.sidebar-collapsed #mainNav .nav-sidebar-head { display: flex; justify-content: center; padding: 6px 0 18px; }
     html.sidebar-collapsed #mainNav .nsf-social,

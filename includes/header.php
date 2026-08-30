@@ -734,7 +734,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
             <span class="brand-name">GoalSpace</span>
         </a>
         <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
-            <i class="fa-solid fa-xmark"></i>
+            <i class="fa-solid fa-angles-left"></i>
         </button>
     </div>
     <?php if ($site_user && $site_user['role'] === 'user'): ?>

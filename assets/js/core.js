@@ -137,7 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sidebarToggle) {
             sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
             sidebarToggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
-            sidebarToggle.innerHTML = collapsed ? '<i class="fa-solid fa-bars"></i>' : '<i class="fa-solid fa-xmark"></i>';
+            const icon = sidebarToggle.querySelector('i');
+            if (icon) {
+                icon.className = collapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left';
+            }
         }
         const navLinks = mainNav ? mainNav.querySelectorAll('a[href]') : [];
         navLinks.forEach(function (a) {

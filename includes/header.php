@@ -173,7 +173,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=269'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=270'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -840,15 +840,21 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
             </div>
         </div>
     <?php else: ?>
-        <div class="msg-backdrop" data-msg-backdrop>
-            <div class="msg-card <?php echo $cardType; ?>" role="<?php echo $toastRole; ?>">
-                <button type="button" class="msg-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-                <div class="msg-icon"><i class="fa-solid <?php echo $icon; ?>"></i></div>
-                <h3 class="msg-title"><?php echo e($title); ?></h3>
-                <p class="msg-text"><?php echo e($flash['message']); ?></p>
-                <?php if ($backUrl !== ''): ?>
-                <button type="button" class="msg-btn <?php echo $btnClass; ?>" data-msg-back="<?php echo $backUrl; ?>"><?php echo $isSuccess ? '<i class="fa-solid fa-arrow-right-long"></i>' : '<i class="fa-solid fa-arrow-left-long"></i>'; ?> <?php echo e($btnLabel); ?></button>
-                <?php endif; ?>
+        <div class="container">
+            <div class="toast toast-error toast-inline" role="alert">
+                <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                <div class="toast-content">
+                    <div class="toast-msg">
+                        <span><?php echo e($flash['message']); ?></span>
+                        <?php if ($backUrl !== ''): ?>
+                        <a href="<?php echo e($backUrl); ?>" class="toast-fix"><i class="fa-solid fa-arrow-left-long"></i> Go back</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+    <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>

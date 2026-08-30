@@ -119,7 +119,7 @@ if ($site_user) {
 </div>
 <script>window.GS_COMMANDS = <?php echo json_encode($paletteCommands); ?>;</script>
 
-<script src="<?php echo base_url('assets/js/core.js?v=81'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=82'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

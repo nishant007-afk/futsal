@@ -204,10 +204,8 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="detail-box booking-panel reveal">
         <div class="ground-header">
-            <div class="title-back-row">
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h1><?php echo e($ground['name']); ?></h1>
-            </div>
+            <div class="ground-header-row">
+                <h3 class="ground-header-name"><?php echo e($ground['name']); ?></h3>
             <?php if (is_logged_in()): ?>
                 <button type="button"
                         class="fav-toggle ground-fav"
@@ -325,7 +323,7 @@ require __DIR__ . '/../includes/header.php';
     <?php if ($rating['count'] > 0): ?>
         <div class="section-head reveal" style="max-width:none;margin-bottom:18px;">
             <span class="eyebrow">Reviews</span>
-            <h2 class="section-title" style="font-size:22px;">What players say</h2>
+            <h2 class="section-title sm">What players say</h2>
         </div>
     <?php endif; ?>
 
@@ -398,12 +396,12 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php if ($similar): ?>
-    <section class="section similar-courts" style="padding:40px 0 8px;">
+    <section class="section similar-courts">
         <div class="section-head reveal" style="max-width:none;margin-bottom:18px;">
             <span class="eyebrow">Keep exploring</span>
-            <h2 class="section-title" style="font-size:22px;">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
+            <h2 class="section-title">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
         </div>
-        <div class="grid grid-3">
+        <div class="grid grid-3 similar-grid">
             <?php foreach ($similar as $sg) { ground_card_html($sg); } ?>
         </div>
     </section>

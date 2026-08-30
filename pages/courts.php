@@ -205,6 +205,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
                     <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
                 <?php endif; ?>
+                <a href="<?php echo base_url('pages/map.php' . ($city !== '' ? '?location=' . urlencode($city) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-map"></i> Map</a>
             </div>
         </form>
     </div>

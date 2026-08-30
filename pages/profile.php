@@ -82,7 +82,8 @@ require __DIR__ . '/../includes/header.php';
 <div class="prof-wrap">
 <!-- Top bar -->
 <div class="prof-topbar">
-    <h1><?php echo e($user['name']); ?></h1>
+    <h1 class="visually-hidden">My Profile</h1>
+    <span class="prof-topbar-name"><?php echo e($user['name']); ?></span>
     <a href="<?php echo base_url('pages/settings.php'); ?>" class="prof-topbar-icon" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
 </div>
 

@@ -123,13 +123,29 @@ $page_description = 'Log in to your GoalSpace account to manage bookings, view o
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card">
-    <div class="form-head">
-        <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2 >Sign in to GoalSpace</h2>
+<div class="signup-shell">
+    <section class="signup-intro">
+        <h1>Welcome back to GoalSpace</h1>
+        <p class="lead">Pick up right where you left off. Your courts, bookings and stats are waiting.</p>
+        <div class="signup-intro-details">
+            <ul class="benefit-list">
+                <li><span class="b-icon"><i class="fa-solid fa-calendar-check"></i></span><span><strong>Quick rebook</strong>Jump back into your favourite courts.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span><strong>Booking history</strong>See past games and upcoming slots.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-trophy"></i></span><span><strong>Track progress</strong>See your playing streak and stats.</span></li>
+            </ul>
         </div>
-    </div>
+    </section>
+
+    <section class="signup-right">
+        <div class="auth-topline">
+            <div class="auth-toprow">
+                <a href="<?php echo base_url('pages/register.php'); ?>" class="auth-switch">Don't have an account? <strong>Sign up</strong> <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h2>Sign in to GoalSpace</h2>
+            </div>
+        </div>
 
     <?php if ($suspended): ?>
         <?php $cErrors = form_errors(); $cOld = form_old(); ?>
@@ -222,6 +238,7 @@ require __DIR__ . '/../includes/header.php';
             <p class="form-foot">New here? <a href="<?php echo base_url('pages/register.php'); ?>">Create an account</a></p>
         </form>
     <?php endif; ?>
+    </section>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

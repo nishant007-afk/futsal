@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const pwInput = document.getElementById('password');
     const pwReqs = document.getElementById('pwRequirements');
     if (pwInput && pwReqs) {
+        function openReqs() { pwReqs.classList.add('open'); }
+        pwInput.addEventListener('focus', openReqs);
+        pwInput.addEventListener('input', openReqs);
         function checkRequirements() {
             const v = pwInput.value;
             pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);

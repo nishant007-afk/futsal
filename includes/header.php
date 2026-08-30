@@ -855,9 +855,6 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
             </div>
         </div>
     <?php endif; ?>
-            </div>
-        </div>
-    <?php endif; ?>
 <?php endif; ?>
 
 <main class="container page" id="mainContent" tabindex="-1">

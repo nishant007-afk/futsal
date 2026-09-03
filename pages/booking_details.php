@@ -70,7 +70,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php echo ucfirst(e($b['payment_status'])); ?>
             </span>
             <?php if ($b['payment_method'] === 'at_court' && $b['payment_status'] === 'paid'): ?>
-                <span class="status-badge status-pending" style="border-color:var(--warn);color:var(--warn);background:var(--warn-soft);"><i class="fa-solid fa-coins"></i> Paid at court</span>
+                <span class="status-badge status-at-court"><i class="fa-solid fa-coins"></i> Paid at court</span>
             <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'paid'): ?>
                 <span class="status-badge status-qr"><i class="fa-solid fa-qrcode"></i> Paid via QR</span>
             <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'partial'): ?>

@@ -22,18 +22,16 @@ if ($fav_ids !== []) {
 }
 ?>
 
-<div class="title-back-row favorites-title-row">
-    <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-    <h1 class="page-title">Saved Courts</h1>
-</div>
-
 <div class="container">
-    <div class="reveal">
+    <div class="title-back-row favorites-title-row reveal">
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="page-title">Saved Courts</h1>
+    </div>
 
     <?php if (!$grounds): ?>
         <?php empty_state('fa-solid fa-heart', 'No saved courts yet', '', grounds_list_url(), 'Browse courts'); ?>
     <?php else: ?>
-        <div class="grid grid-3">
+        <div class="grid grid-3 reveal">
             <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
         </div>
     <?php endif; ?>

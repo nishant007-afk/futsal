@@ -123,6 +123,7 @@ $page_description = 'Check availability, pricing, and amenities at ' . $ground['
 require __DIR__ . '/../includes/header.php';
 ?>
 <?php echo $json_ld; // JSON-LD structured data ?>
+<div class="container">
 <nav class="breadcrumb">
     <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
     <a href="<?php echo grounds_list_url(); ?>">Grounds</a> &nbsp;/&nbsp;
@@ -161,7 +162,7 @@ require __DIR__ . '/../includes/header.php';
                 <div class="gallery pitch"></div>
             <?php endif; ?>
         </div>
-        <div class="detail-box ground-info" style="margin-top:20px;">
+        <div class="detail-box ground-info">
             <h3>About this ground</h3>
             <p class="about-name"><i class="fa-solid fa-futbol"></i> <span><?php echo e($ground['name']); ?></span></p>
             <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
@@ -229,7 +230,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
             <strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?>
         </p>
-        <p class="muted" style="font-size:12.5px;margin:-8px 0 14px;"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : $ground['slot_interval'] . '-minute'; ?> slots</p>
+        <p class="muted sm" style="margin:-8px 0 14px;"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : $ground['slot_interval'] . '-minute'; ?> slots</p>
 
         <form method="get" action="">
             <div class="form-group">
@@ -321,7 +322,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="reviews-wrap">
     <?php if ($rating['count'] > 0): ?>
-        <div class="section-head reveal" style="max-width:none;margin-bottom:18px;">
+        <div class="section-head reveal full" style="margin-bottom:18px;">
             <span class="eyebrow">Reviews</span>
             <h2 class="section-title sm">What players say</h2>
         </div>
@@ -397,7 +398,7 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if ($similar): ?>
     <section class="section similar-courts">
-        <div class="section-head reveal" style="max-width:none;margin-bottom:18px;">
+        <div class="section-head reveal full" style="margin-bottom:18px;">
             <span class="eyebrow">Keep exploring</span>
             <h2 class="section-title">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
         </div>
@@ -406,5 +407,6 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </section>
 <?php endif; ?>
+</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

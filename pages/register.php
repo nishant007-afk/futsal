@@ -79,7 +79,7 @@ if (isset($verification_code)) {
             <i class="fa-solid fa-envelope-circle-check"></i>
             <span><?php echo $verification_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'We couldn\'t send the email, so here\'s your code:'; ?></span>
             <?php if (!$verification_sent): ?>
-                <span style="display:block;margin-top:8px;font-weight:800;letter-spacing:3px;font-size:20px;color:var(--brand-700);"><?php echo e($verification_code); ?></span>
+                <span class="otp-fallback-code"><?php echo e($verification_code); ?></span>
             <?php endif; ?>
         </div>
         <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" style="margin-top:22px;">

@@ -187,6 +187,7 @@ $page_description = 'View your upcoming and past futsal court bookings on GoalSp
 require __DIR__ . '/../includes/header.php';
 ?>
 
+<div class="container">
 <div class="page-head bookings-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
@@ -214,7 +215,7 @@ require __DIR__ . '/../includes/header.php';
 <?php if (!$bookings): ?>
     <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing booked yet', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
 <?php else: ?>
-    <div class="view-tabs reveal" style="margin:6px 0 20px;">
+    <div class="view-tabs reveal">
         <a href="<?php echo mb_view_url('all'); ?>" class="view-tab <?php echo $view === 'all' ? 'active' : ''; ?>">All (<?php echo count($bookings); ?>)</a>
         <a href="<?php echo mb_view_url('upcoming'); ?>" class="view-tab <?php echo $view === 'upcoming' ? 'active' : ''; ?>">Upcoming (<?php echo count($upcoming); ?>)</a>
         <a href="<?php echo mb_view_url('unpaid'); ?>" class="view-tab <?php echo $view === 'unpaid' ? 'active' : ''; ?>">Unpaid (<?php echo count($unpaid); ?>)</a>
@@ -261,6 +262,7 @@ require __DIR__ . '/../includes/header.php';
         <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
+</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 

@@ -58,7 +58,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 12px); }
 
-/* Desktop only: adjust design system values directly, no zoom hacks */
+/* Desktop: scale down to 90% so content fits more naturally */
+@media (min-width: 821px) {
+    html { zoom: 0.9; }
+}
+
 body {
     font-family: var(--font);
     background: var(--page);
@@ -147,6 +151,9 @@ p { color: var(--ink-2); }
 .tnum { font-variant-numeric: tabular-nums; }
 .muted { color: var(--ink-3); font-size: 14px; line-height: 1.6; }
 .muted strong { color: var(--ink-2); font-weight: 600; }
+.muted.sm { font-size: 12.5px; }
+.muted.md { font-size: 13.5px; }
+.section-head.full { max-width: none; }
 
 .pay-line { display: block; font-size: 12.5px; color: var(--ink-3); margin-top: 3px; }
 .pay-line.ok { color: var(--ok); }
@@ -1031,6 +1038,7 @@ html[data-theme="dark"] .pm-switch .pm-knob { transform: translateX(15px); }
 .view-tabs {
     display: flex; gap: 6px; flex-wrap: wrap;
     border-bottom: 1px solid var(--line); padding-bottom: 10px;
+    margin: 10px 0 20px;
 }
 .view-tab {
     padding: 8px 15px; border-radius: 10px; font-size: 13px; font-weight: 600;
@@ -1899,6 +1907,14 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 .status-pending {
     background: var(--warn-soft); color: var(--warn); border-color: rgba(163,107,18,.22);
 }
+.status-at-court {
+    background: var(--warn-soft); color: var(--warn); border-color: rgba(163,107,18,.22);
+}
+.otp-fallback-code {
+    display: block; margin-top: 8px; font-weight: 800; letter-spacing: 3px;
+    font-size: 20px; color: var(--brand-700);
+}
+.otp-inline { letter-spacing: 3px; font-size: 18px; color: var(--brand-700); }
 .status-cancelled {
     background: var(--danger-soft); color: var(--danger); border-color: rgba(214,69,61,.22);
 }

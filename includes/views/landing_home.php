@@ -5,19 +5,29 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <!-- HERO -->
 <section class="hero">
     <div class="hero-media pitch"></div>
+    <div class="hero-grain" aria-hidden="true"></div>
     <div class="container">
         <div class="hero-content">
-            <h1>Pick a court, grab a slot, <span>play</span></h1>
-            <p>Find a free court near you and book your game in under a minute.</p>
+            <div class="hero-badge"><i class="fa-solid fa-futbol"></i> Futsal booking, simplified</div>
+            <h1>Book a court.<br>Grab your squad.<br><span>Play.</span></h1>
+            <p>Skip the phone calls. Find a free court near you and lock in your slot in seconds.</p>
             <div class="hero-actions">
-                <a href="#courts" class="btn btn-primary btn-lg"><i class="fa-solid fa-futbol"></i> Browse Courts</a>
-                <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-light btn-lg"><i class="fa-solid fa-user-plus"></i> Get Started</a>
+                <a href="#courts" class="btn btn-primary btn-lg"><i class="fa-solid fa-magnifying-glass"></i> Find a Court</a>
+                <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-outline-light btn-lg"><i class="fa-solid fa-arrow-right"></i> Sign up free</a>
             </div>
-            <div class="hero-trust">
-                <span><i class="fa-solid fa-circle-check"></i> Instant booking</span>
-                <span><i class="fa-solid fa-circle-check"></i> No phone calls</span>
-                <span><i class="fa-solid fa-circle-check"></i> Pay online</span>
-                <span><i class="fa-solid fa-circle-check"></i> Free to browse</span>
+        </div>
+        <div class="hero-stats-panel">
+            <div class="hero-stat-card">
+                <span class="hero-stat-num">2 min</span>
+                <span class="hero-stat-label">Average booking time</span>
+            </div>
+            <div class="hero-stat-card">
+                <span class="hero-stat-num">100%</span>
+                <span class="hero-stat-label">Instant confirmation</span>
+            </div>
+            <div class="hero-stat-card">
+                <span class="hero-stat-num">Rs 0</span>
+                <span class="hero-stat-label">Booking fee</span>
             </div>
         </div>
     </div>
@@ -27,8 +37,8 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <section class="section" id="courts">
     <div class="container">
         <div class="section-head reveal">
-            <span class="eyebrow">Courts near you</span>
-            <h2 class="section-title">Ready to play today</h2>
+            <span class="eyebrow">Available now</span>
+            <h2 class="section-title">Pick your court</h2>
         </div>
 
         <?php if (!$grounds): ?>
@@ -50,12 +60,12 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     <div class="container cta-inner reveal">
         <div class="cta-main">
             <span class="cta-eyebrow"><i class="fa-solid fa-store"></i> For court owners</span>
-            <h2>Own a court? Keep your <span>calendar full</span>.</h2>
-            <p>Join as a manager to list your courts, take bookings without phone calls, and always know who has paid.</p>
+            <h2>Run your court<br><span>without the hassle</span>.</h2>
+            <p>List your courts, take bookings without phone calls, and always know who has paid.</p>
             <ul class="cta-benefits">
-                <li><i class="fa-solid fa-circle-check"></i> List your court and set your own hours and price</li>
-                <li><i class="fa-solid fa-circle-check"></i> Bookings confirm instantly, no calls needed</li>
-                <li><i class="fa-solid fa-circle-check"></i> Track who has paid and run promos to fill quiet hours</li>
+                <li><i class="fa-solid fa-circle-check"></i> Set your own hours, prices, and availability</li>
+                <li><i class="fa-solid fa-circle-check"></i> Bookings confirm instantly — no calls, no confusion</li>
+                <li><i class="fa-solid fa-circle-check"></i> Track payments and run promos to fill quiet hours</li>
             </ul>
             <div class="cta-actions">
                 <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-light btn-lg"><i class="fa-solid fa-store"></i> Become a Manager</a>

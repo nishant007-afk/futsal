@@ -88,7 +88,7 @@ $page_title = 'Verify Your New Email';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card lg" style="margin-top:44px;">
+<div class="form-card lg">
  <div class="form-head">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>

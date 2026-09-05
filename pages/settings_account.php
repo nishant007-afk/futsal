@@ -91,7 +91,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
                     <div class="input-group floating">
-                        <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder=" ">
+                        <input type="tel" id="phone" name="phone" value="<?php echo e($user['phone']); ?>" autocomplete="tel" placeholder=" " maxlength="20">
                         <label for="phone">Phone</label>
                     </div>
                     <?php field_error($errors, 'phone'); ?>

@@ -42,7 +42,7 @@ require __DIR__ . '/../includes/header.php';
     <?php echo csrf_field(); ?>
     <div class="form-group">
         <label for="subject"><strong>Subject</strong></label>
-        <input type="text" id="subject" name="subject" required maxlength="120" placeholder="e.g. Scheduled maintenance this weekend">
+        <input type="text" id="subject" name="subject" required maxlength="150" placeholder="e.g. Scheduled maintenance this weekend">
     </div>
 
     <div class="form-group">

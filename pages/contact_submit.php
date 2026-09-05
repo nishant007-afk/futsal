@@ -23,7 +23,7 @@ $message = str_replace(["\r", "\n"], ' ', $message);
 
 if ($name === '') { $errors['name'] = 'Your name is required.'; }
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email'] = 'A valid email is required.'; }
-if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback'], true)) { $errors['topic'] = 'Please choose a topic.'; }
+if (!in_array($topic, ['general', 'booking', 'account', 'manager', 'feedback', 'login_locked'], true)) { $errors['topic'] = 'Please choose a topic.'; }
 if ($message === '' || mb_strlen($message) < 10) { $errors['message'] = 'Message must be at least 10 characters.'; }
 
 if ($errors) {

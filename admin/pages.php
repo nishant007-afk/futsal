@@ -90,7 +90,7 @@ require __DIR__ . '/../includes/header.php';
 
             <div class="form-group">
                 <label for="pTitle">Title</label>
-                <input type="text" id="pTitle" name="title" value="<?php echo e($title); ?>" required>
+                <input type="text" id="pTitle" name="title" value="<?php echo e($title); ?>" maxlength="150" required>
             </div>
 
             <div class="form-group">
@@ -133,26 +133,5 @@ require __DIR__ . '/../includes/header.php';
     })();
     </script>
 <?php endif; ?>
-
-<style>
-.admin-legal-list h2 { margin-bottom: 18px; }
-.admin-legal-list .admin-table { margin-top: 14px; }
-.admin-legal-list .admin-table .actions,
-.admin-legal-list .admin-table .actions { text-align: right; }
-.admin-legal-list .btn-sm { text-decoration: none; }
-.admin-legal-list .btn-sm:hover { text-decoration: underline; }
-.admin-legal-edit-card { max-width: 980px; margin: 24px 0; }
-.admin-legal-form .form-group { margin-bottom: 18px; }
-.admin-legal-form label { display:block; font-weight:600; margin-bottom:6px; }
-.admin-legal-form input[type="text"] { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; }
-.admin-legal-form textarea { width: 100%; padding: 12px; border: 1px solid #d0d7de; border-radius: 6px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.6; background: #fafafa; }
-.editor-split { display: flex; flex-direction: row; gap: 16px; align-items: flex-start; }
-.editor-split textarea { flex: 1 1 50%; height: 620px; min-height: 0; resize: vertical; }
-.editor-preview { flex: 1 1 50%; min-width: 0; border: 1px dashed #d0d7de; border-radius: 6px; padding: 16px; background: #fff; overflow: auto; }
-.editor-preview .prose h2 { font-size: 1.2em; margin-top: 1em; }
-.editor-preview .prose ul, .editor-preview .prose ol { margin: 8px 0 8px 24px; }
-.editor-preview .prose li { margin: 3px 0; }
-@media (max-width: 760px) { .editor-split { flex-direction: column; } .editor-split textarea { height: 380px; } }
-</style>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

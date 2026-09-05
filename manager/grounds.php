@@ -372,12 +372,12 @@ require __DIR__ . '/../includes/header.php';
             <div class="grid grid-2">
                 <div class="form-group<?php echo has_error($errors, 'name'); ?>">
                     <label for="name">Ground Name <span class="req">*</span></label>
-                    <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" required>
+                    <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" required>
                     <?php field_error($errors, 'name'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'location'); ?>">
                     <label for="location">Location <span class="req">*</span></label>
-                    <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" required>
+                    <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" required>
                     <?php field_error($errors, 'location'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
@@ -419,11 +419,11 @@ require __DIR__ . '/../includes/header.php';
                  </div>
                  <div class="form-group">
                      <label for="address">Full address (for maps)</label>
-                     <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
+                     <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
                  </div>
 <div class="form-group">
                      <label for="court_number">Court number/name (optional)</label>
-                     <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
+                     <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Court 1">
                  </div>
              </div>
              <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>

@@ -169,7 +169,7 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
                 <div class="input-group floating">
-                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " required>
+                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " maxlength="200" required>
                     <label for="subj">Subject <span class="req">*</span></label>
                 </div>
             </div>

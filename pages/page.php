@@ -37,7 +37,7 @@ require __DIR__ . '/../includes/header.php';
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
                         <div class="input-group floating">
                             <i class="fa-solid fa-user"></i>
-                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" required>
+                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" maxlength="100" required>
                             <label for="cName">Your name <span class="req">*</span></label>
                         </div>
                         <?php field_error($cErrors, 'name'); ?>
@@ -65,7 +65,7 @@ require __DIR__ . '/../includes/header.php';
                     <div class="form-group">
                         <div class="input-group floating">
                             <i class="fa-solid fa-heading"></i>
-                            <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder=" ">
+                            <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder=" " maxlength="200">
                             <label for="cSubject">Subject</label>
                         </div>
                     </div>

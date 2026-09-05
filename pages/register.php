@@ -25,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters. Letters, numbers and special characters are all allowed.';
     }
+    if (strlen($phone) > 20) {
+        $errors['phone'] = 'Phone number is too long. Keep it under 20 characters.';
+    }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
     } elseif (is_disposable_email($email)) {
@@ -166,7 +169,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
             <div class="input-group floating">
-                <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder=" ">
+                <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder=" " maxlength="20">
                 <label for="phone">Phone</label>
             </div>
             <?php field_error($errors, 'phone'); ?>

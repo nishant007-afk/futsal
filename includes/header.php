@@ -75,7 +75,7 @@ if ($active === 'index.php' && !$site_user) {
 if ($active === 'login.php') {
     $body_classes[] = 'login-page';
 }
-if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php'], true)) {
+if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'change_email_otp.php', 'change_password_otp.php', 'delete_account_otp.php'], true)) {
     $body_classes[] = 'auth-page';
 }
 if ($active === 'page.php' && ($_GET['slug'] ?? '') === 'contact') {
@@ -173,7 +173,7 @@ if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=278'); ?>">
+    <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=279'); ?>">
 </head>
 <body data-role="<?php echo e($body_role); ?>" data-base="<?php echo e(rtrim(base_url(), '/')); ?>" data-csrf="<?php echo e(csrf_token()); ?>" class="<?php echo e($body_class); ?>">
 <a class="skip-link" href="#mainContent">Skip to main content</a>

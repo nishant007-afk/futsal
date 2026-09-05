@@ -102,7 +102,7 @@ require __DIR__ . '/../includes/header.php';
                         <li data-req="length">At least 8 characters</li>
                         <li data-req="letter">At least one letter</li>
                         <li data-req="number">At least one number</li>
-                        <li data-req="special">At least one special character</li>
+                        <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
                     </ul>
                     <p class="form-hint pw-same-warn" id="pwSameWarn" hidden><i class="fa-solid fa-circle-exclamation"></i> That looks like your current password.</p>
                     <?php field_error($pwErrors, 'new_password'); ?>

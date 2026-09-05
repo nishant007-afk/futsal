@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email_updates = ($_POST['email_updates'] ?? '') === '1';
 
     if ($name === '' || strlen($name) < 2) {
-        $errors['name'] = 'Please enter your full name, at least 2 characters.';
+        $errors['name'] = 'Please enter your full name, at least 2 characters. Letters, numbers and special characters are all allowed.';
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
@@ -151,9 +151,10 @@ require __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
             <div class="input-group floating">
-                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " required>
+                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required>
                 <label for="name">Full name <span class="req">*</span></label>
             </div>
+            <p class="form-hint">Letters, numbers, spaces and special characters (e.g. &amp;, ', -) are all allowed.</p>
             <?php field_error($errors, 'name'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
@@ -208,7 +209,7 @@ require __DIR__ . '/../includes/header.php';
                 <li data-req="length">At least 8 characters</li>
                 <li data-req="letter">At least one letter</li>
                 <li data-req="number">At least one number</li>
-                <li data-req="special">At least one special character</li>
+                <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
             </ul>
             <?php field_error($errors, 'password'); ?>
         </div>

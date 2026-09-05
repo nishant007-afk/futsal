@@ -70,7 +70,7 @@ require __DIR__ . '/../includes/header.php';
                 <li data-req="length">At least 8 characters</li>
                 <li data-req="letter">At least one letter</li>
                 <li data-req="number">At least one number</li>
-                <li data-req="special">At least one special character</li>
+                <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
             </ul>
             <?php field_error($errors, 'password'); ?>
         </div>

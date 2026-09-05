@@ -2123,8 +2123,8 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s2); }
 body.auth-page { display: flex; flex-direction: column; min-height: 100vh; }
 body.auth-page .site-header, body.auth-page .site-footer,
 body.auth-page .cookie-banner { display: none !important; }
-body.auth-page main.page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 16px 20px; }
-body.auth-page .form-card { max-width: 380px; width: 100%; padding: 34px 30px 30px; border-radius: var(--r-md); box-shadow: var(--s1); }
+body.auth-page main.page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+body.auth-page .form-card { max-width: 380px; width: 100%; padding: 34px 30px 30px; border-radius: var(--r-md); box-shadow: var(--s1); margin: -24px auto 0; }
 body.login-page .form-card { margin: 0; }
 body.auth-page .form-card.chg-pass { margin-top: 2vh; margin-bottom: 2vh; }
 body.auth-page .form-card.lg { max-width: 460px; }
@@ -3887,7 +3887,7 @@ html[data-theme="dark"] .pl-item.active { background: color-mix(in srgb, var(--b
 
     .form-card { padding: 30px 20px 28px; margin: 72px auto 0; border-radius: var(--r-md); }
     .profile-side { margin: 0; }
-    body.auth-page .form-card { margin: auto; }
+    body.auth-page .form-card { margin: -16px auto 0; }
     body.auth-page .site-footer { margin-top: 48px; }
     .form-card.lg, .form-card.wide { max-width: 100%; }
     .payment-card { padding: 26px 20px; }

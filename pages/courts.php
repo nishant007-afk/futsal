@@ -166,46 +166,71 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container">
+<?php if (is_logged_in()): $me = current_user(); ?>
+<div class="page-head reveal">
+    <div class="courts-welcome">
+        <h1 class="courts-welcome-title">Welcome back, <?php echo e($me['name']); ?></h1>
+        <p class="courts-welcome-sub">Find and book a court near you.</p>
+    </div>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+    </div>
+</div>
+<?php else: ?>
 <div class="page-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1 class="page-title">All Courts</h1>
     </div>
 </div>
+<?php endif; ?>
 
     <div class="courts-toolbar reveal">
         <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
-            <div class="search-field">
-                <label for="courtsQ">Search</label>
-                <input type="text" id="courtsQ" name="q" placeholder="Court name or location" value="<?php echo e($q); ?>">
-            </div>
-            <div class="search-field">
-                <label for="courtsLocation">Location</label>
-                <select id="courtsLocation" name="location">
-                    <option value="">All locations</option>
-                    <?php foreach ($allowed_cities as $c): ?>
-                        <option value="<?php echo e($c); ?>" <?php echo $city === $c ? 'selected' : ''; ?>><?php echo e($c); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="search-field">
-                <label for="courtsSort">Sort by</label>
-                <select id="courtsSort" name="sort">
-                    <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: low to high</option>
-                    <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: high to low</option>
-                    <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
-                </select>
-            </div>
-            <div class="search-field">
-                <label for="courtsDate">Date</label>
-                <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+            <div class="courts-search-main">
+                <div class="search-field">
+                    <label for="courtsQ">Search</label>
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="text" id="courtsQ" name="q" placeholder="Court name or location" value="<?php echo e($q); ?>">
+                    </div>
+                </div>
+                <div class="search-field">
+                    <label for="courtsLocation">Location</label>
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        <select id="courtsLocation" name="location">
+                            <option value="">All locations</option>
+                            <?php foreach ($allowed_cities as $c): ?>
+                                <option value="<?php echo e($c); ?>" <?php echo $city === $c ? 'selected' : ''; ?>><?php echo e($c); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-field">
+                    <label for="courtsDate">Date</label>
+                    <div class="search-input-wrap">
+                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                        <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+                    </div>
+                </div>
+                <div class="search-field">
+                    <label for="courtsSort">Sort by</label>
+                    <div class="search-input-wrap">
+                        <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+                        <select id="courtsSort" name="sort">
+                            <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: low to high</option>
+                            <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: high to low</option>
+                            <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="toolbar-actions">
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply filters</button>
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
                     <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
                 <?php endif; ?>
-                <a href="<?php echo base_url('pages/map.php' . ($city !== '' ? '?location=' . urlencode($city) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-map"></i> Map</a>
             </div>
         </form>
     </div>

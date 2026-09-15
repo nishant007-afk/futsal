@@ -79,37 +79,32 @@ require __DIR__ . '/../includes/header.php';
     <div class="stg-section">
         <div class="stg-section-title">Change password</div>
         <div class="settings-card settings-narrow" id="passwordCard">
-            <form method="post" action="" novalidate>
+            <form method="post" action="" novalidate role="form">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="change_password">
                 <div class="form-group<?php echo has_error($pwErrors, 'current_password'); ?>">
                     <div class="input-group floating">
-                        <input type="password" id="pwCurrent" name="current_password" autocomplete="current-password" placeholder=" " required>
+                        <input type="password" id="pwCurrent" name="current_password" autocomplete="current-password" placeholder=" " required aria-required="true">
                         <label for="pwCurrent">Current password <span class="req">*</span></label>
                         <button type="button" class="pw-toggle" data-target="pwCurrent" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                     </div>
                     <?php field_error($pwErrors, 'current_password'); ?>
-                    <p class="form-hint" style="margin-top:8px;"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot your password?</a></p>
+                    <p class="form-hint mt-8"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot your password?</a></p>
                 </div>
                 <div class="form-group<?php echo has_error($pwErrors, 'new_password'); ?>">
                     <div class="input-group floating">
-                        <input type="password" id="pwNew" name="new_password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                        <input type="password" id="pwNew" name="new_password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                         <label for="pwNew">New password <span class="req">*</span></label>
                         <button type="button" class="pw-toggle" data-target="pwNew" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                     </div>
                     <p class="form-hint">Your new password needs:</p>
-                    <ul class="pw-requirements" id="pwRequirements">
-                        <li data-req="length">At least 8 characters</li>
-                        <li data-req="letter">At least one letter</li>
-                        <li data-req="number">At least one number</li>
-                        <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
-                    </ul>
+                    <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
                     <p class="form-hint pw-same-warn" id="pwSameWarn" hidden><i class="fa-solid fa-circle-exclamation"></i> That looks like your current password.</p>
                     <?php field_error($pwErrors, 'new_password'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($pwErrors, 'confirm_password'); ?>">
                     <div class="input-group floating">
-                        <input type="password" id="pwConfirm" name="confirm_password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                        <input type="password" id="pwConfirm" name="confirm_password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                         <label for="pwConfirm">Confirm new password <span class="req">*</span></label>
                         <button type="button" class="pw-toggle" data-target="pwConfirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                     </div>
@@ -134,13 +129,17 @@ require __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="action" value="delete_account">
                 <button type="submit" class="btn btn-danger btn-block" data-confirm="Delete your account permanently?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash-can"></i> Delete my account</button>
             </form>
-            <p class="form-hint" style="margin-top:12px;font-size:12.5px;">You'll get a security code by email to confirm.</p>
+            <p class="form-hint mt-12 text-xs">You'll get a security code by email to confirm.</p>
         </div>
     </div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 <script>
+function updatePwToggleLabel(btn) {
+    const isShowing = btn.getAttribute('aria-label') === 'Show password';
+    btn.setAttribute('aria-label', isShowing ? 'Hide password' : 'Show password');
+}
 document.addEventListener('DOMContentLoaded', function () {
     const pwInput = document.getElementById('pwNew');
     const pwReqs = document.getElementById('pwRequirements');
@@ -164,5 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
         currentPw.addEventListener('input', checkSame);
         pwInput.addEventListener('input', checkSame);
     }
+    document.querySelectorAll('.pw-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () { updatePwToggleLabel(this); });
+    });
 });
 </script>

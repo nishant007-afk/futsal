@@ -71,12 +71,12 @@ require __DIR__ . '/../includes/header.php';
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
         <div class="settings-card settings-narrow">
-            <form method="post" action="" novalidate>
+            <form method="post" action="" novalidate role="form">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="update_profile">
                 <div class="form-group<?php echo has_error($errors, 'name'); ?>">
                     <div class="input-group floating">
-                        <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" placeholder=" " maxlength="100" required>
+                        <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
                         <label for="name">Full name <span class="req">*</span></label>
                     </div>
                     <p class="form-hint">Letters, numbers, spaces and special characters (e.g. &amp;, ', -) are all allowed.</p>
@@ -84,7 +84,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'email'); ?>">
                     <div class="input-group floating">
-                        <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required data-check-email="available" data-exclude-id="<?php echo (int)$user['id']; ?>">
+                        <input type="email" id="email" name="email" value="<?php echo e($user['email']); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available" data-exclude-id="<?php echo (int)$user['id']; ?>">
                         <label for="email">Email</label>
                     </div>
                     <?php field_error($errors, 'email'); ?>

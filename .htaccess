@@ -1,33 +1,36 @@
-# Block access to environment / dotfiles
+# Block access to environment / dotfiles / secrets / backups
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
 
-<FilesMatch "^\.env">
+<FilesMatch "^(\.env.*|composer\.(json|lock)|database.*\.sql|.*\.docx?|prompt\.txt)$">
     Require all denied
 </FilesMatch>
 
-<FilesMatch "composer\.json">
-    Require all denied
-</FilesMatch>
-
-# Keep .php files under /config out of the web (they may hold no secrets now,
-# but defense in depth)
+# Keep .php files under /config, /deploy, /tools out of the web (defense in depth).
+# deploy/ and tools/ contain DB setup / diagnostics that must never run via HTTP.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^config(/|$) - [F,L]
+    RewriteRule ^deploy(/|$) - [F,L]
+    RewriteRule ^tools/(migrate|system_check|send_reminders|auto_cancel_unpaid|apply_polish|migrate_webp)\.php$ - [F,L]
 </IfModule>
 
-# Serve a dynamic XML sitemap at /futsal/sitemap.xml
+# Block direct access to SQL dumps anywhere
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>
+
+# Serve a dynamic XML sitemap (relative – works at domain root or /futsal/)
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^sitemap.xml$ /futsal/pages/sitemap.xml.php [L]
+    RewriteRule ^sitemap.xml$ pages/sitemap.xml.php [L]
 </IfModule>
 
-# Serve styled error pages without leaking Apache defaults
-ErrorDocument 403 /futsal/pages/403.php
-ErrorDocument 404 /futsal/pages/404.php
-ErrorDocument 500 /futsal/pages/500.php
+# Serve styled error pages without leaking Apache defaults (relative paths)
+ErrorDocument 403 /pages/403.php
+ErrorDocument 404 /pages/404.php
+ErrorDocument 500 /pages/500.php
 
 # Far-future caching for versioned static assets (files are cache-busted with ?v=)
 <IfModule mod_expires.c>
@@ -49,7 +52,7 @@ ErrorDocument 500 /futsal/pages/500.php
     </FilesMatch>
     # Service worker and manifest must never be cached long-term, or app
     # updates (and install prompts) stop working.
-    <FilesMatch "^(sw\.js|manifest\.json)$">
+    <FilesMatch "^(sw\.js|service-worker\.js|manifest\.json)$">
         Header unset Cache-Control
         Header set Cache-Control "no-cache, no-store, must-revalidate"
     </FilesMatch>

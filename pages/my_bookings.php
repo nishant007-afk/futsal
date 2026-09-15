@@ -40,11 +40,9 @@ if (isset($_GET['export'])) {
     export_csv($csv, 'my-bookings.csv');
 }
 
-if (isset($_GET['cancel'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $booking_id = (int)$_GET['cancel'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
+    verify_csrf();
+    $booking_id = (int)$_POST['cancel_booking'];
     $stmt = $conn->prepare(
         'SELECT b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.amount_paid, b.repeat_of, b.repeat_weeks, g.name AS ground_name
          FROM bookings b JOIN grounds g ON g.id = b.ground_id
@@ -54,7 +52,7 @@ if (isset($_GET['cancel'])) {
     $stmt->execute();
     $target = $stmt->get_result()->fetch_assoc();
 
-    $cancel_series = !empty($_GET['cancel_series']);
+    $cancel_series = !empty($_POST['cancel_series']);
 
     if (!$target) {
         set_flash_error(
@@ -75,7 +73,8 @@ if (isset($_GET['cancel'])) {
         } else {
             if ($cancel_series && ((int)$target['repeat_weeks'] > 1 || (int)$target['repeat_of'] > 0)) {
                 $rootId = (int)$target['repeat_of'] > 0 ? (int)$target['repeat_of'] : $booking_id;
-                $stmt = $conn->prepare('UPDATE bookings SET status = "cancelled" WHERE user_id = ? AND status = "confirmed" AND (id = ? OR repeat_of = ?)');
+                // Only future bookings in the series – never touch past games.
+                $stmt = $conn->prepare('UPDATE bookings SET status = "cancelled" WHERE user_id = ? AND status = "confirmed" AND (id = ? OR repeat_of = ?) AND TIMESTAMP(booking_date, start_time) > NOW()');
                 $stmt->bind_param('iii', $_SESSION['user_id'], $rootId, $rootId);
                 if ($stmt->execute() && $stmt->affected_rows > 0) {
                     notify_waitlist_freed((int)$target['ground_id'], $target['booking_date'], $target['start_time']);
@@ -187,11 +186,10 @@ $page_description = 'View your upcoming and past futsal court bookings on GoalSp
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container">
 <div class="page-head bookings-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>My Bookings</h2>
+        <h1 class="page-title">My Bookings</h1>
     </div>
     <div class="actions">
         <a href="<?php echo base_url('pages/my_bookings.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
@@ -262,7 +260,6 @@ require __DIR__ . '/../includes/header.php';
         <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
-</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
 

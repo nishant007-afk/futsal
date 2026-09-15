@@ -2,15 +2,19 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
-if (isset($_GET['cancel'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['cancel'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
+    verify_csrf();
+    $id = (int)$_POST['cancel_booking'];
     $stmt = $conn->prepare('SELECT user_id, ground_id, booking_date, start_time FROM bookings WHERE id = ? AND status != "cancelled"');
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $cancelTarget = $stmt->get_result()->fetch_assoc();
+
+    // Do not cancel games that already started.
+    if ($cancelTarget && strtotime($cancelTarget['booking_date'] . ' ' . $cancelTarget['start_time']) < time()) {
+        set_flash('info', 'That game already started, so it cannot be cancelled.');
+        redirect('admin/bookings.php');
+    }
 
     $stmt = $conn->prepare('UPDATE bookings SET status = "cancelled" WHERE id = ? AND status != "cancelled"');
     $stmt->bind_param('i', $id);

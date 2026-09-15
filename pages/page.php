@@ -37,7 +37,7 @@ require __DIR__ . '/../includes/header.php';
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
                         <div class="input-group floating">
                             <i class="fa-solid fa-user"></i>
-                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" maxlength="100" required>
+                            <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" maxlength="100" required aria-required="true">
                             <label for="cName">Your name <span class="req">*</span></label>
                         </div>
                         <?php field_error($cErrors, 'name'); ?>
@@ -45,7 +45,7 @@ require __DIR__ . '/../includes/header.php';
                     <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
                         <div class="input-group floating">
                             <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder=" " autocomplete="email" required>
+                            <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder=" " autocomplete="email" required aria-required="true">
                             <label for="cEmail">Email <span class="req">*</span></label>
                         </div>
                         <?php field_error($cErrors, 'email'); ?>
@@ -54,7 +54,7 @@ require __DIR__ . '/../includes/header.php';
                 <div class="grid-2">
                     <div class="form-group">
                         <label for="cTopic">Topic <span class="req">*</span></label>
-                        <select id="cTopic" name="topic" required>
+                        <select id="cTopic" name="topic" required aria-required="true">
                             <option value="general" <?php echo old_value($cOld, 'topic') === 'general' ? 'selected' : ''; ?>>General question</option>
                             <option value="booking" <?php echo old_value($cOld, 'topic') === 'booking' ? 'selected' : ''; ?>>Booking help</option>
                             <option value="account" <?php echo old_value($cOld, 'topic') === 'account' ? 'selected' : ''; ?>>Account issue</option>
@@ -72,7 +72,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
                     <label for="cMessage">Message <span class="req">*</span></label>
-                    <textarea id="cMessage" name="message" rows="5" placeholder="Tell us how we can help (at least 10 characters)." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
+                    <textarea id="cMessage" name="message" rows="5" placeholder="Tell us how we can help (at least 10 characters)." required aria-required="true"><?php echo e(old_value($cOld, 'message')); ?></textarea>
                     <?php field_error($cErrors, 'message'); ?>
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <?php echo is_logged_in() ? 'Send message' : 'Log in to send'; ?></button>

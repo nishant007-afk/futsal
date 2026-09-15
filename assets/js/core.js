@@ -38,43 +38,41 @@ document.addEventListener('DOMContentLoaded', function () {
         skeletonTimers = [];
         hideSkeletonMsg();
         hideLoader();
-        if (skeletonShown) {
-            pageSkeleton.classList.add('hide');
-            setTimeout(function () { pageSkeleton.remove(); }, 400);
-        } else {
+        if (pageSkeleton) {
+            pageSkeleton.classList.remove('visible');
             pageSkeleton.remove();
         }
     }
     if (pageSkeleton) {
-        // If there's an inline flash toast (e.g. "Welcome back" after login), skip
-        // the skeleton so it doesn't cover the message before it auto-dismisses.
-        if (document.querySelector('.toast-inline')) {
+        // If there's an inline flash toast or page is loaded/interactive, dismiss skeleton immediately
+        // so it never creates a blurry overlay effect over the content.
+        if (document.querySelector('.toast-inline, .top-flash-wrap, .toast-top, .toast') || document.readyState === 'complete' || document.readyState === 'interactive') {
             pageSkeleton.remove();
         } else {
-        // <300ms: show no loader. Wait for a quick paint, then only show skeleton if still loading.
-        skeletonTimers.push(setTimeout(function () {
-            if (!pageSkeleton.isConnected) return;
-            if (document.readyState === 'complete') { pageSkeleton.remove(); return; }
-            pageSkeleton.classList.add('visible');
-            skeletonShown = true;
-            // 300ms–3s: skeleton alone. Past 3s, add a subtle loading message.
+            // Wait for a quick paint, then only show skeleton if still loading.
             skeletonTimers.push(setTimeout(function () {
-                if (!skeletonShown || !pageSkeleton.isConnected) return;
-                showSkeletonMsg();
-            }, 3000));
-            // >5s: escalate skeleton to the spinner loader with a descriptive message.
-            skeletonTimers.push(setTimeout(function () {
-                if (!skeletonShown || !pageSkeleton.isConnected) return;
-                if (alText) alText.textContent = 'Still working on it';
-                showLoader();
-            }, 5000));
-        }, 120));
-        if (document.readyState === 'complete') {
-            hideSkeleton();
-        } else {
-            window.addEventListener('load', hideSkeleton);
-            setTimeout(hideSkeleton, 12000);
-        }
+                if (!pageSkeleton.isConnected) return;
+                if (document.readyState === 'complete' || document.readyState === 'interactive') { pageSkeleton.remove(); return; }
+                pageSkeleton.classList.add('visible');
+                skeletonShown = true;
+                // 3s: subtle loading message
+                skeletonTimers.push(setTimeout(function () {
+                    if (!skeletonShown || !pageSkeleton.isConnected) return;
+                    showSkeletonMsg();
+                }, 3000));
+                // 5s: escalate to spinner loader
+                skeletonTimers.push(setTimeout(function () {
+                    if (!skeletonShown || !pageSkeleton.isConnected) return;
+                    if (alText) alText.textContent = 'Still working on it';
+                    showLoader();
+                }, 5000));
+            }, 120));
+            if (document.readyState === 'complete') {
+                hideSkeleton();
+            } else {
+                window.addEventListener('load', hideSkeleton);
+                setTimeout(hideSkeleton, 1000);
+            }
         }
     }
 
@@ -97,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
             mainNav.classList.toggle('open', open);
             document.body.classList.toggle('nav-open', open);
             document.body.classList.toggle('nav-locked', open);
-            navToggle.innerHTML = open ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
+            navToggle.innerHTML = open ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars-staggered"></i>';
             if (open) {
                 navLockY = window.scrollY;
                 document.body.style.top = '-' + navLockY + 'px';
@@ -139,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sidebarToggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
             const icon = sidebarToggle.querySelector('i');
             if (icon) {
-                icon.className = collapsed ? 'fa-solid fa-angles-right' : 'fa-solid fa-angles-left';
+                icon.className = collapsed ? 'fa-solid fa-bars-staggered' : 'fa-solid fa-angles-left';
             }
         }
         const navLinks = mainNav ? mainNav.querySelectorAll('a[href]') : [];
@@ -284,25 +282,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const y = window.scrollY;
             const delta = y - lastY;
             if (delta > 6 && isUserScrolling()) {
-                // scrolling down -> hide the top navbar up and the mobile bottom nav down
+                // scrolling down -> hide the top navbar only; keep bottom nav visible on mobile
                 siteHeader.classList.add('collapsed');
-                if (bottomNav) { bottomNav.classList.add('hidden'); document.body.classList.add('nav-hidden'); }
                 // mobile only: dismiss the slide-in nav drawer if open
                 if (isCompactHeader() && mainNav && mainNav.classList.contains('open') && typeof setNavOpen === 'function') {
                     setNavOpen(false);
                     document.body.classList.remove('nav-open');
                 }
             } else if ((delta < -6 && isUserScrolling()) || y <= 8) {
-                // scrolling up (or near the top) -> reveal the top navbar and bottom nav
+                // scrolling up (or near the top) -> reveal the top navbar
                 siteHeader.classList.remove('collapsed');
-                if (bottomNav) { bottomNav.classList.remove('hidden'); document.body.classList.remove('nav-hidden'); }
             }
             lastY = y;
         }
         window.addEventListener('scroll', onScroll, { passive: true });
 
-        /* Mobile: tap/click on a blank area toggles both the top and bottom nav.
-           If they are hidden, one tap reveals them; if revealed, one tap hides them. */
+        /* Mobile: tap/click on a blank area toggles the top nav.
+           If it is hidden, one tap reveals it; if revealed, one tap hides it. */
         document.addEventListener('click', function (e) {
             if (!window.matchMedia('(max-width: 820px)').matches) return;
             if (!bottomNav) return;
@@ -312,16 +308,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (t.closest('.site-header') || t.closest('.bottom-nav')) return;
             if (t.closest('a, button, input, textarea, select, label, [data-confirm], .otp-box')) return;
             if (t.closest('.toast, .modal, .popup-backdrop, .msg-backdrop, .msg-card, .cookie-banner, .drawer')) return;
-            const hidden = siteHeader.classList.contains('collapsed') && bottomNav.classList.contains('hidden');
+            const hidden = siteHeader.classList.contains('collapsed');
             if (hidden) {
                 hideTopBar();
                 siteHeader.classList.remove('collapsed');
-                bottomNav.classList.remove('hidden');
-                document.body.classList.remove('nav-hidden');
             } else {
                 siteHeader.classList.add('collapsed');
-                bottomNav.classList.add('hidden');
-                document.body.classList.add('nav-hidden');
             }
         });
     }
@@ -410,7 +402,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // input/change event). Central here so every page behaves the same.
     function syncFloatingLabels() {
         document.querySelectorAll('.input-group.floating input').forEach(function (el) {
-            const on = el.value.trim() !== '';
+            if (!el.hasAttribute('placeholder')) {
+                el.setAttribute('placeholder', ' ');
+            }
+            const on = (el.value && el.value.trim() !== '') || el === document.activeElement;
             if (el.classList.contains('has-value') !== on) {
                 el.classList.toggle('has-value', on);
             }
@@ -697,7 +692,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (dot) dot.remove();
                     const hc = document.querySelector('.bell-head-count');
                     if (hc) hc.remove();
-                    if (typeof updateBellBadge === 'function') updateBellBadge(0);
                 })
                 .catch(function () { markAllBtn.disabled = false; });
         });
@@ -970,7 +964,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isInline) {
             if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
         } else {
-            showBackdrop();
             if (toasts.length > 1) {
                 t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
             }
@@ -1227,133 +1220,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ---- Command palette (Ctrl/Cmd + K) ---- */
-    (function () {
-        const backdrop = document.getElementById('paletteBackdrop');
-        const input = document.getElementById('paletteInput');
-        const body = document.getElementById('paletteBody');
-        if (!backdrop || !input || !body) return;
-        const commands = window.GS_COMMANDS || [];
-        let items = [];
-        let active = -1;
-        let abort = null;
-
-        function escText(v) {
-            const d = document.createElement('div');
-            d.textContent = v;
-            return d.innerHTML;
-        }
-        function rowEl(cmd) {
-            const a = document.createElement('a');
-            a.className = 'pl-item';
-            a.href = cmd.url;
-            const icon = document.createElement('i');
-            icon.className = 'fa-solid ' + (cmd.icon || 'fa-angle-right');
-            const meta = document.createElement('span');
-            meta.className = 'pl-meta';
-            const b = document.createElement('b');
-            b.textContent = cmd.label;
-            const s = document.createElement('span');
-            s.textContent = cmd.hint || '';
-            meta.appendChild(b);
-            meta.appendChild(s);
-            a.appendChild(icon);
-            a.appendChild(meta);
-            return a;
-        }
-        function highlight() {
-            const rows = body.querySelectorAll('.pl-item');
-            rows.forEach(function (r, i) {
-                r.classList.toggle('active', i === active);
-                if (i === active) { r.scrollIntoView({ block: 'nearest' }); }
-            });
-        }
-        function render() {
-            body.innerHTML = '';
-            if (items.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'pl-empty';
-                empty.textContent = 'No matches. Try a court name, city or page.';
-                body.appendChild(empty);
-                return;
-            }
-            const frag = document.createDocumentFragment();
-            items.slice(0, 8).forEach(function (it) { frag.appendChild(rowEl(it)); });
-            body.appendChild(frag);
-            active = -1;
-            highlight();
-        }
-        function setQuery(q) {
-            q = (q || '').trim().toLowerCase();
-            const staticMatches = commands.filter(function (c) {
-                return (c.label + ' ' + (c.hint || '')).toLowerCase().indexOf(q) !== -1;
-            });
-            if (q.length < 2) {
-                items = staticMatches;
-                render();
-                return;
-            }
-            if (abort) { abort.abort(); }
-            abort = new AbortController();
-            fetch(base + '/ajax/search_suggest.php?q=' + encodeURIComponent(q), { signal: abort.signal })
-                .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
-                .then(function (data) {
-                    if (abort && abort.signal.aborted) { return; }
-                    const courts = (data && data.results) ? data.results : [];
-                    const courtItems = courts.map(function (c) {
-                        return {
-                            label: c.name,
-                            hint: c.location + ' · Rs ' + (Number(c.price) || 0).toLocaleString('en-NP'),
-                            url: base + '/pages/ground.php?id=' + c.id,
-                            icon: 'fa-futbol',
-                        };
-                    });
-                    items = staticMatches.concat(courtItems).slice(0, 8);
-                    render();
-                })
-                .catch(function () { /* keep last rendered list on network errors */ });
-        }
-        function open() {
-            backdrop.hidden = false;
-            document.body.classList.add('palette-open');
-            input.value = '';
-            items = commands;
-            render();
-            setTimeout(function () { input.focus(); }, 30);
-        }
-        function close() {
-            backdrop.hidden = true;
-            document.body.classList.remove('palette-open');
-            if (abort) { abort.abort(); }
-        }
-        backdrop.addEventListener('click', function (e) {
-            if (e.target === backdrop) { close(); }
-        });
-        body.addEventListener('click', function (e) {
-            const a = e.target.closest('.pl-item');
-            if (a) { window.location.href = a.href; }
-        });
-        input.addEventListener('input', function () { setQuery(input.value); });
-        input.addEventListener('keydown', function (e) {
-            const rows = body.querySelectorAll('.pl-item');
-            if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(active + 1, rows.length - 1); highlight(); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(active - 1, 0); highlight(); }
-            else if (e.key === 'Enter') { e.preventDefault(); const row = rows[active >= 0 ? active : 0]; if (row) { window.location.href = row.href; } }
-            else if (e.key === 'Escape') { close(); }
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !backdrop.hidden) {
-                e.preventDefault();
-                close();
-            }
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-                e.preventDefault();
-                backdrop.hidden ? open() : close();
-            }
-        });
-        const trigger = document.getElementById('paletteTrigger');
-        if (trigger) { trigger.addEventListener('click', open); }
-    })();
 
     /* ---- Dark/light theme toggle ---- */
     const themeToggle = document.getElementById('themeToggle');
@@ -1469,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'Location access was denied. Search by city instead.';
     }
 
-    // Preferences toggle — always responsive, triggers the browser prompt directly.
+    // Preferences toggle - always responsive, triggers the browser prompt directly.
     if (nearMeToggle) {
         nearMeToggle.checked = getNearMePref();
         nearMeToggle.addEventListener('change', function () {
@@ -1486,12 +1352,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 showNearMeSuccess();
             }, function (err) {
                 if (err && err.code === 1) {
-                    // Already rejected once: browsers won't re-ask — guide them.
+                    // Already rejected once: browsers won't re-ask - guide them.
                     nearMeToggle.checked = false;
                     setNearMePref(false);
                     openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
                 } else {
-                    // Granted but no fix/timeout yet — courts.php retries for a real position.
+                    // Granted but no fix/timeout yet - courts.php retries for a real position.
                     showNearMeSuccess();
                 }
             }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
@@ -1535,7 +1401,7 @@ document.addEventListener('DOMContentLoaded', function () {
         toast.setAttribute('role', 'status');
         toast.innerHTML =
             '<div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>' +
-            '<div class="toast-content"><div class="toast-msg"><span>Location enabled — courts will be sorted by distance.</span></div></div>' +
+            '<div class="toast-content"><div class="toast-msg"><span>Location enabled: courts will be sorted by distance.</span></div></div>' +
             '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
         const wrap = document.createElement('div');
         wrap.className = 'container';
@@ -1663,24 +1529,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     /* end review helpful */
-
-    /* Back to top */
-    (function () {
-        var btn = document.getElementById('backToTop');
-        if (!btn) return;
-        var onScroll = function () {
-            if (window.scrollY > 320) {
-                btn.classList.add('show');
-            } else {
-                btn.classList.remove('show');
-            }
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        btn.addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            btn.classList.remove('show');
-        });
-    })();
 
     /* ---- Install as app (PWA) ---- */
     (function () {

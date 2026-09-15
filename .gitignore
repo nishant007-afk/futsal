@@ -2,6 +2,12 @@
 config/db.php
 config/mail.php
 .env
+deploy/env.live
+deploy/.env
+deploy/*_diag.php
+deploy/_setup_db.php
+deploy/_base_probe.php
+deploy/_cleanup.php
 
 # Composer dependencies (restore with: composer install)
 /vendor/

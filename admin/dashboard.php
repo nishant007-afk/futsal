@@ -110,7 +110,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="attention-strip reveal">
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="attention-item">
             <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span><strong><?php echo count($setupPending); ?> manager<?php echo count($setupPending) > 1 ? 's' : ''; ?> haven't paid the setup fee</strong> <em><?php echo e(implode(', ', array_map(fn($m) => $m['name'], array_slice($setupPending, 0, 3)))); ?><?php echo count($setupPending) > 3 ? ' +' . (count($setupPending) - 3) . ' more' : ''; ?></em></span>
+            <span><strong><?php echo count($setupPending); ?> manager<?php echo count($setupPending) > 1 ? "s haven't" : " hasn't"; ?> paid the setup fee</strong> <em><?php echo e(implode(', ', array_map(fn($m) => $m['name'], array_slice($setupPending, 0, 3)))); ?><?php echo count($setupPending) > 3 ? ' +' . (count($setupPending) - 3) . ' more' : ''; ?></em></span>
             <i class="fa-solid fa-arrow-right attention-go"></i>
         </a>
     </div>

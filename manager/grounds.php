@@ -4,11 +4,9 @@ require_manager();
 
 $subStatus = subscription_status((int)$_SESSION['user_id']);
 
-if (isset($_GET['delete'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['delete'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_ground'])) {
+    verify_csrf();
+    $id = (int)$_POST['delete_ground'];
     if (user_owns_ground($id)) {
         $stmt = $conn->prepare('DELETE FROM grounds WHERE id = ? AND manager_id = ?');
         $stmt->bind_param('ii', $id, $_SESSION['user_id']);
@@ -28,11 +26,9 @@ if (isset($_GET['delete'])) {
     redirect('manager/grounds.php');
 }
 
-if (isset($_GET['duplicate'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['duplicate'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['duplicate_ground'])) {
+    verify_csrf();
+    $id = (int)$_POST['duplicate_ground'];
     if (user_owns_ground($id)) {
         $stmt = $conn->prepare('SELECT * FROM grounds WHERE id = ? AND manager_id = ?');
         $stmt->bind_param('ii', $id, $_SESSION['user_id']);
@@ -75,12 +71,10 @@ if (isset($_GET['duplicate'])) {
     redirect('manager/grounds.php');
 }
 
-if (isset($_GET['delete_photo'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $photo_id = (int)$_GET['delete_photo'];
-    $ground_id = (int)($_GET['ground_id'] ?? 0);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_photo'])) {
+    verify_csrf();
+    $photo_id = (int)$_POST['delete_photo'];
+    $ground_id = (int)($_POST['ground_id'] ?? 0);
     if (user_owns_ground($ground_id)) {
         $stmt = $conn->prepare('SELECT image FROM ground_images WHERE id = ? AND ground_id = ?');
         $stmt->bind_param('ii', $photo_id, $ground_id);
@@ -90,7 +84,7 @@ if (isset($_GET['delete_photo'])) {
             $stmt = $conn->prepare('DELETE FROM ground_images WHERE id = ?');
             $stmt->bind_param('i', $photo_id);
             $stmt->execute();
-            $path = __DIR__ . '/../uploads/grounds/' . $img['image'];
+            $path = __DIR__ . '/../uploads/grounds/' . basename($img['image']);
             if (is_file($path)) {
                 unlink($path);
             }
@@ -263,17 +257,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_qr']) && $edit
     redirect('manager/grounds.php?edit=' . $ground_id);
 }
 
-if (isset($_GET['delete_qr']) && $editing) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_qr_ground'])) {
+    verify_csrf();
+    $ground_id = (int)$_POST['delete_qr_ground'];
+    if (!user_owns_ground($ground_id)) {
+        set_flash('error', 'You can only manage your own grounds.');
+        redirect('manager/grounds.php');
     }
-    $ground_id = (int)$editing['id'];
     $oldQr = ground_qr($ground_id);
     $stmt = $conn->prepare('UPDATE grounds SET payment_qr = \'\' WHERE id = ? AND manager_id = ?');
     $stmt->bind_param('ii', $ground_id, $_SESSION['user_id']);
     $stmt->execute();
     if ($oldQr !== '') {
-        $path = __DIR__ . '/../uploads/grounds/' . $oldQr;
+        $path = __DIR__ . '/../uploads/grounds/' . basename($oldQr);
         if (is_file($path)) {
             unlink($path);
         }
@@ -282,9 +278,13 @@ if (isset($_GET['delete_qr']) && $editing) {
     redirect('manager/grounds.php?edit=' . $ground_id);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date']) && $editing) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date'])) {
     verify_csrf();
-    $ground_id = (int)$editing['id'];
+    $ground_id = (int)($_POST['ground_id'] ?? 0);
+    if (!user_owns_ground($ground_id)) {
+        set_flash('error', 'You can only manage your own grounds.');
+        redirect('manager/grounds.php');
+    }
     $block_date = trim($_POST['block_date'] ?? '');
     $note = trim($_POST['block_note'] ?? '');
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $block_date)) {
@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date']) &
             'That date doesn\'t look valid.',
             'We need a real calendar date to block it.',
             'Pick the date from the calendar and try again.',
-            'manager/grounds.php?edit=' . (int)$editing['id']
+            'manager/grounds.php?edit=' . $ground_id
         );
     } else {
         $stmt = $conn->prepare('INSERT INTO blocked_dates (ground_id, block_date, note) VALUES (?, ?, ?)');
@@ -304,24 +304,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date']) &
                 'That date is already blocked.',
                 'The court already has this date on its closed list.',
                 'Pick a different date to block.',
-                'manager/grounds.php?edit=' . (int)$editing['id']
+                'manager/grounds.php?edit=' . $ground_id
             );
         }
     }
     redirect('manager/grounds.php?edit=' . $ground_id);
 }
 
-if (isset($_GET['unblock']) && $editing) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unblock_date'])) {
+    verify_csrf();
+    $unblock_id = (int)$_POST['unblock_date'];
+    $unblock_ground = (int)($_POST['ground_id'] ?? 0);
+    if (!user_owns_ground($unblock_ground)) {
+        set_flash('error', 'You can only manage your own grounds.');
+        redirect('manager/grounds.php');
     }
-    $unblock_id = (int)$_GET['unblock'];
     $stmt = $conn->prepare('DELETE FROM blocked_dates WHERE id = ? AND ground_id = ?');
-    $stmt->bind_param('ii', $unblock_id, $editing['id']);
+    $stmt->bind_param('ii', $unblock_id, $unblock_ground);
     if ($stmt->execute()) {
         set_flash('success', 'Date unblocked.');
     }
-    redirect('manager/grounds.php?edit=' . $editing['id']);
+    redirect('manager/grounds.php?edit=' . $unblock_ground);
 }
 
 $grounds = $conn->query(
@@ -339,7 +342,6 @@ if ($editing) {
 $page_title = 'My Grounds';
 require __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
@@ -458,8 +460,12 @@ require __DIR__ . '/../includes/header.php';
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
                             <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
-                            <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$editing['id'] . '&ground_id=' . (int)$editing['id'] . '&delete_photo=' . (int)$ph['id'] . '&csrf=' . csrf_token()); ?>"
-                               class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></a>
+                            <form method="post" action="" style="display:inline;">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
+                                <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                                <button type="submit" class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
+                            </form>
                         </div>
                     <?php endforeach; ?>
                     <?php if (!$photos): ?>
@@ -495,8 +501,11 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($groundQr !== ''): ?>
                     <div class="photo-item qr-item mb">
                         <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                        <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$editing['id'] . '&delete_qr=1&csrf=' . csrf_token()); ?>"
-                           class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></a>
+                        <form method="post" action="" style="display:inline;">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="delete_qr_ground" value="<?php echo (int)$editing['id']; ?>">
+                            <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
+                        </form>
                     </div>
                     <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
                         <?php echo csrf_field(); ?>
@@ -573,7 +582,12 @@ require __DIR__ . '/../includes/header.php';
                         <?php foreach ($blockedDates as $bd): ?>
                             <div class="blocked-item">
                                 <span><i class="fa-solid fa-calendar-xmark"></i> <?php echo e(date('D, M j, Y', strtotime($bd['block_date']))); ?><?php echo $bd['note'] !== '' ? ' - ' . e($bd['note']) : ''; ?></span>
-                                 <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$editing['id'] . '&unblock=' . (int)$bd['id'] . '&csrf=' . csrf_token()); ?>" class="photo-remove" data-confirm="Unblock this date?" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></a>
+                                 <form method="post" action="" style="display:inline;">
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="unblock_date" value="<?php echo (int)$bd['id']; ?>">
+                                    <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                                    <button type="submit" class="photo-remove" data-confirm="Unblock this date?" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
+                                 </form>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -581,6 +595,7 @@ require __DIR__ . '/../includes/header.php';
                 <form method="post" action="" id="blockDateForm">
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="add_blocked_date" value="1">
+                    <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
                     <div class="form-group">
                         <label for="blockDate">Date</label>
                         <input type="date" id="blockDate" name="block_date" min="<?php echo e(date('Y-m-d')); ?>" required>
@@ -648,8 +663,8 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-side">
                 <div class="actions tight">
                     <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                    <a href="<?php echo base_url('manager/grounds.php?duplicate=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" data-confirm="Create a copy of this ground?" data-confirm-ok="Yes, duplicate" data-confirm-cancel="Cancel"><i class="fa-solid fa-copy"></i> Duplicate</a>
-                    <a href="<?php echo base_url('manager/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?" aria-label="Delete ground"><i class="fa-solid fa-trash"></i></a>
+                    <?php echo post_action_form(base_url('manager/grounds.php'), 'duplicate_ground', (string)(int)$g['id'], '<i class="fa-solid fa-copy"></i> Duplicate', 'btn btn-outline btn-sm', 'Create a copy of this ground?', 'Duplicate ground'); ?>
+                    <?php echo post_action_form(base_url('manager/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground'); ?>
                 </div>
             </div>
         </div>

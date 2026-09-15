@@ -10,6 +10,11 @@
  * Idempotent-ish; every step reports its replacement count.
  */
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden: run via CLI only.');
+}
+
 $cssPath = __DIR__ . '/../assets/css/style.css';
 $css = file_get_contents($cssPath);
 $report = [];

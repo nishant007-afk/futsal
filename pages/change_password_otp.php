@@ -13,7 +13,6 @@ if (!$pending || !isset($pending['user_id'], $pending['hash']) || (int)$pending[
 $me = current_user();
 $errors = [];
 $codeSent = false;
-$demoCode = null;
 
 $cooldown = otp_send_cooldown($me['email'], 'password_change');
 $resendLeft = max(0, $cooldown);
@@ -23,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($me['email'], $code, 'password_change')) {
         $codeSent = true;
     } else {
+        error_log('OTP email failed for password_change to ' . $me['email']);
         $codeSent = true;
-        $demoCode = $code;
     }
 }
 
@@ -48,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new security code has been sent to your email.');
             redirect('pages/change_password_otp.php');
         } else {
+            error_log('OTP email failed for password_change to ' . $me['email']);
             $codeSent = true;
-            $demoCode = $code;
         }
     } else {
         if ($otp === '') {
@@ -71,30 +70,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Confirm Password Change';
+require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="form-card lg">
- <div class="form-head">
-    <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Confirm with a security code</h2>
+    <div class="form-head">
+        <div class="title-back-row">
+            <a href="<?php echo base_url('pages/security.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2>Confirm with a security code</h2>
+        </div>
     </div>
- </div>
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($codeSent): ?>
         <div class="notice">
             <i class="fa-solid fa-envelope-circle-check"></i>
-            <span><?php echo $demoCode ? '<strong>Email couldn\'t be sent</strong> right now, so use this code: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($demoCode) . '</strong>' : 'Check your inbox (and spam folder). The code expires in 5 minutes.'; ?></span>
+            <span>Check your inbox (and spam folder). The code expires in 5 minutes.</span>
         </div>
     <?php endif; ?>
 
-    <form method="post" action="" novalidate>
+    <form method="post" action="" novalidate role="form">
         <?php echo csrf_field(); ?>
-<div class="form-group<?php echo has_error($errors, 'otp'); ?>">
+        <div class="form-group<?php echo has_error($errors, 'otp'); ?>">
             <label for="otp">Security code <span class="req">*</span></label>
-            <input type="hidden" name="otp" class="otp-source" required>
+            <input type="hidden" name="otp" class="otp-source" required aria-required="true">
             <div class="otp-boxes" role="group" aria-label="Security code">
                 <input class="otp-box" type="tel" id="otp" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" spellcheck="false" aria-label="First digit">
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
@@ -103,17 +103,13 @@ $page_title = 'Confirm Password Change';
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Fifth digit">
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Sixth digit">
             </div>
-
-<?php require __DIR__ . '/../includes/footer.php'; ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    });
-</script>
             <?php field_error($errors, 'otp'); ?>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm & change password</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
-        <p class="form-foot"><a href="<?php echo base_url('pages/security.php'); ?>">Start over</a></p>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
+    <p class="form-foot"><a href="<?php echo base_url('pages/security.php'); ?>">Start over</a></p>
 </div>
+
+<?php require __DIR__ . '/../includes/footer.php'; ?>

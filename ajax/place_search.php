@@ -23,7 +23,8 @@ function http_get_json(string $url): ?array
             'header' => "User-Agent: GoalSpace/1.0 (futsal booking app; localhost)\r\n"
                 . "Accept: application/json\r\n",
         ],
-        'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+        // Keep TLS verification on to prevent MITM on the geocode proxy.
+        'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
     ]);
     $raw = @file_get_contents($url, false, $ctx);
     if ($raw === false) {

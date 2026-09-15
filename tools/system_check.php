@@ -2,7 +2,12 @@
 /**
  * Full system check: render + auth + HTTP + audits.
  * Usage: php tools/system_check.php
+ * CLI-only (also blocked via .htaccess for web).
  */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden: run via CLI only.');
+}
 
 $B = 'http://localhost/futsal';
 require_once __DIR__ . '/../config/env.php';
@@ -49,12 +54,22 @@ function get_scope(string $url, ?string $cookieFile): array
 }
 
 fwrite(STDOUT, "== public pages (expect 200)\n");
+// Use first active ground for the detail check (seed ids vary per env).
+$activeGroundId = 1;
+try {
+    $gdb = @new mysqli(env('DB_HOST', 'localhost'), env('DB_USER', 'root'), (string)env('DB_PASS', ''), env('DB_NAME', 'futsal_booking'), (int)env('DB_PORT', '3306'));
+    if (!$gdb->connect_errno) {
+        $gr = $gdb->query('SELECT id FROM grounds WHERE is_active = 1 ORDER BY id LIMIT 1');
+        if ($gr && ($grow = $gr->fetch_assoc())) { $activeGroundId = (int)$grow['id']; }
+        $gdb->close();
+    }
+} catch (Throwable $e) { /* keep default */ }
 $public = [
     '/'                                       => 200,
     '/pages/courts.php'                       => 200,
     '/pages/login.php'                        => 200,
     '/pages/register.php'                     => 200,
-    '/pages/ground.php?id=1'                  => 200,
+    '/pages/ground.php?id=' . $activeGroundId => 200,
     '/pages/forgot_password.php'              => 200,
     '/assets/css/style.css?v=258'             => 200,
     '/assets/vendor/fontawesome/css/all.min.css' => 200,
@@ -92,9 +107,13 @@ curl_close($ch);
 if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $loginBody, $m)) {
     check('login CSRF token present', true);
     $token = $m[1];
+    // Test credentials come from env when set; defaults are local demo seeds only.
+    $testManagerEmail = (string)(env('TEST_MANAGER_EMAIL') ?: 'manager@futsal.com');
+    $testManagerPass = (string)(env('TEST_PASSWORD') ?: 'password123');
     $dbc = @new mysqli(env('DB_HOST', 'localhost'), env('DB_USER', 'root'), (string)env('DB_PASS', ''), env('DB_NAME', 'futsal_booking'), (int)env('DB_PORT', '3306'));
     if (!$dbc->connect_errno) {
-        $dbc->query("UPDATE users SET login_count = 0 WHERE email = 'manager@futsal.com'");
+        $escMgr = $dbc->real_escape_string($testManagerEmail);
+        $dbc->query("UPDATE users SET login_count = 0 WHERE email = '$escMgr'");
         $dbc->close();
     }
     $ch = curl_init();
@@ -106,8 +125,8 @@ if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $loginBody, $m)) {
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query([
             'csrf_token' => $token,
-            'email'      => 'manager@futsal.com',
-            'password'   => 'password123',
+            'email'      => $testManagerEmail,
+            'password'   => $testManagerPass,
             'remember_me'=> '1',
         ]),
         CURLOPT_COOKIEJAR  => $jar,
@@ -151,16 +170,18 @@ if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $loginBody, $m)) {
     $pBody = curl_exec($ch);
     curl_close($ch);
     if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $pBody, $pt)) {
+        $testPlayerEmail = (string)(env('TEST_PLAYER_EMAIL') ?: 'john@example.com');
         $dbc = @new mysqli(env('DB_HOST', 'localhost'), env('DB_USER', 'root'), (string)env('DB_PASS', ''), env('DB_NAME', 'futsal_booking'), (int)env('DB_PORT', '3306'));
         if (!$dbc->connect_errno) {
-            $dbc->query("UPDATE users SET login_count = 0 WHERE email = 'john@example.com'");
+            $escP = $dbc->real_escape_string($testPlayerEmail);
+            $dbc->query("UPDATE users SET login_count = 0 WHERE email = '$escP'");
             $dbc->close();
         }
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $B . '/pages/login.php', CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true, CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => http_build_query(['csrf_token' => $pt[1], 'email' => 'john@example.com', 'password' => 'password123']),
+            CURLOPT_POSTFIELDS => http_build_query(['csrf_token' => $pt[1], 'email' => $testPlayerEmail, 'password' => $testManagerPass]),
             CURLOPT_COOKIEJAR => $pJar, CURLOPT_COOKIEFILE => $pJar, CURLOPT_TIMEOUT => 30,
         ]);
         $pRes = curl_exec($ch);

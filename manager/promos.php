@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_promo'])) {
     if (!in_array($discount_type, ['percent', 'flat'], true)) {
         $errors['discount_type'] = 'Discount type is invalid.';
     } else {
-        if ($discount_type === 'percent' && ($discount_value <= 0 || $discount_value > 100)) {
-            $errors['discount_value'] = 'Percent discount must be between 1 and 100.';
+        if ($discount_type === 'percent' && ($discount_value <= 0 || $discount_value > 90)) {
+            $errors['discount_value'] = 'Percent discount must be between 1 and 90 (100% free codes are not allowed).';
         } elseif ($discount_type === 'flat' && $discount_value <= 0) {
             $errors['discount_value'] = 'Flat discount must be greater than 0.';
         }
@@ -68,8 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_promo'])) {
     redirect('manager/promos.php');
 }
 
-if (isset($_GET['toggle']) && isset($_GET['csrf']) && hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-    $id = (int)$_GET['toggle'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_promo'])) {
+    verify_csrf();
+    $id = (int)$_POST['toggle_promo'];
     $stmt = $conn->prepare('UPDATE promo_codes SET is_active = 1 - is_active WHERE id = ? AND manager_id = ?');
     $stmt->bind_param('ii', $id, $_SESSION['user_id']);
     $stmt->execute();
@@ -77,8 +78,9 @@ if (isset($_GET['toggle']) && isset($_GET['csrf']) && hash_equals($_SESSION['csr
     redirect('manager/promos.php');
 }
 
-if (isset($_GET['delete']) && isset($_GET['csrf']) && hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-    $id = (int)$_GET['delete'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_promo'])) {
+    verify_csrf();
+    $id = (int)$_POST['delete_promo'];
     $stmt = $conn->prepare('DELETE FROM promo_codes WHERE id = ? AND manager_id = ?');
     $stmt->bind_param('ii', $id, $_SESSION['user_id']);
     $stmt->execute();
@@ -190,8 +192,8 @@ require __DIR__ . '/../includes/header.php';
                         </td>
                         <td>
                             <div class="row-actions">
-                                <a href="<?php echo base_url('manager/promos.php?toggle=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-xs" title="Toggle active" aria-label="Toggle active"><i class="fa-solid <?php echo (int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play'; ?>"></i></a>
-                                <a href="<?php echo base_url('manager/promos.php?delete=' . (int)$p['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-xs" data-confirm="Delete this promo code?" title="Delete" aria-label="Delete promo"><i class="fa-solid fa-trash"></i></a>
+                                <?php echo post_action_form(base_url('manager/promos.php'), 'toggle_promo', (string)(int)$p['id'], '<i class="fa-solid ' . ((int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play') . '"></i>', 'btn btn-outline btn-xs', '', 'Toggle active'); ?>
+                                <?php echo post_action_form(base_url('manager/promos.php'), 'delete_promo', (string)(int)$p['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-xs', 'Delete this promo code?', 'Delete promo'); ?>
                             </div>
                         </td>
                     </tr>

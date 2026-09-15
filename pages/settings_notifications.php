@@ -49,7 +49,7 @@ require __DIR__ . '/../includes/header.php';
                             <em>Confirmations, reminders and changes to your bookings</em>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="notify_bookings" name="notify_bookings" <?php echo (int)($user['notify_bookings'] ?? 1) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="notify_bookings" name="notify_bookings" <?php echo (int)($user['notify_bookings'] ?? 1) ? 'checked' : ''; ?> aria-label="Enable booking updates">
                             <span class="switch-track" aria-hidden="true"></span>
                         </label>
                     </div>
@@ -59,7 +59,7 @@ require __DIR__ . '/../includes/header.php';
                             <em>Offers, seasonal deals and new court announcements</em>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="notify_promo" name="notify_promo" <?php echo (int)($user['notify_promo'] ?? 1) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="notify_promo" name="notify_promo" <?php echo (int)($user['notify_promo'] ?? 1) ? 'checked' : ''; ?> aria-label="Enable promotional emails">
                             <span class="switch-track" aria-hidden="true"></span>
                         </label>
                     </div>
@@ -69,7 +69,7 @@ require __DIR__ . '/../includes/header.php';
                             <em>Heads-up when a booking is about to start or still needs payment</em>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="notify_expiry" name="notify_expiry" <?php echo (int)($user['notify_expiry'] ?? 1) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="notify_expiry" name="notify_expiry" <?php echo (int)($user['notify_expiry'] ?? 1) ? 'checked' : ''; ?> aria-label="Enable expiry reminders">
                             <span class="switch-track" aria-hidden="true"></span>
                         </label>
                     </div>
@@ -79,7 +79,7 @@ require __DIR__ . '/../includes/header.php';
                             <em>Text messages for confirmations and urgent updates</em>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?>>
+                            <input type="checkbox" id="notify_sms" name="notify_sms" <?php echo (int)($user['notify_sms'] ?? 0) ? 'checked' : ''; ?> aria-label="Enable SMS notifications">
                             <span class="switch-track" aria-hidden="true"></span>
                         </label>
                     </div>

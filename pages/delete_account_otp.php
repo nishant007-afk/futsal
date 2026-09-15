@@ -13,7 +13,6 @@ if (!$pending || !isset($pending['user_id'], $pending['email']) || (int)$pending
 $me = current_user();
 $errors = [];
 $codeSent = false;
-$demoCode = null;
 $email = $pending['email'];
 
 $cooldown = otp_send_cooldown($email, 'delete_account');
@@ -23,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($email, $code, 'delete_account')) {
         $codeSent = true;
     } else {
+        error_log('OTP email failed for delete_account to ' . $email);
         $codeSent = true;
-        $demoCode = $code;
     }
 }
 
@@ -48,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new security code has been sent to your email.');
             redirect('pages/delete_account_otp.php');
         } else {
+            error_log('OTP email failed for delete_account to ' . $email);
             $codeSent = true;
-            $demoCode = $code;
         }
     } else {
         if ($otp === '') {
@@ -90,7 +89,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
  </div>
 
-    <div class="notice notice-danger" style="margin-top:8px;">
+    <div class="notice notice-danger mt-8">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <span><strong>This is permanent.</strong> Your account, bookings, reviews and saved courts will be removed. This can't be undone.</span>
     </div>
@@ -98,17 +97,17 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($codeSent): ?>
-        <div class="notice" style="margin-top:8px;">
+        <div class="notice mt-8">
             <i class="fa-solid fa-envelope-circle-check"></i>
-            <span><?php echo $demoCode ? '<strong>Email couldn\'t be sent</strong> right now, so use this code: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($demoCode) . '</strong>' : 'Check your inbox (and spam folder). The code expires in 5 minutes.'; ?></span>
+            <span>Check your inbox (and spam folder). The code expires in 5 minutes.</span>
         </div>
     <?php endif; ?>
 
-    <form method="post" action="" novalidate style="margin-top:10px;">
+    <form method="post" action="" novalidate role="form" class="mt-10">
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'otp'); ?>">
             <label for="otp">Security code <span class="req">*</span></label>
-            <input type="hidden" name="otp" class="otp-source" required>
+            <input type="hidden" name="otp" class="otp-source" required aria-required="true">
             <div class="otp-boxes" role="group" aria-label="Security code">
                 <input class="otp-box" type="tel" id="otp" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" spellcheck="false" aria-label="First digit">
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
@@ -121,7 +120,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <button type="submit" class="btn btn-danger btn-block"><i class="fa-solid fa-trash-can"></i> Permanently delete my account</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
         <p class="form-foot"><a href="<?php echo base_url('pages/security.php'); ?>">Cancel and keep my account</a></p>
     </form>
 </div>

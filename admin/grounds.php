@@ -2,11 +2,9 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
-if (isset($_GET['delete'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['delete'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_ground'])) {
+    verify_csrf();
+    $id = (int)$_POST['delete_ground'];
     $stmt = $conn->prepare('DELETE FROM grounds WHERE id = ?');
     $stmt->bind_param('i', $id);
     if ($stmt->execute() && $stmt->affected_rows > 0) {
@@ -17,12 +15,10 @@ if (isset($_GET['delete'])) {
     redirect('admin/grounds.php');
 }
 
-if (isset($_GET['delete_photo'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $photo_id = (int)$_GET['delete_photo'];
-    $ground_id = (int)($_GET['ground_id'] ?? 0);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_photo'])) {
+    verify_csrf();
+    $photo_id = (int)$_POST['delete_photo'];
+    $ground_id = (int)($_POST['ground_id'] ?? 0);
     $stmt = $conn->prepare('SELECT image FROM ground_images WHERE id = ? AND ground_id = ?');
     $stmt->bind_param('ii', $photo_id, $ground_id);
     $stmt->execute();
@@ -31,7 +27,7 @@ if (isset($_GET['delete_photo'])) {
         $stmt = $conn->prepare('DELETE FROM ground_images WHERE id = ?');
         $stmt->bind_param('i', $photo_id);
         $stmt->execute();
-        $path = __DIR__ . '/../uploads/grounds/' . $img['image'];
+        $path = __DIR__ . '/../uploads/grounds/' . basename($img['image']);
         if (is_file($path)) {
             unlink($path);
         }
@@ -187,17 +183,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_qr']) && $edit
     redirect('admin/grounds.php?edit=' . $ground_id);
 }
 
-if (isset($_GET['delete_qr']) && $editing) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $ground_id = (int)$editing['id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_qr'])) {
+    verify_csrf();
+    $ground_id = (int)$_POST['delete_qr'];
     $oldQr = ground_qr($ground_id);
     $stmt = $conn->prepare('UPDATE grounds SET payment_qr = \'\' WHERE id = ?');
     $stmt->bind_param('i', $ground_id);
     $stmt->execute();
     if ($oldQr !== '') {
-        $path = __DIR__ . '/../uploads/grounds/' . $oldQr;
+        $path = __DIR__ . '/../uploads/grounds/' . basename($oldQr);
         if (is_file($path)) {
             unlink($path);
         }
@@ -362,8 +356,12 @@ require __DIR__ . '/../includes/header.php';
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
                             <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
-                            <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$editing['id'] . '&ground_id=' . (int)$editing['id'] . '&delete_photo=' . (int)$ph['id'] . '&csrf=' . csrf_token()); ?>"
-                               class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></a>
+                            <form method="post" action="" style="display:inline;">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
+                                <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                                <button type="submit" class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
+                            </form>
                         </div>
                     <?php endforeach; ?>
                     <?php if (!$photos): ?>
@@ -399,8 +397,11 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($groundQr !== ''): ?>
                     <div class="photo-item qr-item mb">
                         <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                        <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$editing['id'] . '&delete_qr=1&csrf=' . csrf_token()); ?>"
-                           class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></a>
+                        <form method="post" action="" style="display:inline;">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="delete_qr" value="<?php echo (int)$editing['id']; ?>">
+                            <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
+                        </form>
                     </div>
                     <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
                         <?php echo csrf_field(); ?>
@@ -490,7 +491,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-side">
                 <div class="actions tight">
                     <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                    <a href="<?php echo base_url('admin/grounds.php?delete=' . (int)$g['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this ground?" aria-label="Delete ground"><i class="fa-solid fa-trash"></i></a>
+                    <?php echo post_action_form(base_url('admin/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground'); ?>
                 </div>
             </div>
         </div>

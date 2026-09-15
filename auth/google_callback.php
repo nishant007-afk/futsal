@@ -140,7 +140,6 @@ if ($existing) {
     session_regenerate_id(true);
     $_SESSION['user_id'] = $uid;
     unset($_SESSION['google_oauth']);
-    set_flash('success', 'Signed in with Google. Welcome back, ' . $greeting . '!');
 
     $returnPath = $_SESSION['return_path'] ?? '';
     unset($_SESSION['return_path']);

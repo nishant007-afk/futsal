@@ -70,20 +70,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($cooldown > 0) {
                         session_regenerate_id(true);
                         $_SESSION['user_id'] = $user['id'];
-                        set_flash('success', 'Welcome back, ' . $user['name'] . '!');
                         redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
                     }
                     $otp = issue_otp($email, 'login');
                     $otp_sent = send_otp_mail($email, $otp, 'login');
+                    if (!$otp_sent) {
+                        error_log('OTP email failed for login to ' . $email);
+                    }
                     session_regenerate_id(true);
-                    $_SESSION['pending_login'] = ['user_id' => (int)$user['id'], 'email' => $email, 'otp' => $otp, 'sent' => $otp_sent];
+                    // Never store the OTP in session – verification uses the DB row only.
+                    $_SESSION['pending_login'] = ['user_id' => (int)$user['id'], 'email' => $email, 'sent' => $otp_sent];
                     redirect('pages/otp_verify.php');
                 }
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 $returnPath = $_SESSION['return_path'] ?? '';
                 unset($_SESSION['return_path']);
-                set_flash('success', 'Welcome back, ' . $user['name'] . '!');
                 if ($returnPath === 'pages/page.php?slug=contact') {
                     redirect($returnPath);
                 }
@@ -129,21 +131,18 @@ require __DIR__ . '/../includes/header.php';
         <p class="lead">Pick up right where you left off. Your courts, bookings and stats are waiting.</p>
         <div class="signup-intro-details">
             <ul class="benefit-list">
-                <li><span class="b-icon"><i class="fa-solid fa-calendar-check"></i></span><span><strong>Quick rebook</strong>Jump back into your favourite courts.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span><strong>Booking history</strong>See past games and upcoming slots.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-trophy"></i></span><span><strong>Track progress</strong>See your playing streak and stats.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-calendar-check"></i></span><span><strong>Quick rebook</strong> Jump back into your favourite courts.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span><strong>Booking history</strong> See past games and upcoming slots.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-trophy"></i></span><span><strong>Track progress</strong> See your playing streak and stats.</span></li>
             </ul>
         </div>
     </section>
 
     <section class="signup-right">
         <div class="auth-topline">
-            <div class="auth-toprow">
-                <a href="<?php echo base_url('pages/register.php'); ?>" class="auth-switch">Don't have an account? <strong>Sign up</strong> <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
             <div class="title-back-row">
                 <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2>Sign in to GoalSpace</h2>
+                <h2 class="auth-title-lg">Sign in to GoalSpace</h2>
             </div>
         </div>
 
@@ -159,30 +158,30 @@ require __DIR__ . '/../includes/header.php';
             <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <div class="notice" style="margin-top:16px;">
+        <div class="notice mt-16">
             <i class="fa-solid fa-headset"></i>
             <span>Use the form below to reach the admin about this issue.</span>
         </div>
 
-        <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" style="margin-top:18px;" novalidate>
+        <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" class="mt-18" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="topic" value="login_locked">
             <div class="form-group">
                 <div class="input-group floating">
-                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " maxlength="200" required>
+                    <input type="text" id="subj" name="subject" value="My account is locked after login attempts" placeholder=" " maxlength="200" required aria-required="true">
                     <label for="subj">Subject <span class="req">*</span></label>
                 </div>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
                 <div class="input-group floating">
-                    <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" placeholder=" " required>
+                    <input type="email" id="em" name="email" value="<?php echo e(old_value($cOld, 'email', $suspendedEmail)); ?>" placeholder=" " required aria-required="true">
                     <label for="em">Your email <span class="req">*</span></label>
                 </div>
                 <?php field_error($cErrors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
                 <label for="msg">Message <span class="req">*</span></label>
-                <textarea id="msg" name="message" rows="4" placeholder="Explain what happened so we can help you log back in." required><?php echo e(old_value($cOld, 'message')); ?></textarea>
+                <textarea id="msg" name="message" rows="4" placeholder="Explain what happened so we can help you log back in." required aria-required="true"><?php echo e(old_value($cOld, 'message')); ?></textarea>
                 <?php field_error($cErrors, 'message'); ?>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send to admin</button>
@@ -215,27 +214,27 @@ require __DIR__ . '/../includes/header.php';
             <?php echo csrf_field(); ?>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
                 <div class="input-group floating">
-                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required data-check-email="exists" <?php echo $lock ? 'disabled' : ''; ?>>
+                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required aria-required="true" data-check-email="exists" <?php echo $lock ? 'disabled' : ''; ?>>
                     <label for="email">Email <span class="req">*</span></label>
                 </div>
                 <?php field_error($errors, 'email'); ?>
             </div>
             <div class="form-group<?php echo has_error($errors, 'password'); ?>">
                 <div class="input-group floating">
-                    <input type="password" id="password" name="password" autocomplete="current-password" required <?php echo $lock ? 'disabled' : ''; ?>>
+                    <input type="password" id="password" name="password" placeholder=" " autocomplete="current-password" required aria-required="true" <?php echo $lock ? 'disabled' : ''; ?>>
                     <label for="password">Password <span class="req">*</span></label>
                     <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
-                <p class="form-hint" style="margin-top:8px;"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a></p>
+                <p class="form-hint mt-8"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a></p>
                 <?php field_error($errors, 'password'); ?>
             </div>
-            <label class="check-line" style="margin-bottom:18px;">
+            <label class="check-line mb-18">
                 <input type="checkbox" name="remember_me" value="1">
                 <span class="check-box"><i class="fa-solid fa-check"></i></span>
                 <span>Remember me</span>
             </label>
-            <button type="submit" class="btn btn-primary btn-block" <?php echo $lock ? 'disabled' : 'data-autogate=""'; ?>><i class="fa-solid fa-right-to-bracket"></i> Login</button>
-            <p class="form-foot">New here? <a href="<?php echo base_url('pages/register.php'); ?>">Create an account</a></p>
+            <button type="submit" class="btn btn-primary btn-block" <?php echo $lock ? 'disabled' : 'data-autogate=""'; ?>><i class="fa-solid fa-right-to-bracket"></i> Log in</button>
+            <p class="form-foot">Don't have an account? <a href="<?php echo base_url('pages/register.php'); ?>"><strong>Sign up</strong></a></p>
         </form>
     <?php endif; ?>
     </section>

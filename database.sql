@@ -242,8 +242,8 @@ INSERT INTO users (name, email, phone, password, role) VALUES
   ('John Doe', 'john@example.com', '9842000000', '$2y$10$OMmkJ9UnTpor8Psg8IeCdelLBzafZCAFJ9unOREXJNUJcfWlMYgFm', 'user'),
   ('Ramesh Tamang', 'manager@futsal.com', '9843000000', '$2y$10$OMmkJ9UnTpor8Psg8IeCdelLBzafZCAFJ9unOREXJNUJcfWlMYgFm', 'manager');
 
--- Note: All seeded users share the same bcrypt hash of password "password123"
--- (hash: $2y$10$OMmkJ9UnTpor8Psg8IeCdelLBzafZCAFJ9unOREXJNUJcfWlMYgFm)
+-- Note: Seeded demo accounts (change passwords after import).
+-- See README.md for default credentials. Never deploy this file to production web root.
 
 INSERT INTO grounds (name, location, description, price_per_hour, image, capacity, manager_id, address, court_number, latitude, longitude) VALUES
   ('Downtown Futsal Arena', 'New Road, Kathmandu', 'Indoor futsal court with wooden flooring, floodlights and changing rooms.', 2500.00, '', 12, 3, 'New Road, Kathmandu 44600, Nepal', 'Court 1', 27.7025, 85.3116),

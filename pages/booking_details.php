@@ -122,7 +122,7 @@ require __DIR__ . '/../includes/header.php';
             <h2>Venue location</h2>
             <p class="muted"><?php echo e($b['address']); ?></p>
             <iframe
-                width="100%" height="210" style="border:0;border-radius:var(--r-sm)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                width="100%" height="210" class="map-frame" style="border-radius:var(--r-sm)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
                 src="https://maps.google.com/maps?q=<?php echo rawurlencode($b['address']); ?>&t=&z=16&ie=UTF8&iwloc=B&output=embed">
             </iframe>
         </section>
@@ -190,18 +190,18 @@ require __DIR__ . '/../includes/header.php';
                 <a href="<?php echo base_url('pages/reschedule.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-arrows-rotate"></i> Reschedule</a>
                 <a href="<?php echo base_url('pages/booking_ics.php?id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-plus"></i> Add to Calendar</a>
                 <?php if ((int)$b['repeat_weeks'] > 1): ?>
-                    <a href="<?php echo base_url('pages/my_bookings.php?cancel=' . (int)$b['id'] . '&cancel_series=1&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this whole weekly series of <?php echo (int)$b['repeat_weeks']; ?>?" data-confirm-ok="Yes, cancel series" data-confirm-cancel="No"><i class="fa-solid fa-calendar-xmark"></i> Cancel series</a>
+                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-calendar-xmark"></i> Cancel series', 'btn btn-danger', 'Cancel this whole weekly series of ' . (int)$b['repeat_weeks'] . '?', 'Cancel series', ['cancel_series' => '1']); ?>
                 <?php else: ?>
-                    <a href="<?php echo base_url('pages/my_bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>
+                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
                 <?php endif; ?>
             <?php endif; ?>
         <?php elseif ($me['role'] === 'manager' && $b['status'] !== 'cancelled'): ?>
             <?php if ($b['payment_status'] !== 'paid'): ?>
-                <a href="<?php echo base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline" data-confirm="Mark this booking as paid (paid at court)?" data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel"><i class="fa-solid fa-coins"></i> Mark paid</a>
+                <?php echo post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'btn btn-outline', 'Mark this booking as paid (paid at court)?', 'Mark paid'); ?>
             <?php endif; ?>
-            <a href="<?php echo base_url('manager/bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>
+            <?php echo post_action_form(base_url('manager/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
         <?php elseif ($me['role'] === 'admin' && $b['status'] !== 'cancelled'): ?>
-            <a href="<?php echo base_url('admin/bookings.php?cancel=' . (int)$b['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger" data-confirm="Cancel this booking?" data-confirm-ok="Yes, cancel" data-confirm-cancel="No"><i class="fa-solid fa-xmark"></i> Cancel booking</a>
+            <?php echo post_action_form(base_url('admin/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
         <?php endif; ?>
     </div>
 </div>

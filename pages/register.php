@@ -59,7 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute()) {
                 $otp = issue_otp($email, 'email_verify');
                 $verification_sent = send_otp_mail($email, $otp, 'email_verify');
-                $verification_code = $otp;
+                if (!$verification_sent) {
+                    error_log('OTP email failed for email_verify to ' . $email);
+                }
+                $verification_code = null;
                 $verification_email = $email;
             } else {
                 $errors['general'] = 'Something went wrong. Please try again.';
@@ -68,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($verification_code)) {
+if (isset($verification_email)) {
     session_regenerate_id(true);
     $page_title = 'Verify your email';
     require __DIR__ . '/../includes/header.php';
@@ -76,22 +79,19 @@ if (isset($verification_code)) {
     <div class="form-card lg">
         <div class="form-head">
             <h2>Verify your email</h2>
-            <p class="muted">Enter the 6-digit code we sent to <strong><?php echo e($verification_email); ?></strong> to activate your account.</p>
+            <p class="muted mt-12 lh-15">Enter the 6-digit code we sent to <strong><?php echo e($verification_email); ?></strong> to activate your account.</p>
         </div>
         <div class="notice">
             <i class="fa-solid fa-envelope-circle-check"></i>
-            <span><?php echo $verification_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'We couldn\'t send the email, so here\'s your code:'; ?></span>
-            <?php if (!$verification_sent): ?>
-                <span class="otp-fallback-code"><?php echo e($verification_code); ?></span>
-            <?php endif; ?>
+            <span><?php echo $verification_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'Email delivery is unavailable right now. Please open Verify Email and tap Resend in a minute.'; ?></span>
         </div>
-        <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" style="margin-top:22px;">
+        <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" class="mt-22">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="email" value="<?php echo e($verification_email); ?>">
             <input type="hidden" name="resend" value="0">
             <div class="form-group">
                 <label for="vcode">Verification code</label>
-                <input type="hidden" name="code" class="otp-source" required>
+                <input type="hidden" name="code" class="otp-source" required aria-required="true">
                 <div class="otp-boxes" role="group" aria-label="Verification code">
                     <input class="otp-box" type="tel" id="vcode" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" aria-label="First digit">
                     <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
@@ -102,9 +102,9 @@ if (isset($verification_code)) {
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Verify email</button>
-            <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+            <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
         </form>
-        <p class="form-foot" style="margin-top:20px;">Already verified? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
+        <p class="form-foot mt-20">Already verified? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
     </div>
     <?php
     require __DIR__ . '/../includes/footer.php';
@@ -126,22 +126,19 @@ require __DIR__ . '/../includes/header.php';
         </button>
         <div class="signup-intro-details" id="signupIntroDetails">
             <ul class="benefit-list">
-                <li><span class="b-icon"><i class="fa-solid fa-map-location-dot"></i></span><span><strong>Find a free court</strong>Browse grounds near you and check live availability.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-bolt"></i></span><span><strong>Book in seconds</strong>Reserve your slot in a few taps, pay when it suits you.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-bell"></i></span><span><strong>Never miss a game</strong>Get instant reminders and booking updates.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-user-tie"></i></span><span><strong>Run a court</strong>Managers get a dashboard for bookings and payments.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-map-location-dot"></i></span><span><strong>Find a free court</strong> Browse grounds near you and check live availability.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-bolt"></i></span><span><strong>Book in seconds</strong> Reserve your slot in a few taps, pay when it suits you.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-bell"></i></span><span><strong>Never miss a game</strong> Get instant reminders and booking updates.</span></li>
+                <li><span class="b-icon"><i class="fa-solid fa-user-tie"></i></span><span><strong>Run a court</strong> Managers get a dashboard for bookings and payments.</span></li>
             </ul>
         </div>
     </section>
 
     <section class="signup-right">
-        <div class="auth-topline">
-            <div class="auth-toprow">
-                <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-switch">Already have an account? <strong>Sign in</strong> <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
-            <div class="title-back-row">
+        <div class="auth-head">
+            <div class="auth-brand-row">
                 <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2>Sign up for GoalSpace</h2>
+                <h2>Create your account</h2>
             </div>
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
@@ -154,7 +151,7 @@ require __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
             <div class="input-group floating">
-                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required>
+                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
                 <label for="name">Full name <span class="req">*</span></label>
             </div>
             <p class="form-hint">Letters, numbers, spaces and special characters (e.g. &amp;, ', -) are all allowed.</p>
@@ -162,7 +159,7 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
             <div class="input-group floating">
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required data-check-email="available">
+                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available">
                 <label for="email">Email <span class="req">*</span></label>
             </div>
             <?php field_error($errors, 'email'); ?>
@@ -203,39 +200,35 @@ require __DIR__ . '/../includes/header.php';
 
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
             <div class="input-group floating">
-                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                 <label for="password">Password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <p class="form-hint">Your password needs:</p>
-            <ul class="pw-requirements" id="pwRequirements">
-                <li data-req="length">At least 8 characters</li>
-                <li data-req="letter">At least one letter</li>
-                <li data-req="number">At least one number</li>
-                <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
-            </ul>
+            <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
             <?php field_error($errors, 'password'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
             <div class="input-group floating">
-                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                 <label for="confirm">Confirm password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <?php field_error($errors, 'confirm'); ?>
         </div>
-        <label class="check-line" style="margin-bottom:10px;">
+        <label class="check-line mb-10">
             <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
             <span class="check-box"><i class="fa-solid fa-check"></i></span>
             <span>I'd like to receive emails about new grounds, booking tips and GoalSpace updates.</span>
         </label>
-        <label class="check-line" style="margin-bottom:18px;">
-            <input type="checkbox" id="termsCheck" name="accept" value="1" required <?php echo $accept ? 'checked' : ''; ?>>
+        <label class="check-line mb-18">
+            <input type="checkbox" id="termsCheck" name="accept" value="1" required aria-required="true" <?php echo $accept ? 'checked' : ''; ?>>
             <span class="check-box"><i class="fa-solid fa-check"></i></span>
             <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a></span>
         </label>
         <?php field_error($errors, 'terms'); ?>
         <button type="submit" class="btn btn-primary btn-block" data-autogate=""><i class="fa-solid fa-user-plus"></i> Create account</button>
+        <p class="auth-foot">Already have an account? <a href="<?php echo base_url('pages/login.php'); ?>">Sign in</a></p>
     </form>
     </section>
 </div>

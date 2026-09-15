@@ -13,7 +13,6 @@ if (!$pending || empty($pending['email'])) {
 
 $email = $pending['email'];
 $errors = [];
-$demoCode = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -32,12 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $otp = issue_otp($email, 'login');
         $sent = send_otp_mail($email, $otp, 'login');
-        $_SESSION['pending_login']['otp'] = $otp;
+        unset($_SESSION['pending_login']['otp']);
         $_SESSION['pending_login']['sent'] = $sent;
-            set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable right now, so your code is shown below.');
-        if (!$sent) {
-            $demoCode = $otp;
-        }
+            set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable. Please try again shortly.');
     } else {
         $code = preg_replace('/\D/', '', $_POST['code'] ?? '');
         if ($code === '') {
@@ -60,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['pending_login']);
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$user['id'];
-            set_flash('success', 'Welcome back, ' . $user['name'] . '!');
             redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
         } else {
             $left = otp_attempts_left($email, 'login');
@@ -81,7 +76,7 @@ require __DIR__ . '/../includes/header.php';
             <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Two-step login</h2>
         </div>
-        <p class="muted">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>
+        <p class="muted mt-12 lh-15">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>
     </div>
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
@@ -89,11 +84,11 @@ require __DIR__ . '/../includes/header.php';
     <!-- ...notice removed... -->
     <!-- OTP code display removed for security - codes are delivered via email only -->
 
-    <form method="post" action="" style="margin-top:18px;" novalidate>
+    <form method="post" action="" class="mt-18" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
             <label for="code">Login code <span class="req">*</span></label>
-            <input type="hidden" name="code" class="otp-source" required>
+            <input type="hidden" name="code" class="otp-source" required aria-required="true">
             <div class="otp-boxes" role="group" aria-label="Login code">
                 <input class="otp-box" type="tel" id="code" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" spellcheck="false" aria-label="First digit">
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
@@ -105,13 +100,9 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'code'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> Verify and log in</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
     <p class="form-foot"><a href="<?php echo base_url('pages/login.php'); ?>">Use a different account</a></p>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    });
-</script>

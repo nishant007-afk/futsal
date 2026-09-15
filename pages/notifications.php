@@ -79,10 +79,10 @@ require __DIR__ . '/../includes/header.php';
 <div class="notif-page-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Notifications</h2>
+        <h1>Notifications</h1>
     </div>
 </div>
-<div class="notif-actions reveal" style="margin-bottom:18px;">
+<div class="notif-actions reveal mb-18">
     <?php if ($allNotifications): ?>
         <form method="post" action="">
             <?php echo csrf_field(); ?>
@@ -132,7 +132,7 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="notif-side">
                         <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id'] . '&view=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
-                        <form method="post" action="" style="display:inline;">
+                        <form method="post" action="" class="d-inline">
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
                             <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>

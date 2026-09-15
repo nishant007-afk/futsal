@@ -18,7 +18,7 @@ require __DIR__ . '/../includes/header.php';
     <a href="<?php echo base_url('pages/profile.php'); ?>" class="stg-profile-row">
         <span class="stg-profile-avatar">
             <?php if (!empty($user['avatar'])): ?>
-                <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="" loading="lazy" decoding="async">
+                <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
             <?php else: ?>
                 <?php echo e(strtoupper(substr($user['name'], 0, 1))); ?>
             <?php endif; ?>
@@ -85,10 +85,13 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="stg-section">
         <div class="stg-list">
-            <a href="<?php echo base_url('pages/logout.php?csrf=' . csrf_token()); ?>" class="stg-item stg-item-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel">
-                <span class="stg-item-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
-                <span class="stg-item-label">Log out</span>
-            </a>
+            <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
+                <?php echo csrf_field(); ?>
+                <button type="submit" class="stg-item stg-item-danger stg-item-btn" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel">
+                    <span class="stg-item-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                    <span class="stg-item-label">Log out</span>
+                </button>
+            </form>
         </div>
     </div>
 </div>

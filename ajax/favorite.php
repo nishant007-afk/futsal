@@ -22,6 +22,22 @@ if (!isset($_POST['id']) || $id <= 0) {
     exit;
 }
 
+// Ground must exist and be active; only players can save courts.
+if (!is_player()) {
+    http_response_code(403);
+    echo json_encode(['error' => 'players only']);
+    exit;
+}
+$gStmt = $conn->prepare('SELECT id FROM grounds WHERE id = ? AND is_active = 1');
+$gStmt->bind_param('i', $id);
+$gStmt->execute();
+if (!$gStmt->get_result()->fetch_assoc()) {
+    http_response_code(404);
+    echo json_encode(['error' => 'ground not found']);
+    exit;
+}
+$gStmt->close();
+
 $saved = favorite_exists($id);
 $ok = toggle_favorite($id);
 if (!$ok) {

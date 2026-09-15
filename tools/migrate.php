@@ -13,6 +13,12 @@
  */
 require_once __DIR__ . '/../config/db.php';
 
+// CLI-only: never allow schema changes via HTTP (blocked in .htaccess too).
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden: run via CLI only (php tools/migrate.php).');
+}
+
 function table_exists(string $name): bool
 {
     global $conn;

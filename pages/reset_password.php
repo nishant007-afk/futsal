@@ -61,22 +61,17 @@ require __DIR__ . '/../includes/header.php';
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
             <div class="input-group floating">
-                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                 <label for="password">New password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>
             <p class="form-hint">Your new password needs:</p>
-            <ul class="pw-requirements" id="pwRequirements">
-                <li data-req="length">At least 8 characters</li>
-                <li data-req="letter">At least one letter</li>
-                <li data-req="number">At least one number</li>
-                <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
-            </ul>
+            <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
             <?php field_error($errors, 'password'); ?>
         </div>
         <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
             <div class="input-group floating">
-                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required>
+                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
                 <label for="confirm">Confirm new password <span class="req">*</span></label>
                 <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
             </div>

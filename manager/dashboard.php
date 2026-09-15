@@ -65,15 +65,26 @@ $todayList = $conn->query(
 )->fetch_all(MYSQLI_ASSOC);
 
 $todaySlotData = [];
+// Single GROUP BY instead of per-ground COUNT (N+1 fix).
+$bookedMap = [];
+if (!empty($myGrounds)) {
+    $gids = array_map(fn($g) => (int)$g['id'], $myGrounds);
+    $ph = implode(',', array_fill(0, count($gids), '?'));
+    $types = str_repeat('i', count($gids));
+    $cStmt = $conn->prepare("SELECT ground_id, COUNT(*) c FROM bookings WHERE ground_id IN ($ph) AND booking_date = CURDATE() AND status != 'cancelled' GROUP BY ground_id");
+    $cStmt->bind_param($types, ...$gids);
+    $cStmt->execute();
+    foreach ($cStmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+        $bookedMap[(int)$r['ground_id']] = (int)$r['c'];
+    }
+    $cStmt->close();
+}
 foreach ($myGrounds as $g) {
     $totalSlots = count(slots_for_day(date('Y-m-d'), (int)$g['id']));
-    $stmt = $conn->prepare('SELECT COUNT(*) c FROM bookings WHERE ground_id = ? AND booking_date = CURDATE() AND status != "cancelled"');
-    $stmt->bind_param('i', $g['id']);
-    $stmt->execute();
     $todaySlotData[] = [
         'name' => $g['name'],
         'total' => $totalSlots,
-        'booked' => (int)$stmt->get_result()->fetch_assoc()['c'],
+        'booked' => $bookedMap[(int)$g['id']] ?? 0,
     ];
 }
 $todaySlotBooked = array_sum(array_column($todaySlotData, 'booked'));
@@ -194,14 +205,18 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!$todaySlotData): ?>
         <p class="muted table-empty">Add a ground to see today's slot availability.</p>
     <?php else: ?>
+        <div class="slot-strip-grid">
         <?php foreach ($todaySlotData as $ts): ?>
             <?php $pct = $ts['total'] > 0 ? (int)round(($ts['booked'] / $ts['total']) * 100) : 0; ?>
-            <div class="slot-strip">
-                <span class="slot-strip-name" title="<?php echo e($ts['name']); ?>"><?php echo e($ts['name']); ?></span>
+            <div class="slot-strip-card">
+                <div class="slot-strip-head">
+                    <span class="slot-strip-name" title="<?php echo e($ts['name']); ?>"><?php echo e($ts['name']); ?></span>
+                    <span class="slot-strip-count <?php echo $ts['booked'] > 0 ? 'active' : ''; ?>"><?php echo $ts['booked']; ?> / <?php echo $ts['total']; ?></span>
+                </div>
                 <div class="slot-strip-track"><div class="slot-strip-fill" style="width:<?php echo $pct; ?>%;"></div></div>
-                <span class="slot-strip-count"><?php echo $ts['booked']; ?>/<?php echo $ts['total']; ?></span>
             </div>
         <?php endforeach; ?>
+        </div>
     <?php endif; ?>
 </div>
 

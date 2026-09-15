@@ -7,7 +7,7 @@ $user = $logged_in ? current_user() : null;
 $isManager = $user !== null && $user['role'] === 'manager';
 
 $page_title = 'Frequently Asked Questions';
-$page_description = 'Answers to common questions about booking a futsal court, paying with a QR code, accounts and managing courts.';
+$page_description = 'Find clear answers to common questions about booking futsal courts, digital QR payments, cancellations, and venue management on GoalSpace.';
 require __DIR__ . '/../includes/header.php';
 ?>
 
@@ -16,167 +16,180 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1>Frequently Asked Questions</h1>
     </div>
+    <p>Everything you need to know about booking, playing, payments, and managing futsal courts on GoalSpace.</p>
 </div>
 
 <div class="faq-search" role="search">
-    <input type="search" id="faqSearch" placeholder="Search questions…" autocomplete="off">
+    <input type="search" id="faqSearch" placeholder="Search questions by keyword..." autocomplete="off">
 </div>
 <div class="faq-cats" aria-label="Jump to a topic">
     <a href="#cat-booking">Booking</a>
     <a href="#cat-payment">Payments</a>
-    <a href="#cat-account">Account</a>
     <a href="#cat-cancel">Cancellations</a>
-    <a href="#cat-owners">For owners</a>
-    <a href="#cat-tech">Technical</a>
+    <a href="#cat-account">Account</a>
+    <a href="#cat-owners">For Managers</a>
+    <a href="#cat-tech">Technical Help</a>
 </div>
 
 <div class="faq-list">
-    <h2 class="faq-section-title" id="cat-booking">Booking</h2>
+    <h2 class="faq-section-title" id="cat-booking">Booking a Court</h2>
+    
     <details class="faq-item">
-        <summary>How do I book a court?</summary>
-        <p>In a few taps you can lock in a slot:</p>
+        <summary>How do I book a futsal court on GoalSpace?</summary>
+        <p>Reserving a court takes less than two minutes:</p>
         <ul>
-            <li><strong>Find a court.</strong> Use the search bar or open the <a href="<?php echo base_url('pages/courts.php'); ?>">courts list</a> / <a href="<?php echo base_url('pages/map.php'); ?>">map</a>.</li>
-            <li><strong>Pick a date &amp; slot.</strong> On the court page, tap a date and choose a free time on the calendar.</li>
-            <li><strong>Confirm your booking.</strong> Check the summary (price, time, repeats) and confirm. The slot is held for you while you pay.</li>
-            <li><strong>Pay.</strong> See <a href="#cat-payment">Paying</a> below, then you're done.</li>
+            <li><strong>Find a venue:</strong> Use the search bar or open the <a href="<?php echo base_url('pages/courts.php'); ?>">all courts directory</a> to compare nearby grounds, prices, and amenities.</li>
+            <li><strong>Select date and slot:</strong> Open the court profile, choose your match day, and click any available green slot on the hourly calendar.</li>
+            <li><strong>Confirm reservation:</strong> Review your match duration and pricing breakdown. Once you confirm, the slot is locked immediately in our database to prevent double-booking.</li>
+            <li><strong>Complete payment:</strong> Choose between a 20% advance deposit or full payment via QR code, or pay at the court counter.</li>
         </ul>
-        <p>You can review, reschedule or cancel the booking later from <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Do I need an account to book?</summary>
-        <p>Yes, you need a player account so your booking is linked to you and you get the confirmation and receipt. Creating an account is free.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Can I book a recurring or weekly slot?</summary>
-        <p>Yes. When confirming your slot, choose "Repeat weekly" and set how many weeks you want the same slot repeated.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Can I change or reschedule my slot after booking?</summary>
-        <p>Yes, as long as the court&rsquo;s cancellation window allows it. Open the booking in <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a> and choose Reschedule.</p>
+        <p>You can review your confirmed game anytime under <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>.</p>
     </details>
 
-    <h2 class="faq-section-title" id="cat-payment">Payments</h2>
     <details class="faq-item">
-        <summary>How do I pay for a booking?</summary>
-        <p>After you choose a slot, you pick how to pay, then scan to transfer the money:</p>
-        <ul>
-            <li><strong>Choose an option.</strong> Pay a 20% advance now (balance at the court) or pay the full amount.</li>
-            <li><strong>Scan the QR.</strong> The court owner&rsquo;s payment QR is shown. Open your payment app (Khalti, eSewa, IME Pay, etc.) and scan it.</li>
-            <li><strong>Confirm the transfer.</strong> Approve the amount in your app. Once done, your slot is confirmed and a receipt is emailed to you.</li>
-            <li><strong>Check status.</strong> A "Paid via QR" badge appears on the booking once the payment is recorded.</li>
-        </ul>
-        <p>If the court has no QR code, you can pay at the venue instead. See <a href="#cat-cancel">Cancellations</a> for the refund rules.</p>
-    </details>
-    <details class="faq-item">
-        <summary>What if the court has no QR code?</summary>
-        <p>You can still pay at the venue with cash or card when you arrive. The booking is held as reserved, and the court collects payment on site.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Is my payment secure?</summary>
-        <p>The transfer happens inside your own payment app, so none of your card or PIN details pass through GoalSpace. We never store card data.</p>
-    </details>
-    <details class="faq-item">
-        <summary>I scanned the QR but nothing changed. Is my booking confirmed?</summary>
-        <p>Your slot is reserved in the system once you choose to pay (full or advance). Scanning the QR completes the actual money transfer to the court. If the court collects payment at arrival instead, they will mark it paid on arrival.</p>
-    </details>
-    <details class="faq-item">
-        <summary>When will I get a receipt?</summary>
-        <p>A receipt is emailed as soon as the payment is recorded. You can also view and download it anytime from the booking details. Open the booking in <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a> and tap <strong>Receipt</strong>.</p>
+        <summary>Do I need an account to make a reservation?</summary>
+        <p>Yes. Creating a free player account ensures that your booking is permanently recorded, your receipt is delivered to your email, and you can easily reschedule or cancel if your plans change.</p>
     </details>
 
-    <h2 class="faq-section-title" id="cat-account">Account</h2>
     <details class="faq-item">
-        <summary>How do I create an account?</summary>
-        <p>Tap <strong>Sign up</strong> in the top right, enter your name and email, set a password, and pick the <strong>Player</strong> role. You&rsquo;ll get a verification email to confirm your address.</p>
-    </details>
-    <details class="faq-item">
-        <summary>I forgot my password</summary>
-        <p>Use the "Forgot password?" link on the login page. We&rsquo;ll email you a one-time code to reset it.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Can I update my phone number or email?</summary>
-        <p>Yes, in <a href="<?php echo base_url('pages/profile.php'); ?>">Profile</a> you can update your details. Changing email or phone may require re-verifying.</p>
+        <summary>Can I book recurring or weekly slots for my regular team?</summary>
+        <p>Yes. When scheduling on court profiles that support recurring bookings, you can select weekly recurrence to reserve the same time slot across multiple weeks in advance.</p>
     </details>
 
-    <h2 class="faq-section-title" id="cat-cancel">Cancellations &amp; refunds</h2>
     <details class="faq-item">
-        <summary>What is the cancellation policy?</summary>
-        <ul>
-            <li>Cancel <strong>24 hours or more</strong> before your slot &rarr; full refund.</li>
-            <li>Cancel <strong>within 24 hours</strong> &rarr; we keep the advance as credit for a future booking.</li>
-            <li><strong>No-shows</strong> &rarr; no refund, though the advance may be kept as credit if you contact us.</li>
-        </ul>
-        <p>See <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms of service</a> for the full policy.</p>
-    </details>
-    <details class="faq-item">
-        <summary>How do I cancel a booking?</summary>
-        <p>Cancel directly from <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>:</p>
-        <ul>
-            <li>Open the booking you want to cancel.</li>
-            <li>Tap <strong>Cancel booking</strong> (or <strong>Cancel series</strong> for a repeating slot).</li>
-            <li>Confirm on the dialog. You&rsquo;ll see the refund amount before you submit.</li>
-        </ul>
-    </details>
-    <details class="faq-item">
-        <summary>Will I get a refund if I don&rsquo;t show up?</summary>
-        <p>If you cancel in time you get a full refund. Late cancellations or no-shows are non-refundable, though the advance may be kept as credit for your next booking.</p>
+        <summary>Is my reservation confirmed immediately or does it require approval?</summary>
+        <p>Every booking on GoalSpace is <strong>confirmed instantly</strong> the moment you submit it. There is no waiting for manual approval or phone confirmations. The court slot is held exclusively for you.</p>
     </details>
 
-    <h2 class="faq-section-title" id="cat-owners">For court owners</h2>
+
+    <h2 class="faq-section-title" id="cat-payment">Payments and Pricing</h2>
+
     <details class="faq-item">
-        <summary>How do I add my court?</summary>
-        <p>Sign up with the Manager role, then open <strong>My Grounds</strong> and click <strong>Add Ground</strong>. Fill in the details and the map pin, then Save.</p>
-    </details>
-    <details class="faq-item">
-        <summary>How do I add my payment QR code?</summary>
+        <summary>What payment options are available?</summary>
+        <p>GoalSpace offers three convenient payment arrangements depending on what suits you and your team:</p>
         <ul>
-            <li>Open <a href="<?php echo base_url('manager/grounds.php'); ?>">My Grounds</a> and click <strong>Edit</strong> on the court.</li>
-            <li>Open the <strong>Payment QR code</strong> card, choose an image of your payment QR (Khalti/eSewa/IME Pay), and click <strong>Save QR</strong>.</li>
-            <li>When a player pays, the QR is shown and the booking is recorded as paid via QR.</li>
+            <li><strong>20% Advance Online:</strong> Lock in your court with a small advance deposit via QR transfer, then pay the remaining 80% balance in cash or card when you arrive at the venue.</li>
+            <li><strong>100% Full Payment Online:</strong> Pay the complete court fee upfront so your team can show up and play without handling money at the venue.</li>
+            <li><strong>Pay at Venue:</strong> For grounds that allow it, reserve your time slot and settle the full payment directly at the venue reception prior to kickoff.</li>
         </ul>
-        <p>To remove or replace it later, use the same card (upload a new image or click the remove icon).</p>
-    </details>
-    <details class="faq-item">
-        <summary>How and when do I get paid?</summary>
-        <ul>
-            <li><strong>QR payments.</strong> Players scan your QR and transfer directly to your account. The booking is marked <em>Paid via QR</em> so you can match the incoming transfer.</li>
-            <li><strong>At the court.</strong> If a player pays on arrival, open <a href="<?php echo base_url('manager/bookings.php'); ?>">Bookings</a>, find the booking, and click <strong>Mark paid</strong>.</li>
-            <li>Payments show in your <a href="<?php echo base_url('manager/dashboard.php'); ?>">dashboard</a> alongside upcoming bookings.</li>
-        </ul>
-    </details>
-    <details class="faq-item">
-        <summary>How do I mark a booking as paid on arrival?</summary>
-        <p>In <strong>Bookings</strong>, find the booking and click <strong>Mark paid</strong>. It&rsquo;s immediately recorded as paid at court.</p>
-    </details>
-    <details class="faq-item">
-        <summary>Can I block dates I&rsquo;m not available?</summary>
-        <p>Yes, on the ground edit page, open <strong>Blocked dates</strong>, pick a date and add an optional note.</p>
     </details>
 
-    <h2 class="faq-section-title" id="cat-tech">Technical</h2>
     <details class="faq-item">
-        <summary>The site isn&rsquo;t loading on mobile</summary>
-        <p>Make sure you&rsquo;re using a modern browser (Chrome, Safari, Firefox, Edge) and that JavaScript is enabled. Clear your cache and try again.</p>
+        <summary>How does paying via QR code work?</summary>
+        <p>During checkout, the court owner's verified payment QR code is displayed on your screen. Simply open your preferred digital wallet app (such as Khalti, eSewa, IME Pay, or mobile banking), scan the QR code, and approve the exact amount shown. Your booking status updates automatically.</p>
     </details>
+
     <details class="faq-item">
-        <summary>I&rsquo;ve been charged twice</summary>
-        <p>Contact us with your booking reference and a screenshot of both charges. We&rsquo;ll investigate within 48 hours.</p>
+        <summary>Are digital payments secure?</summary>
+        <p>Yes, completely. Because QR payments occur directly inside your bank or digital wallet app, GoalSpace never handles or stores your sensitive payment credentials, debit card numbers, or transaction PINs.</p>
     </details>
+
     <details class="faq-item">
-        <summary>Where can I get more help?</summary>
-        <p>Visit the <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help centre</a>, or <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">contact us</a>. We usually reply within a day.</p>
+        <summary>Where can I find my official booking receipt?</summary>
+        <p>A digital receipt is automatically generated and emailed to your registered address upon booking confirmation. You can also view or download your receipt at any time by visiting <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a> and selecting the Receipt option on your reservation card.</p>
+    </details>
+
+
+    <h2 class="faq-section-title" id="cat-cancel">Cancellations and Refunds</h2>
+
+    <details class="faq-item">
+        <summary>What is the GoalSpace cancellation policy?</summary>
+        <p>We maintain a balanced, transparent cancellation policy for both players and court operators:</p>
+        <ul>
+            <li><strong>24 Hours or More Prior to Kickoff:</strong> 100% full refund or platform credit, no penalty fees.</li>
+            <li><strong>Within 24 Hours of Kickoff:</strong> The advance deposit is retained as credit for future bookings to protect the venue from empty pitch loss.</li>
+            <li><strong>No-Shows:</strong> Failing to appear without notice forfeits the advance deposit. Continued unexcused no-shows may limit your booking privileges.</li>
+        </ul>
+    </details>
+
+    <details class="faq-item">
+        <summary>How do I cancel or reschedule a confirmed booking?</summary>
+        <p>You can manage your booking directly from your dashboard without making phone calls:</p>
+        <ul>
+            <li>Go to <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>.</li>
+            <li>Locate the upcoming match you want to modify.</li>
+            <li>Click <strong>Cancel Booking</strong> or <strong>Reschedule</strong>. You will see the exact refund or adjustment breakdown before submitting.</li>
+        </ul>
+    </details>
+
+    <details class="faq-item">
+        <summary>What happens if bad weather makes the court unplayable?</summary>
+        <p>In cases of extreme weather or unexpected ground maintenance where the venue cannot host your match, the manager can cancel the slot. You will immediately receive a 100% refund or credit to reschedule at your convenience.</p>
+    </details>
+
+
+    <h2 class="faq-section-title" id="cat-account">Player Accounts and Security</h2>
+
+    <details class="faq-item">
+        <summary>How do I register an account?</summary>
+        <p>Click <a href="<?php echo base_url('pages/register.php'); ?>">Sign Up</a> at the top of any page, fill in your name, email, and password, and select the Player role. You can also sign in with one tap using Google.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>What should I do if I forget my password?</summary>
+        <p>Click <a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a> on the login page, enter your registered email, and we will send you a secure 6-digit one-time code to reset your password.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>Can I change my registered phone number or email?</summary>
+        <p>Yes. Open your <a href="<?php echo base_url('pages/profile.php'); ?>">Profile</a> and click Settings. You can update your contact phone, display name, and avatar at any time.</p>
+    </details>
+
+
+    <h2 class="faq-section-title" id="cat-owners">For Court Owners and Managers</h2>
+
+    <details class="faq-item">
+        <summary>How do I list my futsal ground on GoalSpace?</summary>
+        <p>Register an account with the <strong>Manager</strong> role, or click <a href="<?php echo base_url('pages/register.php?role=manager'); ?>">Become a Manager</a>. Once signed in, navigate to <strong>My Grounds</strong> in your dashboard and click <strong>Add Ground</strong> to set your court specifications, hourly rates, photos, and map location.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>How do I receive digital payments from players?</summary>
+        <p>Under <strong>My Grounds</strong>, click <strong>Edit</strong> on your court profile and open the Payment QR Code section. Upload a clear photo of your merchant QR code (eSewa, Khalti, IME Pay, or bank mobile banking). Players will scan your QR code directly during checkout.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>How do I record payments made in cash at the counter?</summary>
+        <p>In your manager Bookings screen, find the corresponding reservation and click <strong>Mark Paid</strong>. The booking status will instantly update to confirmed and paid on-site.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>Can I block off slots for private tournaments or turf maintenance?</summary>
+        <p>Yes. On the court edit page, access the <strong>Blocked Dates and Times</strong> tab. You can close off single hours, full days, or custom date ranges without taking your court offline.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>How do promo discount codes work?</summary>
+        <p>In your manager portal, open <strong>Promos</strong> to create custom discount coupons. You can configure percentage discounts or fixed deductions to attract teams and fill typically quiet daytime or weekday morning hours.</p>
+    </details>
+
+
+    <h2 class="faq-section-title" id="cat-tech">Technical Help and Support</h2>
+
+    <details class="faq-item">
+        <summary>How does the "Use my location" feature work?</summary>
+        <p>When you enable location services, your browser calculates distances to nearby courts so they appear sorted closest to you first. Your location is processed only within your active browser session and is never stored on our servers or shared with any third party.</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>Can I install GoalSpace as an app on my phone?</summary>
+        <p>Yes. GoalSpace is built as a progressive web application. On Android Chrome, tap the menu and select "Install app" or "Add to Home Screen". On iPhone Safari, tap the Share icon and select "Add to Home Screen".</p>
+    </details>
+
+    <details class="faq-item">
+        <summary>Who do I contact if I need personalized assistance?</summary>
+        <p>You can reach our dedicated support desk by emailing <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or submitting an inquiry via our <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">Contact form</a>. We typically respond within 4 hours during normal business days.</p>
     </details>
 </div>
 
 <div class="faq-empty" id="faqEmpty" hidden>
-    <p>No questions match &ldquo;<span id="faqEmptyTerm"></span>&rdquo;. Try a different word.</p>
+    <p>No questions matched your search term "<span id="faqEmptyTerm"></span>". Try searching with different keywords.</p>
 </div>
 
 <?php if ($logged_in && $isManager): ?>
 <div class="notice faq-help">
     <i class="fa-solid fa-circle-info"></i>
-    <span>Managing a court? <a href="<?php echo base_url('pages/how_to_use.php#managers'); ?>">Read the manager guide</a> for step-by-step help with payments, bookings and blocked dates.</span>
+    <span>Managing a court? Check the <a href="<?php echo base_url('pages/page.php?slug=help#for-managers'); ?>">manager help section</a> for help with bookings, payments, and ground configuration.</span>
 </div>
 <?php endif; ?>
 
@@ -215,11 +228,15 @@ require __DIR__ . '/../includes/header.php';
             first.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
+    items.forEach(function (item) {
+        item.setAttribute('aria-expanded', item.open ? 'true' : 'false');
+    });
 })();
 (function () {
     var items = document.querySelectorAll('.faq-item');
     var sync = function (item) {
         item.style.setProperty('--faq-chev', item.open ? '"\\f077"' : '"\\f078"');
+        item.setAttribute('aria-expanded', item.open ? 'true' : 'false');
     };
     items.forEach(function (item) {
         sync(item);

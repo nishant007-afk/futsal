@@ -81,7 +81,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card lg">
     <div class="form-head">
-        <p class="muted" style="font-size:15px; margin:0 0 4px;">Hi, <?php echo e($gName); ?></p>
+        <p class="muted text-15 m-0 mb-4">Hi, <?php echo e($gName); ?></p>
         <div class="title-back-row">
             <a href="<?php echo base_url($back); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>One last step to set up your account</h2>
@@ -120,15 +120,15 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'role'); ?>
         </div>
 
-        <label class="check-line" style="margin-bottom:10px;">
+        <label class="check-line mb-10">
             <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
             <span class="check-box"><i class="fa-solid fa-check"></i></span>
             <span>I'd like to receive emails about new grounds, booking tips and GoalSpace updates.</span>
         </label>
 
         <div<?php echo has_error($errors, 'terms'); ?>>
-            <label class="check-line" style="margin-bottom:18px;">
-                <input type="checkbox" id="termsCheck" name="accept" value="1" required>
+            <label class="check-line mb-18">
+                <input type="checkbox" id="termsCheck" name="accept" value="1" required aria-required="true">
                 <span class="check-box"><i class="fa-solid fa-check"></i></span>
                 <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a></span>
             </label>

@@ -64,6 +64,7 @@ if ($nearLatLng !== null) {
     $lat1 = $nearLatLng[0];
     $lng1 = $nearLatLng[1];
     $maxKm = (float)($_GET['radius'] ?? 40);
+    $maxKm = max(1, min(200, $maxKm));
     $selectedCols = 'g.*, u.name AS owner_name,
         ROUND(' . $R . ' * acos(cos(radians(?)) * cos(radians(g.latitude)) * cos(radians(g.longitude) - radians(?)) + sin(radians(?)) * sin(radians(g.latitude))), 1) AS distance_km';
     $having = ' HAVING distance_km < ' . $maxKm . '';
@@ -81,6 +82,9 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $grounds = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+if ($grounds) {
+    preload_ground_cards(array_column($grounds, 'id'));
+}
 
 $availability = null;
 if ($date !== '') {
@@ -165,31 +169,18 @@ $page_description = 'Browse all futsal courts in Kathmandu, Bhaktapur, and Lalit
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container">
-<?php if (is_logged_in()): $me = current_user(); ?>
-<div class="page-head reveal">
-    <div class="courts-welcome">
-        <h1 class="courts-welcome-title">Welcome back, <?php echo e($me['name']); ?></h1>
-        <p class="courts-welcome-sub">Find and book a court near you.</p>
-    </div>
-    <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-    </div>
-</div>
-<?php else: ?>
 <div class="page-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1 class="page-title">All Courts</h1>
     </div>
 </div>
-<?php endif; ?>
 
     <div class="courts-toolbar reveal">
         <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
             <div class="courts-search-main">
                 <div class="search-field">
-                    <label for="courtsQ">Search</label>
+                    <label for="courtsQ">Search courts</label>
                     <div class="search-input-wrap">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         <input type="text" id="courtsQ" name="q" placeholder="Court name or location" value="<?php echo e($q); ?>">
@@ -260,14 +251,6 @@ require __DIR__ . '/../includes/header.php';
                 <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Clear all <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
             <?php endif; ?>
         </div>
-    <?php else: ?>
-        <div class="popular-searches courts-popular" aria-label="Popular locations">
-            <span class="ps-label">Popular:</span>
-            <a href="<?php echo base_url('pages/courts.php?location=Kathmandu'); ?>">Kathmandu</a>
-            <a href="<?php echo base_url('pages/courts.php?location=Lalitpur'); ?>">Lalitpur</a>
-            <a href="<?php echo base_url('pages/courts.php?location=Bhaktapur'); ?>">Bhaktapur</a>
-            <a href="<?php echo base_url('pages/courts.php?sort=name_asc'); ?>">By name</a>
-        </div>
     <?php endif; ?>
 
     <p class="courts-count muted">
@@ -295,6 +278,5 @@ require __DIR__ . '/../includes/header.php';
             </nav>
         <?php endif; ?>
     <?php endif; ?>
-</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

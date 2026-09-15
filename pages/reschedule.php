@@ -83,6 +83,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'how' => 'Choose today or a later date.',
         ];
     }
+    if ($new_date > date('Y-m-d', strtotime('+60 days'))) {
+        $errors[] = [
+            'what' => 'Bookings open up to 60 days ahead.',
+            'why' => 'The schedule does not extend that far.',
+            'how' => 'Pick a date within the next 60 days.',
+        ];
+    }
+    if ($new_date === date('Y-m-d') && preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time)) {
+        if (strtotime($new_date . ' ' . $start_time) < time() + 1800) {
+            $errors[] = [
+                'what' => 'That slot already started.',
+                'why' => 'Past times today cannot be booked.',
+                'how' => 'Pick a later time today.',
+            ];
+        }
+    }
+    // Slot must exist in court hours (prevents forged 00:00/23:59).
+    if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
+        $validSlots = slots_for_day($new_date, (int)$booking['ground_id']);
+        $slotOk = false;
+        foreach ($validSlots as $vs) {
+            if ($vs['start'] === $start_time && $vs['end'] === $end_time) { $slotOk = true; break; }
+        }
+        if (!$slotOk) {
+            $errors[] = [
+                'what' => 'That time is outside opening hours.',
+                'why' => 'Each court has fixed open/close times.',
+                'how' => 'Choose a highlighted free slot.',
+            ];
+        }
+    }
     if (date_is_blocked((int)$booking['ground_id'], $new_date)) {
         $errors[] = [
             'what' => 'This court is closed on that day.',
@@ -128,7 +159,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $conn->begin_transaction();
-    $new_price = ground_price_for_date($booking['ground_id'], (float)$booking['price_per_hour'], $new_date);
+    $hourly = ground_price_for_date($booking['ground_id'], (float)$booking['price_per_hour'], $new_date);
+    $durHrs = max(0.25, (strtotime($end_time) - strtotime($start_time)) / 3600);
+    $new_price = round($hourly * $durHrs, 2);
+    // amount_paid carries over untouched; payment page shows any remaining balance.
     $stmt = $conn->prepare(
         'UPDATE bookings SET booking_date = ?, start_time = ?, end_time = ?, total_price = ?
          WHERE id = ? AND user_id = ? AND status = "confirmed"'
@@ -176,13 +210,13 @@ require __DIR__ . '/../includes/header.php';
         <h2>Reschedule</h2>
     </div>
 </div>
-<p class="muted" style="margin-bottom:8px;">Pick a new day and hour for <strong><?php echo e($booking['ground_name']); ?></strong>. Your payment is carried over.</p>
+<p class="muted mb-8">Pick a new day and hour for <strong><?php echo e($booking['ground_name']); ?></strong>. Your payment is carried over.</p>
 
 <div class="ground-detail">
     <div class="detail-box booking-panel reveal">
         <h1><?php echo e($booking['ground_name']); ?></h1>
         <p class="price-line"><strong>Rs <?php echo number_format((float)$booking['total_price'], 0); ?></strong> total</p>
-        <p class="muted" style="font-size:13px;margin-bottom:16px;">
+        <p class="muted text-sm mb-16">
             Currently booked for <strong><?php echo e(date('D, M j', strtotime($booking['booking_date']))); ?> at <?php echo e(substr($booking['start_time'], 0, 5)); ?></strong>.
         </p>
 

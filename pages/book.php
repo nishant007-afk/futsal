@@ -33,6 +33,16 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $booking_date)) {
 if ($booking_date < date('Y-m-d')) {
     $errors[] = ['what' => 'Please pick today or a future date.'];
 }
+// Max 60 days ahead – prevents far-future abuse and keeps schedule sane.
+if ($booking_date > date('Y-m-d', strtotime('+60 days'))) {
+    $errors[] = ['what' => 'Bookings open up to 60 days ahead. Pick an earlier date.'];
+}
+// Past time today is not bookable (30-min buffer).
+if ($booking_date === date('Y-m-d') && preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time)) {
+    if (strtotime($booking_date . ' ' . $start_time) < time() + 1800) {
+        $errors[] = ['what' => 'That slot already started. Pick a later time today.'];
+    }
+}
 
 if (isset($_POST['join_waitlist']) && !$errors) {
     if (!slot_is_taken($ground_id, $booking_date, $start_time)) {
@@ -85,6 +95,18 @@ if (!$ground) {
     ];
 }
 
+// Validate slot against court hours/interval (prevents 00:00/23:59 POST forgery).
+if (!$errors) {
+    $validSlots = slots_for_day($booking_date, $ground_id);
+    $slotOk = false;
+    foreach ($validSlots as $vs) {
+        if ($vs['start'] === $start_time && $vs['end'] === $end_time) { $slotOk = true; break; }
+    }
+    if (!$slotOk) {
+        $errors[] = ['what' => 'That time is outside this court\'s opening hours.'];
+    }
+}
+
 if (!$errors && date_is_blocked($ground_id, $booking_date)) {
     $errors[] = ['what' => 'This court is closed on that day.'];
 }
@@ -134,7 +156,9 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
         $skipped[] = date('M j', strtotime($week_date));
         continue;
     }
-    $week_price = ground_price_for_date($ground_id, (float)$ground['price_per_hour'], $week_date);
+    $hourly = ground_price_for_date($ground_id, (float)$ground['price_per_hour'], $week_date);
+    $durHrs = max(0.25, (strtotime($end_time) - strtotime($start_time)) / 3600);
+    $week_price = round($hourly * $durHrs, 2);
     $booking_ref = 'GS-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
     $stmt = $conn->prepare(
         'INSERT INTO bookings (booking_ref, user_id, ground_id, booking_date, start_time, end_time, total_price, status, repeat_of, repeat_weeks)
@@ -153,6 +177,11 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
         $repeat_weeks
     );
     if (!$stmt->execute()) {
+        // Race on UNIQUE slot: skip this week instead of aborting the whole series.
+        if ((int)$stmt->errno === 1062) {
+            $skipped[] = date('M j', strtotime($week_date));
+            continue;
+        }
         $conn->rollback();
         set_flash_error(
             'That time slot was just taken.',

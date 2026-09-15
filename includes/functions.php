@@ -72,7 +72,7 @@ function require_admin(): void
 
 function require_manager(): void
 {
-    if (!is_manager()) {
+    if (!is_manager() && !is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;
     }
@@ -80,7 +80,7 @@ function require_manager(): void
 
 function require_player(): void
 {
-    if (!is_player()) {
+    if (!is_player() && !is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;
     }
@@ -174,6 +174,26 @@ function verify_csrf(): void
     }
 }
 
+/**
+ * Render a small inline POST form for a destructive action (vanilla, no framework).
+ * Replaces state-changing GET links (?delete=, ?cancel=, ...) to avoid CSRF token
+ * in URL / logs / Referer. $confirm adds data-confirm modal support (core.js).
+ */
+function post_action_form(string $actionUrl, string $field, string $value, string $labelHtml, string $btnClass = 'btn btn-outline btn-sm', string $confirm = '', string $ariaLabel = '', array $extra = []): string
+{
+    $h = '<form method="post" action="' . e($actionUrl) . '" class="d-inline">';
+    $h .= csrf_field();
+    $h .= '<input type="hidden" name="' . e($field) . '" value="' . e($value) . '">';
+    foreach ($extra as $k => $v) {
+        $h .= '<input type="hidden" name="' . e((string)$k) . '" value="' . e((string)$v) . '">';
+    }
+    $h .= '<button type="submit" class="' . e($btnClass) . '"';
+    if ($confirm !== '') { $h .= ' data-confirm="' . e($confirm) . '"'; }
+    if ($ariaLabel !== '') { $h .= ' aria-label="' . e($ariaLabel) . '"'; }
+    $h .= '>' . $labelHtml . '</button></form>';
+    return $h;
+}
+
 function get_flash(): ?array
 {
     if (isset($_SESSION['flash'])) {
@@ -193,13 +213,28 @@ function release_stale_bookings(): void
     $_SESSION['last_cleanup'] = $now;
 
     global $conn;
-    $conn->query(
+    // Use the same setting as the cron (default 60) so web + CLI agree.
+    $timeout = 60;
+    try {
+        $s = $conn->query("SELECT value FROM settings WHERE `key` = 'unpaid_cancel_timeout_minutes' LIMIT 1");
+        if ($s && ($row = $s->fetch_assoc()) && is_numeric($row['value'])) {
+            $timeout = max(5, min(1440, (int)$row['value']));
+        }
+    } catch (Exception $e) {
+        // fall back to 60
+    }
+    $stmt = $conn->prepare(
         "UPDATE bookings
          SET status = 'cancelled'
          WHERE status = 'confirmed'
            AND payment_status = 'unpaid'
-           AND TIMESTAMP(booking_date, start_time) < DATE_SUB(NOW(), INTERVAL 1 HOUR)"
+           AND TIMESTAMP(booking_date, start_time) < DATE_SUB(NOW(), INTERVAL ? MINUTE)"
     );
+    if ($stmt) {
+        $stmt->bind_param('i', $timeout);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
 function e(?string $value): string
@@ -252,7 +287,8 @@ function validate_promo_code(string $code, float $total, int $ground_id): ?array
 function increment_promo_usage(int $promo_id): void
 {
     global $conn;
-    $stmt = $conn->prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ?');
+    // Atomic + capped: only increment when under max_uses (prevents overshoot on race).
+    $stmt = $conn->prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ? AND (max_uses <= 0 OR used_count < max_uses)');
     $stmt->bind_param('i', $promo_id);
     $stmt->execute();
 }
@@ -332,7 +368,7 @@ function notify_waitlist_freed(int $ground_id, string $booking_date, string $sta
     $stmt = $conn->prepare(
         'SELECT id, user_id FROM waitlist
          WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND is_notified = 0
-         ORDER BY id ASC'
+         ORDER BY id ASC LIMIT 50'
     );
     $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
     $stmt->execute();
@@ -397,12 +433,18 @@ function ground_price_for_date(int $ground_id, float $base_price, string $date):
     $row = $stmt->get_result()->fetch_assoc();
     $discounted = $row['discount_price'] ?? null;
     $effective = $base_price;
-    if ($discounted !== null && (float)$discounted > 0 && (float)$discounted < (float)$base_price) {
+    $hasDiscount = ($discounted !== null && (float)$discounted > 0 && (float)$discounted < (float)$base_price);
+    if ($hasDiscount) {
         $effective = (float)$discounted;
     }
     $day = (int)date('N', strtotime($date)); // 1=Mon .. 7=Sun
     if ($day >= 6 && $row['price_weekend'] !== null && (float)$row['price_weekend'] > 0) {
-        return (float)$row['price_weekend'];
+        $weekend = (float)$row['price_weekend'];
+        // Discount still applies on weekends: charge the lower of the two.
+        if ($hasDiscount) {
+            return min($effective, $weekend);
+        }
+        return $weekend;
     }
     return $effective;
 }
@@ -457,6 +499,10 @@ function ground_images(int $ground_id): array
 function ground_cover(int $ground_id): ?string
 {
     global $conn;
+    // Batch preload hit (set by preload_ground_cards() on listing pages).
+    if (isset($GLOBALS['__ground_covers'][$ground_id])) {
+        return $GLOBALS['__ground_covers'][$ground_id];
+    }
     $stmt = $conn->prepare('SELECT image FROM ground_images WHERE ground_id = ? ORDER BY id LIMIT 1');
     $stmt->bind_param('i', $ground_id);
     $stmt->execute();
@@ -479,6 +525,9 @@ function ground_reviews(int $ground_id): array
 
 function ground_rating(int $ground_id): array
 {
+    if (isset($GLOBALS['__ground_ratings'][$ground_id])) {
+        return $GLOBALS['__ground_ratings'][$ground_id];
+    }
     global $conn;
     $stmt = $conn->prepare('SELECT AVG(rating) AS avg, COUNT(*) AS count FROM reviews WHERE ground_id = ?');
     $stmt->bind_param('i', $ground_id);
@@ -488,6 +537,66 @@ function ground_rating(int $ground_id): array
         'avg' => $row['avg'] !== null ? round((float)$row['avg'], 1) : null,
         'count' => (int)$row['count'],
     ];
+}
+
+/**
+ * Batch preload covers/ratings/favorites for a list of grounds (1 query each
+ * instead of N per card). Call once in courts/player_home before the loop.
+ */
+function preload_ground_cards(array $groundIds): void
+{
+    global $conn;
+    $ids = array_values(array_unique(array_map('intval', $groundIds)));
+    $ids = array_filter($ids, fn($i) => $i > 0);
+    if (!$ids) { return; }
+    $ph = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
+    // Covers: earliest image per ground
+    $stmt = $conn->prepare("SELECT ground_id, MIN(id) mid FROM ground_images WHERE ground_id IN ($ph) GROUP BY ground_id");
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $midRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    $covers = [];
+    if ($midRows) {
+        $mids = array_column($midRows, 'mid');
+        $ph2 = implode(',', array_fill(0, count($mids), '?'));
+        $t2 = str_repeat('i', count($mids));
+        $s2 = $conn->prepare("SELECT ground_id, image FROM ground_images WHERE id IN ($ph2)");
+        $s2->bind_param($t2, ...$mids);
+        $s2->execute();
+        foreach ($s2->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+            $covers[(int)$r['ground_id']] = $r['image'];
+        }
+        $s2->close();
+    }
+    $GLOBALS['__ground_covers'] = $covers;
+    // Ratings
+    $stmt = $conn->prepare("SELECT ground_id, AVG(rating) avg, COUNT(*) cnt FROM reviews WHERE ground_id IN ($ph) GROUP BY ground_id");
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $ratings = [];
+    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+        $ratings[(int)$r['ground_id']] = ['avg' => $r['avg'] !== null ? round((float)$r['avg'], 1) : null, 'count' => (int)$r['cnt']];
+    }
+    $stmt->close();
+    foreach ($ids as $gid) {
+        if (!isset($ratings[$gid])) { $ratings[$gid] = ['avg' => null, 'count' => 0]; }
+    }
+    $GLOBALS['__ground_ratings'] = $ratings;
+    // Favorites for current user
+    $favs = [];
+    if (is_logged_in()) {
+        $uid = (int)$_SESSION['user_id'];
+        $stmt = $conn->prepare("SELECT ground_id FROM favorites WHERE user_id = ? AND ground_id IN ($ph)");
+        $stmt->bind_param('i' . $types, $uid, ...$ids);
+        $stmt->execute();
+        foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+            $favs[(int)$r['ground_id']] = true;
+        }
+        $stmt->close();
+    }
+    $GLOBALS['__ground_favs'] = $favs;
 }
 
 function user_rating_for(int $ground_id): ?array
@@ -609,6 +718,9 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
     $dateLabel = date('M j, Y', strtotime($b['booking_date']));
     $dayLabel = date('D', strtotime($b['booking_date']));
     $searchAttr = $search !== '' ? ' data-search="' . e(strtolower($search)) . '"' : '';
+    // Whitelist status rendering (defense if $b is tampered).
+    $allowedClasses = ['sm-cancelled' => true, 'sm-unpaid' => true, 'sm-paid' => true, 'sm-partial' => true];
+    $allowedIcons = ['fa-circle-xmark' => true, 'fa-clock' => true, 'fa-circle-check' => true, 'fa-circle-half-stroke' => true];
     if ($b['status'] === 'cancelled') {
         $statusText = 'Cancelled';
         $statusIcon = 'fa-circle-xmark';
@@ -630,6 +742,10 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
         $statusIcon = 'fa-clock';
         $statusClass = 'sm-unpaid';
     }
+    // Enforce whitelist before output.
+    if (!isset($allowedClasses[$statusClass])) { $statusClass = 'sm-unpaid'; }
+    if (!isset($allowedIcons[$statusIcon])) { $statusIcon = 'fa-clock'; }
+    $statusText = in_array($statusText, ['Cancelled', 'Awaiting approval', 'Confirmed · Paid', 'Awaiting payment', 'Payment pending', 'Pending'], true) ? $statusText : 'Pending';
     ?>
     <div class="mbooking mbooking--card"<?php echo $searchAttr; ?>>
         <div class="mbooking-date mb-date" aria-label="<?php echo e($dateLabel); ?>">
@@ -649,10 +765,11 @@ function booking_card_mini(array $b, string $show = '', string $search = '', ?st
             <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
             <?php echo booking_payment_method_html($b); ?>
         </div>
-        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
+        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo e($statusText); ?></span>
         <div class="mb-side">
             <div class="mb-actions">
-                <?php if ($actions_html !== null): ?><?php echo $actions_html; ?><?php endif; ?>
+                <?php // $actions_html must be built with e()/base_url() by the caller; never pass raw user input.
+                if ($actions_html !== null): ?><?php echo $actions_html; ?><?php endif; ?>
                 <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-more">Details <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </div>
@@ -729,32 +846,36 @@ function cancellation_policy_html(): string
 /**
  * Convert an uploaded image to WebP and write it to $dest.
  * Returns true on success (file saved as WebP) or false on failure.
- * GIFs are saved as-is (no frame support in GD WebP), and already-WebP
- * sources are copied through untouched.
+ * GIFs are re-encoded to static WebP (first frame) so no polyglot/executable
+ * payload survives. Includes decompression-bomb guard via max pixels.
  */
 function convert_image_to_webp(string $src, string $dest, int $quality = 82, ?int $maxWidth = null): bool
 {
-    $src = realpath($src);
-    if ($src === false || !is_file($src)) {
+    $real = realpath($src);
+    if ($real === false || !is_file($real)) {
         return false;
     }
-    $info = @getimagesize($src);
+    $info = @getimagesize($real);
     if ($info === false) {
+        return false;
+    }
+    // Bomb guard: reject absurd dimensions (e.g. 10000x10000).
+    if (($info[0] * $info[1]) > 16000000 || $info[0] > 6000 || $info[1] > 6000) {
         return false;
     }
     $mime = $info['mime'];
     if ($mime === 'image/webp') {
-        return copy($src, $dest);
-    }
-    if ($mime === 'image/gif') {
-        return copy($src, $dest);
+        return copy($real, $dest);
     }
     switch ($mime) {
         case 'image/jpeg':
-            $img = @imagecreatefromjpeg($src);
+            $img = @imagecreatefromjpeg($real);
             break;
         case 'image/png':
-            $img = @imagecreatefrompng($src);
+            $img = @imagecreatefrompng($real);
+            break;
+        case 'image/gif':
+            $img = @imagecreatefromgif($real);
             break;
         default:
             return false;
@@ -832,14 +953,23 @@ function save_ground_photos(int $ground_id): array
     $names = is_array($files['name'] ?? null) ? $files['name'] : [];
     $tmps = is_array($files['tmp_name'] ?? null) ? $files['tmp_name'] : [];
     $errs = is_array($files['error'] ?? null) ? $files['error'] : [];
+    $sizes = is_array($files['size'] ?? null) ? $files['size'] : [];
     $uploaded = 0;
     $failed = 0;
+    // Limits: max 10 files per request, 5MB each – prevents GD/disk DoS.
+    $maxFiles = 10;
+    $maxBytes = 5 * 1024 * 1024;
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    for ($i = 0; $i < count($names); $i++) {
+    $count = min(count($names), $maxFiles);
+    for ($i = 0; $i < $count; $i++) {
         if (($errs[$i] ?? 1) === UPLOAD_ERR_NO_FILE) {
             continue;
         }
         if (($errs[$i] ?? 1) !== UPLOAD_ERR_OK) {
+            $failed++;
+            continue;
+        }
+        if ((int)($sizes[$i] ?? 0) > $maxBytes) {
             $failed++;
             continue;
         }
@@ -895,6 +1025,9 @@ function save_ground_qr(int $ground_id): array
     $file = $_FILES['payment_qr'];
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return ['ok' => false, 'filename' => '', 'error' => 'Upload failed. Try again.'];
+    }
+    if ((int)($file['size'] ?? 0) > 2 * 1024 * 1024) {
+        return ['ok' => false, 'filename' => '', 'error' => 'QR image must be under 2MB.'];
     }
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $file['tmp_name']);
@@ -1014,6 +1147,12 @@ function is_subscription_active(int $manager_id): bool
 
 function sync_subscription_grounds(): void
 {
+    $now = time();
+    if (isset($_SESSION['last_sub_sync']) && $now - (int)$_SESSION['last_sub_sync'] < 300) {
+        return;
+    }
+    $_SESSION['last_sub_sync'] = $now;
+
     global $conn;
     $conn->query(
         'UPDATE grounds g
@@ -1040,54 +1179,115 @@ function notify_user(int $user_id, string $title, string $body = '', string $ico
 }
 
 /**
- * Small HTML email shell shared by all transactional messages.
- * Inline styles only so it renders in every client. No em dashes.
- *
- * @param array  $rows key => value pairs shown as a summary table
- * @param string $name optional first name for a personal greeting
+ * Professional, modern HTML email template for GoalSpace.
+ * Bulletproof inline CSS compatible with all email clients (Gmail, Apple Mail, Outlook).
+ * Zero em dashes, clean typography, responsive max-width.
+ */
+function goalspace_email_html(string $title, string $greeting, string $bodyHtml, string $footerNote = ''): string
+{
+    $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    $contactUrl = absolute_url('pages/page.php?slug=contact');
+    $siteUrl = absolute_url('');
+
+    return '<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>' . $esc($title) . '</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0e1712;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0e1712;padding:36px 12px;">
+<tr>
+<td align="center">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 14px 36px rgba(0,0,0,0.4);border:1px solid #1e3327;">
+        <!-- Header -->
+        <tr>
+            <td style="background-color:#0b130e;padding:26px 32px;border-bottom:3px solid #16a34a;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                            <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.4px;">GoalSpace</span>
+                            <span style="display:inline-block;margin-left:8px;padding:3px 8px;background-color:rgba(34,197,94,0.18);color:#4ade80;font-size:11px;font-weight:700;border-radius:6px;letter-spacing:0.5px;text-transform:uppercase;">Futsal</span>
+                        </td>
+                        <td align="right">
+                            <span style="color:#7d9487;font-size:12px;">Kathmandu, Nepal</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Main Body -->
+        <tr>
+            <td style="padding:34px 32px 28px;">
+                <p style="margin:0 0 14px;color:#607368;font-size:15px;font-weight:600;">' . $esc($greeting) . '</p>
+                <h1 style="margin:0 0 20px;color:#0d1812;font-size:22px;font-weight:800;line-height:1.3;letter-spacing:-0.4px;">' . $esc($title) . '</h1>
+                
+                ' . $bodyHtml . '
+                
+                <p style="margin:28px 0 0;color:#0d1812;font-size:14px;line-height:1.6;">
+                    Thank you for being a part of GoalSpace.<br>
+                    <strong style="color:#15803d;">The GoalSpace Team</strong>
+                </p>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="background-color:#f6faf7;padding:18px 32px;border-top:1px solid #e7eee9;">
+                ' . ($footerNote !== '' ? '<p style="margin:0 0 8px;color:#7a8a81;font-size:12px;line-height:1.5;">' . $footerNote . '</p>' : '') . '
+                <p style="margin:0;color:#8f9f96;font-size:12px;line-height:1.5;">
+                    GoalSpace Platform &middot; Fast futsal reservations &middot; 
+                    <a href="' . $contactUrl . '" style="color:#16a34a;text-decoration:none;font-weight:600;">Contact Support</a> &middot; 
+                    <a href="' . $siteUrl . '" style="color:#16a34a;text-decoration:none;font-weight:600;">Visit GoalSpace</a>
+                </p>
+            </td>
+        </tr>
+    </table>
+</td>
+</tr>
+</table>
+</body>
+</html>';
+}
+
+/**
+ * Revamped transactional booking email with high aesthetic appeal and clarity.
  */
 function booking_email_html(string $heading, array $rows = [], string $note = '', string $name = ''): string
 {
     $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
     $greeting = $name !== '' ? 'Hi ' . $esc($name) . ',' : 'Hi there,';
+
     $table = '';
     if ($rows) {
         $cells = '';
+        $i = 0;
         foreach ($rows as $k => $v) {
-            $cells .= '<tr>'
-                . '<td style="padding:9px 0;color:#5b6b62;width:140px;font-size:14px;vertical-align:top;">' . $esc($k) . '</td>'
-                . '<td style="padding:9px 0;color:#101814;font-size:14px;font-weight:600;">' . $esc($v) . '</td>'
+            $bg = ($i % 2 === 0) ? '#fbfdfc' : '#ffffff';
+            $cells .= '<tr style="background-color:' . $bg . ';">'
+                . '<td style="padding:11px 14px;color:#617369;width:150px;font-size:13.5px;border-bottom:1px solid #edf2ee;vertical-align:middle;">' . $esc($k) . '</td>'
+                . '<td style="padding:11px 14px;color:#0f1d15;font-size:14px;font-weight:700;border-bottom:1px solid #edf2ee;vertical-align:middle;">' . $esc($v) . '</td>'
                 . '</tr>';
+            $i++;
         }
-        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:4px 0 0;">'
-            . '<tr><td style="border-bottom:1px solid #eef2ef;"></td></tr>'
+        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;border:1px solid #e2eae4;border-radius:12px;overflow:hidden;">'
             . $cells
-            . '<tr><td style="border-top:1px solid #eef2ef;"></td></tr>'
             . '</table>';
     }
-    $noteBlock = $note !== '' ? '<p style="margin:18px 0 0;color:#5b6b62;font-size:14px;line-height:1.65;">'
-        . $esc($note) . '</p>' : '';
 
-    return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f0f4f1;">'
-        . '<table role="presentation" width="100%" style="background:#f0f4f1;padding:32px 12px;"><tr><td align="center">'
-        . '<table role="presentation" width="560" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e7e3;">'
-        . '<tr><td style="background:#0a120e;padding:24px 28px;">'
-        . '<span style="color:#ffffff;font-size:17px;font-weight:800;letter-spacing:.2px;">GoalSpace</span>'
-        . '<span style="color:#8aa296;font-size:12px;margin-left:10px;">Futsal, booked in seconds</span>'
-        . '</td></tr>'
-        . '<tr><td style="padding:30px 28px 26px;">'
-        . '<p style="margin:0 0 14px;color:#5b6b62;font-size:14px;font-family:Arial,sans-serif;">' . $greeting . '</p>'
-        . '<h1 style="margin:0 0 4px;color:#101814;font-size:21px;line-height:1.35;font-family:Arial,sans-serif;">' . $esc($heading) . '</h1>'
-        . $table . $noteBlock
-        . '<p style="margin:26px 0 0;color:#101814;font-size:14px;line-height:1.6;font-family:Arial,sans-serif;">Thanks for being part of GoalSpace. '
-        . '<span style="color:#5b6b62;">See you on the court!</span></p>'
-        . '<p style="margin:6px 0 0;color:#5b6b62;font-size:14px;font-family:Arial,sans-serif;">The GoalSpace team</p>'
-        . '</td></tr>'
-        . '<tr><td style="background:#f7faf8;padding:16px 28px;border-top:1px solid #eef2ef;">'
-        . '<p style="margin:0;color:#8a958e;font-size:12px;line-height:1.6;font-family:Arial,sans-serif;">You received this email because it relates to your GoalSpace account. '
-        . 'Need help? <a href="' . base_url('pages/page.php?slug=contact') . '" style="color:#16a34a;text-decoration:none;">Contact us</a> anytime.</p>'
-        . '</td></tr>'
-        . '</table></td></tr></table></body></html>';
+    $noteBlock = $note !== '' ? '<div style="margin:20px 0 0;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;"><p style="margin:0;color:#166534;font-size:13.5px;line-height:1.6;">'
+        . $esc($note) . '</p></div>' : '';
+
+    $bodyHtml = '<p style="margin:0 0 12px;color:#35493d;font-size:15px;line-height:1.6;">'
+        . 'Here is the summary of your futsal court booking:'
+        . '</p>'
+        . $table
+        . $noteBlock;
+
+    $footerNote = 'You received this email because of activity on your GoalSpace booking account.';
+    return goalspace_email_html($heading, $greeting, $bodyHtml, $footerNote);
 }
 
 /**
@@ -1150,7 +1350,7 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
     elseif ($scope === 'users')  { $where = "WHERE role = 'user'"; }
     // scope === 'all' applies no filter
 
-    $res = $conn->query('SELECT id,email,name FROM users ' . $where);
+    $res = $conn->query('SELECT id,email,name FROM users ' . $where . ' LIMIT 500');
     if ($res === false) {
         return 0;
     }
@@ -1161,14 +1361,25 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
         notify_user((int)$u['id'], 'Legal pages updated', $summary, 'fa-circle-info', 'pages/page.php?slug=' . $firstSlug);
 
         // 2) ONE combined email per user (both policies in the same message)
+        // Capped at 500 recipients per run.
         $subject = 'GoalSpace update: ' . $labelText;
-        $msg  = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n";
-        $msg .= "We have updated the following on GoalSpace:\r\n" . implode("\r\n", $lines) . "\r\n\r\n";
-        $msg .= "These changes take effect on " . $date . ".\r\n\r\n";
-        $msg .= "We believe in being open about how the platform works, so please take a moment to review them when you can. ";
-        $msg .= "Your trust matters to us, and we are always happy to answer any questions you have.\r\n\r\n";
-        $msg .= "Thanks for being part of the GoalSpace community.\r\nThe GoalSpace team";
-        @send_mail($u['email'], $subject, $msg);
+        $userName = $u['name'] ?: 'there';
+        $greeting = 'Hi ' . $userName . ',';
+        
+        $policyLinksHtml = '';
+        foreach ($chosen as $slug => $label) {
+            $policyLinksHtml .= '<li style="margin-bottom:8px;"><a href="' . absolute_url('pages/page.php?slug=' . $slug) . '" style="color:#15803d;font-weight:700;text-decoration:none;">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a></li>';
+        }
+
+        $bodyHtml = '<p style="margin:0 0 14px;color:#2c3e34;font-size:15px;line-height:1.6;">We have updated the following information on GoalSpace:</p>'
+            . '<ul style="margin:0 0 18px;padding-left:20px;color:#15803d;font-size:14px;line-height:1.8;">'
+            . $policyLinksHtml
+            . '</ul>'
+            . '<p style="margin:0 0 14px;color:#55685d;font-size:13.5px;line-height:1.6;">These updates take effect on <strong>' . htmlspecialchars($date, ENT_QUOTES, 'UTF-8') . '</strong>. We believe in being transparent about how our platform operates, so please take a moment to review them when you can.</p>';
+
+        $footerNote = 'You received this notification as an active GoalSpace account holder.';
+        $htmlMsg = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
+        @send_mail($u['email'], $subject, $htmlMsg, true);
         $sent++;
     }
     return $sent;
@@ -1182,7 +1393,8 @@ function notify_announcement(string $subject, string $message, string $scope = '
     elseif ($scope === 'managers'){ $where = "WHERE role = 'manager'"; }
     elseif ($scope === 'users')  { $where = "WHERE role = 'user'"; }
 
-    $res = $conn->query('SELECT id,email,name FROM users ' . $where);
+    // Capped per run to avoid SMTP timeouts on large bases.
+    $res = $conn->query('SELECT id,email,name FROM users ' . $where . ' LIMIT 500');
     if ($res === false) {
         return 0;
     }
@@ -1191,10 +1403,12 @@ function notify_announcement(string $subject, string $message, string $scope = '
     while ($u = $res->fetch_assoc()) {
         notify_user((int)$u['id'], $subject, $message, 'fa-bullhorn');
         if ($sendMail) {
-            $body = "Hi " . ($u['name'] ?: 'there') . ",\r\n\r\n" . $message . "\r\n\r\n" .
-                "We appreciate you being part of GoalSpace, and we hope to see you on the court soon.\r\n\r\n" .
-                "Warm regards,\r\nThe GoalSpace team";
-            @send_mail($u['email'], $subject, $body);
+            $greeting = 'Hi ' . ($u['name'] ?: 'there') . ',';
+            $bodyHtml = '<p style="margin:0 0 16px;color:#2c3e34;font-size:15px;line-height:1.65;">' . nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')) . '</p>'
+                . '<p style="margin:0;color:#55685d;font-size:13.5px;line-height:1.6;">We appreciate you being part of GoalSpace, and we look forward to seeing you on the pitch soon.</p>';
+            $footerNote = 'You received this community announcement from GoalSpace.';
+            $htmlBody = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
+            @send_mail($u['email'], $subject, $htmlBody, true);
         }
         $sent++;
     }
@@ -1229,7 +1443,7 @@ function empty_state(string $icon, string $title, string $text = '', ?string $ac
     echo '<span class="big"><i class="' . e($icon) . '"></i></span>';
     echo '<h3>' . e($title) . '</h3>';
     if ($text !== '') {
-        echo '<p>' . $text . '</p>';
+        echo '<p>' . e($text) . '</p>';
     }
     if ($action_url !== null && $action_label !== null) {
         echo '<a href="' . e($action_url) . '" class="' . e($action_class) . '">' . e($action_label) . '</a>';
@@ -1466,10 +1680,7 @@ function otp_remaining_seconds(string $identifier, string $purpose): int
 function otp_send_cooldown(string $identifier, string $purpose, int $cooldown = 30): int
 {
     global $conn;
-    static $bypassEmails = ['nishantdahal612@gmail.com', 'admin@futsal.com'];
-    if (in_array($identifier, $bypassEmails, true)) {
-        return 0;
-    }
+    // No bypass list: all addresses share the same cooldown + hourly limit.
     $stmt = $conn->prepare('SELECT created_at FROM otps WHERE identifier = ? AND purpose = ? AND used = 0 ORDER BY id DESC LIMIT 1');
     $stmt->bind_param('ss', $identifier, $purpose);
     $stmt->execute();
@@ -1548,14 +1759,32 @@ function send_otp_mail(string $email, string $code, string $purpose): bool
     $greeting = $firstName !== '' ? 'Hi ' . $firstName . ',' : 'Hi there,';
 
     $title = otp_subject($purpose);
-    $body  = $greeting . "\r\n\r\n";
-    $body .= 'We received a request to ' . otp_purpose_verb($purpose) . '. Your one-time code is:' . "\r\n\r\n";
-    $body .= '   ' . $code . "\r\n\r\n";
-    $body .= 'This code expires in 5 minutes, so please use it soon.' . "\r\n\r\n";
-    $body .= "Didn't ask for this? No action needed. Your account stays exactly as it is, and you can safely ignore this email." . "\r\n\r\n";
-    $body .= 'Questions? Visit ' . rtrim(base_url(''), '/') . ' and we will be happy to help.' . "\r\n\r\n";
-    $body .= "See you on the court!\r\nThe GoalSpace team";
-    return send_mail($email, $title, $body);
+    $actionVerb = otp_purpose_verb($purpose);
+
+    $bodyHtml = '
+    <p style="margin:0 0 16px;color:#2c3e34;font-size:15px;line-height:1.6;">
+        We received a request to <strong>' . htmlspecialchars($actionVerb, ENT_QUOTES, 'UTF-8') . '</strong>.
+        Please use the one-time verification code below to proceed:
+    </p>
+    
+    <div style="margin:26px 0;text-align:center;background:#f0fdf4;border:2px dashed #86efac;border-radius:14px;padding:24px 16px;">
+        <span style="font-family:\'SF Pro Mono\',Consolas,\'Courier New\',monospace;font-size:38px;font-weight:800;letter-spacing:10px;color:#15803d;display:inline-block;padding-left:10px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</span>
+        <div style="margin-top:10px;font-size:12.5px;color:#166534;font-weight:600;">
+            <span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>
+            Valid for 5 minutes
+        </div>
+    </div>
+    
+    <div style="margin:24px 0 0;padding:14px 18px;background:#f8faf9;border-radius:10px;border-left:3px solid #607368;">
+        <p style="margin:0;color:#53665c;font-size:13px;line-height:1.55;">
+            <strong>Security Notice:</strong> If you did not request this verification code, you can safely disregard this email. Your GoalSpace account credentials remain secure.
+        </p>
+    </div>';
+
+    $footerNote = 'You received this notification because a verification request was initiated for your email address.';
+    $htmlContent = goalspace_email_html($title, $greeting, $bodyHtml, $footerNote);
+
+    return send_mail($email, $title, $htmlContent, true);
 }
 
 function otp_purpose_verb(string $purpose): string
@@ -1588,7 +1817,10 @@ function delete_user_account(int $user_id, string $email): bool
 {
     global $conn;
     // A manager leaving the platform shouldn't leave live, unowned courts.
-    $conn->query('UPDATE grounds SET is_active = 0 WHERE manager_id = ' . $user_id);
+    $stmt = $conn->prepare('UPDATE grounds SET is_active = 0 WHERE manager_id = ?');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->close();
     // Clean up identifier-keyed tables (no FK to users).
     $key = login_attempt_key($email);
     $stmt = $conn->prepare('DELETE FROM otps WHERE identifier = ?');
@@ -1607,6 +1839,7 @@ function delete_user_account(int $user_id, string $email): bool
 
 function export_csv(array $rows, string $filename): void
 {
+    $filename = preg_replace('/[^a-z0-9_.\-]/i', '', $filename);
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     $out = fopen('php://output', 'w');
@@ -1634,6 +1867,7 @@ function export_csv(array $rows, string $filename): void
  */
 function export_excel(array $rows, string $filename): void
 {
+    $filename = preg_replace('/[^a-z0-9_.\-]/i', '', $filename);
     $escape = function (string $s): string {
         return htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     };
@@ -1741,13 +1975,17 @@ function star_html($rating): string
     return $html . '</span>';
 }
 
-function ground_card_html(array $ground, ?array $availability = null): void
+function ground_card_html(array $ground, array|string|null $availability = null, string $extraClass = ''): void
 {
+    if (is_string($availability)) {
+        $extraClass = $availability;
+        $availability = null;
+    }
     $cover = ground_cover((int)$ground['id']);
     $rating = ground_rating((int)$ground['id']);
     $full = $availability !== null && $availability['free'] === 0;
     ?>
-    <div class="card reveal <?php echo $full ? 'card-full' : ''; ?>">
+    <div class="card reveal <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>">
         <div class="card-img">
             <?php if ($cover): ?>
                 <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
@@ -1762,8 +2000,7 @@ function ground_card_html(array $ground, ?array $availability = null): void
                         aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
                         title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
                         data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
-                    <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>"
-                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>" aria-hidden="true"></i>
+                    <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>" aria-hidden="true"></i>
                     <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
@@ -1796,7 +2033,7 @@ function ground_card_html(array $ground, ?array $availability = null): void
                 <?php if ($rating['count'] > 0): ?>
                     <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
                 <?php else: ?>
-                    <span class="card-rating-inline"><i class="fa-solid fa-star" style="color:var(--ink-3);"></i> <small>No reviews yet</small></span>
+                    <span class="card-rating-inline"><i class="fa-solid fa-star star-muted"></i> <small>No reviews yet</small></span>
                 <?php endif; ?>
                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm card-cta-link">View details <i class="fa-solid fa-arrow-right"></i></a>
             </div>
@@ -1813,6 +2050,9 @@ function favorite_exists(int $ground_id): bool
 {
     if (!is_logged_in() || $ground_id <= 0) {
         return false;
+    }
+    if (isset($GLOBALS['__ground_favs'])) {
+        return !empty($GLOBALS['__ground_favs'][$ground_id]);
     }
     global $conn;
     $stmt = $conn->prepare('SELECT 1 FROM favorites WHERE user_id = ? AND ground_id = ? LIMIT 1');
@@ -1947,171 +2187,184 @@ function legal_pages_defaults(): array
     return [
         'about'   => [
             'title'   => 'About GoalSpace',
-            'summary' => 'GoalSpace helps players find and book futsal courts, and helps owners keep their grounds full.',
+            'summary' => 'Connecting passionate futsal players with verified courts across Nepal.',
             'body'    => '
-            <p><strong>GoalSpace</strong> is a booking platform made for futsal. It connects players who want a court with owners who have spare hours to fill.</p>
-            <p>We started GoalSpace because booking a court usually meant calling three venues and hoping someone answered. We wanted something quicker: see what\'s free, pick a slot, done.</p>
+            <p><strong>GoalSpace</strong> is Nepal\'s dedicated futsal discovery and court reservation platform. We make booking a court as quick and effortless as scoring a tap-in, connecting players directly with venue managers in real time.</p>
+            
+            <p>Before GoalSpace, organizing a friendly match meant making multiple phone calls, checking availability through busy signals, and hoping your court slot was actually held when you arrived. We built GoalSpace to replace guesswork with clarity: see open slots live, lock in your game instantly, and hit the turf with confidence.</p>
 
-            <h2>Who it\'s for</h2>
+            <h2>Our Platform Pillars</h2>
             <ul>
-                <li><strong>Players</strong> can find nearby courts, see real-time availability, and book a slot in a couple of minutes.</li>
-                <li><strong>Managers</strong> can list their courts, keep the calendar full, and always know who has paid.</li>
-                <li><strong>Admins</strong> keep the platform running smoothly and manage users and listings.</li>
+                <li><strong>Guaranteed Reservations:</strong> Every confirmed booking is locked in our database instantly. There are no double-bookings, verbal holds, or lost time slots.</li>
+                <li><strong>Real-Time Transparency:</strong> Clear pricing, court dimensions, surface details, parking, changing rooms, and customer reviews are openly displayed for every ground.</li>
+                <li><strong>Empowering Venue Managers:</strong> Court owners get dedicated dashboard tools to automate reservations, verify digital QR payments, manage custom rates, and run off-peak promotions.</li>
             </ul>
 
-            <h2>What we care about</h2>
+            <h2>Who Uses GoalSpace</h2>
             <ul>
-                <li><strong>Bookings that stick.</strong> When a slot is confirmed, it is locked. No double-booking, no surprises.</li>
-                <li><strong>Simple tools for owners.</strong> Managing bookings and payments should not be a second job.</li>
-                <li><strong>Honest information.</strong> Prices, hours and availability are shown straight, so you know what you are getting.</li>
+                <li><strong>Players and Teams:</strong> Explore local courts by location or amenities, check live free slots, reserve in seconds, and track match histories.</li>
+                <li><strong>Court Managers:</strong> Streamline front-desk operations, replace paper registers, accept cashless payments, and fill off-peak hours with automated promos.</li>
+                <li><strong>Tournament Organizers:</strong> Discover verified venues with multi-court capacity, floodlights, and spectator seating.</li>
             </ul>
 
-            <h2>Contact</h2>
-            <p>We read everything that comes in, whether it is a question, some feedback, or just to say hi. Write to us at <a href="mailto:hello@goalspace.com">hello@goalspace.com</a>.</p>
+            <h2>Get in Touch</h2>
+            <p>Have ideas to make GoalSpace better, or want to partner with us? Our Kathmandu-based team is always here to listen. Email us anytime at <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or visit our <a href="' . base_url('pages/page.php?slug=contact') . '">Contact page</a>.</p>
         ',
         ],
         'privacy' => [
             'title'   => 'Privacy Policy',
-            'summary' => 'What data we collect, why we collect it, and how we keep it safe.',
+            'summary' => 'How we collect, protect, and handle your data with complete transparency.',
             'body'    => '
-            <p class="updated-note">Last updated: August 9, 2026</p>
+            <p class="updated-note">Last updated: September 2026</p>
 
-            <h2>Information we collect</h2>
+            <p>At GoalSpace, your trust is fundamental to our service. This Privacy Policy explains what personal information we collect, why we collect it, how it is secured, and your control over your data.</p>
+
+            <h2>1. Information We Collect</h2>
             <ul>
-                <li><strong>Account details</strong>: your name, email address and phone number, provided when you sign up.</li>
-                <li><strong>Booking data</strong>: the courts, dates and time slots you reserve.</li>
-                <li><strong>Usage data</strong>: pages you visit and actions you take, used to improve the platform.</li>
-                <li><strong>Location data</strong>: when you choose "Use my location" on the courts page, we request your browser&rsquo;s geolocation to show courts sorted by distance. This is only used during that session to sort and display distances; we do not store your precise location on our servers.</li>
+                <li><strong>Account Information:</strong> When you register, we collect your full name, email address, contact phone number, and account password (stored securely as a one-way cryptographic hash).</li>
+                <li><strong>Court Reservation Data:</strong> We store details of your futsal bookings, including chosen court, date, time slot, payment status (e.g. Paid, Advance, or Venue Pay), and cancellation history.</li>
+                <li><strong>Ephemeral Location Data:</strong> When you tap "Use my location", your browser requests your coordinates. We use this strictly within your current session to calculate distances to nearby futsal courts. Your exact GPS coordinates are never stored on our servers or shared with third parties.</li>
+                <li><strong>Technical and Device Logs:</strong> Basic server logs such as browser type, operating system, and IP address are maintained temporarily for security monitoring, DDoS prevention, and crash diagnostics.</li>
             </ul>
 
-            <h2>Why we use it</h2>
+            <h2>2. How We Use Your Information</h2>
             <ul>
-                <li>To create and manage your account.</li>
-                <li>To process and manage bookings including sharing booking details with the manager of the court.</li>
-                <li>To show nearby courts and sort by distance when you opt in.</li>
-                <li>To keep the platform secure and prevent misuse.</li>
-                <li>To improve performance and user experience.</li>
+                <li>To create and authenticate your account across web and mobile devices.</li>
+                <li>To instantly confirm, schedule, and maintain court reservations.</li>
+                <li>To send crucial transactional notifications, such as login OTP codes, booking receipts, and schedule changes.</li>
+                <li>To provide venue managers with necessary player contact details so they can welcome your team at the court.</li>
+                <li>To maintain system integrity, detect fraudulent actions, and prevent unauthorized account access.</li>
             </ul>
 
-            <h2>Who we share it with</h2>
-            <p>We do not sell your personal data. Your details are shared only with:</p>
+            <h2>3. Information Sharing and Disclosure</h2>
+            <p>GoalSpace does not sell, rent, or trade your personal information to third-party advertisers or data brokers. We disclose your data only in the following limited circumstances:</p>
             <ul>
-                <li>The <strong>court manager</strong> when you book one of their grounds (so they can confirm your slot).</li>
-                <li>Service providers that host and operate the platform, bound by confidentiality.</li>
-                <li>Authorities, only where required by law.</li>
+                <li><strong>Court Managers:</strong> When you make a booking, the manager of that specific futsal venue receives your name and contact phone number to coordinate entry, pitch access, and ball allocation.</li>
+                <li><strong>Infrastructure Service Providers:</strong> Trusted technical partners who assist with email delivery (such as Brevo/SMTP) and secure database hosting, governed by strict confidentiality terms.</li>
+                <li><strong>Legal Requirements:</strong> If compelled by applicable law, court order, or governmental regulation in Nepal.</li>
             </ul>
-            <p><strong>Your precise location is never shared with managers, third parties, or stored in our database.</strong> It is only used client-side in your browser to calculate distances for sorting.</p>
 
-            <h2>Cookies and sessions</h2>
-            <p>We use session cookies to keep you logged in. You can clear these at any time in your browser; you\'ll just need to log in again.</p>
+            <h2>4. Data Security Standards</h2>
+            <p>We implement comprehensive security measures to safeguard your personal data:</p>
+            <ul>
+                <li>Passwords are hashed with industry-standard bcrypt algorithms with salted rounds. Plaintext passwords are never accessible to any staff member.</li>
+                <li>All network communications are transmitted over secure HTTPS with TLS encryption.</li>
+                <li>Role-based access restrictions guarantee that players, venue managers, and platform administrators can only access authorized system records.</li>
+            </ul>
 
-            <h2>Data security</h2>
-            <p>Passwords are stored as strong, one-way hashes and are never readable by staff. Access to dashboards is limited by role so each person sees only the information they need.</p>
+            <h2>5. Your Privacy Rights</h2>
+            <p>You have full autonomy over your personal information on GoalSpace:</p>
+            <ul>
+                <li><strong>Access and Correction:</strong> You can view and edit your profile name, contact phone, and avatar at any time in your account settings.</li>
+                <li><strong>Data Portability and Deletion:</strong> You can request a copy of your booking history or permanently delete your account through your profile settings or by emailing <a href="mailto:hello@goalspace.com">hello@goalspace.com</a>.</li>
+            </ul>
 
-            <h2>Your rights</h2>
-            <p>You may request a copy of your data, ask us to correct it, or ask us to delete your account and bookings. Contact <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> and we will act on your request within 30 days.</p>
+            <h2>6. Cookies and Session Storage</h2>
+            <p>We use essential session cookies and local storage to keep you authenticated, remember your theme preference (dark or light mode), and retain active navigation state. We do not use third-party tracking cookies.</p>
 
-            <h2>Changes to this policy</h2>
-            <p>If we change this policy, we will update the date above and, where practical, notify you by email.</p>
+            <h2>7. Contact Our Privacy Team</h2>
+            <p>If you have questions or concerns regarding our privacy practices, please contact us at <a href="mailto:privacy@goalspace.com">privacy@goalspace.com</a>.</p>
         ',
         ],
         'terms'  => [
             'title'   => 'Terms of Service',
-            'summary' => 'The rules for using GoalSpace as a player, manager or admin.',
+            'summary' => 'Clear terms governing the use of GoalSpace for players, managers, and visitors.',
             'body'    => '
-            <p class="updated-note">Last updated: August 9, 2026</p>
-            <p>By creating an account or using GoalSpace, you agree to these terms.</p>
+            <p class="updated-note">Last updated: September 2026</p>
 
-            <h2>Your account</h2>
+            <p>Welcome to GoalSpace. By accessing our platform, creating an account, or making a court booking, you agree to these Terms of Service. Please review them carefully.</p>
+
+            <h2>1. User Accounts and Eligibility</h2>
             <ul>
-                <li>You must provide accurate information and keep your login details secure.</li>
-                <li>One account per person. You may not share accounts or credentials.</li>
-                <li>You are responsible for activity that happens under your account.</li>
+                <li>You must be at least 16 years of age or have parent/guardian consent to create an account.</li>
+                <li>You agree to provide accurate, up-to-date registration information and keep your credentials confidential.</li>
+                <li>You are responsible for all activities and bookings made under your account credentials.</li>
+                <li>GoalSpace reserves the right to suspend or terminate accounts that provide falsified details or misuse the reservation system.</li>
             </ul>
 
-            <h2>Booking courts</h2>
+            <h2>2. Court Reservations and Instant Confirmation</h2>
             <ul>
-                <li>A booking is <strong>confirmed immediately</strong> the moment you reserve a slot. No approval needed.</li>
-                <li>Once booked, the slot is locked and cannot be taken by anyone else.</li>
-                <li>Confirmed bookings can be cancelled from "My Bookings" at any time before the game.</li>
-                <li>Managers and admins may cancel any booking on their grounds or across the platform.</li>
-                <li>Misusing the booking system (fake bookings, spam or harassment) may lead to account suspension.</li>
+                <li><strong>Instant Booking:</strong> When you select a time slot and complete checkout, your reservation is confirmed immediately. The court calendar updates in real time to prevent duplicate bookings.</li>
+                <li><strong>Punctuality:</strong> Players are expected to arrive at the venue at least 10 minutes prior to their reserved kickoff time. Game time ends precisely when the booked slot concludes.</li>
+                <li><strong>Venue Rules:</strong> Players agree to abide by the specific ground rules of the futsal facility, including proper turf footwear, equipment care, and courteous sportsmanship.</li>
             </ul>
 
-            <h2 id="for-managers">For managers</h2>
-            <p>Managers are court owners who list their grounds and accept bookings. By becoming a manager you agree to the following:</p>
+            <h2>3. Pricing, Payments, and Advance Deposits</h2>
             <ul>
-                <li><strong>Your courts only.</strong> You manage only the grounds assigned to your account. You cannot edit or cancel bookings for courts you do not own.</li>
-                <li><strong>Listings must be accurate.</strong> Prices, opening hours and court details should be truthful and kept up to date. Misleading listings may be removed.</li>
-                <li><strong>Honour confirmed slots.</strong> Once a booking is confirmed, keep the court available for that slot, or work with the player if a change is unavoidable.</li>
-                <li><strong>Respect player data.</strong> You may see players\' names and contact details only to manage their bookings. Do not use them for marketing without permission.</li>
-                <li><strong>No double-selling.</strong> A slot that is booked through GoalSpace must not also be sold elsewhere.</li>
+                <li><strong>Clear Rates:</strong> Court prices are established directly by venue managers and clearly displayed per 60-minute or 90-minute time slot.</li>
+                <li><strong>Payment Methods:</strong> Depending on the court\'s configuration, players may pay the full amount online, pay a 20% advance online with the balance due upon arrival, or pay the entire fee at the venue.</li>
+                <li><strong>Direct QR Transfers:</strong> Digital QR payments (e.g. Khalti, eSewa, IME Pay) are transferred directly to the venue manager\'s verified merchant account.</li>
             </ul>
 
-            <h2>Admin responsibilities</h2>
+            <h2>4. Cancellation and Refund Policy</h2>
             <ul>
-                <li>Admins administer the platform: users, grounds and system settings.</li>
-                <li>Admins may remove content or accounts that violate these terms.</li>
+                <li><strong>Standard Notice (24+ hours before kickoff):</strong> Cancellations submitted at least 24 hours prior to game start qualify for a 100% refund or platform credit.</li>
+                <li><strong>Late Cancellation (within 24 hours):</strong> For cancellations made less than 24 hours before kickoff, the advance deposit is retained as credit for future bookings or paid to the court to cover idle turf loss.</li>
+                <li><strong>No-Shows:</strong> Failing to attend a reserved slot without cancellation forfeits the advance deposit. Continued no-shows may lead to booking restrictions on your account.</li>
             </ul>
 
-            <h2>Acceptable use</h2>
+            <h2>5. Manager and Court Owner Responsibilities</h2>
+            <p>Futsal court operators who register as Managers on GoalSpace agree to uphold the following standards:</p>
             <ul>
-                <li>Do not attempt to access other users\' data or restricted areas.</li>
-                <li>Do not disrupt, overload or attempt to break the platform.</li>
-                <li>Do not use the platform for any unlawful purpose.</li>
+                <li><strong>Listing Accuracy:</strong> Court dimensions, amenities, grass type, rates, and working hours must remain truthful and up to date.</li>
+                <li><strong>Guaranteed Availability:</strong> A slot confirmed on GoalSpace must be honored. Double-selling slots across phone or third-party platforms is strictly prohibited.</li>
+                <li><strong>Player Privacy:</strong> Customer contact details may be used solely for reservation coordination and never for unsolicited commercial messaging.</li>
             </ul>
 
-            <h2>Limitation of liability</h2>
-            <p>GoalSpace is a booking platform; court quality, availability and gameplay are the responsibility of each court owner. We are not liable for issues arising at a court, such as cancellations or facilities.</p>
+            <h2>6. Platform Availability and Liability</h2>
+            <p>GoalSpace provides the digital booking infrastructure connecting players and courts. Physical venue conditions, weather disruptions, pitch maintenance, and player conduct remain the direct responsibility of the respective venue managers and participants. To the maximum extent permitted by law, GoalSpace is not liable for injuries or property loss occurring at partner futsal facilities.</p>
 
-            <h2>Location services</h2>
-            <p>When you use the "Use my location" feature, your browser may request access to your device&rsquo;s geolocation. You can deny or revoke this permission at any time in your browser settings. GoalSpace does not store your precise location; it is used only to sort and display nearby courts during your session. You can use GoalSpace fully without enabling location access by searching by city or area instead.</p>
-
-            <h2>Changes and termination</h2>
-            <p>We may update these terms or suspend accounts that breach them. Continued use after a change means you accept the updated terms.</p>
+            <h2>7. Amendments to Terms</h2>
+            <p>We may update these terms periodically to reflect new platform capabilities or legal guidelines. Continued use of GoalSpace following published updates constitutes acceptance of the modified terms.</p>
         ',
         ],
         'contact' => [
             'title'   => 'Contact Us',
-            'summary' => 'We are happy to help players and court owners.',
+            'summary' => 'Get in touch with the GoalSpace team for support, court onboarding, and inquiries.',
             'body'    => '
-            <p>Need help with a booking, your account or a court? Message us below, and we respond within 1 day.</p>
+            <p>Whether you need assistance with a current booking, want to register your futsal court on our platform, or simply have feedback to share, we are here to help.</p>
+
+            <h2>Support Channels</h2>
+            <ul>
+                <li><strong>Email Support:</strong> <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> (typically answered within 4 hours during business days)</li>
+                <li><strong>Manager Venue Onboarding:</strong> <a href="mailto:partners@goalspace.com">partners@goalspace.com</a></li>
+                <li><strong>Headquarters:</strong> GoalSpace Technologies, Kathmandu, Nepal</li>
+                <li><strong>Operating Hours:</strong> Sunday through Friday, 8:00 AM to 8:00 PM NPT</li>
+            </ul>
+
+            <p>You can also send a direct inquiry using the contact form below, and our team will get back to you promptly.</p>
         ',
         ],
         'help'    => [
-            'title'   => 'Help & Support',
-            'summary' => 'Answers to common questions for players, managers and admins.',
+            'title'   => 'Help and Support',
+            'summary' => 'Comprehensive answers and tutorials for players, court managers, and administrators.',
             'body'    => '
-            <h2 id="for-players">For players</h2>
-            <h3>How do I book a court?</h3>
-            <p>Find a ground on the homepage, pick a date, choose an available time slot and confirm. Your slot locks in immediately, then you choose a payment option.</p>
+            <h2 id="for-players">Player Guide</h2>
+            <h3>How do I find and book an open futsal court?</h3>
+            <p>Browse courts on the <a href="' . base_url('pages/courts.php') . '">Courts page</a> or search by city and neighborhood. Tap any court to view available dates, then click on your preferred open time slot to begin checkout.</p>
+
             <h3>How does payment work?</h3>
-            <p>After booking you can either pay a 20% advance online and the rest at the court, or pay the full amount online in one go. Both options are shown at checkout.</p>
-            <h3>Can I cancel a booking?</h3>
-            <p>Yes, confirmed bookings can be cancelled from "My Bookings" at any time.</p>
+            <p>GoalSpace supports flexible payment options. You can pay a 20% advance online and settle the balance when you arrive, pay 100% upfront via the court\'s official QR code (Khalti, eSewa, or IME Pay), or pay directly at the venue counter.</p>
 
-            <h2 id="for-managers">For managers</h2>
-            <h3>How do I become a manager?</h3>
-            <p>Sign up and choose the "Manager" option, or click <a href="%MANAGER_URL%">Become a manager</a>. You will land on your manager dashboard where you can add your first court.</p>
-            <h3>How do I list a court?</h3>
-            <p>From "My Grounds", click "Add Ground" and enter the name, location, capacity and hourly price. Once saved, the court is visible on the site for players to book.</p>
-            <h3>How do I edit or remove a court?</h3>
-            <p>Go to "My Grounds", find the court and use Edit or Delete. You can also mark a court inactive so it stops accepting bookings without deleting it.</p>
-            <h3>How do bookings work?</h3>
-            <p>When a player reserves a slot on your court, it is confirmed instantly. No approval needed. You can cancel any booking from the bookings page if you can no longer host.</p>
-            <h3>Can I track payments and revenue?</h3>
-            <p>Yes. Your dashboard shows revenue from your courts, plus a payment badge (Paid, Partial or Unpaid) on every booking.</p>
-            <h3>What should I do if a player cancels?</h3>
-            <p>When a player cancels from "My Bookings", the slot becomes free again automatically for others to book.</p>
+            <h3>Can I reschedule or cancel my match?</h3>
+            <p>Yes. Go to <a href="' . base_url('pages/my_bookings.php') . '">My Bookings</a>, choose your upcoming game, and tap Cancel or Reschedule. Cancellations made 24 hours or more before kickoff qualify for a full refund.</p>
 
-            <h2 id="for-admins">For admins</h2>
-            <h3>How do I change a user\'s role?</h3>
-            <p>Go to Users in the admin dashboard and choose a new role from the dropdown.</p>
-            <h3>How do I assign a ground to a manager?</h3>
-            <p>Edit the ground in the admin dashboard and select the owning manager.</p>
+            <h2 id="for-managers">Court Manager Guide</h2>
+            <h3>How do I list my futsal ground on GoalSpace?</h3>
+            <p>Sign up and select the <strong>Manager</strong> account role, or visit <a href="%MANAGER_URL%">Become a Manager</a>. From your manager dashboard, navigate to "My Grounds" and click "Add Ground" to set your rates, photos, and ground specifications.</p>
 
-            <h2>Still stuck?</h2>
-            <p>Contact us at <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> and we will help.</p>
+            <h3>How do I configure digital QR payments?</h3>
+            <p>In "My Grounds", click "Edit" on your court and locate the Payment QR Code section. Upload a clear photo or screenshot of your Khalti, eSewa, or mobile banking QR code so players can scan and transfer fees directly to you.</p>
+
+            <h3>How do I mark payments collected in cash?</h3>
+            <p>In your manager Bookings tab, locate the player\'s reservation and click "Mark Paid". The booking status will immediately update to reflect full settlement.</p>
+
+            <h3>Can I block courts for tournaments or private maintenance?</h3>
+            <p>Yes. Under court settings, open "Blocked Dates and Times" to temporarily close specific slots from public availability without taking down your entire court profile.</p>
+
+            <h2 id="general-questions">General Questions</h2>
+            <h3>What should I do if a venue is closed upon arrival?</h3>
+            <p>Please contact our support team immediately at <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> with your booking reference code. We will verify the incident with the manager and promptly issue a full refund or credit.</p>
         ',
         ],
     ];
@@ -2156,8 +2409,22 @@ function page_content(string $slug): ?array
 
 /**
  * Persist an edited legal/static page. Inserts or updates the `pages` row.
+ * Body HTML is sanitized via allowlist (vanilla, no framework).
  * @return bool true on success
  */
+function sanitize_page_body(string $html): string
+{
+    // Allow only safe formatting tags; strip scripts, iframes, objects, forms, event handlers.
+    $allowed = '<p><br><h2><h3><h4><ul><ol><li><strong><em><b><i><u><a><blockquote><code><pre><hr>';
+    $html = strip_tags($html, $allowed);
+    // Remove event-handler attributes (onclick= etc.) and javascript: URLs.
+    $html = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+    $html = preg_replace('/\s+(href|src)\s*=\s*(["\']?)\s*javascript:[^"\']*\2/i', ' $1="#"', $html);
+    // Remove style attributes that could hide content or exfiltrate.
+    $html = preg_replace('/\s+style\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+    return trim($html);
+}
+
 function save_page(string $slug, string $title, string $summary, string $body): bool
 {
     global $conn;
@@ -2165,6 +2432,9 @@ function save_page(string $slug, string $title, string $summary, string $body): 
     if (!isset($defaults[$slug])) {
         return false;
     }
+    $title = mb_substr(trim($title), 0, 150);
+    $summary = mb_substr(trim($summary), 0, 255);
+    $body = sanitize_page_body($body);
     $stmt = $conn->prepare(
         'INSERT INTO pages (slug, title, summary, body) VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE title = VALUES(title), summary = VALUES(summary), body = VALUES(body), updated_at = CURRENT_TIMESTAMP'
@@ -2194,7 +2464,7 @@ function ground_seo_meta(array $ground): void
         . ($loc !== 'GoalSpace' ? ' in ' . $loc : '')
         . '. Check real-time availability, prices, and pay securely with GoalSpace.';
     $img = ground_cover($ground['id']);
-    $page_image = $img ? absolute_url($img) : absolute_url('assets/img/social-og.png');
+    $page_image = $img ? absolute_url($img) : absolute_url('assets/img/icon-512.png');
     $page_url     = absolute_url('pages/ground.php?id=' . (int) $ground['id'] . (isset($ground['slug']) && $ground['slug'] !== '' ? '&slug=' . $ground['slug'] : ''));
     $og_type      = 'article';
 }
@@ -2234,7 +2504,7 @@ function ground_json_ld(array $ground): string
         '@context' => 'https://schema.org',
         '@type'    => 'SportsActivityLocation',
         'name'     => $ground['name'],
-        'image'    => $img ? [absolute_url($img)] : [absolute_url('assets/img/social-og.png')],
+        'image'    => $img ? [absolute_url($img)] : [absolute_url('assets/img/icon-512.png')],
         'address'  => [
             '@type'           => 'PostalAddress',
             'streetAddress'   => $ground['address'] ?? '',

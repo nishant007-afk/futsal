@@ -162,65 +162,71 @@ require __DIR__ . '/../includes/header.php';
                 <div class="gallery pitch"></div>
             <?php endif; ?>
         </div>
-        <div class="detail-box ground-info">
-            <h3>About this ground</h3>
-            <p class="about-name"><i class="fa-solid fa-futbol"></i> <span><?php echo e($ground['name']); ?></span></p>
-            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
-            <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
-            <?php $mapQuery = $hasCoords
-                ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
-                : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
-            <div class="ground-map">
-                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Location</div>
-                <div class="ground-map-frame">
-                    <iframe
-                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                        width="100%" height="320" style="border:0;" allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
-                </div>
-                <?php if (!empty($ground['address'])): ?>
-                    <a class="ground-map-link" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Google Maps</a>
+        <div class="detail-box ground-info ground-facts">
+            <div class="ground-title-row">
+                <h1 class="ground-title"><?php echo e($ground['name']); ?></h1>
+                <?php if (is_logged_in()): ?>
+                    <button type="button"
+                            class="fav-toggle ground-fav"
+                            data-ground-id="<?php echo (int)$ground['id']; ?>"
+                            data-url="<?php echo base_url('ajax/favorite.php'); ?>"
+                            aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                            title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                            data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
+                        <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>" aria-hidden="true"></i>
+                        <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
+                    </button>
                 <?php endif; ?>
             </div>
-            <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
-            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> - <?php echo e(substr($ground['close_time'], 0, 5)); ?></span></div>
-            <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
-                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
-            <?php endif; ?>
             <div class="rating-summary">
                 <?php if ($rating['count'] > 0): ?>
                     <span class="rating-big"><?php echo number_format((float)$rating['avg'], 1); ?></span>
                     <?php echo star_html($rating['avg']); ?>
                     <span class="rating-meta"><?php echo $rating['count']; ?> review<?php echo $rating['count'] === 1 ? '' : 's'; ?></span>
                 <?php else: ?>
-                    <span class="rating-meta">No reviews yet</span>
+                    <span class="rating-meta">No reviews yet – be the first to play here.</span>
                 <?php endif; ?>
             </div>
+            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
+            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
+            <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
+            <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
+                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
+            <?php endif; ?>
+            <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
+            <?php $mapQuery = $hasCoords
+                ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
+                : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
+            <?php if (!empty($ground['address'])): ?>
+                <a class="btn btn-outline btn-block" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-map-location-dot"></i> Open in Google Maps</a>
+            <?php endif; ?>
+        </div>
+
+        <div class="detail-box about-box mt-24">
+            <h3>About this court</h3>
             <?php if (!empty($ground['description'])): ?>
                 <p class="desc"><?php echo e($ground['description']); ?></p>
+            <?php else: ?>
+                <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
+            <?php endif; ?>
+            <div class="ground-map">
+                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
+                <div class="ground-map-frame">
+                    <iframe
+                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                        width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+                </div>
+            </div>
+            <?php if (!empty($ground['address'])): ?>
+                <p class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></p>
             <?php endif; ?>
         </div>
     </div>
 
     <div class="detail-box booking-panel reveal">
-        <div class="ground-header">
-            <div class="ground-header-row">
-                <h3 class="ground-header-name"><?php echo e($ground['name']); ?></h3>
-            <?php if (is_logged_in()): ?>
-                <button type="button"
-                        class="fav-toggle ground-fav"
-                        data-ground-id="<?php echo (int)$ground['id']; ?>"
-                        data-url="<?php echo base_url('ajax/favorite.php'); ?>"
-                        aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
-                        title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
-                        data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
-                    <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>"
-                       style="<?php echo favorite_exists((int)$ground['id']) ? 'color:var(--danger);' : ''; ?>" aria-hidden="true"></i>
-                    <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
-                </button>
-            <?php endif; ?>
-        </div>
+        <span class="book-eyebrow">Book this court</span>
         <?php
         $discPrice = $ground['discount_price'] ?? null;
         $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);
@@ -230,7 +236,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
             <strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?>
         </p>
-        <p class="muted sm" style="margin:-8px 0 14px;"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : $ground['slot_interval'] . '-minute'; ?> slots</p>
+        <p class="slot-meta"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots · Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?></p>
 
         <form method="get" action="">
             <div class="form-group">
@@ -268,20 +274,6 @@ require __DIR__ . '/../includes/header.php';
                 <?php if (!is_logged_in()): ?>
                     <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
                 <?php elseif (is_player()): ?>
-                    <div class="repeat-row" id="repeatRow">
-                        <label class="repeat-check" for="repeatToggle">
-                            <input type="checkbox" id="repeatToggle" name="repeat_booking" value="1">
-                            <span><i class="fa-solid fa-arrows-rotate"></i> Repeat this booking weekly</span>
-                        </label>
-                        <div class="repeat-weeks" id="repeatWeeksWrap" style="display:none;">
-                            <label for="repeatWeeks">for</label>
-                            <select name="repeat_weeks" id="repeatWeeks">
-                                <?php for ($i = 2; $i <= 8; $i++): ?>
-                                    <option value="<?php echo $i; ?>"><?php echo $i; ?> weeks</option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                    </div>
                     <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn">Reserve this slot</button>
                 <?php else: ?>
                     <div class="role-lock">
@@ -296,7 +288,7 @@ require __DIR__ . '/../includes/header.php';
             if ($takenSlots && (is_logged_in())): ?>
                 <div class="waitlist-box">
                     <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Sold out? Join the waitlist</div>
-                    <p class="muted" style="font-size:12.5px;margin-bottom:10px;">Join a waitlist and we'll ping you the moment a slot frees up.</p>
+                    <p class="muted text-xs mb-10">Join a waitlist and we'll ping you the moment a slot frees up.</p>
                     <div class="waitlist-list">
                         <?php foreach ($takenSlots as $ts): ?>
                             <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
@@ -322,7 +314,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="reviews-wrap">
     <?php if ($rating['count'] > 0): ?>
-        <div class="section-head reveal full" style="margin-bottom:18px;">
+        <div class="section-head reveal full mb-18">
             <span class="eyebrow">Reviews</span>
             <h2 class="section-title sm">What players say</h2>
         </div>
@@ -330,10 +322,10 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="review-form-card reveal">
         <?php if (!is_logged_in()): ?>
-            <p class="muted" style="font-size:14px;">Played here or want to share your experience? <a href="<?php echo base_url('pages/login.php'); ?>" class="inline-link">Log in</a> to leave a review.</p>
+            <p class="muted text-14">Played here or want to share your experience? <a href="<?php echo base_url('pages/login.php'); ?>" class="inline-link">Log in</a> to leave a review.</p>
         <?php elseif (is_player()): ?>
             <?php if ($my_review): ?>
-                <p class="muted" style="font-size:13.5px;margin-bottom:12px;">You've rated this court <?php echo star_html($my_review['rating']); ?>. Update it below.</p>
+                <p class="muted text-sm mb-12">You've rated this court <?php echo star_html($my_review['rating']); ?>. Update it below.</p>
             <?php endif; ?>
             <form method="post" action="">
                 <?php echo csrf_field(); ?>
@@ -348,20 +340,27 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="reviewComment">Your review <span class="muted" style="font-weight:400;">(optional)</span></label>
+                    <label for="reviewComment">Your review <span class="muted fw-400">(optional)</span></label>
                     <textarea id="reviewComment" name="comment" rows="3" placeholder="Tell others about the court, lights, booking and atmosphere…"><?php echo e($my_review['comment'] ?? ''); ?></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <?php echo $my_review ? 'Update review' : 'Post review'; ?></button>
             </form>
         <?php else: ?>
-            <p class="muted" style="font-size:14px;">Only player accounts can leave reviews.</p>
+            <p class="muted text-14">Only player accounts can leave reviews.</p>
         <?php endif; ?>
     </div>
 
     <?php if ($reviews): ?>
         <div class="review-list">
             <?php foreach ($reviews as $rv):
-                $helped = is_logged_in() && (bool)$conn->query("SELECT 1 FROM review_votes WHERE review_id = {$rv['id']} AND user_id = {$_SESSION['user_id']}")->fetch_assoc();
+                $helped = false;
+                if (is_logged_in()) {
+                    $hvStmt = $conn->prepare('SELECT 1 FROM review_votes WHERE review_id = ? AND user_id = ?');
+                    $hvStmt->bind_param('ii', $rv['id'], $_SESSION['user_id']);
+                    $hvStmt->execute();
+                    $helped = (bool)$hvStmt->get_result()->fetch_assoc();
+                    $hvStmt->close();
+                }
             ?>
                 <div class="review-item reveal">
                     <div class="review-avatar">
@@ -398,7 +397,7 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if ($similar): ?>
     <section class="section similar-courts">
-        <div class="section-head reveal full" style="margin-bottom:18px;">
+        <div class="section-head reveal full mb-18">
             <span class="eyebrow">Keep exploring</span>
             <h2 class="section-title">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
         </div>

@@ -2,17 +2,20 @@
 require_once __DIR__ . '/../config/db.php';
 require_manager();
 
-if (isset($_GET['cancel'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $booking_id = (int)$_GET['cancel'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
+    verify_csrf();
+    $booking_id = (int)$_POST['cancel_booking'];
     $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.total_price, b.payment_status, b.payment_method FROM bookings b
          JOIN grounds g ON g.id = b.ground_id
          WHERE b.id = ? AND g.manager_id = ? AND b.status = "confirmed"');
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
     $stmt->execute();
     $cancelTarget = $stmt->get_result()->fetch_assoc();
+
+    if ($cancelTarget && strtotime($cancelTarget['booking_date'] . ' ' . $cancelTarget['start_time']) < time()) {
+        set_flash('info', 'That game already started, so it cannot be cancelled.');
+        redirect('manager/bookings.php');
+    }
 
     $stmt = $conn->prepare(
         'UPDATE bookings b
@@ -38,12 +41,10 @@ if (isset($_GET['cancel'])) {
     redirect('manager/bookings.php');
 }
 
-if (isset($_GET['mark_paid'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $booking_id = (int)$_GET['mark_paid'];
-    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.amount_paid, g.name AS ground_name FROM bookings b
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_paid'])) {
+    verify_csrf();
+    $booking_id = (int)$_POST['mark_paid'];
+    $stmt = $conn->prepare('SELECT b.user_id, b.ground_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.discount, b.amount_paid, g.name AS ground_name FROM bookings b
          JOIN grounds g ON g.id = b.ground_id
          WHERE b.id = ? AND g.manager_id = ? AND b.status = "confirmed" AND b.payment_status IN ("unpaid", "partial")');
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
@@ -53,8 +54,9 @@ if (isset($_GET['mark_paid'])) {
     if (!$target) {
         set_flash_error('That booking could not be marked as paid.', 'It may already be fully paid, or it belongs to another court.', 'Return to your bookings list to pick another one.', 'manager/bookings.php');
     } else {
-        $update = $conn->prepare('UPDATE bookings SET payment_status = "paid", payment_type = "full", amount_paid = total_price, payment_method = "at_court", paid_at = NOW() WHERE id = ? AND status = "confirmed"');
-        $update->bind_param('i', $booking_id);
+        $netTotal = round((float)$target['total_price'] - (float)($target['discount'] ?? 0), 2);
+        $update = $conn->prepare('UPDATE bookings SET payment_status = "paid", payment_type = "full", amount_paid = ?, payment_method = "at_court", paid_at = NOW() WHERE id = ? AND status = "confirmed"');
+        $update->bind_param('di', $netTotal, $booking_id);
         if ($update->execute() && $update->affected_rows > 0) {
             notify_user(
                 (int)$target['user_id'],
@@ -412,10 +414,7 @@ require __DIR__ . '/../includes/header.php';
                 $canMarkPaid = $b['status'] === 'confirmed' && in_array($b['payment_status'], ['unpaid', 'partial'], true);
                 $markPaidAction = '';
                 if ($canMarkPaid) {
-                    $markPaidAction = '<a href="' . base_url('manager/bookings.php?mark_paid=' . (int)$b['id'] . '&csrf=' . csrf_token())
-                        . '" class="mb-cta mb-cta-mark" title="Mark as paid (paid at court)" data-confirm="Mark this booking as paid at court?"'
-                        . ' data-confirm-ok="Yes, mark paid" data-confirm-cancel="Cancel">'
-                        . '<i class="fa-solid fa-coins"></i> Mark paid</a>';
+                    $markPaidAction = post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'mb-cta mb-cta-mark', 'Mark this booking as paid at court?', 'Mark paid');
                 }
                 booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status'], $markPaidAction);
                 ?>

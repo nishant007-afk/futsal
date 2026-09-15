@@ -5,9 +5,9 @@ $message = isset($message) ? $message : 'The page you were looking for could not
 $cta_label = isset($cta_label) ? $cta_label : 'Back to home';
 $cta_url = isset($cta_url) ? $cta_url : base_url('index.php');
 ?>
-<div class="container" style="padding-top:60px;padding-bottom:80px;">
+<div class="container error-page">
     <div class="empty reveal">
-        <span class="big" style="color:var(--brand-700);">
+        <span class="big error-icon">
             <i class="fa-solid fa-<?php echo $code === 403 ? 'lock' : 'futbol'; ?>"></i>
         </span>
         <h1><?php echo e($title); ?></h1>

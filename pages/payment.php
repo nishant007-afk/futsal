@@ -115,9 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('sdsii', $payment_type, $amount_paid, $payment_status, $booking_id, $_SESSION['user_id']);
     $stmt->execute();
 
-    // Increment promo usage after payment processing so max_uses only counts
-    // bookings that actually reached payment status.
-    increment_promo_usage($promoId);
+    // Increment promo usage after payment (atomic, capped). Skip when no promo.
+    if ($promoId > 0) {
+        increment_promo_usage($promoId);
+    }
 
     $paySummary = [
         'Booking ref' => $booking['booking_ref'],
@@ -169,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php else: ?>
                 <p class="muted">This court collects payment at the venue. Bring Rs <?php echo number_format($amount_paid, 0); ?> when you arrive.</p>
             <?php endif; ?>
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="btn btn-primary" style="margin-top: 16px;"><i class="fa-solid fa-check"></i> View my booking</a>
+            <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="btn btn-primary mt-16"><i class="fa-solid fa-check"></i> View my booking</a>
         </div>
     </div>
     <?php
@@ -187,7 +188,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="payment-head">
             <span class="eyebrow"><?php echo $isPartial ? 'One step left' : 'Almost there'; ?></span>
             <div class="title-back-row">
-                <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
                 <h1><?php echo $isPartial ? 'Pay your remaining balance' : 'Complete your payment'; ?></h1>
             </div>
             <p><?php echo $isPartial ? 'Your slot is locked in. Pay the rest to complete this booking.' : 'Your slot is locked in. Choose how you\'d like to pay for it.'; ?></p>

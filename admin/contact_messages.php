@@ -37,11 +37,9 @@ if (isset($_GET['export'])) {
     export_csv($csv, 'contact-messages.csv');
 }
 
-if (isset($_GET['resolve'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['resolve'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resolve_msg'])) {
+    verify_csrf();
+    $id = (int)$_POST['resolve_msg'];
     $stmt = $conn->prepare('UPDATE contact_messages SET is_resolved = 1 WHERE id = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -49,11 +47,9 @@ if (isset($_GET['resolve'])) {
     redirect('admin/contact_messages.php');
 }
 
-if (isset($_GET['delete'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['delete'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_msg'])) {
+    verify_csrf();
+    $id = (int)$_POST['delete_msg'];
     $stmt = $conn->prepare('DELETE FROM contact_messages WHERE id = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -136,9 +132,9 @@ require __DIR__ . '/../includes/header.php';
                 <div class="mbooking-side">
                     <div class="mbooking-actions actions-tight">
                         <?php if (!$m['is_resolved']): ?>
-                            <a href="<?php echo base_url('admin/contact_messages.php?resolve=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-outline btn-sm" title="Mark as resolved" aria-label="Mark as resolved"><i class="fa-solid fa-check"></i></a>
+                            <?php echo post_action_form(base_url('admin/contact_messages.php'), 'resolve_msg', (string)(int)$m['id'], '<i class="fa-solid fa-check"></i>', 'btn btn-outline btn-sm', '', 'Mark as resolved'); ?>
                         <?php endif; ?>
-                        <a href="<?php echo base_url('admin/contact_messages.php?delete=' . (int)$m['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" title="Delete" aria-label="Delete message" data-confirm="Delete this message?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash"></i></a>
+                        <?php echo post_action_form(base_url('admin/contact_messages.php'), 'delete_msg', (string)(int)$m['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this message?', 'Delete message'); ?>
                     </div>
                 </div>
             </div>

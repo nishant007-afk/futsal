@@ -106,7 +106,7 @@ require __DIR__ . '/../includes/header.php';
                     <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
                     <h1><?php echo e($n['title']); ?></h1>
                 </div>
-                <p class="muted" style="font-size:13px;"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>
+                <p class="muted text-sm"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>
             </div>
         </div>
 
@@ -123,7 +123,7 @@ require __DIR__ . '/../includes/header.php';
                     <div>
                         <span class="eyebrow">Related booking</span>
                         <h3><?php echo e($relatedBooking['ground_name']); ?></h3>
-                        <p class="muted" style="font-size:13px;"><?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
+                        <p class="muted text-sm"><?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
                     </div>
                 </div>
                 <dl class="bd-list">
@@ -139,7 +139,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($n['link']): ?>
                 <a href="<?php echo e(base_url($n['link'])); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Go to related page</a>
             <?php endif; ?>
-            <form method="post" action="" style="display:inline;">
+            <form method="post" action="" class="d-inline">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="delete_notification" value="1">
                 <button type="submit" class="btn btn-danger" data-confirm="Delete this notification?"><i class="fa-solid fa-trash-can"></i> Delete</button>

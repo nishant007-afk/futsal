@@ -58,7 +58,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     </div>
 </div>
 
-<section class="section section-pad-top" style="padding-top:8px;">
+<section class="section section-pad-top section-top-compact">
     <div class="section-head reveal">
         <h2 class="section-title">Upcoming bookings</h2>
     </div>
@@ -71,14 +71,14 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
                 <?php booking_card($b); ?>
             <?php endforeach; ?>
         </div>
-        <div class="section-foot reveal" style="text-align:center;">
+        <div class="section-foot reveal center">
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-calendar-check"></i> View all bookings</a>
         </div>
     <?php endif; ?>
 </section>
 
-<section class="section section-alt" id="courts" style="padding:30px 0 40px;">
-    <div class="section-head reveal" style="padding-left:18px; margin-top:-22px;">
+<section class="section section-alt section-courts-pad" id="courts">
+    <div class="section-head reveal section-head-offset">
         <h2 class="section-title">Courts available near you</h2>
     </div>
     <?php if (!$grounds): ?>
@@ -87,7 +87,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
         </div>
-        <div class="section-foot reveal" style="text-align:center;">
+        <div class="section-foot reveal center">
             <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all courts</a>
         </div>
     <?php endif; ?>

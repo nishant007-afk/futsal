@@ -2,11 +2,9 @@
 require_once __DIR__ . '/../config/db.php';
 require_admin();
 
-if (isset($_GET['delete'])) {
-    if (!isset($_GET['csrf']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_GET['csrf'])) {
-        exit('Invalid request.');
-    }
-    $id = (int)$_GET['delete'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
+    verify_csrf();
+    $id = (int)$_POST['delete_user'];
     if ($id === (int)$_SESSION['user_id']) {
         set_flash_error(
             'You can\'t delete your own account.',
@@ -179,7 +177,11 @@ require __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
-                                <a href="<?php echo base_url('admin/users.php?delete=' . (int)$u['id'] . '&csrf=' . csrf_token()); ?>" class="btn btn-danger btn-sm" data-confirm="Delete this user?" aria-label="Delete user"><i class="fa-solid fa-trash"></i></a>
+                                <form method="post" action="" style="display:inline;" onsubmit="return confirm('Delete this user?');">
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="delete_user" value="<?php echo (int)$u['id']; ?>">
+                                    <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete user"><i class="fa-solid fa-trash"></i></button>
+                                </form>
                             <?php endif; ?>
                         </div>
                     </td>

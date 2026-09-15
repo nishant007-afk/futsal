@@ -13,7 +13,6 @@ if (!$pending || !isset($pending['user_id'], $pending['new_email']) || (int)$pen
 $me = current_user();
 $errors = [];
 $codeSent = false;
-$demoCode = null;
 $newEmail = $pending['new_email'];
 
 $cooldown = otp_send_cooldown($newEmail, 'email_change');
@@ -24,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($newEmail, $code, 'email_change')) {
         $codeSent = true;
     } else {
+        error_log('OTP email failed for email_change to ' . $newEmail);
         $codeSent = true;
-        $demoCode = $code;
     }
 }
 
@@ -49,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new verification code has been sent to ' . $newEmail . '.');
             redirect('pages/change_email_otp.php');
         } else {
+            error_log('OTP email failed for email_change to ' . $newEmail);
             $codeSent = true;
-            $demoCode = $code;
         }
     } else {
         if ($otp === '') {
@@ -99,17 +98,17 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
     <?php if ($codeSent): ?>
-        <div class="notice" style="margin-top:8px;">
+        <div class="notice mt-8">
             <i class="fa-solid fa-envelope-circle-check"></i>
-            <span><?php echo $demoCode ? '<strong>Email couldn\'t be sent</strong> right now, so use this code: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($demoCode) . '</strong>' : 'Check your inbox (and spam folder). The code expires in 5 minutes.'; ?></span>
+            <span>Check your inbox (and spam folder). The code expires in 5 minutes.</span>
         </div>
     <?php endif; ?>
 
-    <form method="post" action="" novalidate style="margin-top:10px;">
+    <form method="post" action="" novalidate role="form" class="mt-10">
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'otp'); ?>">
             <label for="otp">Verification code <span class="req">*</span></label>
-            <input type="hidden" name="otp" class="otp-source" required>
+            <input type="hidden" name="otp" class="otp-source" required aria-required="true">
             <div class="otp-boxes" role="group" aria-label="Verification code">
                 <input class="otp-box" type="tel" id="otp" inputmode="numeric" maxlength="1" pattern="[0-9]*" autocomplete="one-time-code" spellcheck="false" aria-label="First digit">
                 <input class="otp-box" type="tel" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Second digit">
@@ -122,13 +121,9 @@ require __DIR__ . '/../includes/header.php';
         </div>
 
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-circle-check"></i> Confirm & change email</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block" style="margin-top:10px;"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
         <p class="form-foot"><a href="<?php echo base_url('pages/profile.php'); ?>">Cancel and go back</a></p>
     </form>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    });
-</script>

@@ -145,6 +145,7 @@ if ($repeat_weeks < 1 || $repeat_weeks > 8) {
 $createdCount = 0;
 $skipped = [];
 $first_id = 0;
+$first_ref = '';
 $repeat_of = 0;
 
 for ($w = 0; $w < $repeat_weeks; $w++) {
@@ -193,6 +194,7 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
     }
     if ($createdCount === 0) {
         $first_id = (int)$stmt->insert_id;
+        $first_ref = $booking_ref;
         $repeat_of = $first_id;
     }
     $createdCount++;
@@ -236,7 +238,7 @@ if ($user) {
         $createdCount > 1 ? 'Your weekly bookings are confirmed' : 'Your booking is confirmed',
         $createdCount > 1 ? $createdCount . ' bookings confirmed at ' . $ground['name'] : 'Booking confirmed at ' . $ground['name'],
         [
-            'Booking ref' => 'GS-' . $booking_ref,
+            'Booking ref' => $first_ref,
             'Court' => $ground['name'],
             'Date' => date('D, M j, Y', strtotime($booking_date)),
             'Time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),

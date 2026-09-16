@@ -31,3 +31,18 @@ if ($affected > 0) {
 } else {
     echo "No stale unpaid bookings to cancel.\n";
 }
+
+// Deactivate grounds whose manager subscriptions have expired
+$conn->query(
+    'UPDATE grounds g
+     JOIN manager_subscriptions s ON s.manager_id = g.manager_id
+     SET g.is_active = 0
+     WHERE g.is_active = 1
+       AND NOT (s.setup_paid_at IS NOT NULL AND (s.period_end IS NULL OR s.period_end >= CURDATE()))'
+);
+$syncAffected = $conn->affected_rows;
+if ($syncAffected > 0) {
+    echo "Deactivated $syncAffected ground(s) with expired subscriptions.\n";
+} else {
+    echo "No grounds needed deactivation.\n";
+}

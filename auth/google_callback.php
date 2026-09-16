@@ -143,7 +143,7 @@ if ($existing) {
 
     $returnPath = $_SESSION['return_path'] ?? '';
     unset($_SESSION['return_path']);
-    if ($returnPath === 'pages/page.php?slug=contact') {
+    if ($returnPath !== '' && $returnPath !== 'index.php') {
         $finish($returnPath);
     }
 

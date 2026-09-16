@@ -284,7 +284,7 @@ require __DIR__ . '/../includes/header.php';
             </form>
 
             <?php
-            $takenSlots = array_values(array_filter($slots, fn($s) => in_array(substr($s['start'], 0, 2), $taken, true)));
+            $takenSlots = array_values(array_filter($slots, fn($s) => in_array($s['start'], $taken, true)));
             if ($takenSlots && (is_logged_in())): ?>
                 <div class="waitlist-box">
                     <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Sold out? Join the waitlist</div>

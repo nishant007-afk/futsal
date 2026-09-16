@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Honeypot check: bots fill this, humans don't
-    if (!empty($_POST['website_url'])) {
+    if (is_honeypot_filled()) {
         // Silently reject bot submissions
         $errors['general'] = 'Registration failed. Please try again.';
     }
@@ -157,13 +157,13 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
         <a href="<?php echo base_url('pages/login_google.php?intent=signup'); ?>" class="btn-google" id="googleLink">
-        <svg class="g-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+        <?php google_svg_icon(); ?>
         Continue with Google
     </a>
     <div class="auth-divider"><span>or</span></div>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
-        <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true"><label for="website_url">Leave this empty</label><input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>
+        <?php honeypot_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
             <div class="input-group floating">
                 <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
@@ -249,20 +249,3 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const pwInput = document.getElementById('password');
-    const pwReqs = document.getElementById('pwRequirements');
-    if (pwInput && pwReqs) {
-        function checkRequirements() {
-            const v = pwInput.value;
-            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
-            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
-            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
-            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
-        }
-        pwInput.addEventListener('input', checkRequirements);
-        checkRequirements();
-    }
-});
-</script>

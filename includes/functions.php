@@ -10,12 +10,17 @@ function current_user(): ?array
     if (!is_logged_in()) {
         return null;
     }
+    // Cache per request to avoid N+1 queries
+    if (isset($GLOBALS['__current_user'])) {
+        return $GLOBALS['__current_user'];
+    }
     global $conn;
     $stmt = $conn->prepare('SELECT id, name, email, phone, avatar, role, email_verified, created_at, notify_bookings, notify_promo, notify_expiry, notify_sms FROM users WHERE id = ?');
     $stmt->bind_param('i', $_SESSION['user_id']);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $GLOBALS['__current_user'] = $result->fetch_assoc();
+    return $GLOBALS['__current_user'];
 }
 
 function is_admin(): bool
@@ -291,12 +296,6 @@ function increment_promo_usage(int $promo_id): void
     $stmt = $conn->prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ? AND (max_uses <= 0 OR used_count < max_uses)');
     $stmt->bind_param('i', $promo_id);
     $stmt->execute();
-}
-
-function promo_codes_list(): array
-{
-    global $conn;
-    return $conn->query('SELECT * FROM promo_codes ORDER BY id DESC')->fetch_all(MYSQLI_ASSOC);
 }
 
 function manager_promo_codes(int $manager_id): array
@@ -2168,25 +2167,6 @@ function render_inline(string $message): void
 }
 
 /**
- * Prints an always-visible helper hint above/below a field so users know
- * what to enter (and what to avoid) before they even submit.
- */
-function field_hint(string $text, string $icon = 'fa-circle-info'): void
-{
-    echo '<p class="form-hint hint-tip"><i class="fa-solid ' . e($icon) . '"></i>'
-        . e($text) . '</p>';
-}
-
-/**
- * Convenience wrapper that renders the hint and then the inline error for a field.
- */
-function hint_and_error(array $errors, string $field, string $hint, string $icon = 'fa-circle-info'): void
-{
-    field_hint($hint, $icon);
-    field_error($errors, $field);
-}
-
-/**
  * Stores per-field errors + submitted values across a redirect (POST -> GET)
  * so the receiving form can re-render inline errors and keep user input.
  */
@@ -2194,6 +2174,92 @@ function flash_form(array $errors, array $old = []): void
 {
     $_SESSION['form_errors'] = $errors;
     $_SESSION['form_old'] = $old;
+}
+
+/**
+ * Renders the settings sidebar navigation. Called from all stg-layout pages.
+ * @param string $active  One of: settings, account, security, notifications, appearance
+ */
+function settings_sidebar(string $active): void
+{
+    $user = current_user();
+    $links = [
+        ['section' => 'Account', 'items' => [
+            ['page' => 'settings.php',           'key' => 'settings',      'icon' => 'fa-sliders',      'label' => 'General'],
+            ['page' => 'settings_account.php',   'key' => 'account',       'icon' => 'fa-user-pen',     'label' => 'Edit profile'],
+            ['page' => 'security.php',           'key' => 'security',      'icon' => 'fa-lock',         'label' => 'Password'],
+        ]],
+        ['section' => 'Preferences', 'items' => [
+            ['page' => 'settings_notifications.php', 'key' => 'notifications', 'icon' => 'fa-bell',       'label' => 'Notifications'],
+            ['page' => 'settings_preferences.php',   'key' => 'appearance',    'icon' => 'fa-palette',    'label' => 'Appearance'],
+        ]],
+        ['section' => 'Support', 'items' => [
+            ['page' => 'faq.php',                    'key' => '',  'icon' => 'fa-circle-question', 'label' => 'Help & FAQ'],
+            ['page' => 'page.php?slug=terms',        'key' => '',  'icon' => 'fa-file-lines',     'label' => 'Terms'],
+            ['page' => 'page.php?slug=privacy',      'key' => '',  'icon' => 'fa-shield-halved',  'label' => 'Privacy'],
+        ]],
+    ];
+    ?>
+    <nav class="stg-sidebar" aria-label="Settings navigation">
+        <div class="stg-sidebar-head">
+            <a href="<?php echo base_url('pages/profile.php'); ?>" class="stg-sidebar-back" aria-label="Back to profile"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Settings</h1>
+        </div>
+        <a href="<?php echo base_url('pages/profile.php'); ?>" class="stg-sidebar-user">
+            <span class="stg-sidebar-avatar">
+                <?php if (!empty($user['avatar'])): ?>
+                    <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="" loading="lazy" decoding="async">
+                <?php else: ?>
+                    <?php echo e(strtoupper(substr($user['name'], 0, 1))); ?>
+                <?php endif; ?>
+            </span>
+            <span class="stg-sidebar-user-info">
+                <strong><?php echo e($user['name']); ?></strong>
+                <span><?php echo e($user['email']); ?></span>
+            </span>
+        </a>
+        <?php foreach ($links as $group): ?>
+        <div class="stg-sidebar-section">
+            <span class="stg-sidebar-label"><?php echo e($group['section']); ?></span>
+            <?php foreach ($group['items'] as $link): ?>
+            <a href="<?php echo base_url('pages/' . $link['page']); ?>" class="stg-sidebar-link<?php echo $link['key'] === $active ? ' active' : ''; ?>"><i class="fa-solid <?php echo $link['icon']; ?>"></i> <?php echo $link['label']; ?></a>
+            <?php endforeach; ?>
+        </div>
+        <?php endforeach; ?>
+        <div class="stg-sidebar-section">
+            <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
+                <?php echo csrf_field(); ?>
+                <button type="submit" class="stg-sidebar-link stg-sidebar-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
+            </form>
+        </div>
+    </nav>
+    <?php
+}
+
+/**
+ * Renders a hidden honeypot field for bot trapping. Include inside <form>.
+ */
+function honeypot_field(): void
+{
+    echo '<div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">'
+        . '<label for="website_url">Leave this empty</label>'
+        . '<input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>';
+}
+
+/**
+ * Returns true if the honeypot field was filled (likely a bot).
+ */
+function is_honeypot_filled(): bool
+{
+    return !empty($_POST['website_url']);
+}
+
+/**
+ * Renders the Google sign-in SVG icon.
+ */
+function google_svg_icon(): void
+{
+    echo '<svg class="g-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>';
 }
 
 function form_errors(): array

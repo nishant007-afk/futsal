@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
             pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
             pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
+            pwReqs.querySelector('[data-req="max"]').classList.toggle('met', v.length <= 72 || v.length === 0);
         }
         pwInput.addEventListener('input', checkRequirements);
         checkRequirements();

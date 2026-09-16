@@ -87,14 +87,6 @@ $body_class = implode(' ', $body_classes);
 $scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
 $pageBack = false;
 $pageBackUrl = base_url('index.php');
-$backPagesPanel = [];
-$backPagesManager = [];
-$backPagesAdmin = [];
-if (($scriptDir === 'pages' && in_array($active, $backPagesPanel, true))
-    || ($scriptDir === 'manager' && in_array($active, $backPagesManager, true))
-    || ($scriptDir === 'admin' && in_array($active, $backPagesAdmin, true))) {
-    $pageBack = true;
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

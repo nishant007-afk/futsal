@@ -9,6 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $email = trim($_POST['email'] ?? '');
 
+    // Honeypot: bots fill this, silently reject
+    if (!empty($_POST['website_url'])) {
+        $errors['general'] = 'Request failed. Please try again.';
+    }
+
     if (isset($_POST['code'])) {
         // Step 2: verify the 6-digit reset code before even touching the password
         $code = preg_replace('/\D/', '', $_POST['code'] ?? '');
@@ -52,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $otp = issue_otp($email, 'password_reset');
                 $email_sent = send_otp_mail($email, $otp, 'password_reset');
                 if (!$email_sent) {
-                    error_log('OTP email failed for password_reset to ' . $email);
+                    error_log('OTP email delivery failed for purpose: password_reset');
                 }
                 $reset_code = null;
                 $reset_email = $email;
@@ -131,6 +136,7 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
+        <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true"><label for="website_url">Leave this empty</label><input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>
         <div class="form-group<?php echo has_error($errors, 'email'); ?>">
             <div class="input-group floating">
                 <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required aria-required="true" data-check-email="exists">

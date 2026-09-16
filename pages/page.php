@@ -22,7 +22,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="prose">
-    <?php echo str_replace('%MANAGER_URL%', base_url('pages/register.php?role=manager'), $page['body']); ?>
+    <?php echo str_replace('%MANAGER_URL%', base_url('pages/register.php?role=manager'), sanitize_page_body($page['body'])); ?>
 </div>
 
 <?php if ($slug === 'contact'): ?>
@@ -36,7 +36,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="grid-2">
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
                         <div class="input-group floating">
-                            <i class="fa-solid fa-user"></i>
                             <input type="text" id="cName" name="name" value="<?php echo e(old_value($cOld, 'name', is_logged_in() ? ($site_user['name'] ?? '') : '')); ?>" placeholder=" " autocomplete="name" maxlength="100" required aria-required="true">
                             <label for="cName">Your name <span class="req">*</span></label>
                         </div>
@@ -44,7 +43,6 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="form-group<?php echo has_error($cErrors, 'email'); ?>">
                         <div class="input-group floating">
-                            <i class="fa-solid fa-envelope"></i>
                             <input type="email" id="cEmail" name="email" value="<?php echo e(old_value($cOld, 'email', is_logged_in() ? ($site_user['email'] ?? '') : '')); ?>" placeholder=" " autocomplete="email" required aria-required="true">
                             <label for="cEmail">Email <span class="req">*</span></label>
                         </div>
@@ -53,7 +51,7 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label for="cTopic">Topic <span class="req">*</span></label>
+                        <label for="cTopic" class="form-label-static">Topic <span class="req">*</span></label>
                         <select id="cTopic" name="topic" required aria-required="true">
                             <option value="general" <?php echo old_value($cOld, 'topic') === 'general' ? 'selected' : ''; ?>>General question</option>
                             <option value="booking" <?php echo old_value($cOld, 'topic') === 'booking' ? 'selected' : ''; ?>>Booking help</option>
@@ -64,14 +62,13 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="form-group">
                         <div class="input-group floating">
-                            <i class="fa-solid fa-heading"></i>
                             <input type="text" id="cSubject" name="subject" value="<?php echo e(old_value($cOld, 'subject')); ?>" placeholder=" " maxlength="200">
                             <label for="cSubject">Subject</label>
                         </div>
                     </div>
                 </div>
                 <div class="form-group<?php echo has_error($cErrors, 'message'); ?>">
-                    <label for="cMessage">Message <span class="req">*</span></label>
+                    <label for="cMessage" class="form-label-static">Message <span class="req">*</span></label>
                     <textarea id="cMessage" name="message" rows="5" placeholder="Tell us how we can help (at least 10 characters)." required aria-required="true"><?php echo e(old_value($cOld, 'message')); ?></textarea>
                     <?php field_error($cErrors, 'message'); ?>
                 </div>

@@ -2,6 +2,6 @@
 Options -Indexes -ExecCGI
 RemoveHandler .php .phtml .phar
 RemoveType .php .phtml .phar
-<FilesMatch "\.(php|phtml|phar|pl|py|sh|cgi)$">
+<FilesMatch "\.(php|phtml|phar|php3|php4|php5|php7|phps|pl|py|cgi|sh|pht|svg|shtml)$">
     Require all denied
 </FilesMatch>

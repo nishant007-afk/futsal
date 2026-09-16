@@ -10,9 +10,23 @@ $accept = false;
 $email_updates = false;
 $role = ($_GET['role'] ?? '') === 'manager' ? 'manager' : 'user';
 $errors = [];
+$reg_blocked = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
+
+    // IP-based rate limiting: max 3 registrations per hour per IP (DB-backed)
+    if (rate_limit_exceeded('reg', 3, 3600)) {
+        $reg_blocked = true;
+        $errors['general'] = 'Too many registration attempts. Please try again later.';
+    }
+
+    // Honeypot check: bots fill this, humans don't
+    if (!empty($_POST['website_url'])) {
+        // Silently reject bot submissions
+        $errors['general'] = 'Registration failed. Please try again.';
+    }
+
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -46,21 +60,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['terms'] = 'Please accept the Terms of Service and Privacy Policy to continue.';
     }
 
-    if (!$errors) {
+    if (!$errors && !$reg_blocked) {
         $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
         if ($stmt->get_result()->num_rows > 0) {
             $errors['email'] = 'An account with this email already exists. Try logging in instead.';
         } else {
-            $hash = password_hash($password, PASSWORD_BCRYPT);
+            $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
             $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, verify_token, email_updates) VALUES (?, ?, ?, ?, ?, 0, NULL, ?)');
             $stmt->bind_param('sssssi', $name, $email, $phone, $hash, $role, $email_updates);
             if ($stmt->execute()) {
                 $otp = issue_otp($email, 'email_verify');
                 $verification_sent = send_otp_mail($email, $otp, 'email_verify');
                 if (!$verification_sent) {
-                    error_log('OTP email failed for email_verify to ' . $email);
+                    error_log('OTP email delivery failed for purpose: email_verify');
                 }
                 $verification_code = null;
                 $verification_email = $email;
@@ -149,6 +163,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="auth-divider"><span>or</span></div>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
+        <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true"><label for="website_url">Leave this empty</label><input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>
         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
             <div class="input-group floating">
                 <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">

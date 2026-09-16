@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($me['email'], $code, 'password_change')) {
         $codeSent = true;
     } else {
-        error_log('OTP email failed for password_change to ' . $me['email']);
+        error_log('OTP email delivery failed for purpose: password_change');
         $codeSent = true;
     }
 }
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new security code has been sent to your email.');
             redirect('pages/change_password_otp.php');
         } else {
-            error_log('OTP email failed for password_change to ' . $me['email']);
+            error_log('OTP email delivery failed for purpose: password_change');
             $codeSent = true;
         }
     } else {

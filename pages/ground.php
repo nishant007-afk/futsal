@@ -278,7 +278,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php else: ?>
                     <div class="role-lock">
                         <i class="fa-solid fa-lock"></i>
-                        <span>You're signed in as a <strong><?php echo ucfirst($site_user['role']); ?></strong>. Booking is for player accounts only. Use a player account to reserve this court.</span>
+                        <span>You're signed in as a <strong><?php echo e(ucfirst($site_user['role'])); ?></strong>. Booking is for player accounts only. Use a player account to reserve this court.</span>
                     </div>
                 <?php endif; ?>
             </form>

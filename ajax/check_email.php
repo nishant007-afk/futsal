@@ -8,13 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// Rate-limit email oracle: max 20 checks / 10 min per IP (prevents enumeration).
-$__ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'cli');
-$__rlKey = 'emailcheck_' . md5($__ip);
-if (!isset($_SESSION[$__rlKey])) { $_SESSION[$__rlKey] = ['n' => 0, 'ts' => time()]; }
-if (time() - $_SESSION[$__rlKey]['ts'] > 600) { $_SESSION[$__rlKey] = ['n' => 0, 'ts' => time()]; }
-$_SESSION[$__rlKey]['n']++;
-if ($_SESSION[$__rlKey]['n'] > 20) {
+// Rate-limit email oracle: max 10 checks / 10 min per IP (DB-backed, prevents enumeration).
+if (rate_limit_exceeded('emailchk', 10, 600)) {
     http_response_code(429);
     echo json_encode(['error' => 'too many requests']);
     exit;

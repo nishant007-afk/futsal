@@ -3,6 +3,14 @@
     Require all denied
 </FilesMatch>
 
+# Double-lock .env files (belt-and-suspenders with server config)
+<Files ".env">
+    Require all denied
+</Files>
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
 <FilesMatch "^(\.env.*|composer\.(json|lock)|database.*\.sql|.*\.docx?|prompt\.txt)$">
     Require all denied
 </FilesMatch>

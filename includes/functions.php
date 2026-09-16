@@ -696,7 +696,7 @@ function booking_card(array $b): void
             <div class="mb-price-inline"><?php booking_price_html($b); ?></div>
             <?php echo booking_payment_method_html($b); ?>
         </div>
-        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo $statusText; ?></span>
+        <span class="mb-st <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo e($statusText); ?></span>
         <div class="mb-side">
             <div class="mb-actions">
                 <?php if ($needsPayment): ?>
@@ -1508,7 +1508,8 @@ function client_ip(): string
 
 function login_attempt_key(string $email): string
 {
-    return strtolower(trim($email));
+    // Include IP to prevent brute-force from single IP across many emails
+    return strtolower(trim($email)) . '|' . client_ip();
 }
 
 function login_lock_seconds(int $failures): int
@@ -1599,6 +1600,44 @@ function suspend_login_identifier(string $key): void
     $stmt = $conn->prepare('UPDATE login_attempts SET suspended = 1, locked_until = NULL WHERE identifier = ?');
     $stmt->bind_param('s', $key);
     $stmt->execute();
+}
+
+/**
+ * Generic IP-based rate limiting using login_attempts table.
+ * @param string $prefix  Namespace prefix (e.g. 'reg', 'emailchk')
+ * @param int    $max     Max attempts allowed in the window
+ * @param int    $window  Window in seconds
+ * @return bool true if rate limit exceeded
+ */
+function rate_limit_exceeded(string $prefix, int $max, int $window): bool
+{
+    global $conn;
+    $key = $prefix . '|' . client_ip();
+    $stmt = $conn->prepare('SELECT attempts, last_attempt_at FROM login_attempts WHERE identifier = ? LIMIT 1');
+    $stmt->bind_param('s', $key);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if ($row) {
+        $last = strtotime($row['last_attempt_at']);
+        if (time() - $last > $window) {
+            $stmt = $conn->prepare('UPDATE login_attempts SET attempts = 1, last_attempt_at = NOW() WHERE identifier = ?');
+            $stmt->bind_param('s', $key);
+            $stmt->execute();
+            return false;
+        }
+        if ((int)$row['attempts'] >= $max) {
+            return true;
+        }
+        $stmt = $conn->prepare('UPDATE login_attempts SET attempts = attempts + 1, last_attempt_at = NOW() WHERE identifier = ?');
+        $stmt->bind_param('s', $key);
+        $stmt->execute();
+    } else {
+        $ip = client_ip();
+        $stmt = $conn->prepare('INSERT INTO login_attempts (identifier, ip, attempts, last_attempt_at) VALUES (?, ?, 1, NOW())');
+        $stmt->bind_param('ss', $key, $ip);
+        $stmt->execute();
+    }
+    return false;
 }
 
 function login_attempts_email(string $key): string
@@ -2193,11 +2232,11 @@ function legal_pages_defaults(): array
             
             <p>Before GoalSpace, organizing a friendly match meant making multiple phone calls, checking availability through busy signals, and hoping your court slot was actually held when you arrived. We built GoalSpace to replace guesswork with clarity: see open slots live, lock in your game instantly, and hit the turf with confidence.</p>
 
-            <h2>Our Platform Pillars</h2>
+            <h2>What We Believe In</h2>
             <ul>
-                <li><strong>Guaranteed Reservations:</strong> Every confirmed booking is locked in our database instantly. There are no double-bookings, verbal holds, or lost time slots.</li>
-                <li><strong>Real-Time Transparency:</strong> Clear pricing, court dimensions, surface details, parking, changing rooms, and customer reviews are openly displayed for every ground.</li>
-                <li><strong>Empowering Venue Managers:</strong> Court owners get dedicated dashboard tools to automate reservations, verify digital QR payments, manage custom rates, and run off-peak promotions.</li>
+                <li><strong>No more double bookings.</strong> Every confirmed reservation is locked in our database instantly. There are no verbal holds or lost time slots.</li>
+                <li><strong>Full transparency.</strong> Clear pricing, court dimensions, surface details, parking info, changing rooms, and customer reviews are openly displayed for every ground.</li>
+                <li><strong>Empowering venue managers.</strong> Court owners get dedicated dashboard tools to automate reservations, verify digital QR payments, manage custom rates, and run off-peak promotions.</li>
             </ul>
 
             <h2>Who Uses GoalSpace</h2>
@@ -2219,7 +2258,7 @@ function legal_pages_defaults(): array
 
             <p>At GoalSpace, your trust is fundamental to our service. This Privacy Policy explains what personal information we collect, why we collect it, how it is secured, and your control over your data.</p>
 
-            <h2>1. Information We Collect</h2>
+            <h2>1. What We Collect</h2>
             <ul>
                 <li><strong>Account Information:</strong> When you register, we collect your full name, email address, contact phone number, and account password (stored securely as a one-way cryptographic hash).</li>
                 <li><strong>Court Reservation Data:</strong> We store details of your futsal bookings, including chosen court, date, time slot, payment status (e.g. Paid, Advance, or Venue Pay), and cancellation history.</li>
@@ -2417,11 +2456,21 @@ function sanitize_page_body(string $html): string
     // Allow only safe formatting tags; strip scripts, iframes, objects, forms, event handlers.
     $allowed = '<p><br><h2><h3><h4><ul><ol><li><strong><em><b><i><u><a><blockquote><code><pre><hr>';
     $html = strip_tags($html, $allowed);
-    // Remove event-handler attributes (onclick= etc.) and javascript: URLs.
+    // Remove event-handler attributes (onclick= etc.)
     $html = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
-    $html = preg_replace('/\s+(href|src)\s*=\s*(["\']?)\s*javascript:[^"\']*\2/i', ' $1="#"', $html);
     // Remove style attributes that could hide content or exfiltrate.
     $html = preg_replace('/\s+style\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
+    // For <a> tags: validate href is a safe protocol (http, https, mailto, #)
+    // This defeats encoded javascript: URIs (unicode, percent-encoding, newlines, etc.)
+    $html = preg_replace_callback('/<a\s[^>]*href\s*=\s*(["\'])(.*?)\1/i', function ($m) {
+        $val = rawurldecode(html_entity_decode($m[2], ENT_QUOTES, 'UTF-8'));
+        // Strip whitespace/control chars that could bypass protocol check
+        $clean = preg_replace('/[\s\x00-\x1f\x7f]+/', '', $val);
+        if (!preg_match('#^(https?://|mailto:|#)#i', $clean)) {
+            return str_replace($m[0], '<a href="#">', $m[0]);
+        }
+        return $m[0];
+    }, $html);
     return trim($html);
 }
 

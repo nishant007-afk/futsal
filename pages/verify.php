@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $otp = issue_otp($email, 'email_verify');
             $sent = send_otp_mail($email, $otp, 'email_verify');
             if (!$sent) {
-                error_log('OTP email failed for email_verify to ' . $email);
+                error_log('OTP email delivery failed for purpose: email_verify');
             }
             set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable. Please try again shortly.');
         } else {

@@ -332,7 +332,7 @@ require __DIR__ . '/../includes/header.php';
 
 <h3 class="reveal block-title">Recent Bookings on My Grounds</h3>
 <?php if (!$recent): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3>No bookings yet</h3><p>New bookings on your grounds will appear here.</p></div>
+    <?php empty_state('fa-regular fa-calendar-xmark', 'No bookings yet', 'New bookings on your grounds will appear here.'); ?>
 <?php else: ?>
     <div class="mbookings reveal">
         <?php foreach ($recent as $b): ?>

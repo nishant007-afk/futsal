@@ -16,6 +16,12 @@ if ($q === '' && !isset($_GET['lat'])) {
 
 function http_get_json(string $url): ?array
 {
+    // SSRF protection: only allow requests to known external geocoding APIs
+    $host = parse_url($url, PHP_URL_HOST);
+    $allowed = ['photon.komoot.io', 'nominatim.openstreetmap.org'];
+    if (!$host || !in_array($host, $allowed, true)) {
+        return null;
+    }
     $ctx = stream_context_create([
         'http' => [
             'timeout' => 8,

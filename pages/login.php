@@ -50,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($state['suspended']) {
             $suspended = true;
             $suspendedEmail = login_attempts_email($key);
+        } elseif (!empty($_POST['website_url'])) {
+            // Honeypot: bots fill this, silently reject
+            $errors['general'] = 'Login failed. Please try again.';
         } else {
             $stmt = $conn->prepare('SELECT id, name, password, role, email_verified, login_count FROM users WHERE email = ?');
             $stmt->bind_param('s', $email);
@@ -75,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $otp = issue_otp($email, 'login');
                     $otp_sent = send_otp_mail($email, $otp, 'login');
                     if (!$otp_sent) {
-                        error_log('OTP email failed for login to ' . $email);
+                        error_log('OTP email delivery failed for purpose: login');
                     }
                     session_regenerate_id(true);
                     // Never store the OTP in session – verification uses the DB row only.
@@ -212,6 +215,7 @@ require __DIR__ . '/../includes/header.php';
 
         <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
+            <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true"><label for="website_url">Leave this empty</label><input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off"></div>
             <div class="form-group<?php echo has_error($errors, 'email'); ?>">
                 <div class="input-group floating">
                     <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required aria-required="true" data-check-email="exists" <?php echo $lock ? 'disabled' : ''; ?>>

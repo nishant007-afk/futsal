@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($existing) {
             $uid = (int)$existing['id'];
         } else {
-            $dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
+            $dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
             $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, email_updates) VALUES (?, ?, ?, ?, ?, 1, ?)');
             $phone = '';
             $stmt->bind_param('sssssi', $gName, $gEmail, $phone, $dummy, $role, $email_updates);

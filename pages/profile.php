@@ -106,103 +106,149 @@ $page_title = 'My Profile';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="prof-wrap">
-<!-- Top bar -->
-<div class="prof-topbar">
-    <h1 class="visually-hidden">My Profile</h1>
-    <span class="prof-topbar-name"><?php echo e($user['name']); ?></span>
-    <a href="<?php echo base_url('pages/settings.php'); ?>" class="prof-topbar-icon" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
-</div>
-
-<!-- Profile section -->
-<div class="prof-section">
-    <div class="prof-row">
-        <div class="prof-avatar">
-            <label for="avatar" class="prof-avatar-label">
+<div class="pfl">
+    <!-- Header card -->
+    <div class="pfl-card pfl-header">
+        <div class="pfl-avatar-wrap">
+            <label for="avatar" class="pfl-avatar" aria-label="Change profile photo">
                 <?php if (!empty($user['avatar'])): ?>
                     <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="<?php echo e($user['name']); ?>" loading="lazy" decoding="async">
                 <?php else: ?>
-                    <span class="prof-avatar-letter"><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
+                    <span class="pfl-avatar-letter"><?php echo e(strtoupper(substr($user['name'], 0, 1))); ?></span>
                 <?php endif; ?>
+                <span class="pfl-avatar-edit"><i class="fa-solid fa-camera"></i></span>
             </label>
         </div>
-        <div class="prof-stats">
-<div class="prof-stat"><strong><?php echo $totalBookings; ?></strong><span aria-live="polite"> bookings</span></div>
-<div class="prof-stat"><strong><?php echo $upcomingBookings; ?></strong><span aria-live="polite"> upcoming</span></div>
-<div class="prof-stat"><strong><?php echo $favoriteCount; ?></strong><span aria-live="polite"> saved</span></div>
+        <h1 class="pfl-name"><?php echo e($user['name']); ?></h1>
+        <p class="pfl-meta"><?php echo e($user['email']); ?></p>
+        <span class="pfl-role-badge"><?php echo e(ucfirst($user['role'])); ?></span>
+
+        <div class="pfl-stats">
+            <div class="pfl-stat">
+                <span class="pfl-stat-num"><?php echo $totalBookings; ?></span>
+                <span class="pfl-stat-label">Bookings</span>
+            </div>
+            <div class="pfl-stat-divider"></div>
+            <div class="pfl-stat">
+                <span class="pfl-stat-num"><?php echo $upcomingBookings; ?></span>
+                <span class="pfl-stat-label">Upcoming</span>
+            </div>
+            <div class="pfl-stat-divider"></div>
+            <div class="pfl-stat">
+                <span class="pfl-stat-num"><?php echo $favoriteCount; ?></span>
+                <span class="pfl-stat-label">Saved</span>
+            </div>
         </div>
     </div>
-    <div class="prof-bio">
-        <strong><?php echo e($user['name']); ?></strong>
-        <span><?php echo e(ucfirst($user['role'])); ?></span>
-        <span>Member since <?php echo e(date('M Y', strtotime($user['created_at']))); ?></span>
-    </div>
-    <div class="prof-actions">
-        <a href="<?php echo base_url('pages/settings_account.php'); ?>" class="prof-btn">Edit profile</a>
-        <a href="<?php echo base_url('pages/settings.php'); ?>" class="prof-btn">Settings</a>
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="prof-btn">Bookings</a>
-    </div>
-</div>
 
-<form method="post" action="" enctype="multipart/form-data" class="sr-only" id="avatarForm">
-    <?php echo csrf_field(); ?>
-    <input type="hidden" name="action" value="upload_avatar">
-    <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif">
-</form>
+    <form method="post" action="" enctype="multipart/form-data" class="sr-only" id="avatarForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="upload_avatar">
+        <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif">
+    </form>
 
-<?php if (!empty($user['avatar'])): ?>
-<form method="post" action="" class="sr-only" id="removeAvatarForm">
-    <?php echo csrf_field(); ?>
-    <input type="hidden" name="action" value="remove_avatar">
-</form>
-<?php endif; ?>
-
-<!-- Tabs -->
-<div class="prof-tabs">
-    <button class="prof-tab active" data-tab="upcoming" role="tab" aria-controls="pane-upcoming"><i class="fa-solid fa-calendar-days"></i> Upcoming</button>
-    <button class="prof-tab" data-tab="past" role="tab" aria-controls="pane-past"><i class="fa-solid fa-clock-rotate-left"></i> Past</button>
-</div>
-
-<!-- Upcoming grid -->
-<div class="prof-tab-pane active" id="pane-upcoming" role="tabpanel" aria-controls="pane-upcoming">
-    <?php if ($upcoming): ?>
-        <div class="prof-grid">
-            <?php foreach ($upcoming as $b): ?>
-                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="prof-grid-cell">
-                    <span class="prof-grid-primary"><?php echo date('M j', strtotime($b['booking_date'])); ?></span>
-                    <span class="prof-grid-secondary"><?php echo substr($b['start_time'], 0, 5); ?></span>
-                    <span class="prof-grid-tertiary"><?php echo e($b['ground_name']); ?></span>
-                </a>
-            <?php endforeach; ?>
-        </div>
-    <?php else: ?>
-        <div class="prof-empty"><i class="fa-regular fa-calendar-xmark"></i><p>No upcoming bookings</p></div>
+    <?php if (!empty($user['avatar'])): ?>
+    <form method="post" action="" class="sr-only" id="removeAvatarForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="action" value="remove_avatar">
+    </form>
     <?php endif; ?>
-</div>
 
-<!-- Past grid -->
-<div class="prof-tab-pane" id="pane-past" role="tabpanel" aria-controls="pane-past">
-    <?php if ($past): ?>
-        <div class="prof-grid">
-            <?php foreach ($past as $b): ?>
-                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="prof-grid-cell">
-                    <span class="prof-grid-primary"><?php echo date('M j', strtotime($b['booking_date'])); ?></span>
-                    <span class="prof-grid-secondary"><?php echo substr($b['start_time'], 0, 5); ?></span>
-                    <span class="prof-grid-tertiary"><?php echo e($b['ground_name']); ?></span>
-                </a>
-            <?php endforeach; ?>
+    <!-- Quick links -->
+    <div class="pfl-card pfl-links">
+        <a href="<?php echo base_url('pages/settings_account.php'); ?>" class="pfl-link">
+            <span class="pfl-link-icon"><i class="fa-solid fa-user-pen"></i></span>
+            <span class="pfl-link-text">Edit profile</span>
+            <i class="fa-solid fa-chevron-right pfl-link-chevr"></i>
+        </a>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="pfl-link">
+            <span class="pfl-link-icon"><i class="fa-solid fa-calendar-check"></i></span>
+            <span class="pfl-link-text">My bookings</span>
+            <i class="fa-solid fa-chevron-right pfl-link-chevr"></i>
+        </a>
+        <a href="<?php echo base_url('pages/favorites.php'); ?>" class="pfl-link">
+            <span class="pfl-link-icon"><i class="fa-solid fa-heart"></i></span>
+            <span class="pfl-link-text">Saved courts</span>
+            <i class="fa-solid fa-chevron-right pfl-link-chevr"></i>
+        </a>
+        <a href="<?php echo base_url('pages/settings.php'); ?>" class="pfl-link">
+            <span class="pfl-link-icon"><i class="fa-solid fa-gear"></i></span>
+            <span class="pfl-link-text">Settings</span>
+            <i class="fa-solid fa-chevron-right pfl-link-chevr"></i>
+        </a>
+    </div>
+
+    <!-- Booking history -->
+    <div class="pfl-card">
+        <div class="pfl-tabs">
+            <button class="pfl-tab active" data-tab="upcoming" role="tab" aria-controls="pane-upcoming">
+                Upcoming
+            </button>
+            <button class="pfl-tab" data-tab="past" role="tab" aria-controls="pane-past">
+                Past
+            </button>
         </div>
-    <?php else: ?>
-        <div class="prof-empty"><i class="fa-regular fa-clock"></i><p>No past bookings</p></div>
-    <?php endif; ?>
+
+        <!-- Upcoming list -->
+        <div class="pfl-tab-pane active" id="pane-upcoming" role="tabpanel">
+            <?php if ($upcoming): ?>
+                <div class="pfl-booking-list">
+                    <?php foreach ($upcoming as $b): ?>
+                        <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="pfl-booking-item">
+                            <div class="pfl-booking-date">
+                                <span class="pfl-booking-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
+                                <span class="pfl-booking-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
+                            </div>
+                            <div class="pfl-booking-info">
+                                <span class="pfl-booking-name"><?php echo e($b['ground_name']); ?></span>
+                                <span class="pfl-booking-time"><?php echo e(substr($b['start_time'], 0, 5) . ' - ' . substr($b['end_time'], 0, 5)); ?></span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right pfl-booking-chevr"></i>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="pfl-empty">
+                    <i class="fa-regular fa-calendar-xmark"></i>
+                    <p>No upcoming bookings</p>
+                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-primary btn-sm">Find a court</a>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Past list -->
+        <div class="pfl-tab-pane" id="pane-past" role="tabpanel">
+            <?php if ($past): ?>
+                <div class="pfl-booking-list">
+                    <?php foreach ($past as $b): ?>
+                        <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="pfl-booking-item">
+                            <div class="pfl-booking-date">
+                                <span class="pfl-booking-day"><?php echo (int)date('d', strtotime($b['booking_date'])); ?></span>
+                                <span class="pfl-booking-month"><?php echo e(strtoupper(date('M', strtotime($b['booking_date'])))); ?></span>
+                            </div>
+                            <div class="pfl-booking-info">
+                                <span class="pfl-booking-name"><?php echo e($b['ground_name']); ?></span>
+                                <span class="pfl-booking-time"><?php echo e(substr($b['start_time'], 0, 5) . ' - ' . substr($b['end_time'], 0, 5)); ?></span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right pfl-booking-chevr"></i>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="pfl-empty">
+                    <i class="fa-regular fa-clock"></i>
+                    <p>No past bookings yet</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
-</div><!-- /prof-wrap -->
 
 <script>
-document.querySelectorAll('.prof-tab').forEach(function(btn){
+document.querySelectorAll('.pfl-tab').forEach(function(btn){
     btn.addEventListener('click', function(){
-        document.querySelectorAll('.prof-tab').forEach(function(t){ t.classList.remove('active'); });
-        document.querySelectorAll('.prof-tab-pane').forEach(function(p){ p.classList.remove('active'); });
+        document.querySelectorAll('.pfl-tab').forEach(function(t){ t.classList.remove('active'); });
+        document.querySelectorAll('.pfl-tab-pane').forEach(function(p){ p.classList.remove('active'); });
         btn.classList.add('active');
         document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
     });

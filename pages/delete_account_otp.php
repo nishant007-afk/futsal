@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($email, $code, 'delete_account')) {
         $codeSent = true;
     } else {
-        error_log('OTP email failed for delete_account to ' . $email);
+        error_log('OTP email delivery failed for purpose: delete_account');
         $codeSent = true;
     }
 }
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new security code has been sent to your email.');
             redirect('pages/delete_account_otp.php');
         } else {
-            error_log('OTP email failed for delete_account to ' . $email);
+            error_log('OTP email delivery failed for purpose: delete_account');
             $codeSent = true;
         }
     } else {

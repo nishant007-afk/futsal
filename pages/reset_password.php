@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
         if ($user) {
-            $hash = password_hash($password, PASSWORD_BCRYPT);
+            $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
             $stmt = $conn->prepare('UPDATE users SET password = ? WHERE id = ?');
             $stmt->bind_param('si', $hash, $user['id']);
             $stmt->execute();

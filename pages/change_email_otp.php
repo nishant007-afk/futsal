@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $cooldown === 0) {
     if (send_otp_mail($newEmail, $code, 'email_change')) {
         $codeSent = true;
     } else {
-        error_log('OTP email failed for email_change to ' . $newEmail);
+        error_log('OTP email delivery failed for purpose: email_change');
         $codeSent = true;
     }
 }
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'A new verification code has been sent to ' . $newEmail . '.');
             redirect('pages/change_email_otp.php');
         } else {
-            error_log('OTP email failed for email_change to ' . $newEmail);
+            error_log('OTP email delivery failed for purpose: email_change');
             $codeSent = true;
         }
     } else {

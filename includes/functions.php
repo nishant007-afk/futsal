@@ -216,9 +216,9 @@ function release_stale_bookings(): void
     // Use the same setting as the cron (default 60) so web + CLI agree.
     $timeout = 60;
     try {
-        $s = $conn->query("SELECT value FROM settings WHERE `key` = 'unpaid_cancel_timeout_minutes' LIMIT 1");
-        if ($s && ($row = $s->fetch_assoc()) && is_numeric($row['value'])) {
-            $timeout = max(5, min(1440, (int)$row['value']));
+        $s = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'unpaid_cancel_timeout_minutes' LIMIT 1");
+        if ($s && ($row = $s->fetch_assoc()) && is_numeric($row['setting_value'])) {
+            $timeout = max(5, min(1440, (int)$row['setting_value']));
         }
     } catch (Exception $e) {
         // fall back to 60

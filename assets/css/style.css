@@ -1861,7 +1861,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 
 /* ============ COURTS SECTION: Balanced Rhythm ============ */
 .section-courts {
-    padding: 52px 0 60px;
+    padding: 52px 0 0;
 }
 .section-head-between {
     display: flex;
@@ -1905,6 +1905,10 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     gap: 24px;
 }
 .section-foot {
+    margin-top: 32px;
+}
+body.landing .site-footer,
+main:has(.section-courts) + .site-footer {
     margin-top: 36px;
 }
 
@@ -6900,7 +6904,14 @@ html[data-theme="dark"] .auth-divider span {
         padding: 10px 16px;
     }
     .section-courts {
-        padding: 36px 0 44px;
+        padding: 36px 0 0;
+    }
+    .section-courts .section-foot {
+        margin-top: 24px;
+    }
+    body.landing .site-footer,
+    main:has(.section-courts) + .site-footer {
+        margin-top: 28px;
     }
     .section-head-between {
         flex-direction: column;

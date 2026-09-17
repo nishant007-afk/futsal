@@ -89,22 +89,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    const pwInput = document.getElementById('password');
+    const pwInputs = document.querySelectorAll('#password, #pwNew');
     const pwReqs = document.getElementById('pwRequirements');
-    if (pwInput && pwReqs) {
-        function openReqs() { pwReqs.classList.add('open'); }
-        pwInput.addEventListener('focus', openReqs);
-        pwInput.addEventListener('input', openReqs);
-        function checkRequirements() {
-            const v = pwInput.value;
-            pwReqs.querySelector('[data-req="length"]').classList.toggle('met', v.length >= 8);
-            pwReqs.querySelector('[data-req="letter"]').classList.toggle('met', /[A-Za-z]/.test(v));
-            pwReqs.querySelector('[data-req="number"]').classList.toggle('met', /[0-9]/.test(v));
-            pwReqs.querySelector('[data-req="special"]').classList.toggle('met', /[^A-Za-z0-9]/.test(v));
-            pwReqs.querySelector('[data-req="max"]').classList.toggle('met', v.length <= 72 || v.length === 0);
-        }
-        pwInput.addEventListener('input', checkRequirements);
-        checkRequirements();
+    if (pwReqs && pwInputs.length) {
+        pwInputs.forEach(function (input) {
+            function openReqs() { pwReqs.classList.add('open'); }
+            input.addEventListener('focus', openReqs);
+            input.addEventListener('input', openReqs);
+            function checkRequirements() {
+                const v = input.value;
+                const lenEl = pwReqs.querySelector('[data-req="length"]');
+                if (lenEl) lenEl.classList.toggle('met', v.length >= 8);
+                const letEl = pwReqs.querySelector('[data-req="letter"]');
+                if (letEl) letEl.classList.toggle('met', /[A-Za-z]/.test(v));
+                const numEl = pwReqs.querySelector('[data-req="number"]');
+                if (numEl) numEl.classList.toggle('met', /[0-9]/.test(v));
+                const specEl = pwReqs.querySelector('[data-req="special"]');
+                if (specEl) specEl.classList.toggle('met', /[^A-Za-z0-9]/.test(v));
+                const maxEl = pwReqs.querySelector('[data-req="max"]');
+                if (maxEl) maxEl.classList.toggle('met', v.length <= 72 || v.length === 0);
+            }
+            input.addEventListener('input', checkRequirements);
+            checkRequirements();
+        });
     }
 
     const avatarInput = document.getElementById('avatar');

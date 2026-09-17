@@ -508,7 +508,7 @@ function slots_for_day($date, $ground_id): array
 function validate_password(string $password): ?string
 {
     if (strlen($password) < 8) {
-        return 'Use at least 8 characters.';
+        return 'Password must be at least 8 characters long.';
     }
     if (strlen($password) > 72) {
         return 'Passwords must be 72 characters or fewer.';

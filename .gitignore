@@ -42,6 +42,7 @@ lab1.pdf
 # Local tooling & scratch dirs (kept off GitHub)
 /.opencode/
 /.impeccable/
+.reticle.json
 
 # Deployment build output
 /dist/

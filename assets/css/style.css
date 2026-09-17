@@ -2957,9 +2957,9 @@ html[data-theme="dark"] .editor-preview { background: var(--bg-soft); border-col
 /* ============ GROUND DETAIL ============ */
 .ground-detail { display: grid; grid-template-columns: 1.15fr 1fr; gap: 30px; padding: 36px 0 56px; align-items: start; }
 .ground-detail .form-group input[type="date"] { max-width: 180px; width: 180px; }
-.signup-right .form-group input,
-.signup-right .form-group select,
-.signup-right .form-group textarea {
+.signup-right .form-group > input,
+.signup-right .form-group > select,
+.signup-right .form-group > textarea {
     width: 100%;
     min-height: 48px;
     font-size: 16px;
@@ -2968,11 +2968,13 @@ html[data-theme="dark"] .editor-preview { background: var(--bg-soft); border-col
     border: 1px solid var(--line);
     background: var(--bg);
     color: var(--ink);
+    outline: none;
     transition: border-color .15s, box-shadow .15s;
 }
-.signup-right .form-group input:focus,
-.signup-right .form-group select:focus,
-.signup-right .form-group textarea:focus {
+.signup-right .form-group > input:focus,
+.signup-right .form-group > select:focus,
+.signup-right .form-group > textarea:focus {
+    outline: none;
     border-color: var(--brand);
     box-shadow: 0 0 0 3px rgba(22,163,74,.18);
 }
@@ -5107,13 +5109,16 @@ html, body {
     padding: 0 14px;
 }
 .input-group.floating input {
-    border-radius: 8px;
-    border: 1px solid var(--line-2);
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
     font-size: 15px;
 }
 .input-group.floating input:focus {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* Auth Auxiliary Row (Remember me + Forgot password) */
@@ -5265,6 +5270,10 @@ body.login-page .signup-right .input-group.floating input {
     padding: 18px 14px 4px 14px !important;
     font-size: 14.5px !important;
     line-height: normal !important;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 body.login-page .signup-right .input-group.floating label {
     position: absolute !important;
@@ -5453,6 +5462,10 @@ body.register-page .signup-right .input-group.floating input {
     padding: 16px 12px 3px 12px !important;
     font-size: 13.5px !important;
     line-height: normal !important;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 body.register-page .signup-right .input-group.floating label {
     position: absolute !important;
@@ -6162,17 +6175,71 @@ tbody tr:hover td {
     }
 }
 
-/* 2. Login & Signup Label / Input Spacing & Centered Labels */
+/* 2. Login & Signup Floating Input Architecture (Single unbroken border, single on-click color) */
 .input-group.floating {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
+    border: 1.5px solid var(--line-2) !important;
+    border-radius: var(--r-md) !important;
+    background: var(--bg) !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+    box-sizing: border-box !important;
 }
-.input-group.floating input {
+.input-group.floating:focus-within {
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15) !important;
+}
+.form-group.has-error .input-group.floating,
+.form-group.has-error .input-group.floating:focus-within {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+.input-group.floating input,
+.input-group.floating input:focus,
+.signup-right .input-group.floating input,
+.signup-right .input-group.floating input:focus {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    border: 0 !important;
+    border-style: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
     height: 56px !important;
     padding: 22px 14px 6px 16px !important;
     font-size: 15px !important;
     line-height: normal !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+.input-group.floating .pw-toggle {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--ink-3) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    z-index: 3 !important;
+    transition: color 0.15s ease, background 0.15s ease !important;
+}
+.input-group.floating .pw-toggle:hover {
+    color: var(--ink) !important;
+    background: var(--bg-soft) !important;
+}
+.input-group.floating .pw-toggle:focus-visible {
+    outline: 2px solid var(--brand) !important;
+    outline-offset: 1px !important;
 }
 .input-group.floating label {
     position: absolute !important;
@@ -6548,6 +6615,14 @@ html[data-theme="dark"] .form-card .input-group.floating {
 html[data-theme="dark"] .signup-right .input-group.floating:focus-within,
 html[data-theme="dark"] .form-card .input-group.floating:focus-within {
     border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px rgba(42, 181, 131, 0.2) !important;
+}
+html[data-theme="dark"] .input-group.floating input,
+html[data-theme="dark"] .input-group.floating input:focus {
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 html[data-theme="dark"] .btn-google {
     background: #17241d !important;

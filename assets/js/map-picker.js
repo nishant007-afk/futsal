@@ -23,6 +23,7 @@
         scrollWheelZoom: false,
         zoomControl: true
     });
+    window.groundMap = map;
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,

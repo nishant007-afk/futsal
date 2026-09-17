@@ -2580,7 +2580,7 @@ function sanitize_page_body(string $html): string
         $val = rawurldecode(html_entity_decode($m[2], ENT_QUOTES, 'UTF-8'));
         // Strip whitespace/control chars that could bypass protocol check
         $clean = preg_replace('/[\s\x00-\x1f\x7f]+/', '', $val);
-        if (!preg_match('#^(https?://|mailto:|#)#i', $clean)) {
+        if (!preg_match('~^(https?://|mailto:|#)~i', $clean)) {
             return str_replace($m[0], '<a href="#">', $m[0]);
         }
         return $m[0];

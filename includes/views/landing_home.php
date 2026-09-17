@@ -70,7 +70,7 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
 </section>
 
 <!-- AVAILABLE COURTS -->
-<section class="section" id="courts">
+<section class="section section-courts" id="courts">
     <div class="container">
         <div class="section-head section-head-between">
             <div>

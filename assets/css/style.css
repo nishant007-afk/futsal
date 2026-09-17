@@ -1637,7 +1637,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 }
 /* ============ HERO - Clean & Minimalist ============ */
 .hero--clean {
-    padding: 64px 0 52px;
+    padding: 56px 0 52px;
     background: var(--bg);
     border-bottom: 1px solid var(--line);
 }
@@ -1647,11 +1647,11 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .hero-grid {
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
-    gap: 48px;
+    gap: 40px;
     align-items: center;
 }
 .hero-main {
-    max-width: 540px;
+    max-width: 520px;
 }
 .hero-main h1 {
     font-family: var(--font);
@@ -1660,21 +1660,21 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     letter-spacing: -0.025em;
     line-height: 1.15;
     color: var(--ink);
-    margin-bottom: 14px;
+    margin: 0 0 14px 0;
     text-wrap: balance;
 }
 .hero-sub {
     font-size: 16px;
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--ink-2);
     max-width: 480px;
-    margin-bottom: 24px;
+    margin: 0 0 24px 0;
 }
 
 /* Hero Search Box */
 .hero-search-box {
-    max-width: 480px;
-    margin-bottom: 14px;
+    max-width: 500px;
+    margin: 0 0 14px 0;
 }
 .hsb-inner {
     display: flex;
@@ -1682,7 +1682,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     background: var(--bg);
     border: 1.5px solid var(--line-2);
     border-radius: 8px;
-    padding: 5px 5px 5px 14px;
+    padding: 6px 6px 6px 16px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     transition: border-color .15s, box-shadow .15s;
 }
@@ -1693,7 +1693,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .hsb-icon {
     color: var(--ink-3);
     font-size: 14px;
-    margin-right: 10px;
+    margin-right: 12px;
     flex-shrink: 0;
 }
 .hsb-input {
@@ -1705,6 +1705,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     color: var(--ink);
     outline: none;
     min-width: 0;
+    padding: 4px 0;
 }
 .hsb-input::placeholder {
     color: var(--ink-3);
@@ -1712,7 +1713,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 }
 .hsb-btn {
     white-space: nowrap;
-    padding: 9px 18px;
+    padding: 10px 22px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 6px;
@@ -1727,6 +1728,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     font-size: 13px;
     color: var(--ink-3);
     flex-wrap: wrap;
+    margin-top: 14px;
 }
 .ha-label {
     color: var(--ink-3);
@@ -1786,7 +1788,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     background-color: #2f9e4d;
 }
 .fc-caption {
-    padding: 16px 18px;
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1857,12 +1859,15 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     border-radius: 5px;
 }
 
-/* ============ COURTS SECTION HEAD & AREA PILLS ============ */
+/* ============ COURTS SECTION: Balanced Rhythm ============ */
+.section-courts {
+    padding: 52px 0 60px;
+}
 .section-head-between {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
     margin-bottom: 28px;
 }
@@ -1873,8 +1878,8 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     align-items: center;
 }
 .cap-pill {
-    padding: 5px 12px;
-    border-radius: 4px;
+    padding: 6px 14px;
+    border-radius: 5px;
     font-size: 12.5px;
     font-weight: 700;
     text-decoration: none;
@@ -1898,6 +1903,9 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
+}
+.section-foot {
+    margin-top: 36px;
 }
 
 /* Legacy hero/popular-searches kept for courts page */
@@ -6863,7 +6871,15 @@ html[data-theme="dark"] .auth-divider span {
 
 @media (max-width: 640px) {
     .hero--clean {
-        padding: 40px 0 32px;
+        padding: 36px 0 28px;
+    }
+    .hero-main h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    .hero-sub {
+        font-size: 14.5px;
+        margin-bottom: 18px;
     }
     .hsb-inner {
         flex-direction: column;
@@ -6881,11 +6897,16 @@ html[data-theme="dark"] .auth-divider span {
     .hsb-btn {
         width: 100%;
         justify-content: center;
+        padding: 10px 16px;
+    }
+    .section-courts {
+        padding: 36px 0 44px;
     }
     .section-head-between {
         flex-direction: column;
         align-items: flex-start;
-        gap: 14px;
+        gap: 12px;
+        margin-bottom: 20px;
     }
     .court-area-pills {
         width: 100%;

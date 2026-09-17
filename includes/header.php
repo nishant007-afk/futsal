@@ -154,8 +154,8 @@ $pageBackUrl = base_url('index.php');
     <meta name="apple-mobile-web-app-title" content="GoalSpace">
     <link rel="apple-touch-icon" href="<?php echo base_url('assets/img/icon-192.png'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap"></noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=Geist:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=Geist:wght@400;500;600;700;800&display=swap"></noscript>
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/fontawesome/css/all.min.css'); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/css/style.css?v=' . filemtime(__DIR__ . '/../assets/css/style.css')); ?>">
 </head>

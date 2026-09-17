@@ -5,26 +5,30 @@ $featuredCover = $featured ? ground_cover((int)$featured['id']) : null;
 $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.9, 'count' => 38];
 ?>
 
-<!-- HERO -->
+<!-- HERO SECTION: Athletic Editorial -->
 <section class="hero hero--visual">
     <div class="hero-pitch-bg" aria-hidden="true"></div>
     <div class="container">
         <div class="hero-grid">
             <div class="hero-main">
-                <span class="hero-eyebrow"><i class="fa-solid fa-bolt"></i> Instant Futsal Booking</span>
-                <h1>No calls needed.<br>Book a court in seconds.</h1>
-                <p>Find verified pitches across Kathmandu, check real-time open slots, and confirm your match with zero booking fees.</p>
+                <div class="hero-match-meta">
+                    <span class="match-badge">Kathmandu Valley Network</span>
+                    <span class="match-status"><span class="live-pulse-dot"></span> Live Pitch Slots</span>
+                </div>
+
+                <h1>Direct futsal booking.<br>Zero phone calls.</h1>
+                <p>Lock open 60-minute match slots at verified arenas in Kathmandu. Real turf photos, live schedules, and instant entry passes.</p>
                 
-                <!-- Quick Search Bar -->
+                <!-- Quick Location Search -->
                 <form action="<?php echo grounds_list_url(); ?>" method="GET" class="hero-search-box" role="search">
                     <div class="hsb-inner">
                         <i class="fa-solid fa-location-dot hsb-icon" aria-hidden="true"></i>
-                        <input type="text" name="q" class="hsb-input" placeholder="Search by area or court name (e.g. New Road, Baneshwor)..." aria-label="Search courts by location or name" autocomplete="off">
-                        <button type="submit" class="btn btn-primary hsb-btn"><i class="fa-solid fa-magnifying-glass"></i> Find Courts</button>
+                        <input type="text" name="q" class="hsb-input" placeholder="Search area or court name (e.g. New Road, Baneshwor)..." aria-label="Search courts by location or name" autocomplete="off">
+                        <button type="submit" class="btn btn-primary hsb-btn">Find Courts</button>
                     </div>
                 </form>
 
-                <!-- Popular Area Tags -->
+                <!-- Popular Area Filters -->
                 <div class="hero-area-tags">
                     <span class="hat-label">Popular areas:</span>
                     <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="hat-pill">New Road</a>
@@ -34,58 +38,57 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 </div>
 
                 <div class="hero-actions">
-                    <a href="<?php echo grounds_list_url(); ?>" class="btn btn-primary btn-lg"><i class="fa-solid fa-futbol"></i> Browse All Courts</a>
-                    <a href="#how-it-works" class="btn btn-ghost btn-lg"><i class="fa-solid fa-circle-play"></i> How It Works</a>
+                    <a href="<?php echo grounds_list_url(); ?>" class="btn btn-primary btn-lg">Browse All Courts</a>
+                    <a href="#how-it-works" class="btn btn-outline btn-lg">How It Works</a>
                 </div>
             </div>
 
             <?php if ($featured): ?>
-            <!-- Hero Right Showcase Card -->
+            <!-- Hero Matchday Fixture Card -->
             <div class="hero-showcase">
-                <div class="hero-preview-card">
-                    <div class="hpc-badge-row">
-                        <span class="hpc-tag-popular"><i class="fa-solid fa-fire"></i> Featured Venue</span>
-                        <span class="hpc-tag-live"><span class="hpc-live-dot"></span> Slots Open Today</span>
-                    </div>
-
-                    <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>" class="hpc-media" aria-label="View <?php echo e($featured['name']); ?>">
-                        <?php if ($featuredCover): ?>
-                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($featuredCover)); ?>" alt="<?php echo e($featured['name']); ?>" class="hpc-img" loading="eager">
-                        <?php else: ?>
-                            <div class="pitch hpc-pitch"></div>
-                        <?php endif; ?>
-                        <span class="hpc-price-badge">Rs <?php echo number_format((float)$featured['price_per_hour']); ?> <em>/ hr</em></span>
-                    </a>
-
-                    <div class="hpc-body">
-                        <div class="hpc-header">
-                            <h3 class="hpc-title">
+                <div class="fixture-card">
+                    <div class="fc-top">
+                        <div class="fc-venue-info">
+                            <span class="fc-kicker">Featured Pitch &middot; <?php echo e($featured['location']); ?></span>
+                            <h3 class="fc-title">
                                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>"><?php echo e($featured['name']); ?></a>
                             </h3>
-                            <div class="hpc-rating" title="<?php echo $featuredRating['count']; ?> player reviews">
-                                <i class="fa-solid fa-star"></i>
-                                <strong><?php echo $featuredRating['avg'] ? number_format($featuredRating['avg'], 1) : '4.9'; ?></strong>
-                                <span>(<?php echo $featuredRating['count'] ?: '24'; ?>)</span>
+                        </div>
+                        <div class="fc-score">
+                            <span class="fc-rating-val">★ <?php echo $featuredRating['avg'] ? number_format($featuredRating['avg'], 1) : '4.9'; ?></span>
+                            <span class="fc-rating-count"><?php echo $featuredRating['count'] ?: '24'; ?> matches</span>
+                        </div>
+                    </div>
+
+                    <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>" class="fc-media" aria-label="View <?php echo e($featured['name']); ?>">
+                        <?php if ($featuredCover): ?>
+                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($featuredCover)); ?>" alt="<?php echo e($featured['name']); ?>" class="fc-img" loading="eager">
+                        <?php else: ?>
+                            <div class="pitch fc-pitch"></div>
+                        <?php endif; ?>
+                        <div class="fc-price-tag">
+                            <span>Rs <?php echo number_format((float)$featured['price_per_hour']); ?></span>
+                            <small>/ 60 min match</small>
+                        </div>
+                    </a>
+
+                    <div class="fc-body">
+                        <!-- Evening Fixture Slot Selector -->
+                        <div class="fc-slots">
+                            <div class="fc-slots-header">
+                                <span>Tonight's Open Slots</span>
+                                <em>10-min reservation hold</em>
+                            </div>
+                            <div class="fc-slots-grid">
+                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=17:00'); ?>" class="fc-slot-btn">17:00</a>
+                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=18:00'); ?>" class="fc-slot-btn">18:00</a>
+                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=19:00'); ?>" class="fc-slot-btn active">19:00</a>
                             </div>
                         </div>
 
-                        <p class="hpc-location"><i class="fa-solid fa-location-dot"></i> <?php echo e($featured['location']); ?></p>
-
-                        <!-- Live Slot Quick Pick -->
-                        <div class="hpc-slots-wrap">
-                            <span class="hpc-slots-label"><i class="fa-regular fa-clock"></i> Quick pick an evening slot:</span>
-                            <div class="hpc-slots-row">
-                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=17:00'); ?>" class="hpc-slot-pill">05:00 PM</a>
-                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=18:00'); ?>" class="hpc-slot-pill">06:00 PM</a>
-                                <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id'] . '&date=' . date('Y-m-d') . '&time=19:00'); ?>" class="hpc-slot-pill active">07:00 PM</a>
-                            </div>
-                        </div>
-
-                        <div class="hpc-foot">
-                            <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id']); ?>" class="btn btn-primary hpc-book-btn">
-                                <i class="fa-solid fa-calendar-check"></i> Book This Court
-                            </a>
-                        </div>
+                        <a href="<?php echo base_url('pages/book.php?id=' . (int)$featured['id']); ?>" class="btn btn-primary fc-action-btn">
+                            Book This Match Slot
+                        </a>
                     </div>
                 </div>
             </div>
@@ -94,86 +97,87 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     </div>
 </section>
 
-<!-- TRUST STRIP -->
-<section class="trust-strip">
+<!-- QUALITY STANDARDS STRIP -->
+<section class="quality-strip">
     <div class="container">
-        <div class="trust-grid">
-            <div class="trust-card">
-                <div class="tc-icon"><i class="fa-solid fa-bolt"></i></div>
-                <div class="tc-text">
-                    <strong>Instant Confirmation</strong>
-                    <span>No waiting on manager phone calls</span>
+        <div class="quality-grid">
+            <div class="quality-item">
+                <span class="qi-num">15+</span>
+                <div class="qi-desc">
+                    <strong>Verified Arenas</strong>
+                    <span>Rubber-infill turf & floodlights</span>
                 </div>
             </div>
-            <div class="trust-card">
-                <div class="tc-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <div class="tc-text">
-                    <strong>Verified Grounds</strong>
-                    <span>Standard turf, floodlights & showers</span>
+            <div class="quality-item">
+                <span class="qi-num">Rs 0</span>
+                <div class="qi-desc">
+                    <strong>Direct Court Rates</strong>
+                    <span>Zero convenience markup</span>
                 </div>
             </div>
-            <div class="trust-card">
-                <div class="tc-icon"><i class="fa-solid fa-tags"></i></div>
-                <div class="tc-text">
-                    <strong>Zero Booking Fees</strong>
-                    <span>Direct ground pricing with no markup</span>
+            <div class="quality-item">
+                <span class="qi-num">100%</span>
+                <div class="qi-desc">
+                    <strong>Double-Booking Free</strong>
+                    <span>Real-time slot lock engine</span>
                 </div>
             </div>
-            <div class="trust-card">
-                <div class="tc-icon"><i class="fa-solid fa-star"></i></div>
-                <div class="tc-text">
-                    <strong>4.8★ Player Rating</strong>
-                    <span>Trusted by futsal squads across the city</span>
+            <div class="quality-item">
+                <span class="qi-num">1-Tap</span>
+                <div class="qi-desc">
+                    <strong>Digital Gate Pass</strong>
+                    <span>Receipt with entry code</span>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="section section-how" id="how-it-works">
+<!-- MATCHDAY BOOKING FLOW -->
+<section class="section section-flow" id="how-it-works">
     <div class="container">
         <div class="section-head center">
-            <span class="eyebrow">SIMPLE 3-STEP PROCESS</span>
-            <h2 class="section-title">How GoalSpace Works</h2>
-            <p class="section-sub">Lock in your game in seconds without endless phone calls or schedule confusion.</p>
+            <h2 class="section-title">Matchday Booking Flow</h2>
+            <p class="section-sub">Three fast steps from team group chat to kickoff on the pitch.</p>
         </div>
 
-        <div class="how-grid">
-            <div class="how-step-card">
-                <div class="hsc-step-num">1</div>
-                <div class="hsc-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-                <h3>Choose Court & Slot</h3>
-                <p>Explore verified futsal arenas across Kathmandu. Filter by area, inspect turf photos, and view real-time open hourly slots.</p>
+        <div class="flow-track">
+            <div class="flow-step">
+                <div class="fs-index">01</div>
+                <div class="fs-content">
+                    <h3>Pitch Discovery</h3>
+                    <p>Compare turf quality, player ratings, and live open hourly slots across Kathmandu arenas without making phone calls.</p>
+                </div>
             </div>
 
-            <div class="how-step-card">
-                <div class="hsc-step-num">2</div>
-                <div class="hsc-icon"><i class="fa-solid fa-wallet"></i></div>
-                <h3>Lock Your Time</h3>
-                <p>Reserve your slot instantly. Pay online seamlessly with eSewa or select pay-at-venue with complete price transparency.</p>
+            <div class="flow-step">
+                <div class="fs-index">02</div>
+                <div class="fs-content">
+                    <h3>Instant Slot Hold</h3>
+                    <p>Select your 60-minute time window. The engine places a 10-minute hold so another team cannot grab your slot while you check out.</p>
+                </div>
             </div>
 
-            <div class="how-step-card">
-                <div class="hsc-step-num">3</div>
-                <div class="hsc-icon"><i class="fa-solid fa-trophy"></i></div>
-                <h3>Show Up & Play</h3>
-                <p>Receive instant booking confirmation and a digital pass right on your phone. Arrive at the pitch and hit the ball.</p>
+            <div class="flow-step">
+                <div class="fs-index">03</div>
+                <div class="fs-content">
+                    <h3>Pass & Kickoff</h3>
+                    <p>Confirm via eSewa or pay upon arrival at the venue. Your booking reference and match pass arrive instantly on your screen.</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- COURTS -->
+<!-- AVAILABLE COURTS -->
 <section class="section" id="courts">
     <div class="container">
         <div class="section-head section-head-between">
             <div>
-                <span class="eyebrow">Available Today</span>
-                <h2 class="section-title">Pick your court</h2>
-                <p class="section-sub">Top-rated futsal arenas open for booking right now in Kathmandu.</p>
+                <h2 class="section-title">Available Pitches Today</h2>
+                <p class="section-sub">Verified futsal arenas with active hourly match slots.</p>
             </div>
-            <div class="court-area-pills" role="navigation" aria-label="Filter by area">
+            <div class="court-area-pills" role="navigation" aria-label="Filter pitches by neighborhood">
                 <a href="<?php echo grounds_list_url(); ?>" class="cap-pill active">All Areas</a>
                 <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="cap-pill">New Road</a>
                 <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="cap-pill">Baneshwor</a>
@@ -189,46 +193,70 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
             </div>
             <div class="section-foot center">
-                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg"><i class="fa-solid fa-layer-group"></i> View all <?php echo count($grounds) >= 6 ? 'courts & arenas' : 'courts'; ?></a>
+                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Pitches & Arenas</a>
             </div>
         <?php endif; ?>
     </div>
 </section>
 
-<!-- CTA - For Court Owners / Managers -->
+<!-- VENUE OPERATORS SECTION -->
 <section class="section-cta">
     <div class="container">
         <div class="cta-grid">
             <div class="cta-text">
-                <span class="eyebrow"><i class="fa-solid fa-store"></i> For Court Owners & Managers</span>
-                <h2>Run your court without the phone ringing.</h2>
-                <p>List your futsal venue on GoalSpace to fill open hours, eliminate double-bookings, and track your revenue in one clear dashboard.</p>
-                <ul class="cta-list">
-                    <li><i class="fa-solid fa-circle-check"></i> Set custom hourly rates, peak discounts, and operating schedules</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Instant slot locking ensures zero double-booking conflicts</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Verify player advance payments and run promo codes to fill off-peak slots</li>
-                </ul>
+                <span class="venue-kicker">Venue Operators & Ground Managers</span>
+                <h2>Run your arena without the phone ringing.</h2>
+                <p>List your futsal courts on GoalSpace to keep slots full, stop double-bookings, and track all bookings in one clean workspace.</p>
+                
+                <div class="manager-benefits">
+                    <div class="mb-item">
+                        <strong class="mb-label">Live Schedule Management</strong>
+                        <p class="mb-desc">Set custom hourly rates, morning discounts, and maintenance closures without manual logs.</p>
+                    </div>
+                    <div class="mb-item">
+                        <strong class="mb-label">Collision Prevention</strong>
+                        <p class="mb-desc">Automated slot holds ensure two squads never arrive for the same hour.</p>
+                    </div>
+                    <div class="mb-item">
+                        <strong class="mb-label">Payment Clarity</strong>
+                        <p class="mb-desc">Easily verify online advances, track cash-at-venue payments, and issue player promo codes.</p>
+                    </div>
+                </div>
+
                 <div class="cta-actions">
-                    <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary btn-lg"><i class="fa-solid fa-store"></i> Become a Manager</a>
-                    <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-ghost btn-lg"><i class="fa-solid fa-arrow-right-to-bracket"></i> Manager Sign In</a>
+                    <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary btn-lg">Register Your Venue</a>
+                    <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-ghost btn-lg">Manager Portal Sign In</a>
                 </div>
             </div>
+
             <div class="cta-visual">
-                <div class="cta-stats-grid">
-                    <div class="cta-stat-card">
-                        <span class="cta-stat-num">2 min</span>
-                        <span class="cta-stat-label">Fast Setup</span>
-                        <span class="cta-stat-sub">Get your ground live in minutes</span>
+                <div class="scoreboard-card">
+                    <div class="sb-header">
+                        <span class="sb-badge">Arena Metrics</span>
+                        <span class="sb-status">GoalSpace Engine</span>
                     </div>
-                    <div class="cta-stat-card">
-                        <span class="cta-stat-num">100%</span>
-                        <span class="cta-stat-label">Double-Booking Free</span>
-                        <span class="cta-stat-sub">Automated real-time slot locks</span>
-                    </div>
-                    <div class="cta-stat-card">
-                        <span class="cta-stat-num">Rs 0</span>
-                        <span class="cta-stat-label">No Hidden Cut</span>
-                        <span class="cta-stat-sub">Keep 100% of ground earnings</span>
+                    <div class="sb-rows">
+                        <div class="sb-row">
+                            <span class="sb-num">0</span>
+                            <div class="sb-info">
+                                <strong>Phone calls per booking</strong>
+                                <span>Players reserve directly on screen</span>
+                            </div>
+                        </div>
+                        <div class="sb-row">
+                            <span class="sb-num">100%</span>
+                            <div class="sb-info">
+                                <strong>Protection against overlaps</strong>
+                                <span>Real-time slot lock prevents double-booking</span>
+                            </div>
+                        </div>
+                        <div class="sb-row">
+                            <span class="sb-num">Rs 0</span>
+                            <div class="sb-info">
+                                <strong>Setup or platform fee</strong>
+                                <span>Keep 100% of your court revenue</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

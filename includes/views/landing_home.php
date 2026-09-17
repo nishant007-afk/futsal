@@ -10,7 +10,6 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     <div class="container">
         <div class="hero-grid">
             <div class="hero-main">
-                <span class="hero-kicker">Kathmandu Valley</span>
                 <h1>Find and book futsal courts.</h1>
                 <p class="hero-sub">Real-time availability, direct court pricing, and instant booking confirmation.</p>
 
@@ -76,7 +75,7 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
         <div class="section-head section-head-between">
             <div>
                 <h2 class="section-title">Available Courts</h2>
-                <p class="section-sub">Browse verified arenas across Kathmandu Valley.</p>
+                <p class="section-sub">Browse verified futsal arenas open for booking.</p>
             </div>
             <div class="court-area-pills" role="navigation" aria-label="Filter pitches by neighborhood">
                 <a href="<?php echo grounds_list_url(); ?>" class="cap-pill active">All Areas</a>
@@ -97,22 +96,5 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Pitches</a>
             </div>
         <?php endif; ?>
-    </div>
-</section>
-
-<!-- VENUE PARTNER BANNER -->
-<section class="section-partner">
-    <div class="container">
-        <div class="partner-card">
-            <div class="partner-content">
-                <span class="partner-kicker">For Arena Owners</span>
-                <h2>List your futsal venue on GoalSpace</h2>
-                <p>Manage hourly slots, eliminate double-bookings, and accept online reservations with zero platform fees.</p>
-            </div>
-            <div class="partner-actions">
-                <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary">Register Arena</a>
-                <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline partner-login-btn">Manager Sign In</a>
-            </div>
-        </div>
     </div>
 </section>

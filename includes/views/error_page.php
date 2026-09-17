@@ -3,7 +3,7 @@ $code = isset($code) ? (int)$code : 404;
 $title = isset($title) ? $title : 'Page not found';
 $message = isset($message) ? $message : 'The page you were looking for could not be found.';
 $cta_label = isset($cta_label) ? $cta_label : 'Back to home';
-$cta_url = isset($cta_url) ? $cta_url : base_url('index.php');
+$cta_url = isset($cta_url) ? (preg_match('#^(https?://|/)#', $cta_url) ? $cta_url : base_url($cta_url)) : base_url('index.php');
 ?>
 <div class="container error-page">
     <div class="empty reveal">

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../config/db.php';
 
 require_login();
@@ -180,11 +180,11 @@ require __DIR__ . '/../includes/header.php';
 
     <!-- Booking history -->
     <div class="pfl-card">
-        <div class="pfl-tabs">
-            <button class="pfl-tab active" data-tab="upcoming" role="tab" aria-controls="pane-upcoming">
+        <div class="pfl-tabs" role="tablist" aria-label="Booking history">
+            <button type="button" class="pfl-tab active" data-tab="upcoming" role="tab" aria-selected="true" aria-controls="pane-upcoming">
                 Upcoming
             </button>
-            <button class="pfl-tab" data-tab="past" role="tab" aria-controls="pane-past">
+            <button type="button" class="pfl-tab" data-tab="past" role="tab" aria-selected="false" aria-controls="pane-past">
                 Past
             </button>
         </div>
@@ -247,9 +247,13 @@ require __DIR__ . '/../includes/header.php';
 <script>
 document.querySelectorAll('.pfl-tab').forEach(function(btn){
     btn.addEventListener('click', function(){
-        document.querySelectorAll('.pfl-tab').forEach(function(t){ t.classList.remove('active'); });
+        document.querySelectorAll('.pfl-tab').forEach(function(t){
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+        });
         document.querySelectorAll('.pfl-tab-pane').forEach(function(p){ p.classList.remove('active'); });
         btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
         document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
     });
 });

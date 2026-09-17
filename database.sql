@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   user_id INT NOT NULL,
   rating TINYINT NOT NULL,
   comment TEXT,
+  helpful_count INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (ground_id) REFERENCES grounds(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -330,6 +331,54 @@ CREATE TABLE IF NOT EXISTS favorites (
   ground_id INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY favorites_user_ground (user_id, ground_id)
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
+-- Review helpful votes table
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS review_votes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  review_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY review_votes_unique (review_id, user_id),
+  FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
+-- Slot holds (temporary checkout lease to prevent double bookings)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS slot_holds (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ground_id INT NOT NULL,
+  booking_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  user_id INT NOT NULL,
+  hold_token VARCHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_slot_hold (ground_id, booking_date, start_time),
+  KEY idx_expires (expires_at),
+  FOREIGN KEY (ground_id) REFERENCES grounds(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
+-- Email queue (asynchronous background worker for announcements & mail)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS email_queue (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  recipient VARCHAR(150) NOT NULL,
+  subject VARCHAR(200) NOT NULL,
+  body_html LONGTEXT NOT NULL,
+  status ENUM('pending', 'processing', 'sent', 'failed') NOT NULL DEFAULT 'pending',
+  attempts TINYINT NOT NULL DEFAULT 0,
+  max_attempts TINYINT NOT NULL DEFAULT 3,
+  last_error TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  sent_at DATETIME NULL,
+  KEY idx_status_created (status, created_at)
 ) ENGINE=InnoDB;
 
 

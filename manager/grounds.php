@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['duplicate_ground'])) 
                 'INSERT INTO grounds (name, location, description, price_per_hour, discount_price, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssddiissidssdd', $newName, $g['location'], $g['description'], $g['price_per_hour'], $g['discount_price'], $g['capacity'], $g['manager_id'], $g['is_active'], $g['open_time'], $g['close_time'], $g['slot_interval'], $g['price_weekend'], $g['address'], $g['court_number'], $g['latitude'], $g['longitude']);
+            $stmt->bind_param('sssddiiissidssdd', $newName, $g['location'], $g['description'], $g['price_per_hour'], $g['discount_price'], $g['capacity'], $g['manager_id'], $g['is_active'], $g['open_time'], $g['close_time'], $g['slot_interval'], $g['price_weekend'], $g['address'], $g['court_number'], $g['latitude'], $g['longitude']);
             if ($stmt->execute()) {
                 $newId = (int)$stmt->insert_id;
                 // Copy images
@@ -50,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['duplicate_ground'])) 
                 $images = $imgStmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 $imgStmt->close();
                 if ($images) {
-                    $ins = $conn->prepare('INSERT INTO ground_images (ground_id, image, sort_order) VALUES (?, ?, ?)');
+                    $ins = $conn->prepare('INSERT INTO ground_images (ground_id, image) VALUES (?, ?)');
                     foreach ($images as $img) {
-                        $ins->bind_param('isi', $newId, $img['image'], $img['sort_order']);
+                        $ins->bind_param('is', $newId, $img['image']);
                         $ins->execute();
                     }
                     $ins->close();
@@ -344,7 +344,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2><?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
         <div class="actions">

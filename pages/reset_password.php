@@ -52,7 +52,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
  <div class="form-head">
     <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('pages/forgot_password.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Choose a new password</h2>
     </div>
  </div>

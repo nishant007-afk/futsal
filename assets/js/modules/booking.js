@@ -14,8 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             document.querySelectorAll('.slot.selected').forEach(function (s) {
                 s.classList.remove('selected');
+                s.setAttribute('aria-pressed', 'false');
             });
             slot.classList.add('selected');
+            slot.setAttribute('aria-pressed', 'true');
 
             selectedSlot.value = slot.dataset.start + '|' + slot.dataset.end;
 

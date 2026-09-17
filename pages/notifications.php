@@ -84,10 +84,12 @@ require __DIR__ . '/../includes/header.php';
 </div>
 <div class="notif-actions reveal mb-18">
     <?php if ($allNotifications): ?>
-        <form method="post" action="">
-            <?php echo csrf_field(); ?>
-            <button type="submit" name="mark_read" value="1" class="btn btn-outline btn-sm"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
-        </form>
+        <?php if ($unreadTotal > 0): ?>
+            <form method="post" action="">
+                <?php echo csrf_field(); ?>
+                <button type="submit" name="mark_read" value="1" class="btn btn-outline btn-sm"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
+            </form>
+        <?php endif; ?>
         <form method="post" action="">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="delete_all" value="1">

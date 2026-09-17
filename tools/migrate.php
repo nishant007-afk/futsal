@@ -180,4 +180,43 @@ if ((int)$conn->query("SELECT COUNT(*) c FROM information_schema.COLUMNS WHERE T
     echo "Applied: added `grounds.payment_qr` column.\n";
 }
 
+// Create slot_holds table for checkout concurrency protection (5-minute lease)
+if (!table_exists('slot_holds')) {
+    $conn->query("CREATE TABLE slot_holds (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ground_id INT NOT NULL,
+        booking_date DATE NOT NULL,
+        start_time TIME NOT NULL,
+        user_id INT NOT NULL,
+        hold_token VARCHAR(64) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_slot_hold (ground_id, booking_date, start_time),
+        KEY idx_expires (expires_at),
+        FOREIGN KEY (ground_id) REFERENCES grounds(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB");
+    $applied++;
+    echo "Applied: added `slot_holds` table for concurrency protection.\n";
+}
+
+// Create email_queue table for background asynchronous email delivery
+if (!table_exists('email_queue')) {
+    $conn->query("CREATE TABLE email_queue (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        recipient VARCHAR(150) NOT NULL,
+        subject VARCHAR(200) NOT NULL,
+        body_html LONGTEXT NOT NULL,
+        status ENUM('pending', 'processing', 'sent', 'failed') NOT NULL DEFAULT 'pending',
+        attempts TINYINT NOT NULL DEFAULT 0,
+        max_attempts TINYINT NOT NULL DEFAULT 3,
+        last_error TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        sent_at DATETIME NULL,
+        KEY idx_status_created (status, created_at)
+    ) ENGINE=InnoDB");
+    $applied++;
+    echo "Applied: added `email_queue` table for background processing.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

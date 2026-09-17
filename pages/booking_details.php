@@ -53,7 +53,7 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="bd-head">
         <div class="title-back-row bd-title-row">
-            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="page-back-arrow" aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="page-back-arrow" data-back aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
                 <span class="eyebrow">Booking details</span>
                 <h1><?php echo e($b['ground_name']); ?></h1>

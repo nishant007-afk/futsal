@@ -211,7 +211,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
 <?php if (!$bookings): ?>
-    <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing booked yet', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
+    <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing booked yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
 <?php else: ?>
     <div class="view-tabs reveal">
         <a href="<?php echo mb_view_url('all'); ?>" class="view-tab <?php echo $view === 'all' ? 'active' : ''; ?>">All (<?php echo count($bookings); ?>)</a>
@@ -226,11 +226,11 @@ require __DIR__ . '/../includes/header.php';
     $showPast = ($view === 'all' || $view === 'past') && $past;
 
     if ($view === 'unpaid' && !$unpaid): ?>
-        <?php empty_state('fa-solid fa-circle-check', "You're all paid up", '', 'pages/my_bookings.php', 'View all bookings'); ?>
+        <?php empty_state('fa-solid fa-circle-check', "You're all paid up", '', base_url('pages/my_bookings.php'), 'View all bookings'); ?>
     <?php elseif ($view === 'upcoming' && !$upcoming): ?>
-        <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing upcoming', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
+        <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing upcoming', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
     <?php elseif ($view === 'past' && !$past): ?>
-        <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', 'index.php#grounds', 'Find a ground & grab a slot', 'btn btn-primary btn-sm'); ?>
+        <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
     <?php else: ?>
         <?php if ($showUpcoming): ?>
             <div class="section-head reveal push tight">

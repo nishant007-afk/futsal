@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
     } else {
-        $stmt = $conn->prepare('SELECT id FROM users WHERE email = ? AND email_verified = 0');
+        $stmt = $conn->prepare('SELECT id, role FROM users WHERE email = ? AND email_verified = 0');
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
@@ -50,6 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare('UPDATE users SET email_verified = 1, verify_token = NULL WHERE id = ?');
                 $stmt->bind_param('i', $user['id']);
                 $stmt->execute();
+
+                if (($user['role'] ?? '') === 'manager' && !manager_subscription((int)$user['id'])) {
+                    create_manager_subscription((int)$user['id']);
+                }
+
                 set_flash('success', 'Your email is verified! You can now log in.');
                 redirect('pages/login.php');
             } else {
@@ -69,7 +74,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
     <div class="form-head">
         <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('pages/register.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Email verification</h2>
         </div>
         <p class="muted">Enter the 6-digit code we sent to your email.</p>

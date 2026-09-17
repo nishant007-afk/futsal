@@ -112,14 +112,10 @@ if (!$errors && date_is_blocked($ground_id, $booking_date)) {
 }
 
 if (!$errors) {
-    $stmt = $conn->prepare(
-        'SELECT id FROM bookings
-         WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND status != "cancelled"'
-    );
-    $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows > 0) {
+    if (slot_is_taken($ground_id, $booking_date, $start_time)) {
         $errors[] = ['what' => 'That time slot was just taken.'];
+    } elseif (is_slot_held($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id'])) {
+        $errors[] = ['what' => 'Another player is currently checking out this slot. Try again in a couple of minutes.'];
     }
 }
 
@@ -132,6 +128,12 @@ if ($errors) {
             $err['how_url'] ?? null
         );
     }
+    redirect('pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);
+}
+
+$hold = acquire_slot_hold($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id'], 300);
+if (!$hold['ok']) {
+    set_flash_error($hold['error'] ?? 'That slot is currently held. Please try another one.', null, null, 'pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);
     redirect('pages/ground.php?id=' . $ground_id . '&date=' . $booking_date);
 }
 
@@ -184,6 +186,7 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
             continue;
         }
         $conn->rollback();
+        release_slot_hold($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id']);
         set_flash_error(
             'That time slot was just taken.',
             null,
@@ -202,6 +205,7 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
 
 if ($createdCount === 0) {
     $conn->rollback();
+    release_slot_hold($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id']);
     set_flash_error(
         'None of those slots could be booked.',
         null,
@@ -212,6 +216,7 @@ if ($createdCount === 0) {
 }
 
 $conn->commit();
+release_slot_hold($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id']);
 $booking_id = $first_id;
 
 notify_user(

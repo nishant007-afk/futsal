@@ -84,7 +84,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card lg">
  <div class="form-head">
     <div class="title-back-row">
-        <a href="<?php echo base_url('pages/security.php'); ?>" class="page-back-arrow" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('pages/security.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Confirm account deletion</h2>
     </div>
  </div>

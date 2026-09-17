@@ -159,17 +159,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $conn->begin_transaction();
+    $old_date = $booking['booking_date'];
+    $old_start = $booking['start_time'];
+    $old_ground_id = (int)$booking['ground_id'];
+
     $hourly = ground_price_for_date($booking['ground_id'], (float)$booking['price_per_hour'], $new_date);
     $durHrs = max(0.25, (strtotime($end_time) - strtotime($start_time)) / 3600);
     $new_price = round($hourly * $durHrs, 2);
-    // amount_paid carries over untouched; payment page shows any remaining balance.
+
+    // Recalculate payment status if the court price changed (e.g. weekday to weekend)
+    $amount_paid = (float)$booking['amount_paid'];
+    $payment_status = $booking['payment_status'];
+    if ($amount_paid >= $new_price && $new_price > 0) {
+        $payment_status = 'paid';
+    } elseif ($amount_paid > 0 && $amount_paid < $new_price) {
+        $payment_status = 'partial';
+    } elseif ($amount_paid <= 0) {
+        $payment_status = 'unpaid';
+    }
+
     $stmt = $conn->prepare(
-        'UPDATE bookings SET booking_date = ?, start_time = ?, end_time = ?, total_price = ?
+        'UPDATE bookings SET booking_date = ?, start_time = ?, end_time = ?, total_price = ?, payment_status = ?
          WHERE id = ? AND user_id = ? AND status = "confirmed"'
     );
-    $stmt->bind_param('sssdii', $new_date, $start_time, $end_time, $new_price, $booking_id, $_SESSION['user_id']);
+    $stmt->bind_param('sssdsii', $new_date, $start_time, $end_time, $new_price, $payment_status, $booking_id, $_SESSION['user_id']);
     if ($stmt->execute() && $stmt->affected_rows > 0) {
         $conn->commit();
+        // Notify players on waitlist that the vacated slot is now open
+        notify_waitlist_freed($old_ground_id, $old_date, $old_start);
+
         $reschedUser = current_user();
         if ($reschedUser) {
             send_booking_email(
@@ -181,8 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'New date' => date('D, M j, Y', strtotime($new_date)),
                     'New time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
                     'New price' => 'Rs ' . number_format($new_price, 0),
+                    'Payment' => $payment_status === 'paid' ? 'Paid in full' : ($payment_status === 'partial' ? 'Partially paid (Rs ' . number_format($amount_paid, 0) . ' paid)' : 'Unpaid'),
                 ],
-                'Your payment and any balance carry straight over to the new slot. See you there!',
+                $payment_status === 'partial'
+                    ? 'Your advance carried over. Please settle the remaining balance at payment or when you arrive.'
+                    : 'Your payment and schedule carry straight over to the new slot. See you there!',
                 $reschedUser['name'] ?? ''
             );
         }
@@ -206,7 +227,7 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="page-head settings-page-head">
     <div class="ps-head-row">
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="page-back-arrow" aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="page-back-arrow" data-back aria-label="Back to my bookings"><i class="fa-solid fa-arrow-left"></i></a>
         <h2>Reschedule</h2>
     </div>
 </div>

@@ -71,6 +71,9 @@ if ($active === 'index.php' && !$site_user) {
 if ($active === 'login.php') {
     $body_classes[] = 'login-page';
 }
+if ($active === 'register.php') {
+    $body_classes[] = 'register-page';
+}
 if (in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'change_email_otp.php', 'change_password_otp.php', 'delete_account_otp.php'], true)) {
     $body_classes[] = 'auth-page';
 }
@@ -141,7 +144,7 @@ $pageBackUrl = base_url('index.php');
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('service-worker.js').catch(() => {});
+          navigator.serviceWorker.register('<?php echo base_url('sw.js'); ?>').catch(() => {});
         });
       }
     </script>
@@ -803,7 +806,8 @@ $pageBackUrl = base_url('index.php');
         $btnLabel = $isSuccess ? 'Continue' : 'Try again';
         $toastRole = $isSuccess ? 'status' : 'alert';
         $detail = $flash['detail'] ?? null;
-        $backUrl = is_array($detail) && !empty($detail['how_url']) ? e($detail['how_url']) : '';
+        $rawHowUrl = is_array($detail) && !empty($detail['how_url']) ? (string)$detail['how_url'] : '';
+        $backUrl = ($rawHowUrl !== '') ? (preg_match('#^(https?://|/)#', $rawHowUrl) ? $rawHowUrl : base_url($rawHowUrl)) : '';
     ?>
     <?php if ($type === 'success' || $type === 'info'): ?>
         <div class="top-flash-wrap">

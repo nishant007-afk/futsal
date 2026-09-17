@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare(
                 'INSERT INTO grounds (name, location, description, price_per_hour, discount_price, capacity, manager_id, is_active, open_time, close_time, slot_interval, price_weekend, address, court_number, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('sssddiissidssdd', $name, $location, $description, $price, $discount_price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude);
+            $stmt->bind_param('sssddiiissidssdd', $name, $location, $description, $price, $discount_price, $capacity, $manager_id, $is_active, $open_time, $close_time, $slot_interval, $price_weekend, $address, $court_number, $latitude, $longitude);
             $msg = 'Ground added.';
         }
         if ($stmt->execute()) {
@@ -236,7 +236,7 @@ require __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2><?php echo $editing ? 'Edit Ground' : 'Add Ground'; ?></h2>
         <div class="actions">

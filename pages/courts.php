@@ -258,7 +258,7 @@ require __DIR__ . '/../includes/header.php';
     </p>
 
     <?php if (!$grounds): ?>
-        <?php empty_state('fa-solid fa-futbol', 'No courts match your filters', 'Try removing a filter or searching for something else.', 'pages/courts.php', 'Clear filters & browse all'); ?>
+        <?php empty_state('fa-solid fa-futbol', 'No courts match your filters', 'Try removing a filter or searching for something else.', grounds_list_url(), 'Clear filters & browse all'); ?>
     <?php else: ?>
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground, $availability[(int)$ground['id']] ?? null); } ?>

@@ -62,15 +62,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ok = $user && password_verify($password, $user['password']);
 
             if ($ok && (int)$user['email_verified'] === 1) {
-                // --- 2FA CHECK: Admin always requires 2FA; non-admin every 6th login bypass ---
+                // Increment login count for legitimate login
+                $newCount = (int)($user['login_count'] ?? 0) + 1;
+                $updStmt = $conn->prepare('UPDATE users SET login_count = ? WHERE id = ?');
+                $updStmt->bind_param('ii', $newCount, $user['id']);
+                $updStmt->execute();
+
+                // Clear login failures on successful password authentication
+                clear_login_attempts($key);
+
+                // --- 2FA CHECK: Admin always requires 2FA; non-admin periodic check (every 6th login: 6, 12, 18...) ---
                 $requires_2fa = ($user['role'] === 'admin');
                 $needs_otp_verify = false;
 
                 if ($requires_2fa) {
                     // Admin: always require OTP verification
                     $needs_otp_verify = true;
-                } elseif ($newCount % 6 === 0) {
-                    // Non-admin: OTP every 6 logins (existing behavior)
+                } elseif ($newCount > 1 && $newCount % 6 === 0) {
+                    // Non-admin: OTP every 6 logins
                     $needs_otp_verify = true;
                 }
 
@@ -90,10 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $returnPath = $_SESSION['return_path'] ?? '';
                 unset($_SESSION['return_path']);
-                if ($returnPath === 'pages/page.php?slug=contact') {
+                if ($returnPath !== '') {
                     redirect($returnPath);
                 }
-                redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
+                if ($user['role'] === 'admin') {
+                    redirect('admin/dashboard.php');
+                } elseif ($user['role'] === 'manager') {
+                    redirect('manager/dashboard.php');
+                } else {
+                    redirect('index.php');
+                }
             }
 
             if (!$ok) {
@@ -135,9 +150,27 @@ require __DIR__ . '/../includes/header.php';
         <p class="lead">Pick up right where you left off. Your courts, bookings and stats are waiting.</p>
         <div class="signup-intro-details">
             <ul class="benefit-list">
-                <li><span class="b-icon"><i class="fa-solid fa-calendar-check"></i></span><span><strong>Quick rebook</strong> Jump back into your favourite courts.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><span><strong>Booking history</strong> See past games and upcoming slots.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-trophy"></i></span><span><strong>Track progress</strong> See your playing streak and stats.</span></li>
+                <li>
+                    <i class="fa-solid fa-calendar-check b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Quick rebook</strong>
+                        <span class="benefit-desc">Jump back into your favourite courts.</span>
+                    </div>
+                </li>
+                <li>
+                    <i class="fa-solid fa-clock-rotate-left b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Booking history</strong>
+                        <span class="benefit-desc">See past games and upcoming slots.</span>
+                    </div>
+                </li>
+                <li>
+                    <i class="fa-solid fa-trophy b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Track progress</strong>
+                        <span class="benefit-desc">See your playing streak and stats.</span>
+                    </div>
+                </li>
             </ul>
         </div>
     </section>
@@ -230,14 +263,16 @@ require __DIR__ . '/../includes/header.php';
                     <label for="password">Password <span class="req">*</span></label>
                     <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                 </div>
-                <p class="form-hint mt-8"><a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a></p>
                 <?php field_error($errors, 'password'); ?>
             </div>
-            <label class="check-line mb-18">
-                <input type="checkbox" name="remember_me" value="1">
-                <span class="check-box"><i class="fa-solid fa-check"></i></span>
-                <span>Remember me</span>
-            </label>
+            <div class="auth-aux-row">
+                <label class="check-line">
+                    <input type="checkbox" name="remember_me" value="1">
+                    <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                    <span>Remember me</span>
+                </label>
+                <a href="<?php echo base_url('pages/forgot_password.php'); ?>" class="auth-forgot-link">Forgot password?</a>
+            </div>
             <button type="submit" class="btn btn-primary btn-block" <?php echo $lock ? 'disabled' : 'data-autogate=""'; ?>><i class="fa-solid fa-right-to-bracket"></i> Log in</button>
             <p class="form-foot">Don't have an account? <a href="<?php echo base_url('pages/register.php'); ?>"><strong>Sign up</strong></a></p>
         </form>

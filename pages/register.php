@@ -140,111 +140,143 @@ require __DIR__ . '/../includes/header.php';
         </button>
         <div class="signup-intro-details" id="signupIntroDetails">
             <ul class="benefit-list">
-                <li><span class="b-icon"><i class="fa-solid fa-map-location-dot"></i></span><span><strong>Find a free court</strong> Browse grounds near you and check live availability.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-bolt"></i></span><span><strong>Book in seconds</strong> Reserve your slot in a few taps, pay when it suits you.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-bell"></i></span><span><strong>Never miss a game</strong> Get instant reminders and booking updates.</span></li>
-                <li><span class="b-icon"><i class="fa-solid fa-user-tie"></i></span><span><strong>Run a court</strong> Managers get a dashboard for bookings and payments.</span></li>
+                <li>
+                    <i class="fa-solid fa-map-location-dot b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Find a free court</strong>
+                        <span class="benefit-desc">Browse grounds near you and check live availability.</span>
+                    </div>
+                </li>
+                <li>
+                    <i class="fa-solid fa-bolt b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Book in seconds</strong>
+                        <span class="benefit-desc">Reserve your slot in a few taps, pay when it suits you.</span>
+                    </div>
+                </li>
+                <li>
+                    <i class="fa-solid fa-bell b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Never miss a game</strong>
+                        <span class="benefit-desc">Get instant reminders and booking updates.</span>
+                    </div>
+                </li>
+                <li>
+                    <i class="fa-solid fa-user-tie b-icon" aria-hidden="true"></i>
+                    <div class="benefit-copy">
+                        <strong class="benefit-title">Run a court</strong>
+                        <span class="benefit-desc">Managers get a dashboard for bookings and payments.</span>
+                    </div>
+                </li>
             </ul>
         </div>
     </section>
 
     <section class="signup-right">
-        <div class="auth-head">
-            <div class="auth-brand-row">
+        <div class="auth-topline">
+            <div class="title-back-row">
                 <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2>Create your account</h2>
+                <h2 class="auth-title-lg">Create your account</h2>
             </div>
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
         <a href="<?php echo base_url('pages/login_google.php?intent=signup'); ?>" class="btn-google" id="googleLink">
-        <?php google_svg_icon(); ?>
-        Continue with Google
-    </a>
-    <div class="auth-divider"><span>or</span></div>
-    <form method="post" action="" novalidate>
-        <?php echo csrf_field(); ?>
-        <?php honeypot_field(); ?>
-        <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-            <div class="input-group floating">
-                <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
-                <label for="name">Full name <span class="req">*</span></label>
+            <?php google_svg_icon(); ?>
+            Continue with Google
+        </a>
+        <div class="auth-divider"><span>or</span></div>
+        <form method="post" action="" novalidate>
+            <?php echo csrf_field(); ?>
+            <?php honeypot_field(); ?>
+            <div class="form-row-2">
+                <div class="form-group<?php echo has_error($errors, 'name'); ?>">
+                    <div class="input-group floating">
+                        <input type="text" id="name" name="name" value="<?php echo e($name); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
+                        <label for="name">Full name <span class="req">*</span></label>
+                    </div>
+                    <?php field_error($errors, 'name'); ?>
+                </div>
+                <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
+                    <div class="input-group floating">
+                        <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder=" " maxlength="20">
+                        <label for="phone">Phone <span class="opt">(optional)</span></label>
+                    </div>
+                    <?php field_error($errors, 'phone'); ?>
+                </div>
             </div>
-            <p class="form-hint">Letters, numbers, spaces and special characters (e.g. &amp;, ', -) are all allowed.</p>
-            <?php field_error($errors, 'name'); ?>
-        </div>
-        <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <div class="input-group floating">
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available">
-                <label for="email">Email <span class="req">*</span></label>
-            </div>
-            <?php field_error($errors, 'email'); ?>
-        </div>
-        <div class="form-group<?php echo has_error($errors, 'phone'); ?>">
-            <div class="input-group floating">
-                <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" autocomplete="tel" placeholder=" " maxlength="20">
-                <label for="phone">Phone</label>
-            </div>
-            <?php field_error($errors, 'phone'); ?>
-        </div>
 
-        <div class="form-group">
-            <label id="roleLabel">I'm signing up as</label>
-            <div class="role-select" role="radiogroup" aria-labelledby="roleLabel">
-                <label class="role-option <?php echo $role === 'user' ? 'checked' : ''; ?>"
-                       data-hint="Players book courts, track their games and cancel their own bookings.">
-                    <input type="radio" name="role" value="user" <?php echo $role === 'user' ? 'checked' : ''; ?>>
-                    <span class="role-icon"><i class="fa-solid fa-user"></i></span>
-                    <span class="role-text">
-                        <span class="role-name">Player</span>
-                        <span class="role-desc">Book courts and play</span>
-                    </span>
-                    <span class="role-check"><i class="fa-solid fa-check"></i></span>
-                </label>
-                <label class="role-option <?php echo $role === 'manager' ? 'checked' : ''; ?>"
-                       data-hint="Managers get a dashboard to list their courts, manage bookings and see what's been paid.">
-                    <input type="radio" name="role" value="manager" <?php echo $role === 'manager' ? 'checked' : ''; ?>>
-                    <span class="role-icon"><i class="fa-solid fa-user-tie"></i></span>
-                    <span class="role-text">
-                        <span class="role-name">Manager</span>
-                        <span class="role-desc">Own courts &amp; manage bookings</span>
-                    </span>
-                    <span class="role-check"><i class="fa-solid fa-check"></i></span>
-                </label>
+            <div class="form-group<?php echo has_error($errors, 'email'); ?>">
+                <div class="input-group floating">
+                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available">
+                    <label for="email">Email <span class="req">*</span></label>
+                </div>
+                <?php field_error($errors, 'email'); ?>
             </div>
-        </div>
 
-        <div class="form-group<?php echo has_error($errors, 'password'); ?>">
-            <div class="input-group floating">
-                <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
-                <label for="password">Password <span class="req">*</span></label>
-                <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+            <div class="form-group form-group-role">
+                <span id="roleLabel" class="sr-only">Account type</span>
+                <div class="role-select" role="radiogroup" aria-labelledby="roleLabel">
+                    <label class="role-option <?php echo $role === 'user' ? 'checked' : ''; ?>"
+                           data-hint="Players book courts, track their games and cancel their own bookings.">
+                        <input type="radio" name="role" value="user" <?php echo $role === 'user' ? 'checked' : ''; ?>>
+                        <span class="role-icon"><i class="fa-solid fa-user"></i></span>
+                        <span class="role-text">
+                            <span class="role-name">Player</span>
+                            <span class="role-desc">Book courts &amp; play</span>
+                        </span>
+                        <span class="role-check"><i class="fa-solid fa-check"></i></span>
+                    </label>
+                    <label class="role-option <?php echo $role === 'manager' ? 'checked' : ''; ?>"
+                           data-hint="Managers get a dashboard to list their courts, manage bookings and see what's been paid.">
+                        <input type="radio" name="role" value="manager" <?php echo $role === 'manager' ? 'checked' : ''; ?>>
+                        <span class="role-icon"><i class="fa-solid fa-user-tie"></i></span>
+                        <span class="role-text">
+                            <span class="role-name">Manager</span>
+                            <span class="role-desc">Own courts &amp; slots</span>
+                        </span>
+                        <span class="role-check"><i class="fa-solid fa-check"></i></span>
+                    </label>
+                </div>
             </div>
-            <p class="form-hint">Your password needs:</p>
-            <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
-            <?php field_error($errors, 'password'); ?>
-        </div>
-        <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
-            <div class="input-group floating">
-                <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
-                <label for="confirm">Confirm password <span class="req">*</span></label>
-                <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+
+            <div class="form-row-2">
+                <div class="form-group<?php echo has_error($errors, 'password'); ?>">
+                    <div class="input-group floating">
+                        <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
+                        <label for="password">Password <span class="req">*</span></label>
+                        <button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <?php field_error($errors, 'password'); ?>
+                </div>
+                <div class="form-group<?php echo has_error($errors, 'confirm'); ?>">
+                    <div class="input-group floating">
+                        <input type="password" id="confirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
+                        <label for="confirm">Confirm password <span class="req">*</span></label>
+                        <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <?php field_error($errors, 'confirm'); ?>
+                </div>
             </div>
-            <?php field_error($errors, 'confirm'); ?>
-        </div>
-        <label class="check-line mb-10">
-            <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
-            <span class="check-box"><i class="fa-solid fa-check"></i></span>
-            <span>I'd like to receive emails about new grounds, booking tips and GoalSpace updates.</span>
-        </label>
-        <label class="check-line mb-18">
-            <input type="checkbox" id="termsCheck" name="accept" value="1" required aria-required="true" <?php echo $accept ? 'checked' : ''; ?>>
-            <span class="check-box"><i class="fa-solid fa-check"></i></span>
-            <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a></span>
-        </label>
-        <?php field_error($errors, 'terms'); ?>
-        <button type="submit" class="btn btn-primary btn-block" data-autogate=""><i class="fa-solid fa-user-plus"></i> Create account</button>
-        <p class="auth-foot">Already have an account? <a href="<?php echo base_url('pages/login.php'); ?>">Sign in</a></p>
-    </form>
+            <div class="pw-requirements-wrap">
+                <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
+            </div>
+
+            <label class="check-line mb-6">
+                <input type="checkbox" id="termsCheck" name="accept" value="1" required aria-required="true" <?php echo $accept ? 'checked' : ''; ?>>
+                <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a> <span class="req">*</span></span>
+            </label>
+            <?php field_error($errors, 'terms'); ?>
+
+            <label class="check-line check-line-sub mb-14">
+                <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
+                <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                <span>Send me booking tips and court updates</span>
+            </label>
+
+            <button type="submit" class="btn btn-primary btn-block" data-autogate=""><i class="fa-solid fa-user-plus"></i> Create account</button>
+            <p class="form-foot">Already have an account? <a href="<?php echo base_url('pages/login.php'); ?>"><strong>Sign in</strong></a></p>
+        </form>
     </section>
 </div>
 

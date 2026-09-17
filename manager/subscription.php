@@ -26,15 +26,15 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($sub): ?>
             <div class="sub-status-row">
                 <span class="badge-pill <?php echo $status['active'] ? 'badge-green' : 'badge-red'; ?>">
-                    <i class="fa-solid <?php echo $status['active'] ? 'fa-check-circle' : 'fa-exclamation-circle'; ?>"></i>
+                    <i class="fa-solid <?php echo $status['active'] ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
                     <?php echo e($status['label']); ?>
                 </span>
             </div>
             <table class="settings-table">
                 <tr><td>Setup fee</td><td><?php echo format_price($sub['setup_fee']); ?></td><td><?php echo $sub['setup_paid_at'] ? 'Paid ' . date('M j, Y', strtotime($sub['setup_paid_at'])) : '<span class="text-red">Unpaid</span>'; ?></td></tr>
                 <tr><td>Monthly fee</td><td><?php echo format_price($sub['monthly_fee']); ?></td><td></td></tr>
-                <tr><td>Period start</td><td><?php echo $sub['period_start'] ? date('M j, Y', strtotime($sub['period_start'])) : '—'; ?></td><td></td></tr>
-                <tr><td>Period end</td><td><?php echo $sub['period_end'] ? date('M j, Y', strtotime($sub['period_end'])) : '—'; ?></td><td><?php if ($sub['period_end'] && !$status['active']): ?><span class="text-red">Expired</span><?php endif; ?></td></tr>
+                <tr><td>Period start</td><td><?php echo $sub['period_start'] ? date('M j, Y', strtotime($sub['period_start'])) : '-'; ?></td><td></td></tr>
+                <tr><td>Period end</td><td><?php echo $sub['period_end'] ? date('M j, Y', strtotime($sub['period_end'])) : '-'; ?></td><td><?php if ($sub['period_end'] && !$status['active']): ?><span class="text-red">Expired</span><?php endif; ?></td></tr>
             </table>
             <?php if ($status['key'] === 'setup_pending'): ?>
                 <p class="form-hint mt-12"><i class="fa-solid fa-circle-info"></i> Pay the setup fee to activate your courts and start receiving bookings.</p>

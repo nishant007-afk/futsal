@@ -29,6 +29,16 @@ while ($row = $rows->fetch_assoc()) {
     $taken[] = $row['start_time'];
 }
 
+cleanup_expired_slot_holds();
+$curUid = (int)($_SESSION['user_id'] ?? 0);
+$heldQuery = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
+$heldQuery->bind_param('isi', $ground['id'], $selected_date, $curUid);
+$heldQuery->execute();
+$hRows = $heldQuery->get_result();
+while ($hRow = $hRows->fetch_assoc()) {
+    $taken[] = $hRow['start_time'];
+}
+
 $slots = slots_for_day($selected_date, $ground['id']);
 $price = ground_price_for_date((int)$ground['id'], (float)$ground['price_per_hour'], $selected_date);
 
@@ -331,8 +341,8 @@ require __DIR__ . '/../includes/header.php';
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="review_submit" value="1">
                 <div class="form-group">
-                    <label>Your rating</label>
-                    <div class="star-input">
+                    <label id="ratingLabel">Your rating</label>
+                    <div class="star-input" role="radiogroup" aria-labelledby="ratingLabel">
                         <?php for ($i = 5; $i >= 1; $i--): ?>
                             <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" aria-label="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>" <?php echo ($my_review['rating'] ?? 0) == $i ? 'checked' : ''; ?>>
                             <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>"><i class="fa-solid fa-star"></i></label>

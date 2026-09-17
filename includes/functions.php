@@ -69,27 +69,39 @@ function require_login(): void
 
 function require_admin(): void
 {
-    // IP whitelist check - only allow specific IPs to access admin panels
-    $admin_ips = explode(',', env('ADMIN_IPS', ''));
-    $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    $is_whitelisted = in_array($current_ip, $admin_ips);
-    
-    if (!is_admin() || !$is_whitelisted) {
+    if (!is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;
+    }
+
+    $configured = trim((string)env('ADMIN_IPS', ''));
+    if ($configured !== '') {
+        $allowed = array_filter(array_map('trim', explode(',', $configured)));
+        $current = $_SERVER['REMOTE_ADDR'] ?? '';
+        $isLocal = in_array($current, ['127.0.0.1', '::1'], true) && (in_array('127.0.0.1', $allowed, true) || in_array('::1', $allowed, true));
+        if (!$isLocal && !in_array($current, $allowed, true)) {
+            header('Location: ' . base_url('index.php'));
+            exit;
+        }
     }
 }
 
 function require_manager(): void
 {
-    // IP whitelist check - only allow specific IPs to access manager panels
-    $manager_ips = explode(',', env('MANAGER_IPS', ''));
-    $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    $is_whitelisted = in_array($current_ip, $manager_ips);
-    
-    if (!is_manager() && !is_admin() || !$is_whitelisted) {
+    if (!is_manager() && !is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;
+    }
+
+    $configured = trim((string)env('MANAGER_IPS', ''));
+    if ($configured !== '') {
+        $allowed = array_filter(array_map('trim', explode(',', $configured)));
+        $current = $_SERVER['REMOTE_ADDR'] ?? '';
+        $isLocal = in_array($current, ['127.0.0.1', '::1'], true) && (in_array('127.0.0.1', $allowed, true) || in_array('::1', $allowed, true));
+        if (!$isLocal && !in_array($current, $allowed, true)) {
+            header('Location: ' . base_url('index.php'));
+            exit;
+        }
     }
 }
 
@@ -1388,7 +1400,7 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
 
         $footerNote = 'If you have any questions, please contact us at goalspace@goalspace.example.';
         $htmlMsg = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
-        @send_mail($u['email'], $subject, $htmlMsg, true);
+        queue_email($u['email'], $subject, $htmlMsg);
         $sent++;
     }
     return $sent;
@@ -1417,7 +1429,7 @@ function notify_announcement(string $subject, string $message, string $scope = '
                 . '<p style="margin:0;color:#55685d;font-size:13.5px;line-height:1.6();">Thank you for being part of the GoalSpace community. We look forward to seeing you on the pitch soon.</p>';
             $footerNote = 'If you have any questions, please contact us at goalspace@goalspace.example.';
             $htmlBody = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
-            @send_mail($u['email'], $subject, $htmlBody, true);
+            queue_email($u['email'], $subject, $htmlBody);
         }
         $sent++;
     }
@@ -1455,7 +1467,8 @@ function empty_state(string $icon, string $title, string $text = '', ?string $ac
         echo '<p>' . e($text) . '</p>';
     }
     if ($action_url !== null && $action_label !== null) {
-        echo '<a href="' . e($action_url) . '" class="' . e($action_class) . '">' . e($action_label) . '</a>';
+        $resolvedUrl = preg_match('#^(https?://|/)#', $action_url) ? $action_url : base_url($action_url);
+        echo '<a href="' . e($resolvedUrl) . '" class="' . e($action_class) . '">' . e($action_label) . '</a>';
     }
     echo '</div>';
 }
@@ -2072,7 +2085,7 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                     <?php endif; ?>
                 </span>
             <?php elseif (!empty($ground['distance_km'])): ?>
-                <span class="thumb-tag"><i class="fa-solid fa-walkie-talkie"></i> <?php echo number_format((float)$ground['distance_km'], 1); ?> km</span>
+                <span class="thumb-tag"><i class="fa-solid fa-location-arrow"></i> <?php echo number_format((float)$ground['distance_km'], 1); ?> km</span>
             <?php else: ?>
                 <span class="thumb-tag"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['location']); ?></span>
             <?php endif; ?>
@@ -2683,6 +2696,81 @@ function ground_owner_label(array $ground): string
         return 'GoalSpace';
     }
     return (string) ($ground['owner_name'] ?? '');
+}
+
+/**
+ * Slot Hold / Concurrency Protection (5-minute lease)
+ */
+function cleanup_expired_slot_holds(): void
+{
+    global $conn;
+    $conn->query('DELETE FROM slot_holds WHERE expires_at <= NOW()');
+}
+
+function is_slot_held(int $ground_id, string $booking_date, string $start_time, ?int $ignore_user_id = null): bool
+{
+    global $conn;
+    cleanup_expired_slot_holds();
+    if ($ignore_user_id !== null) {
+        $stmt = $conn->prepare('SELECT id FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND user_id != ? AND expires_at > NOW()');
+        $stmt->bind_param('issi', $ground_id, $booking_date, $start_time, $ignore_user_id);
+    } else {
+        $stmt = $conn->prepare('SELECT id FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND expires_at > NOW()');
+        $stmt->bind_param('iss', $ground_id, $booking_date, $start_time);
+    }
+    $stmt->execute();
+    return $stmt->get_result()->num_rows > 0;
+}
+
+function acquire_slot_hold(int $ground_id, string $booking_date, string $start_time, int $user_id, int $hold_seconds = 300): array
+{
+    global $conn;
+    cleanup_expired_slot_holds();
+
+    if (slot_is_taken($ground_id, $booking_date, $start_time)) {
+        return ['ok' => false, 'error' => 'That time slot is already booked.'];
+    }
+
+    if (is_slot_held($ground_id, $booking_date, $start_time, $user_id)) {
+        return ['ok' => false, 'error' => 'Someone is currently checking out this slot. Try again in a couple of minutes.'];
+    }
+
+    $token = bin2hex(random_bytes(24));
+    $expires = date('Y-m-d H:i:s', time() + $hold_seconds);
+
+    $stmt = $conn->prepare(
+        'INSERT INTO slot_holds (ground_id, booking_date, start_time, user_id, hold_token, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), hold_token = VALUES(hold_token), expires_at = VALUES(expires_at)'
+    );
+    $stmt->bind_param('ississ', $ground_id, $booking_date, $start_time, $user_id, $token, $expires);
+    if ($stmt->execute()) {
+        return ['ok' => true, 'token' => $token, 'expires_at' => $expires];
+    }
+    return ['ok' => false, 'error' => 'Could not hold slot. Please try again.'];
+}
+
+function release_slot_hold(int $ground_id, string $booking_date, string $start_time, int $user_id): void
+{
+    global $conn;
+    $stmt = $conn->prepare('DELETE FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND user_id = ?');
+    $stmt->bind_param('issi', $ground_id, $booking_date, $start_time, $user_id);
+    $stmt->execute();
+}
+
+/**
+ * Asynchronous Background Email Queue
+ */
+function queue_email(string $recipient, string $subject, string $body_html): bool
+{
+    global $conn;
+    $recipient = strtolower(trim($recipient));
+    if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+    $stmt = $conn->prepare('INSERT INTO email_queue (recipient, subject, body_html, status) VALUES (?, ?, ?, "pending")');
+    $stmt->bind_param('sss', $recipient, $subject, $body_html);
+    return $stmt->execute();
 }
 
 

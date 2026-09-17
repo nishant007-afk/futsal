@@ -311,7 +311,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2>Bookings on My Grounds</h2>
         <div class="actions">
@@ -402,7 +402,7 @@ require __DIR__ . '/../includes/header.php';
                         <div class="mb-sub muted"><i class="fa-solid fa-clock-rotate-left"></i> Joined <?php echo e(date('M j, Y g:i A', strtotime($w['created_at']))); ?></div>
                     </div>
                     <div class="mb-actions">
-                        <a href="<?php echo base_url('pages/booking_details.php?ground=' . (int)$w['ground_id'] . '&date=' . e($w['booking_date']) . '&time=' . e($w['start_time'])); ?>" class="btn btn-outline btn-sm" title="View slot" target="_blank"><i class="fa-solid fa-external-link-alt"></i></a>
+                        <a href="<?php echo base_url('pages/ground.php?id=' . (int)$w['ground_id'] . '&date=' . rawurlencode($w['booking_date'])); ?>" class="btn btn-outline btn-sm" title="View slot" aria-label="View court schedule" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                     </div>
                 </div>
             <?php endforeach; ?>

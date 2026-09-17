@@ -58,7 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['pending_2fa_login']);
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$user['id'];
-            redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
+            if ($user['role'] === 'admin') {
+                redirect('admin/dashboard.php');
+            } elseif ($user['role'] === 'manager') {
+                redirect('manager/dashboard.php');
+            } else {
+                redirect('index.php');
+            }
         } else {
             $left = otp_attempts_left($email, 'login');
             $errors['code'] = $left > 0
@@ -75,7 +81,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="form-card">
     <div class="form-head">
         <div class="title-back-row">
-            <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
             <h2>Two-step login</h2>
         </div>
         <p class="muted mt-12 lh-15">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>

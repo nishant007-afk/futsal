@@ -18,11 +18,28 @@ $totalGrounds = count($myGrounds);
 $todayBookings = $conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND booking_date = CURDATE() AND status != 'cancelled'")->fetch_assoc()['c'];
 $paidCount = $conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND payment_status = 'paid' AND status != 'cancelled'")->fetch_assoc()['c'];
 $revenue = $conn->query("SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE ground_id IN ($idList) AND status != 'cancelled'")->fetch_assoc()['s'];
+$startDate = date('Y-m-d', strtotime('-' . ($days - 1) . ' days'));
+$countsQuery = $conn->query("
+    SELECT booking_date, COUNT(*) c
+    FROM bookings
+    WHERE ground_id IN ($idList)
+      AND booking_date >= '$startDate'
+      AND booking_date <= CURDATE()
+      AND status != 'cancelled'
+    GROUP BY booking_date
+");
+$dateCounts = [];
+if ($countsQuery) {
+    while ($row = $countsQuery->fetch_assoc()) {
+        $dateCounts[$row['booking_date']] = (int)$row['c'];
+    }
+}
+
 $weekDays = [];
 $weekMax = 1;
 for ($d = $days - 1; $d >= 0; $d--) {
     $day = date('Y-m-d', strtotime("-$d days"));
-    $c = (int)$conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($idList) AND booking_date = '$day' AND status != 'cancelled'")->fetch_assoc()['c'];
+    $c = $dateCounts[$day] ?? 0;
     $weekDays[] = ['day' => date('D', strtotime($day)), 'short' => date('M j', strtotime($day)), 'count' => $c];
     if ($c > $weekMax) { $weekMax = $c; }
 }

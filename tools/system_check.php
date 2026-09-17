@@ -213,7 +213,7 @@ foreach ($it as $f) {
         continue;
     }
     $p = $f->getPathname();
-    if (strpos($p, str_replace('\\', '/', $root . '/vendor/')) !== false) {
+    if (strpos($p, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR) !== false) {
         continue;
     }
     exec('php -l ' . escapeshellarg($p) . ' 2>&1', $o, $c);
@@ -245,8 +245,7 @@ $css = file_get_contents($root . '/assets/css/style.css');
 $glassSafe = preg_replace('/\.(?:popup-backdrop|sheet-backdrop)[^{]*\{[^}]*\}/s', '', $css);
 check('CSS: blur only on popup backdrops', stripos($glassSafe, 'backdrop-filter') === false);
 check('CSS: no blue/purple remnants', preg_match('/#2563eb|#4f46e5|#5b5bd6|#60a5fa|#667eea|#764ba2|#6366f1|#eef1ff|#eef2ff|#e8f1fd|#dfe4ff/i', $css) === 0);
-check('CSS: body font = Manrope', strpos($css, "'Manrope'") !== false);
-check('CSS: heading font = Barlow Condensed', strpos($css, '--font-display') !== false && strpos($css, "'Barlow Condensed'") !== false);
+check('CSS: body font = Geist', strpos($css, "'Geist'") !== false);
 $gradCount = substr_count($css, 'gradient(');
     check('CSS: only functional gradients remain', $gradCount <= 14, "gradient() x$gradCount");
 

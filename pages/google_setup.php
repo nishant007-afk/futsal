@@ -51,6 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['general'] = 'Something went wrong while creating your account. Please try again.';
             } else {
                 $uid = $conn->insert_id;
+                if ($role === 'manager' && !manager_subscription((int)$uid)) {
+                    create_manager_subscription((int)$uid);
+                }
             }
         }
 

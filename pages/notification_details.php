@@ -103,7 +103,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="nd-title-col">
                 <div class="title-back-row">
-                    <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
+                    <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" data-back aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
                     <h1><?php echo e($n['title']); ?></h1>
                 </div>
                 <p class="muted text-sm"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>

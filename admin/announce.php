@@ -50,24 +50,24 @@ require __DIR__ . '/../includes/header.php';
         <textarea id="message" name="message" rows="8" required placeholder="Your message here..."></textarea>
     </div>
 
-    <div class="form-group">
-        <strong>Send to</strong>
-        <div class="scope-row">
+    <div class="form-group" role="radiogroup" aria-labelledby="scopeLabel">
+        <span id="scopeLabel"><strong>Send to</strong></span>
+        <label class="scope-row">
             <span class="scope-label">All users</span>
             <input type="radio" name="scope" value="all" checked>
-        </div>
-        <div class="scope-row">
+        </label>
+        <label class="scope-row">
             <span class="scope-label">Admins only</span>
             <input type="radio" name="scope" value="admins">
-        </div>
-        <div class="scope-row">
+        </label>
+        <label class="scope-row">
             <span class="scope-label">Managers only</span>
             <input type="radio" name="scope" value="managers">
-        </div>
-        <div class="scope-row">
+        </label>
+        <label class="scope-row">
             <span class="scope-label">Players only</span>
             <input type="radio" name="scope" value="users">
-        </div>
+        </label>
     </div>
 
     <div class="form-group">

@@ -102,7 +102,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head dash-page-head">
-    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <h2>Manage Users</h2>
         <div class="actions">
@@ -165,13 +165,13 @@ require __DIR__ . '/../includes/header.php';
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
                                 <span class="role-icon"><i class="fa-solid fa-user-tag"></i></span>
-                                <select name="role" data-role-select>
+                                <select name="role" data-role-select aria-label="Change role for <?php echo e($u['name']); ?>">
                                     <?php $selRole = ((int)$u['id'] === $affectedId && !empty($old['role'])) ? (string)$old['role'] : $u['role']; ?>
                                     <?php foreach (['user' => 'Player', 'manager' => 'Manager', 'admin' => 'Admin'] as $val => $label): ?>
                                         <option value="<?php echo $val; ?>" <?php echo $selRole === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <noscript><button class="btn btn-outline btn-sm" type="submit" aria-label="Make admin"><i class="fa-solid fa-check"></i></button></noscript>
+                                <noscript><button class="btn btn-outline btn-sm" type="submit" aria-label="Save role"><i class="fa-solid fa-check"></i></button></noscript>
                                 <?php if ((int)$u['id'] === $affectedId && !empty($errors['role'])): ?>
                                     <p class="field-error role-error"><i class="fa-solid fa-circle-exclamation"></i><?php echo e($errors['role']); ?></p>
                                 <?php endif; ?>

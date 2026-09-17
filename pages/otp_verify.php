@@ -5,7 +5,7 @@ if (is_logged_in()) {
     redirect('index.php');
 }
 
-$pending = $_SESSION['pending_login'] ?? null;
+$pending = $_SESSION['pending_2fa_login'] ?? $_SESSION['pending_login'] ?? null;
 if (!$pending || empty($pending['email'])) {
     set_flash('info', 'Start by logging in with your password.');
     redirect('pages/login.php');
@@ -31,8 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $otp = issue_otp($email, 'login');
         $sent = send_otp_mail($email, $otp, 'login');
-        unset($_SESSION['pending_login']['otp']);
-        $_SESSION['pending_login']['sent'] = $sent;
+        // Clear any previous pending 2FA/login session data
+        unset($_SESSION['pending_login'], $_SESSION['pending_2fa_login']);
+        $_SESSION['pending_2fa_login'] = ['user_id' => $pending['user_id'] ?? $pending['user_id'] ?? 0, 'email' => $email, 'role' => $pending['role'] ?? 'player'];
+        $_SESSION['pending_2fa_login']['sent'] = $sent;
             set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable. Please try again shortly.');
     } else {
         $code = preg_replace('/\D/', '', $_POST['code'] ?? '');
@@ -53,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 redirect('pages/login.php');
             }
-            unset($_SESSION['pending_login']);
+            unset($_SESSION['pending_2fa_login']);
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$user['id'];
             redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');

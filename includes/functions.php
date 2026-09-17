@@ -69,7 +69,12 @@ function require_login(): void
 
 function require_admin(): void
 {
-    if (!is_admin()) {
+    // IP whitelist check - only allow specific IPs to access admin panels
+    $admin_ips = explode(',', env('ADMIN_IPS', ''));
+    $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $is_whitelisted = in_array($current_ip, $admin_ips);
+    
+    if (!is_admin() || !$is_whitelisted) {
         header('Location: ' . base_url('index.php'));
         exit;
     }
@@ -77,7 +82,12 @@ function require_admin(): void
 
 function require_manager(): void
 {
-    if (!is_manager() && !is_admin()) {
+    // IP whitelist check - only allow specific IPs to access manager panels
+    $manager_ips = explode(',', env('MANAGER_IPS', ''));
+    $current_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $is_whitelisted = in_array($current_ip, $manager_ips);
+    
+    if (!is_manager() && !is_admin() || !$is_whitelisted) {
         header('Location: ' . base_url('index.php'));
         exit;
     }
@@ -1257,7 +1267,7 @@ function goalspace_email_html(string $title, string $greeting, string $bodyHtml,
 function booking_email_html(string $heading, array $rows = [], string $note = '', string $name = ''): string
 {
     $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-    $greeting = $name !== '' ? 'Hi ' . $esc($name) . ',' : 'Hi there,';
+    $greeting = $name !== '' ? 'Hi ' . $esc($name) . ',' : 'Hello,';
 
     $table = '';
     if ($rows) {
@@ -1279,13 +1289,13 @@ function booking_email_html(string $heading, array $rows = [], string $note = ''
     $noteBlock = $note !== '' ? '<div style="margin:20px 0 0;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;"><p style="margin:0;color:#166534;font-size:13.5px;line-height:1.6;">'
         . $esc($note) . '</p></div>' : '';
 
-    $bodyHtml = '<p style="margin:0 0 12px;color:#35493d;font-size:15px;line-height:1.6;">'
-        . 'Here is the summary of your futsal court booking:'
-        . '</p>'
+$bodyHtml = '<p style="margin:0 0 12px;color:#35493d;font-size:15px;line-height:1.6;">'
+    . 'Your futsal court booking details are below:'
+    . '</p>'
         . $table
         . $noteBlock;
 
-    $footerNote = 'You received this email because of activity on your GoalSpace booking account.';
+    $footerNote = 'If you have any questions about your booking, please contact us at goalspace@goalspace.example.';
     return goalspace_email_html($heading, $greeting, $bodyHtml, $footerNote);
 }
 
@@ -1337,10 +1347,10 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
     $lines  = [];
     foreach ($chosen as $slug => $label) {
         $labels[] = $label;
-        $lines[]  = '- ' . $label . ': ' . absolute_url('pages/page.php?slug=' . $slug);
+        $lines[]  = '• ' . $label . ': ' . absolute_url('pages/page.php?slug=' . $slug);
     }
     $labelText = implode(', ', $labels);
-    $summary   = 'GoalSpace updated: ' . $labelText . ' on ' . $date;
+    $summary   = 'GoalSpace has updated the following: ' . $labelText . ' on ' . $date;
     $firstSlug = array_keys($chosen)[0];
 
     $where = '';
@@ -1370,13 +1380,13 @@ function notify_policy_update(array $slugs, string $date = '', string $scope = '
             $policyLinksHtml .= '<li style="margin-bottom:8px;"><a href="' . absolute_url('pages/page.php?slug=' . $slug) . '" style="color:#15803d;font-weight:700;text-decoration:none;">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a></li>';
         }
 
-        $bodyHtml = '<p style="margin:0 0 14px;color:#2c3e34;font-size:15px;line-height:1.6;">We have updated the following information on GoalSpace:</p>'
+        $bodyHtml = '<p style="margin:0 0 14px;color:#2c3e34;font-size:15px;line-height:1.6;">GoalSpace has updated the following information:</p>'
             . '<ul style="margin:0 0 18px;padding-left:20px;color:#15803d;font-size:14px;line-height:1.8;">'
             . $policyLinksHtml
             . '</ul>'
             . '<p style="margin:0 0 14px;color:#55685d;font-size:13.5px;line-height:1.6;">These updates take effect on <strong>' . htmlspecialchars($date, ENT_QUOTES, 'UTF-8') . '</strong>. We believe in being transparent about how our platform operates, so please take a moment to review them when you can.</p>';
 
-        $footerNote = 'You received this notification as an active GoalSpace account holder.';
+        $footerNote = 'If you have any questions, please contact us at goalspace@goalspace.example.';
         $htmlMsg = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
         @send_mail($u['email'], $subject, $htmlMsg, true);
         $sent++;
@@ -1402,10 +1412,10 @@ function notify_announcement(string $subject, string $message, string $scope = '
     while ($u = $res->fetch_assoc()) {
         notify_user((int)$u['id'], $subject, $message, 'fa-bullhorn');
         if ($sendMail) {
-            $greeting = 'Hi ' . ($u['name'] ?: 'there') . ',';
+            $greeting = 'Hello, ' . ($u['name'] ?: 'valued member') . ',';
             $bodyHtml = '<p style="margin:0 0 16px;color:#2c3e34;font-size:15px;line-height:1.65;">' . nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')) . '</p>'
-                . '<p style="margin:0;color:#55685d;font-size:13.5px;line-height:1.6;">We appreciate you being part of GoalSpace, and we look forward to seeing you on the pitch soon.</p>';
-            $footerNote = 'You received this community announcement from GoalSpace.';
+                . '<p style="margin:0;color:#55685d;font-size:13.5px;line-height:1.6();">Thank you for being part of the GoalSpace community. We look forward to seeing you on the pitch soon.</p>';
+            $footerNote = 'If you have any questions, please contact us at goalspace@goalspace.example.';
             $htmlBody = goalspace_email_html($subject, $greeting, $bodyHtml, $footerNote);
             @send_mail($u['email'], $subject, $htmlBody, true);
         }
@@ -1794,32 +1804,43 @@ function send_otp_mail(string $email, string $code, string $purpose): bool
             }
         }
     }
-    $greeting = $firstName !== '' ? 'Hi ' . $firstName . ',' : 'Hi there,';
+    $greeting = $firstName !== '' ? 'Hello, ' . $firstName : 'Hello,';
 
     $title = otp_subject($purpose);
     $actionVerb = otp_purpose_verb($purpose);
 
     $bodyHtml = '
     <p style="margin:0 0 16px;color:#2c3e34;font-size:15px;line-height:1.6;">
-        We received a request to <strong>' . htmlspecialchars($actionVerb, ENT_QUOTES, 'UTF-8') . '</strong>.
-        Please use the one-time verification code below to proceed:
+        We received a request to verify your GoalSpace account.
     </p>
     
-    <div style="margin:26px 0;text-align:center;background:#f0fdf4;border:2px dashed #86efac;border-radius:14px;padding:24px 16px;">
+    <div style="margin:26px 0;text-align:center;background:#f0fdf4;border:2px solid #86efac;border-radius:14px;padding:24px 16px;">
         <span style="font-family:\'SF Pro Mono\',Consolas,\'Courier New\',monospace;font-size:38px;font-weight:800;letter-spacing:10px;color:#15803d;display:inline-block;padding-left:10px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</span>
         <div style="margin-top:10px;font-size:12.5px;color:#166534;font-weight:600;">
             <span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>
             Valid for 5 minutes
         </div>
     </div>
-    
+
+    <p style="margin:24px 0 0;color:#53665c;font-size:13px;line-height:1.55;">
+        If you did not request this verification code, you can safely disregard this email. Your GoalSpace account credentials remain secure.
+    </p>
+
+    <p style="margin:24px 0 0;color:#53665c;font-size:13px;line-height:1.55;">
+        You received this notification because a verification request was initiated for your email address.
+    </p>
+
+    <p style="margin:16px 0 0;color:#53665c;font-size:13px;line-height:1.55;">
+        If you have any questions, please contact us at goalspace@goalspace.example.
+    </p>
+
     <div style="margin:24px 0 0;padding:14px 18px;background:#f8faf9;border-radius:10px;border-left:3px solid #607368;">
         <p style="margin:0;color:#53665c;font-size:13px;line-height:1.55;">
             <strong>Security Notice:</strong> If you did not request this verification code, you can safely disregard this email. Your GoalSpace account credentials remain secure.
         </p>
     </div>';
 
-    $footerNote = 'You received this notification because a verification request was initiated for your email address.';
+    $footerNote = 'If you have any questions, please contact us at goalspace@goalspace.example.';
     $htmlContent = goalspace_email_html($title, $greeting, $bodyHtml, $footerNote);
 
     return send_mail($email, $title, $htmlContent, true);

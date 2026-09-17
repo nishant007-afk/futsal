@@ -62,19 +62,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ok = $user && password_verify($password, $user['password']);
 
             if ($ok && (int)$user['email_verified'] === 1) {
-                $stmt = $conn->prepare('UPDATE users SET login_count = login_count + 1 WHERE id = ?');
-                $stmt->bind_param('i', $user['id']);
-                $stmt->execute();
-                $newCount = (int)$user['login_count'] + 1;
-                unset($_SESSION['login_lock'], $_SESSION['login_lock_email']);
-                clear_login_attempts($key);
-                if ($newCount % 6 === 0 && $user['role'] !== 'admin') {
-                    $cooldown = otp_send_cooldown($email, 'login');
-                    if ($cooldown > 0) {
-                        session_regenerate_id(true);
-                        $_SESSION['user_id'] = $user['id'];
-                        redirect($user['role'] === 'admin' ? 'admin/dashboard.php' : 'index.php');
-                    }
+                // --- 2FA CHECK: Admin always requires 2FA; non-admin every 6th login bypass ---
+                $requires_2fa = ($user['role'] === 'admin');
+                $needs_otp_verify = false;
+
+                if ($requires_2fa) {
+                    // Admin: always require OTP verification
+                    $needs_otp_verify = true;
+                } elseif ($newCount % 6 === 0) {
+                    // Non-admin: OTP every 6 logins (existing behavior)
+                    $needs_otp_verify = true;
+                }
+
+                if ($needs_otp_verify) {
                     $otp = issue_otp($email, 'login');
                     $otp_sent = send_otp_mail($email, $otp, 'login');
                     if (!$otp_sent) {
@@ -82,9 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     session_regenerate_id(true);
                     // Never store the OTP in session – verification uses the DB row only.
-                    $_SESSION['pending_login'] = ['user_id' => (int)$user['id'], 'email' => $email, 'sent' => $otp_sent];
+                    $_SESSION['pending_2fa_login'] = ['user_id' => (int)$user['id'], 'email' => $email, 'role' => $user['role']];
                     redirect('pages/otp_verify.php');
                 }
+
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 $returnPath = $_SESSION['return_path'] ?? '';

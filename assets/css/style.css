@@ -1176,7 +1176,6 @@ body.auth-page .signup-shell { display: grid; grid-template-columns: 1fr 1fr; ga
 .testimonial footer strong { display: block; font-size: 14px; }
 .testimonial footer em { display: block; font-style: normal; font-size: 14px; color: var(--ink-3); }
 @media (max-width: 900px) {
-    body.auth-page .signup-shell { }
     .signup-intro { max-width: none; }
     .signup-intro-toggle { display: inline-flex; align-items: center; gap: 7px; background: none; border: 0; padding: 0; margin-top: 4px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--brand-700); }
     .signup-intro-toggle .sint-chev { font-size: 14px; transition: transform .25s; }
@@ -1649,7 +1648,6 @@ body.modal-open { overflow: hidden; }
 .map-result-sub { font-size: 14px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .location-map { width: 100%; height: 300px; border: 1px solid var(--line-2); border-radius: var(--r-sm); z-index: 1; background: #e5e5e0; }
 .location-map .leaflet-control-attribution { font-size: 12px; }
-.map-picker-foot { }
 .map-picker-hint { display: flex; align-items: center; gap: 7px; color: var(--ink-2); font-size: 14px; margin-top: 9px; }
 .map-picker-hint i { color: var(--brand-700); }
 /* Google-style red map pin */

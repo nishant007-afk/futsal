@@ -8,7 +8,6 @@ $featuredCover = $featured ? ground_cover((int)$featured['id']) : null;
 $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.9, 'count' => 38];
 ?>
 
-<!-- HERO SECTION: Clean & Minimalist -->
 <section class="hero hero--clean">
     <div class="container">
         <div class="hero-grid">
@@ -16,7 +15,6 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <h1>Find and book futsal courts.</h1>
                 <p class="hero-sub">Real-time availability, direct court pricing, and instant booking confirmation.</p>
 
-                <!-- Clean Search Box -->
                 <form action="<?php echo grounds_list_url(); ?>" method="GET" class="hero-search-box" role="search">
                     <div class="hsb-inner">
                         <i class="fa-solid fa-magnifying-glass hsb-icon" aria-hidden="true"></i>
@@ -25,7 +23,6 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                     </div>
                 </form>
 
-                <!-- Clean Area Shortcuts -->
                 <div class="hero-areas">
                     <span class="ha-label">Popular areas:</span>
                     <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="ha-link">Baneshwor</a>
@@ -39,7 +36,6 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
             </div>
 
             <?php if ($featured): ?>
-            <!-- Featured Court Showcase Card -->
             <div class="hero-showcase">
                 <div class="featured-card">
                     <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>" class="fc-media" aria-label="View <?php echo e($featured['name']); ?>">
@@ -72,7 +68,6 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     </div>
 </section>
 
-<!-- AVAILABLE COURTS -->
 <section class="section section-courts" id="courts">
     <div class="container">
         <div class="section-head section-head-between">

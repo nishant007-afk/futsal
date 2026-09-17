@@ -1755,15 +1755,13 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 }
 .featured-card {
     background: var(--bg);
-    border: 1px solid var(--line-2);
+    border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition: transform .2s ease, box-shadow .2s ease;
+    transition: border-color .2s ease;
 }
 .featured-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: var(--line-2);
 }
 .fc-media {
     display: block;
@@ -6937,7 +6935,7 @@ html[data-theme="dark"] .auth-divider span {
 html[data-theme="dark"] .featured-card {
     background: #121c17 !important;
     border-color: #243b2f !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: none !important;
 }
 html[data-theme="dark"] .fc-caption {
     background: #121c17 !important;

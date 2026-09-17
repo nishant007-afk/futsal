@@ -8,6 +8,7 @@ deploy/*_diag.php
 deploy/_setup_db.php
 deploy/_base_probe.php
 deploy/_cleanup.php
+deploy/ftp_upload.php
 
 # Composer dependencies (restore with: composer install)
 /vendor/

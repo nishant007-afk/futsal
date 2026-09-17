@@ -250,8 +250,8 @@ if ($user) {
             'Price' => format_price($week_price),
         ],
         $createdCount > 1
-            ? 'This is a weekly repeat for the same slot. Your other weeks are waiting for you under My Bookings.'
-            : 'Pay now to lock in your spot, or settle at the court when you arrive. Either way, we cannot wait to see you play!',
+            ? 'This is a weekly repeat for the same slot. You can view all upcoming sessions under My Bookings.'
+            : 'You can pay online to secure your slot, or settle when you arrive at the court. Enjoy your match!',
         $user['name'] ?? ''
     );
 }
@@ -270,7 +270,7 @@ if ((int)$ground['manager_id'] > 0) {
                 'Date' => date('D, M j, Y', strtotime($booking_date)),
                 'Time' => substr($start_time, 0, 5) . ' - ' . substr($end_time, 0, 5),
             ],
-            'Head to your dashboard to view the details and manage the booking. Lovely to see your court staying busy!',
+            'Log in to your manager dashboard to view player details and manage the schedule.',
             $mgrRow['name'] ?? ''
         );
     }

@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('info', 'A promo is already applied to this booking.');
             redirect('pages/payment.php?booking_id=' . $booking_id);
         }
-        $result = validate_promo_code($code, $total, $booking['ground_id']);
+        $result = validate_promo_code($code, $total, $booking['ground_id'], (int)$_SESSION['user_id']);
         if (isset($result['error'])) {
             set_flash_error(
                 'That promo code can\'t be applied.',
@@ -66,8 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare('UPDATE bookings SET discount = ?, promo_code = ?, promo_id = ? WHERE id = ? AND user_id = ?');
         $stmt->bind_param('dsiii', $discount, $code, $promoId, $booking_id, $_SESSION['user_id']);
         $stmt->execute();
-// Promo usage now incremented after payment processing (not at apply time),
-// so the max_uses limit only counts bookings that actually reached payment status.
         $netTotal = round($total - $discount, 2);
         $advance = round($netTotal * 0.2, 2);
         $balance = round($netTotal - $advance, 2);
@@ -108,17 +106,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('pages/payment.php?booking_id=' . $booking_id);
     }
 
+    $conn->begin_transaction();
+
+    // Prevent race conditions on promo limit:
+    if ($promoId > 0) {
+        $promoOk = increment_promo_usage($promoId);
+        if (!$promoOk) {
+            $conn->rollback();
+            $clearStmt = $conn->prepare('UPDATE bookings SET discount = 0, promo_code = NULL, promo_id = NULL WHERE id = ?');
+            $clearStmt->bind_param('i', $booking_id);
+            $clearStmt->execute();
+            $clearStmt->close();
+            set_flash_error(
+                'That promo code reached its usage limit.',
+                'Another player redeemed the last available coupon just before your payment.',
+                'Please proceed with payment without the discount.',
+                'pages/payment.php?booking_id=' . $booking_id
+            );
+            redirect('pages/payment.php?booking_id=' . $booking_id);
+        }
+    }
+
     $stmt = $conn->prepare(
         'UPDATE bookings SET payment_type = ?, payment_method = "qr", amount_paid = ?, payment_status = ?, paid_at = NOW()
          WHERE id = ? AND user_id = ? AND status = "confirmed"'
     );
     $stmt->bind_param('sdsii', $payment_type, $amount_paid, $payment_status, $booking_id, $_SESSION['user_id']);
     $stmt->execute();
+    $stmt->close();
 
-    // Increment promo usage after payment (atomic, capped). Skip when no promo.
-    if ($promoId > 0) {
-        increment_promo_usage($promoId);
-    }
+    $conn->commit();
 
     $paySummary = [
         'Booking ref' => $booking['booking_ref'],

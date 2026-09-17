@@ -274,13 +274,14 @@ function format_price($amount): string
     return 'Rs. ' . number_format((float)$amount, 2);
 }
 
-function validate_promo_code(string $code, float $total, int $ground_id): ?array
+function validate_promo_code(string $code, float $total, int $ground_id, ?int $user_id = null): ?array
 {
     global $conn;
     $stmt = $conn->prepare('SELECT * FROM promo_codes WHERE code = ?');
     $stmt->bind_param('s', $code);
     $stmt->execute();
     $promo = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
     if (!$promo || (int)$promo['is_active'] !== 1) {
         return ['error' => 'That promo code is invalid.'];
     }
@@ -288,6 +289,7 @@ function validate_promo_code(string $code, float $total, int $ground_id): ?array
     $groundStmt->bind_param('i', $ground_id);
     $groundStmt->execute();
     $ground = $groundStmt->get_result()->fetch_assoc();
+    $groundStmt->close();
     $promoManagerId = $ground ? (int)$ground['manager_id'] : 0;
     if ((int)$promo['manager_id'] !== $promoManagerId || $promoManagerId === 0) {
         return ['error' => 'That promo code doesn\'t apply to this court.'];
@@ -305,19 +307,34 @@ function validate_promo_code(string $code, float $total, int $ground_id): ?array
     if ((float)$promo['min_total'] > 0 && $total < (float)$promo['min_total']) {
         return ['error' => 'This promo needs a minimum booking of Rs ' . number_format((float)$promo['min_total'], 0) . '.'];
     }
+    // Prevent coupon abuse: each user can only redeem a promo code once across active bookings
+    if ($user_id !== null && $user_id > 0) {
+        $uStmt = $conn->prepare('SELECT COUNT(*) FROM bookings WHERE promo_id = ? AND user_id = ? AND status != "cancelled" AND payment_status IN ("partial", "paid")');
+        $uStmt->bind_param('ii', $promo['id'], $user_id);
+        $uStmt->execute();
+        $uStmt->bind_result($priorUses);
+        $uStmt->fetch();
+        $uStmt->close();
+        if ($priorUses > 0) {
+            return ['error' => 'You have already redeemed this promo code on a previous booking.'];
+        }
+    }
     $discount = $promo['discount_type'] === 'percent'
         ? round($total * (float)$promo['discount_value'] / 100, 2)
         : min((float)$promo['discount_value'], $total);
     return ['promo' => $promo, 'discount' => round($discount, 2)];
 }
 
-function increment_promo_usage(int $promo_id): void
+function increment_promo_usage(int $promo_id): bool
 {
     global $conn;
     // Atomic + capped: only increment when under max_uses (prevents overshoot on race).
     $stmt = $conn->prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ? AND (max_uses <= 0 OR used_count < max_uses)');
     $stmt->bind_param('i', $promo_id);
     $stmt->execute();
+    $ok = ($stmt->affected_rows > 0);
+    $stmt->close();
+    return $ok;
 }
 
 function manager_promo_codes(int $manager_id): array
@@ -2750,18 +2767,29 @@ function acquire_slot_hold(int $ground_id, string $booking_date, string $start_t
     }
 
     $token = bin2hex(random_bytes(24));
-    $expires = date('Y-m-d H:i:s', time() + $hold_seconds);
 
     $stmt = $conn->prepare(
         'INSERT INTO slot_holds (ground_id, booking_date, start_time, user_id, hold_token, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), hold_token = VALUES(hold_token), expires_at = VALUES(expires_at)'
+         VALUES (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL ? SECOND))
+         ON DUPLICATE KEY UPDATE
+            user_id = IF(expires_at <= NOW() OR user_id = VALUES(user_id), VALUES(user_id), user_id),
+            hold_token = IF(expires_at <= NOW() OR user_id = VALUES(user_id), VALUES(hold_token), hold_token),
+            expires_at = IF(expires_at <= NOW() OR user_id = VALUES(user_id), VALUES(expires_at), expires_at)'
     );
-    $stmt->bind_param('ississ', $ground_id, $booking_date, $start_time, $user_id, $token, $expires);
+    $stmt->bind_param('issisi', $ground_id, $booking_date, $start_time, $user_id, $token, $hold_seconds);
     if ($stmt->execute()) {
-        return ['ok' => true, 'token' => $token, 'expires_at' => $expires];
+        $stmt->close();
+        // Verify this user successfully claimed or refreshed the hold
+        $vStmt = $conn->prepare('SELECT user_id, hold_token FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND start_time = ?');
+        $vStmt->bind_param('iss', $ground_id, $booking_date, $start_time);
+        $vStmt->execute();
+        $curHold = $vStmt->get_result()->fetch_assoc();
+        $vStmt->close();
+        if ($curHold && (int)$curHold['user_id'] === $user_id && $curHold['hold_token'] === $token) {
+            return ['ok' => true, 'token' => $token, 'expires_at' => $curHold['expires_at'] ?? null];
+        }
     }
-    return ['ok' => false, 'error' => 'Could not hold slot. Please try again.'];
+    return ['ok' => false, 'error' => 'Someone is currently checking out this slot. Try again in a couple of minutes.'];
 }
 
 function release_slot_hold(int $ground_id, string $booking_date, string $start_time, int $user_id): void

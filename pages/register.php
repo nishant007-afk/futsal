@@ -39,11 +39,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($name === '' || strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name, at least 2 characters. Letters, numbers and special characters are all allowed.';
     }
-    if (strlen($phone) > 20) {
-        $errors['phone'] = 'Phone number is too long. Keep it under 20 characters.';
+    $cleanPhone = preg_replace('/[\s\-]/', '', $phone);
+    if ($cleanPhone !== '') {
+        if (strlen($cleanPhone) > 20) {
+            $errors['phone'] = 'Phone number is too long. Keep it under 20 characters.';
+        } else {
+            $pStmt = $conn->prepare('SELECT id FROM users WHERE REPLACE(REPLACE(phone, " ", ""), "-", "") = ?');
+            $pStmt->bind_param('s', $cleanPhone);
+            $pStmt->execute();
+            if ($pStmt->get_result()->num_rows > 0) {
+                $errors['phone'] = 'An account with this phone number already exists.';
+            }
+            $pStmt->close();
+        }
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Enter a valid email address, e.g. you@example.com.';
+    } elseif (email_has_plus_alias($email)) {
+        $errors['email'] = 'Email addresses with "+" aliases are not allowed. Please use your standard email.';
     } elseif (is_disposable_email($email)) {
         $errors['email'] = 'One-time email addresses aren\'t allowed. Please use a real email.';
     } elseif (!email_has_mx($email)) {
@@ -61,15 +74,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors && !$reg_blocked) {
-        $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
+        $stmt = $conn->prepare('SELECT id, email FROM users WHERE email = ?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
+        $userRow = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        $emailExists = (bool)$userRow;
+        if (!$emailExists) {
+            $canon = canonical_email($email);
+            $domain = strtolower(substr(strrchr($email, '@'), 1));
+            if ($domain === 'gmail.com' || $domain === 'googlemail.com') {
+                $gCheck = $conn->query("SELECT email FROM users WHERE email LIKE '%@gmail.com' OR email LIKE '%@googlemail.com'");
+                if ($gCheck) {
+                    while ($r = $gCheck->fetch_assoc()) {
+                        if (canonical_email($r['email']) === $canon) {
+                            $emailExists = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($emailExists) {
             $errors['email'] = 'An account with this email already exists. Try logging in instead.';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
             $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, verify_token, email_updates) VALUES (?, ?, ?, ?, ?, 0, NULL, ?)');
-            $stmt->bind_param('sssssi', $name, $email, $phone, $hash, $role, $email_updates);
+            $stmt->bind_param('sssssi', $name, $email, $cleanPhone, $hash, $role, $email_updates);
             if ($stmt->execute()) {
                 $otp = issue_otp($email, 'email_verify');
                 $verification_sent = send_otp_mail($email, $otp, 'email_verify');

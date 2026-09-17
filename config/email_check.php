@@ -69,6 +69,17 @@ define('DISPOSABLE_DOMAINS', array_map('strtolower', [
     'xemaps.com', 'xents.com', 'xmailer.be',
     'yopmail.com', 'yopmail.fr', 'yopmail.net', 'yopmail.org',
     'zep-hyr.com', 'zippymail.info', 'zoaxe.com', 'zoemail.org',
+    'tempmail.ninja', 'guerrillamailblock.com', 'inboxkitten.com', 'dispostable.com',
+    'burnermail.io', 'getairmail.com', 'mohmal.com', 'crazymailing.com',
+    'nada.ltd', 'getnada.com', 'abyssmail.com', 'generator.email',
+    'generator-mail.com', 'emailfake.com', 'fakemailgenerator.com', 'disposablemail.com',
+    'temp-mail.io', 'inboxes.com', 'tmpmail.org', 'tmpmail.net',
+    'internxt.com', 'luxusmail.org', 'mail.tm', 'mail.gw',
+    'mohmal.im', 'mohmal.in', 'email-fake.com', 'trashmail.net',
+    'mytemp.email', 'tempinbox.com', '10minemail.com', 'minutemailbox.com',
+    'guerrillamail.biz', 'guerrillamail.info', 'bccto.me', 'chacuo.net',
+    'disposable.com', 'maildrop.cc', 'harakirimail.com', 'tempr.email',
+    'discard.email', 'discardmail.com', 'spambog.com', 'trashmail.de'
 ]));
 
 function is_disposable_email(string $email): bool
@@ -89,6 +100,42 @@ function is_disposable_email(string $email): bool
         }
     }
     return false;
+}
+
+function email_has_plus_alias(string $email): bool
+{
+    $pos = strpos($email, '@');
+    if ($pos === false) {
+        return false;
+    }
+    $local = substr($email, 0, $pos);
+    return strpos($local, '+') !== false;
+}
+
+function canonical_email(string $email): string
+{
+    $email = strtolower(trim($email));
+    $pos = strpos($email, '@');
+    if ($pos === false) {
+        return $email;
+    }
+    $local = substr($email, 0, $pos);
+    $domain = substr($email, $pos + 1);
+
+    if ($domain === 'gmail.com' || $domain === 'googlemail.com') {
+        $domain = 'gmail.com';
+        $local = str_replace('.', '', $local);
+        $plusPos = strpos($local, '+');
+        if ($plusPos !== false) {
+            $local = substr($local, 0, $plusPos);
+        }
+    } else {
+        $plusPos = strpos($local, '+');
+        if ($plusPos !== false) {
+            $local = substr($local, 0, $plusPos);
+        }
+    }
+    return $local . '@' . $domain;
 }
 
 function email_has_mx(string $email): bool

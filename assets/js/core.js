@@ -43,38 +43,42 @@ document.addEventListener('DOMContentLoaded', function () {
             pageSkeleton.remove();
         }
     }
+    // Dismiss skeleton immediately on DOM ready so the screen is never blocked
     if (pageSkeleton) {
-        // If there's an inline flash toast or page is loaded/interactive, dismiss skeleton immediately
-        // so it never creates a blurry overlay effect over the content.
-        if (document.querySelector('.toast-inline, .top-flash-wrap, .toast-top, .toast') || document.readyState === 'complete' || document.readyState === 'interactive') {
-            pageSkeleton.remove();
+        pageSkeleton.remove();
+    }
+
+    // Viewport-based lazy loading: only load images when the user scrolls near them
+    function initLazyImages() {
+        const lazyImgs = document.querySelectorAll('img.lazy-load[data-src]');
+        if (!lazyImgs.length) return;
+        if ('IntersectionObserver' in window) {
+            const imgObserver = new IntersectionObserver(function (entries, observer) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                            img.classList.add('loaded');
+                        }
+                        observer.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '200px 0px' });
+            lazyImgs.forEach(function (img) { imgObserver.observe(img); });
         } else {
-            // Wait for a quick paint, then only show skeleton if still loading.
-            skeletonTimers.push(setTimeout(function () {
-                if (!pageSkeleton.isConnected) return;
-                if (document.readyState === 'complete' || document.readyState === 'interactive') { pageSkeleton.remove(); return; }
-                pageSkeleton.classList.add('visible');
-                skeletonShown = true;
-                // 3s: subtle loading message
-                skeletonTimers.push(setTimeout(function () {
-                    if (!skeletonShown || !pageSkeleton.isConnected) return;
-                    showSkeletonMsg();
-                }, 3000));
-                // 5s: escalate to spinner loader
-                skeletonTimers.push(setTimeout(function () {
-                    if (!skeletonShown || !pageSkeleton.isConnected) return;
-                    if (alText) alText.textContent = 'Still working on it';
-                    showLoader();
-                }, 5000));
-            }, 120));
-            if (document.readyState === 'complete') {
-                hideSkeleton();
-            } else {
-                window.addEventListener('load', hideSkeleton);
-                setTimeout(hideSkeleton, 1000);
-            }
+            lazyImgs.forEach(function (img) {
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    img.classList.add('loaded');
+                }
+            });
         }
     }
+    initLazyImages();
+    window.initLazyImages = initLazyImages;
 
     const greetingEl = document.getElementById('greeting');
     function updateGreeting() {

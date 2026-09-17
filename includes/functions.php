@@ -2073,7 +2073,8 @@ function ground_card_html(array $ground, array|string|null $availability = null,
     <div class="card reveal <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>">
         <div class="card-img">
             <?php if ($cover): ?>
-                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 10'%3E%3C/svg%3E" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover lazy-load" loading="lazy" decoding="async">
+                <noscript><img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover"></noscript>
             <?php else: ?>
                 <div class="pitch"></div>
             <?php endif; ?>

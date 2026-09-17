@@ -1,5 +1,8 @@
 <?php
 $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 ORDER BY g.id LIMIT 6')->fetch_all(MYSQLI_ASSOC);
+if (!empty($grounds)) {
+    preload_ground_cards(array_column($grounds, 'id'));
+}
 $featured = $grounds[0] ?? null;
 $featuredCover = $featured ? ground_cover((int)$featured['id']) : null;
 $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.9, 'count' => 38];

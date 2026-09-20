@@ -27,6 +27,8 @@ deploy/ftp_upload.php
 Thumbs.db
 .DS_Store
 ~$*
+_backinv.txt
+*_backinv.txt
 
 # Local design docs & low-fi mockups (keep off GitHub)
 Proposal.docx

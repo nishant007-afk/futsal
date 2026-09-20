@@ -66,4 +66,4 @@ futsal/
 - Photos live under `uploads/grounds/` and `uploads/avatars/`. Both are gitignored, so keep the `.gitkeep` files.
 - Promotions, notifications, OTP emails and Google sign in only matter when SMTP/Google are configured. Without them the site still works fine.
 - `tools/system_check.php` runs a full audit from the command line: it hits the pages over HTTP, logs in as a manager and a player, and checks CSS, PHP, the database and the cache-busting versions. Nothing should fail.
-- `tools/migrate_webp.php` converts legacy uploads to WebP and tidies up the records. Old files are stored in `uploads/_legacy_backup/`.
+- Image uploads are automatically converted to optimized `.webp` format on upload.

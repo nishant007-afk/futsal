@@ -16,12 +16,12 @@
 </FilesMatch>
 
 # Keep .php files under /config, /deploy, /tools out of the web (defense in depth).
-# deploy/ and tools/ contain DB setup / diagnostics that must never run via HTTP.
+# deploy/ and tools/ contain DB setup / diagnostics / cron workers that must never run via HTTP.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^config(/|$) - [F,L]
     RewriteRule ^deploy(/|$) - [F,L]
-    RewriteRule ^tools/(migrate|system_check|send_reminders|auto_cancel_unpaid|apply_polish|migrate_webp)\.php$ - [F,L]
+    RewriteRule ^tools(/|$) - [F,L]
 </IfModule>
 
 # Block direct access to SQL dumps anywhere
@@ -60,7 +60,7 @@ ErrorDocument 500 /pages/500.php
     </FilesMatch>
     # Service worker and manifest must never be cached long-term, or app
     # updates (and install prompts) stop working.
-    <FilesMatch "^(sw\.js|service-worker\.js|manifest\.json)$">
+    <FilesMatch "^(sw\.js|manifest\.json)$">
         Header unset Cache-Control
         Header set Cache-Control "no-cache, no-store, must-revalidate"
     </FilesMatch>

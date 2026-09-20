@@ -76,10 +76,13 @@ if ($raw !== false) {
 }
 
 if ($curlErr !== '' || empty($token['access_token'])) {
+    $errorDesc = $token['error_description'] ?? $token['error'] ?? null;
+    $detail = $curlErr !== '' ? ('cURL error: ' . $curlErr) : ($errorDesc ? ('Google returned: ' . $errorDesc) : 'Google did not return an access token.');
+    error_log('Google OAuth token error: ' . ($curlErr ?: $raw));
     set_flash_error(
-        'Could not connect to Google.',
-        'Google did not return an access token.',
-        'Please try again in a moment.',
+        'Could not connect to Google: ' . $detail,
+        $detail,
+        'Check your GOOGLE_CLIENT_SECRET in .env.',
         $back
     );
     $finish($back);

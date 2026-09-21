@@ -1,7 +1,7 @@
 /* GoalSpace service worker: enables install-as-app and a basic offline shell. */
 'use strict';
 
-const CACHE = 'goalspace-v3';
+const CACHE = 'goalspace-v4';
 
 // Core styles/scripts used on every page plus the offline shell, manifest and
 // icons so the installed app can open and render even fully offline. HTML

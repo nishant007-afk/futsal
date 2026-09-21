@@ -89,8 +89,18 @@ require __DIR__ . '/../includes/header.php';
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-    <!-- ...notice removed... -->
-    <!-- OTP code display removed for security - codes are delivered via email only -->
+    <?php
+    $isLocal = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
+    if ($isLocal) {
+        $devStmt = $conn->prepare('SELECT code FROM otps WHERE identifier = ? AND purpose = "login" AND used = 0 ORDER BY id DESC LIMIT 1');
+        $devStmt->bind_param('s', $email);
+        $devStmt->execute();
+        $devRow = $devStmt->get_result()->fetch_assoc();
+        if ($devRow) {
+            echo '<div class="notice notice-info mb-14"><i class="fa-solid fa-code"></i> <span><strong>Local Development Notice:</strong> SMTP failed (Brevo auth error). Your active verification code is: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($devRow['code']) . '</strong></span></div>';
+        }
+    }
+    ?>
 
     <form method="post" action="" class="mt-18" novalidate>
         <?php echo csrf_field(); ?>

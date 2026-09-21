@@ -248,10 +248,33 @@ require __DIR__ . '/../includes/header.php';
         </p>
         <p class="slot-meta"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots · Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?></p>
 
-        <form method="get" action="">
-            <div class="form-group">
-                <label for="bookingDate">Pick a day</label>
-                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+        <div class="date-chips-wrap mb-12">
+            <div class="date-chips-label text-xs muted font-semibold mb-6">Quick Date</div>
+            <div class="date-chips" role="tablist" aria-label="Select date">
+                <?php
+                for ($d = 0; $d < 7; $d++):
+                    $chipTs = strtotime("+$d day");
+                    $chipDate = date('Y-m-d', $chipTs);
+                    $chipActive = ($chipDate === $selected_date);
+                    $chipDayName = $d === 0 ? 'Today' : ($d === 1 ? 'Tomorrow' : date('D', $chipTs));
+                    $chipDayNum = date('j M', $chipTs);
+                ?>
+                    <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($chipDate); ?>"
+                       class="date-chip <?php echo $chipActive ? 'active' : ''; ?>"
+                       role="tab"
+                       aria-selected="<?php echo $chipActive ? 'true' : 'false'; ?>">
+                        <span class="chip-day"><?php echo e($chipDayName); ?></span>
+                        <span class="chip-num"><?php echo e($chipDayNum); ?></span>
+                    </a>
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <form method="get" action="" class="date-picker-form mb-14">
+            <input type="hidden" name="id" value="<?php echo (int)$ground['id']; ?>">
+            <div class="form-group mb-0">
+                <label for="bookingDate" class="text-xs muted">Or choose specific date</label>
+                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" onchange="this.form.submit()">
             </div>
         </form>
 
@@ -283,13 +306,13 @@ require __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="selected_slot" id="selectedSlot" value="">
                 <?php if (!is_logged_in()): ?>
                     <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
-                <?php elseif (is_player()): ?>
-                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn">Reserve this slot</button>
                 <?php else: ?>
-                    <div class="role-lock">
-                        <i class="fa-solid fa-lock"></i>
-                        <span>You're signed in as a <strong><?php echo e(ucfirst($site_user['role'])); ?></strong>. Booking is for player accounts only. Use a player account to reserve this court.</span>
-                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn">Reserve this slot</button>
+                    <?php if (!is_player()): ?>
+                        <p class="text-xs muted text-center mt-6">
+                            <i class="fa-solid fa-circle-info"></i> Signed in as <?php echo e(ucfirst($site_user['role'])); ?> (testing/personal reservation)
+                        </p>
+                    <?php endif; ?>
                 <?php endif; ?>
             </form>
 

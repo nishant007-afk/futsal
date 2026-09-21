@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 require_player();
 
-$booking_id = (int)($_GET['id'] ?? 0);
+$booking_id = (int)($_GET['id'] ?? ($_GET['booking_id'] ?? 0));
 if (!$booking_id) {
     http_error_page(400, 'Missing booking', 'No booking ID provided.');
 }

@@ -107,8 +107,8 @@ function require_manager(): void
 
 function require_player(): void
 {
-    if (!is_player() && !is_admin()) {
-        header('Location: ' . base_url('index.php'));
+    if (!is_logged_in()) {
+        header('Location: ' . base_url('pages/login.php'));
         exit;
     }
 }

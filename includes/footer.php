@@ -1,5 +1,24 @@
     </main>
 
+<?php
+$scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
+$active = basename($_SERVER['SCRIPT_NAME']);
+$isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf.php', 'book.php'], true)
+    || in_array($scriptDir, ['manager', 'admin'], true);
+?>
+<?php if ($isAppOrCheckout): ?>
+<footer class="site-footer-compact">
+    <div class="container footer-compact-inner">
+        <p>&copy; <?php echo date('Y'); ?> GoalSpace. All rights reserved.</p>
+        <p>
+            <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy</a> &middot;
+            <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms</a> &middot;
+            <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help</a> &middot;
+            <a href="<?php echo base_url('pages/faq.php'); ?>">FAQ</a>
+        </p>
+    </div>
+</footer>
+<?php else: ?>
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
@@ -53,8 +72,10 @@
         </div>
     </div>
 </footer>
+<?php endif; ?>
 
-<!-- Cookie consent -->
+<?php if (!is_logged_in()): ?>
+<!-- Cookie consent for guests only -->
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
     <i class="fa-solid fa-cookie-bite cookie-icon"></i>
     <div class="cookie-text">
@@ -66,6 +87,7 @@
         <button type="button" class="btn btn-primary btn-sm" id="cookieAccept">Got it</button>
     </div>
 </div>
+<?php endif; ?>
 
 
 <script src="<?php echo base_url('assets/js/core.js?v=83'); ?>" defer></script>

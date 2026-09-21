@@ -28,16 +28,6 @@ if (!$booking || $booking['status'] === 'cancelled') {
     redirect('pages/my_bookings.php');
 }
 
-if ($booking['payment_status'] !== 'paid') {
-    set_flash_error(
-        'This receipt isn\'t available yet.',
-        'Receipts are only generated after the booking is fully paid.',
-        'Complete the payment, then download the receipt.',
-        'pages/payment.php?booking_id=' . $booking_id
-    );
-    redirect('pages/my_bookings.php');
-}
-
 $page_title = 'Payment receipt';
 require __DIR__ . '/../includes/header.php';
 ?>

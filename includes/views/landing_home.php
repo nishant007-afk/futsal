@@ -15,11 +15,18 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <h1>Find and book futsal courts.</h1>
                 <p class="hero-sub">Real-time availability, direct court pricing, and instant booking confirmation.</p>
 
-                <form action="<?php echo grounds_list_url(); ?>" method="GET" class="hero-search-box" role="search">
+                <form action="<?php echo grounds_list_url(); ?>" method="GET" class="hero-search-box hero-search-box--multi" role="search">
                     <div class="hsb-inner">
-                        <i class="fa-solid fa-magnifying-glass hsb-icon" aria-hidden="true"></i>
-                        <input type="text" name="q" class="hsb-input" placeholder="Search by area or court name..." aria-label="Search courts by location or name" autocomplete="off">
-                        <button type="submit" class="btn btn-primary hsb-btn">Search</button>
+                        <div class="hsb-segment hsb-segment-query">
+                            <i class="fa-solid fa-magnifying-glass hsb-icon" aria-hidden="true"></i>
+                            <input type="text" name="q" class="hsb-input" placeholder="Search by area or court name..." aria-label="Search courts by location or name" autocomplete="off">
+                        </div>
+                        <div class="hsb-divider" aria-hidden="true"></div>
+                        <div class="hsb-segment hsb-segment-date">
+                            <i class="fa-regular fa-calendar hsb-icon" aria-hidden="true"></i>
+                            <input type="date" name="date" class="hsb-input hsb-date-input" aria-label="Select date" min="<?php echo date('Y-m-d'); ?>" value="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                        <button type="submit" class="btn btn-primary hsb-btn">Find Courts</button>
                     </div>
                 </form>
 
@@ -94,5 +101,50 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Pitches</a>
             </div>
         <?php endif; ?>
+    </div>
+</section>
+
+<section class="section section-steps">
+    <div class="container">
+        <div class="section-head center">
+            <h2 class="section-title">How GoalSpace Works</h2>
+            <p class="section-sub">Book your futsal game in under a minute without phone calls.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+                <h3>Find your pitch</h3>
+                <p>Browse futsal arenas across Kathmandu, Lalitpur, and Bhaktapur with clear hourly prices and real photos.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>Choose a slot</h3>
+                <p>Check live hourly availability for today or up to 60 days ahead. Pick your team's hour and lock it instantly.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-icon"><i class="fa-solid fa-futbol"></i></div>
+                <h3>Show up and play</h3>
+                <p>Pay advance via QR or pay cash at the court. Your confirmed digital receipt guarantees your game.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-manager-cta">
+    <div class="container">
+        <div class="manager-cta-banner">
+            <div class="mcb-content">
+                <span class="mcb-badge"><i class="fa-solid fa-store"></i> For Court Owners</span>
+                <h2>Own or operate a futsal ground?</h2>
+                <p>Keep your courts booked and stop answering phone calls. Manage availability, accept advance payments, and grow your revenue on GoalSpace.</p>
+                <div class="mcb-actions">
+                    <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary btn-lg">Register Your Court</a>
+                    <a href="<?php echo base_url('pages/page.php?slug=help#for-managers'); ?>" class="btn btn-ghost btn-lg">Learn More</a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>

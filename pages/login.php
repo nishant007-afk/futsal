@@ -50,6 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($state['suspended']) {
             $suspended = true;
             $suspendedEmail = login_attempts_email($key);
+        } elseif (rate_limit_exceeded('login_ip', 20, 300)) {
+            // IP-only rate limit: blocks bots cycling many different emails from one IP.
+            // 20 attempts per 5 minutes per IP, regardless of email used.
+            $errors['general'] = 'Too many login attempts from your location. Please wait a few minutes and try again.';
         } elseif (is_honeypot_filled()) {
             // Honeypot: bots fill this, silently reject
             $errors['general'] = 'Login failed. Please try again.';

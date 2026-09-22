@@ -105,11 +105,46 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <?php field_error($errors, 'otp'); ?>
         </div>
-
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Confirm & change password</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+    </form>
+
+    <form method="post" action="" id="resendForm" class="mt-10">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="resend" value="1">
+        <button type="submit" id="resendBtn" class="btn btn-ghost btn-block"
+            <?php if ($resendLeft > 0): ?>disabled<?php endif; ?>>
+            <i class="fa-solid fa-rotate-right"></i>
+            <span id="resendLabel">
+                <?php if ($resendLeft > 0): ?>
+                    Resend in <span id="resendCountdown"><?php echo $resendLeft; ?></span>s
+                <?php else: ?>
+                    Resend code
+                <?php endif; ?>
+            </span>
+        </button>
     </form>
     <p class="form-foot"><a href="<?php echo base_url('pages/security.php'); ?>">Start over</a></p>
 </div>
+
+<?php if ($resendLeft > 0): ?>
+<script>
+(function(){
+    var s = <?php echo (int)$resendLeft; ?>;
+    var btn = document.getElementById('resendBtn');
+    var cd  = document.getElementById('resendCountdown');
+    var lbl = document.getElementById('resendLabel');
+    var t = setInterval(function(){
+        s--;
+        if (s <= 0) {
+            clearInterval(t);
+            btn.disabled = false;
+            lbl.textContent = 'Resend code';
+        } else {
+            cd.textContent = s;
+        }
+    }, 1000);
+})();
+</script>
+<?php endif; ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

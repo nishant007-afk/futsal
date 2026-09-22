@@ -8,6 +8,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 verify_csrf();
 
+// Bot protection: honeypot + IP rate limit (5 messages/IP/hour)
+if (is_honeypot_filled()) {
+    set_flash('success', 'Thanks for reaching out! We\'ll get back to you soon.');
+    redirect('pages/page.php?slug=contact');
+}
+if (rate_limit_exceeded('contact', 5, 3600)) {
+    set_flash_error(
+        'Too many messages.',
+        'You\'ve sent too many contact messages recently.',
+        'Please wait an hour before trying again.',
+        'pages/page.php?slug=contact'
+    );
+    redirect('pages/page.php?slug=contact');
+}
+
 $errors = [];
 $name    = trim((string)($_POST['name'] ?? ''));
 $email   = trim((string)($_POST['email'] ?? ''));

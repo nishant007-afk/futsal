@@ -4,6 +4,13 @@ if (!isset($conn)) {
 }
 $site_user = is_logged_in() ? current_user() : null;
 $flash = get_flash();
+if (!$flash && isset($_GET['logged_out']) && $_GET['logged_out'] === '1') {
+    $flash = [
+        'type'    => 'success',
+        'message' => 'You have been logged out successfully.',
+        'detail'  => null,
+    ];
+}
 $active = basename($_SERVER['SCRIPT_NAME']);
 $activeSection = '';
 if (in_array($active, ['ground.php', 'courts.php', 'book.php', 'payment.php', 'receipt.php'], true)) {
@@ -70,8 +77,16 @@ $pageBackUrl = base_url('index.php');
     // address bar so the URL always stays / and the installed app opens clean.
     try {
         var __gsUrl = new URL(location.href);
+        var __needClean = false;
         if (__gsUrl.searchParams.has('i') && __gsUrl.searchParams.get('i') === '1') {
             __gsUrl.searchParams.delete('i');
+            __needClean = true;
+        }
+        if (__gsUrl.searchParams.has('logged_out')) {
+            __gsUrl.searchParams.delete('logged_out');
+            __needClean = true;
+        }
+        if (__needClean) {
             history.replaceState(null, '', __gsUrl.pathname + __gsUrl.search + __gsUrl.hash);
         }
     } catch (e) {}</script>

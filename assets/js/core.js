@@ -975,13 +975,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const isError = t.classList.contains('toast-error');
         const autoDismiss = t.classList.contains('toast-success') || t.classList.contains('toast-info');
         const isInline = t.classList.contains('toast-inline');
-        if (isInline) {
-            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
+        const isTop = t.classList.contains('toast-top') || !!t.closest('.top-flash-wrap');
+        if (isTop) {
+            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 4500);
+        } else if (isInline) {
+            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 3000);
         } else {
             if (toasts.length > 1) {
                 t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
             }
-            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
+            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 3500);
         }
         // Announce toast to screen readers
         var toastMsg = t.querySelector('.toast-msg');

@@ -3885,17 +3885,19 @@ tbody tr:hover td { background: var(--bg-soft); }
 /* 3. Auth Page Title Sizes */
 .auth-title-lg { font-size: 26px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; margin: 0 !important; }
 .signup-right .auth-head h2 { font-size: 25px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; margin: 0 !important; }
-/* 4. In-Flow Top Welcome Flash Notification */
-.top-flash-wrap { position: relative !important; top: auto !important; left: auto !important; transform: none !important; z-index: 20 !important; width: 100% !important; max-width: 100% !important; margin: 6px 0 20px 0 !important; pointer-events: auto !important; animation: topNotificationSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important; }
-.top-flash-wrap .toast-top { pointer-events: auto !important; display: flex !important; align-items: center !important; gap: 12px !important; padding: 12px 18px !important; border-radius: 12px !important; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03) !important; border: 1px solid var(--line) !important; }
-.top-flash-wrap .toast-top.toast-success { background: var(--bg) !important; color: var(--ink) !important; border-left: 4px solid var(--brand) !important; }
-.top-flash-wrap .toast-top.toast-error { background: var(--bg) !important; color: var(--ink) !important; border-left: 4px solid var(--danger) !important; }
-.top-flash-wrap .toast-icon { font-size: 16px !important; color: var(--brand) !important; }
-.top-flash-wrap .toast-top.toast-error .toast-icon { color: var(--danger) !important; }
-.top-flash-wrap .toast-msg { font-size: 13.5px !important; font-weight: 600 !important; color: var(--ink) !important; }
+/* 4. Top Floating Flash Notification */
+.top-flash-wrap { position: fixed !important; top: 24px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 99999 !important; width: auto !important; max-width: min(520px, 92vw) !important; margin: 0 !important; padding: 0 !important; pointer-events: none !important; display: flex !important; justify-content: center !important; }
+.top-flash-wrap .toast-top { pointer-events: auto !important; display: inline-flex !important; align-items: center !important; gap: 12px !important; padding: 12px 22px !important; border-radius: 999px !important; background: #06100b !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.25) !important; animation: topNotificationSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important; }
+.top-flash-wrap .toast-top.toast-success { background: #06100b !important; color: #ffffff !important; border-left: 4px solid #10b981 !important; }
+.top-flash-wrap .toast-top.toast-error { background: #06100b !important; color: #ffffff !important; border-left: 4px solid #ef4444 !important; }
+.top-flash-wrap .toast-icon { font-size: 16px !important; color: #10b981 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; }
+.top-flash-wrap .toast-top.toast-error .toast-icon { color: #ef4444 !important; }
+.top-flash-wrap .toast-msg { font-size: 14px !important; font-weight: 600 !important; color: #ffffff !important; white-space: nowrap !important; }
+.top-flash-wrap .toast-close { background: none !important; border: none !important; color: rgba(255, 255, 255, 0.6) !important; cursor: pointer !important; padding: 4px !important; margin-left: 6px !important; font-size: 14px !important; line-height: 1 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; transition: color 0.15s ease !important; }
+.top-flash-wrap .toast-close:hover { color: #ffffff !important; }
 @keyframes topNotificationSlideDown {
-    0% { opacity: 0; transform: translateY(-8px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% { opacity: 0; transform: translateY(-12px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 /* 5. Profile Menu Left Aligned with Full Email Visibility */
 .profile-menu { position: absolute !important; top: calc(100% + 8px) !important; right: 0 !important; width: 252px !important; background: var(--bg) !important; border: 1px solid var(--line) !important; border-radius: 12px !important; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04) !important; padding: 6px !important; display: flex !important; flex-direction: column !important; gap: 2px !important; z-index: 300 !important; }

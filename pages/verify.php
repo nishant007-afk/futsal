@@ -28,13 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($resend) {
             $cooldown = otp_send_cooldown($email, 'email_verify');
             if ($cooldown > 0) {
-                set_flash_error(
-                    'You\'re requesting too many codes.',
-                    'Wait ' . format_otp_wait($cooldown) . ' before asking for another one.',
-                    'Check your inbox for the code we already sent, then try again shortly.',
-                    'pages/verify.php?email=' . urlencode($email)
-                );
-                redirect('pages/login.php');
+                set_flash('info', 'Please wait ' . format_otp_wait($cooldown) . ' before requesting another code. Your previous code is still active.');
+                redirect('pages/verify.php?email=' . urlencode($email));
             }
             $otp = issue_otp($email, 'email_verify');
             $sent = send_otp_mail($email, $otp, 'email_verify');

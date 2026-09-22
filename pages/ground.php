@@ -97,6 +97,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
         );
         redirect('pages/ground.php?id=' . (int)$ground['id']);
     }
+    // Rate limit: max 3 review submissions per user per 5 minutes
+    if (rate_limit_exceeded('review:' . $_SESSION['user_id'], 3, 300)) {
+        set_flash_error(
+            'Slow down.',
+            'You\'re submitting reviews too quickly.',
+            'Wait a few minutes before trying again.',
+            'pages/ground.php?id=' . (int)$ground['id']
+        );
+        redirect('pages/ground.php?id=' . (int)$ground['id']);
+    }
     $rating_val = (int)($_POST['rating'] ?? 0);
     $comment = trim($_POST['comment'] ?? '');
     if (mb_strlen($comment) > 600) {

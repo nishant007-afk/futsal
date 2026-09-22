@@ -33,6 +33,7 @@ require __DIR__ . '/../includes/header.php';
             <h3>Send us a message</h3>
             <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" novalidate>
                 <?php echo csrf_field(); ?>
+                <?php honeypot_field(); ?>
                 <div class="grid-2">
                     <div class="form-group<?php echo has_error($cErrors, 'name'); ?>">
                         <div class="input-group floating">

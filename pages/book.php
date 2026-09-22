@@ -9,6 +9,17 @@ require_player();
 
 verify_csrf();
 
+// Rate limit: 5 booking attempts per user per minute (blocks automated flooding)
+if (rate_limit_exceeded('book:' . ($_SESSION['user_id'] ?? client_ip()), 5, 60)) {
+    set_flash_error(
+        'Slow down.',
+        'You\'re placing bookings too quickly.',
+        'Wait a minute and try again.',
+        'pages/courts.php'
+    );
+    redirect('pages/courts.php');
+}
+
 $ground_id = (int)($_POST['ground_id'] ?? 0);
 $booking_date = $_POST['booking_date'] ?? '';
 $slot = $_POST['selected_slot'] ?? '';

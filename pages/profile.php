@@ -33,6 +33,16 @@ $avatarDir = __DIR__ . '/../uploads/avatars/';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_avatar') {
     verify_csrf();
+    // Rate limit: 5 avatar uploads per user per hour
+    if (rate_limit_exceeded('avatar:' . $_SESSION['user_id'], 5, 3600)) {
+        set_flash_error(
+            'Upload limit reached.',
+            'You\'ve uploaded too many photos in the last hour.',
+            'Wait a while and try again.',
+            'pages/profile.php'
+        );
+        redirect('pages/profile.php');
+    }
     if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] === UPLOAD_ERR_NO_FILE) {
         $errors['avatar'] = 'Choose a photo to upload first.';
     } elseif ($_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {

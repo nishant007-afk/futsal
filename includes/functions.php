@@ -2301,6 +2301,75 @@ function is_honeypot_filled(): bool
 }
 
 /**
+ * Returns true if the current request's User-Agent matches known bad bots,
+ * scrapers, or vulnerability scanners.
+ * Does NOT block legitimate crawlers (Googlebot, Bingbot, etc.).
+ */
+function is_bot_ua(): bool
+{
+    $ua = strtolower((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    if ($ua === '') {
+        // No UA at all is a strong bot signal (every real browser sends one)
+        return true;
+    }
+    // Known bad bots, scanners, scrapers
+    $bad = [
+        'sqlmap', 'nikto', 'masscan', 'zgrab', 'nmap', 'nessus',
+        'openvas', 'acunetix', 'burpsuite', 'w3af', 'nuclei',
+        'python-requests', 'python-urllib', 'libwww-perl', 'lwp-trivial',
+        'curl/', 'go-http-client', 'java/', 'jakarta',
+        'scrapy', 'wget/', 'mechanize', 'httpclient',
+        'dirbuster', 'gobuster', 'feroxbuster', 'wfuzz', 'ffuf',
+        'zgrab', 'masscan', 'zgrab2', 'headlesschrome',
+        'phantomjs', 'slimerjs', 'selenium', 'puppeteer',
+        'ahrefsbot', 'semrushbot', 'mj12bot', 'dotbot',
+        'petalbot', 'bytespider', 'gptbot', 'ccbot',
+        'claudebot', 'anthropic-ai', 'cohere-ai', 'facebookbot',
+        'twitterbot', 'discordbot', 'rogerbot', 'exabot',
+        'sistrix', 'seokicks', 'blexbot', 'istellabot',
+    ];
+    foreach ($bad as $sig) {
+        if (str_contains($ua, $sig)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Hard-block the worst offending bots immediately (scanners, exploit tools).
+ * Call this in db.php AFTER session_start() and functions are loaded.
+ * Legitimate search crawlers (GET-only, read-only) are never blocked here.
+ */
+function block_bots(): void
+{
+    // Only act on POST requests — search crawlers never POST
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return;
+    }
+    $ua = strtolower((string)($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    $scanners = [
+        'sqlmap', 'nikto', 'masscan', 'zgrab', 'nessus', 'openvas',
+        'acunetix', 'burpsuite', 'w3af', 'nuclei', 'dirbuster', 'gobuster',
+        'feroxbuster', 'wfuzz', 'ffuf', 'python-requests', 'libwww-perl',
+        'scrapy', 'mechanize',
+    ];
+    foreach ($scanners as $sig) {
+        if (str_contains($ua, $sig)) {
+            error_log('[SECURITY] Bot UA blocked on POST: ' . ($_SERVER['HTTP_USER_AGENT'] ?? '') . ' IP=' . ($_SERVER['REMOTE_ADDR'] ?? ''));
+            http_response_code(403);
+            exit('Forbidden');
+        }
+    }
+    // Block empty UA on all POST endpoints
+    if ($ua === '') {
+        error_log('[SECURITY] Empty UA blocked on POST IP=' . ($_SERVER['REMOTE_ADDR'] ?? ''));
+        http_response_code(403);
+        exit('Forbidden');
+    }
+}
+
+/**
  * Renders the Google sign-in SVG icon.
  */
 function google_svg_icon(): void

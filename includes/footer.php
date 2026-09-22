@@ -90,7 +90,7 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=84'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=85'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

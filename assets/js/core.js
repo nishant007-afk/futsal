@@ -817,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
         const modal = document.createElement('div');
-        modal.className = 'modal';
+        modal.className = 'modal open';
         modal.innerHTML =
             '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="modal-head">' +
@@ -831,18 +831,38 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>';
         document.body.appendChild(modal);
 
+        const onEsc = function (e) {
+            if (e.key === 'Escape') close();
+        };
+        document.addEventListener('keydown', onEsc);
+
         function close() {
             modal.classList.add('hide');
+            document.removeEventListener('keydown', onEsc);
             setTimeout(function () { modal.remove(); removeBackdropIfEmpty(); }, 220);
         }
+
+        const backdrop = document.querySelector('.popup-backdrop');
+        if (backdrop) {
+            const onBackdrop = function () {
+                close();
+                backdrop.removeEventListener('click', onBackdrop);
+            };
+            backdrop.addEventListener('click', onBackdrop);
+        }
+
         const closeBtn = modal.querySelector('.modal-x');
         if (closeBtn) closeBtn.addEventListener('click', close);
-        modal.querySelector('[data-modal-cancel]').addEventListener('click', close);
-        modal.querySelector('[data-modal-ok]').addEventListener('click', function () {
-            close();
-            onConfirm();
-        });
-        modal.querySelector('[data-modal-cancel]').focus();
+        const cancelBtn = modal.querySelector('[data-modal-cancel]');
+        if (cancelBtn) cancelBtn.addEventListener('click', close);
+        const okBtn = modal.querySelector('[data-modal-ok]');
+        if (okBtn) {
+            okBtn.addEventListener('click', function () {
+                close();
+                if (typeof onConfirm === 'function') onConfirm();
+            });
+            okBtn.focus();
+        }
     }
     function showSheet(message, opts) {
         opts = opts || {};

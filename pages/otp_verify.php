@@ -21,21 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($resend) {
         $cooldown = otp_send_cooldown($email, 'login');
         if ($cooldown > 0) {
-            set_flash_error(
-                'You\'re requesting too many codes.',
-                'Wait ' . format_otp_wait($cooldown) . ' before asking for another one.',
-                'Check your inbox for the code we already sent, then try again shortly.',
-                'pages/login.php'
-            );
-            redirect('pages/login.php');
+            set_flash('info', 'Please wait ' . format_otp_wait($cooldown) . ' before requesting another code.');
+            redirect('pages/otp_verify.php');
         }
         $otp = issue_otp($email, 'login');
         $sent = send_otp_mail($email, $otp, 'login');
         // Clear any previous pending 2FA/login session data
         unset($_SESSION['pending_login'], $_SESSION['pending_2fa_login']);
-        $_SESSION['pending_2fa_login'] = ['user_id' => $pending['user_id'] ?? $pending['user_id'] ?? 0, 'email' => $email, 'role' => $pending['role'] ?? 'player'];
-        $_SESSION['pending_2fa_login']['sent'] = $sent;
-            set_flash('success', $sent ? 'A new code has been sent to ' . $email . '.' : 'Email delivery is unavailable. Please try again shortly.');
+        $_SESSION['pending_2fa_login'] = [
+            'user_id' => $pending['user_id'] ?? 0,
+            'email' => $email,
+            'role' => $pending['role'] ?? 'player',
+            'sent' => $sent
+        ];
+        if ($sent) {
+            set_flash('success', 'A new 6-digit code has been sent to ' . $email . '.');
+        } else {
+            set_flash('error', 'New code generated, but email delivery is blocked by the mail server (Brevo/SMTP). Please verify SMTP settings.');
+        }
+        redirect('pages/otp_verify.php');
     } else {
         $code = preg_replace('/\D/', '', $_POST['code'] ?? '');
         if ($code === '') {
@@ -93,7 +97,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
     <?php endif; ?>
 
-    <form method="post" action="" novalidate>
+    <form method="post" action="" novalidate id="otpForm">
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
             <label for="code">Login code <span class="req">*</span></label>
@@ -109,7 +113,12 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'code'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> Verify and log in</button>
-        <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
+    </form>
+
+    <form method="post" action="" id="resendForm" class="mt-10">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="resend" value="1">
+        <button type="submit" class="btn btn-ghost btn-block"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
     <p class="auth-foot"><a href="<?php echo base_url('pages/login.php'); ?>">Use a different account</a></p>
 </div>

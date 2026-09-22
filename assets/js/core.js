@@ -406,7 +406,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 : form.querySelector('button[type="submit"]');
             if (btn && !btn.classList.contains('btn-loading')) {
                 btn.classList.add('btn-loading');
-                btn.setAttribute('disabled', 'disabled');
+                setTimeout(function () {
+                    btn.setAttribute('disabled', 'disabled');
+                }, 0);
             }
         });
     });

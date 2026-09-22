@@ -2,6 +2,11 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/db.php';
 
+if (rate_limit_exceeded('groundsjson', 20, 60)) {
+    echo json_encode([]);
+    exit;
+}
+
 $stmt = $conn->prepare('SELECT id, name, location, price_per_hour, discount_price, latitude, longitude FROM grounds WHERE is_active = 1 AND latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY id');
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

@@ -211,13 +211,26 @@ $qrFile = ground_qr((int)$booking['ground_id']);
 ?>
 
 <div class="checkout-wrap reveal">
-    <div class="page-head">
-        <div class="title-back-row">
-            <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="page-back-arrow" data-back aria-label="Back to booking"><i class="fa-solid fa-arrow-left"></i></a>
-            <div>
-                <span class="eyebrow"><i class="fa-solid fa-shield-halved"></i> Secure Checkout</span>
-                <h1><?php echo $isPartial ? 'Pay remaining balance' : 'Choose payment method'; ?></h1>
+    <div class="checkout-header">
+        <div class="checkout-nav-bar">
+            <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="checkout-back" aria-label="Back to booking">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div class="checkout-steps-pill">
+                <span class="cs-step done"><i class="fa-solid fa-check"></i> Court</span>
+                <span class="cs-sep">&rsaquo;</span>
+                <span class="cs-step done"><i class="fa-solid fa-check"></i> Slot</span>
+                <span class="cs-sep">&rsaquo;</span>
+                <span class="cs-step active"><i class="fa-solid fa-lock"></i> Checkout</span>
             </div>
+            <div class="checkout-security-tag">
+                <i class="fa-solid fa-shield-halved"></i> 256-Bit Secure
+            </div>
+        </div>
+
+        <div class="checkout-title-row">
+            <h1><?php echo $isPartial ? 'Settle Remaining Balance' : 'Complete Match Reservation'; ?></h1>
+            <p class="checkout-subtitle">Lock your kickoff time at <?php echo e($booking['ground_name']); ?> with instant confirmation.</p>
         </div>
     </div>
 
@@ -229,10 +242,11 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                 <div class="pay-method-card active" id="cardMethodQr">
                     <div class="pm-head" onclick="selectPayMethod('qr')">
                         <div class="pm-head-left">
+                            <div class="pm-radio"><span class="pm-radio-dot"></span></div>
                             <div class="pm-icon"><i class="fa-solid fa-qrcode"></i></div>
                             <div class="pm-title-wrap">
                                 <h3>Instant QR / Digital Wallet</h3>
-                                <p>Pay with Fonepay, eSewa, Khalti, or Mobile Banking</p>
+                                <p>Fonepay, eSewa, Khalti, or Any Mobile Banking App</p>
                             </div>
                         </div>
                         <span class="pm-badge pm-badge--popular">Instant Lock</span>
@@ -245,15 +259,23 @@ $qrFile = ground_qr((int)$booking['ground_id']);
 
                         <div class="qr-payment-box">
                             <?php if (!$isPartial): ?>
-                                <label class="text-xs muted font-semibold mb-6 block">Select payment amount</label>
+                                <div class="split-pills-label">Choose Payment Amount</div>
                                 <div class="split-pills">
                                     <div class="split-pill active" id="pillAdvance" onclick="setSplitOption('advance', <?php echo $advance; ?>)">
-                                        <span class="sp-title">Pay 20% Advance</span>
-                                        <span class="sp-sub">Rs <?php echo number_format($advance, 0); ?> today &middot; Rs <?php echo number_format($balance, 0); ?> at court</span>
+                                        <div class="sp-pill-head">
+                                            <span class="sp-tag">Recommended</span>
+                                            <span class="sp-title">Pay 20% Advance</span>
+                                        </div>
+                                        <div class="sp-amount">Rs <?php echo number_format($advance, 0); ?></div>
+                                        <span class="sp-sub">Rs <?php echo number_format($balance, 0); ?> due on match day</span>
                                     </div>
                                     <div class="split-pill" id="pillFull" onclick="setSplitOption('full', <?php echo $netTotal; ?>)">
-                                        <span class="sp-title">Pay 100% in Full</span>
-                                        <span class="sp-sub">Rs <?php echo number_format($netTotal, 0); ?> today &middot; zero at court</span>
+                                        <div class="sp-pill-head">
+                                            <span class="sp-tag sp-tag--full">Full Payment</span>
+                                            <span class="sp-title">Pay 100% Online</span>
+                                        </div>
+                                        <div class="sp-amount">Rs <?php echo number_format($netTotal, 0); ?></div>
+                                        <span class="sp-sub">Nothing to settle at the court</span>
                                     </div>
                                 </div>
                             <?php else: ?>
@@ -263,62 +285,63 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Supported Wallet Logos -->
-                            <div class="wallet-badges">
-                                <span class="wallet-badge"><i class="fa-solid fa-bolt text-brand"></i> Fonepay</span>
-                                <span class="wallet-badge"><i class="fa-solid fa-wallet text-brand"></i> eSewa</span>
-                                <span class="wallet-badge"><i class="fa-solid fa-wallet text-brand"></i> Khalti</span>
-                                <span class="wallet-badge"><i class="fa-solid fa-building-columns text-brand"></i> Mobile Banking</span>
-                            </div>
-
-                            <!-- QR Display Frame -->
-                            <div class="qr-frame">
-                                <?php if ($qrFile !== ''): ?>
-                                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($qrFile)); ?>" alt="Merchant Payment QR for <?php echo e($booking['ground_name']); ?>" loading="lazy" decoding="async">
-                                <?php else: ?>
-                                    <div class="text-center p-12">
-                                        <i class="fa-solid fa-qrcode text-4xl text-brand mb-6 block"></i>
-                                        <p class="font-bold text-sm mb-2"><?php echo e($booking['ground_name']); ?></p>
-                                        <p class="text-xs muted">Scan with any Nepalese QR app</p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
-                            <!-- Copy Chips Row -->
-                            <div class="copy-chips-row">
-                                <div class="copy-chip-box">
-                                    <div>
-                                        <span class="cc-label">Payable Amount</span>
-                                        <div class="cc-value" id="displayPayableAmount">Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></div>
-                                    </div>
-                                    <button type="button" class="btn-copy" onclick="copyText('<?php echo $isPartial ? $remaining : $advance; ?>', this)" title="Copy amount">
-                                        <i class="fa-regular fa-copy"></i> Copy
-                                    </button>
+                            <!-- QR Frame & Instructions -->
+                            <div class="qr-showcase">
+                                <div class="qr-frame">
+                                    <?php if ($qrFile !== ''): ?>
+                                        <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($qrFile)); ?>" alt="Payment QR for <?php echo e($booking['ground_name']); ?>" loading="lazy" decoding="async">
+                                    <?php else: ?>
+                                        <div class="qr-placeholder">
+                                            <i class="fa-solid fa-qrcode"></i>
+                                            <strong><?php echo e($booking['ground_name']); ?></strong>
+                                            <span>Scan with any Nepal QR app</span>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                                <div class="copy-chip-box">
-                                    <div>
-                                        <span class="cc-label">Booking Reference</span>
-                                        <div class="cc-value"><?php echo e($booking['booking_ref']); ?></div>
+
+                                <div class="qr-meta-side">
+                                    <div class="wallet-badges">
+                                        <span class="wallet-badge"><i class="fa-solid fa-bolt text-brand"></i> Fonepay</span>
+                                        <span class="wallet-badge"><i class="fa-solid fa-wallet text-brand"></i> eSewa</span>
+                                        <span class="wallet-badge"><i class="fa-solid fa-wallet text-brand"></i> Khalti</span>
+                                        <span class="wallet-badge"><i class="fa-solid fa-building-columns text-brand"></i> Banking</span>
                                     </div>
-                                    <button type="button" class="btn-copy" onclick="copyText('<?php echo e($booking['booking_ref']); ?>', this)" title="Copy reference">
-                                        <i class="fa-regular fa-copy"></i> Copy
-                                    </button>
+
+                                    <div class="copy-chips-row">
+                                        <div class="copy-chip-box">
+                                            <div>
+                                                <span class="cc-label">Payable</span>
+                                                <div class="cc-value" id="displayPayableAmount">Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></div>
+                                            </div>
+                                            <button type="button" class="btn-copy" onclick="copyText('<?php echo $isPartial ? $remaining : $advance; ?>', this)" title="Copy amount">
+                                                <i class="fa-regular fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                        <div class="copy-chip-box">
+                                            <div>
+                                                <span class="cc-label">Remarks Reference</span>
+                                                <div class="cc-value"><?php echo e($booking['booking_ref']); ?></div>
+                                            </div>
+                                            <button type="button" class="btn-copy" onclick="copyText('<?php echo e($booking['booking_ref']); ?>', this)" title="Copy reference">
+                                                <i class="fa-regular fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p class="qr-quick-hint">
+                                        <i class="fa-solid fa-circle-info"></i> Please paste reference <strong><?php echo e($booking['booking_ref']); ?></strong> in your transfer remarks.
+                                    </p>
                                 </div>
                             </div>
-
-                            <p class="text-xs muted mb-14 text-center">
-                                <i class="fa-solid fa-circle-info"></i> Enter <strong><?php echo e($booking['booking_ref']); ?></strong> in your transfer remarks to speed up verification.
-                            </p>
 
                             <!-- Optional Transaction Ref -->
                             <div class="tx-input-wrap">
-                                <label for="txRefInput">Transaction Code / Remarks (optional)</label>
-                                <input type="text" id="txRefInput" name="transaction_ref" placeholder="e.g. 12-digit transaction ID or your phone number" maxlength="60" autocomplete="off">
-                                <p class="tx-hint">Found on your payment app screen after transfer.</p>
+                                <label for="txRefInput">Transaction Code / Remarks <span class="muted font-normal">(optional)</span></label>
+                                <input type="text" id="txRefInput" name="transaction_ref" placeholder="Enter transaction ID or your phone number" maxlength="60" autocomplete="off">
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmitQr">
-                                <i class="fa-solid fa-circle-check"></i> <span id="btnSubmitQrLabel">Confirm Payment of Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></span>
+                                <i class="fa-solid fa-lock"></i> <span id="btnSubmitQrLabel">Confirm &amp; Lock Match &middot; Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></span>
                             </button>
                         </div>
                     </form>
@@ -329,19 +352,23 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                     <div class="pay-method-card" id="cardMethodCourt">
                         <div class="pm-head" onclick="selectPayMethod('court')">
                             <div class="pm-head-left">
+                                <div class="pm-radio"><span class="pm-radio-dot"></span></div>
                                 <div class="pm-icon pm-icon--cash"><i class="fa-solid fa-store"></i></div>
                                 <div class="pm-title-wrap">
                                     <h3>Pay Cash at the Court</h3>
-                                    <p>Zero advance required &middot; pay full amount upon arrival</p>
+                                    <p>Zero advance required &middot; pay upon arrival at counter</p>
                                 </div>
                             </div>
                             <span class="pm-badge">Pay on Arrival</span>
                         </div>
 
-                        <div id="courtPayBox" style="display:none; margin-top:18px; padding-top:18px; border-top:1px solid var(--line);">
-                            <div class="notice notice-info mb-14">
+                        <div id="courtPayBox" style="display:none;" class="court-pay-reveal">
+                            <div class="court-pay-notice">
                                 <i class="fa-solid fa-clock"></i>
-                                <span>Please arrive at least <strong>15 minutes before kickoff</strong> (<?php echo substr($booking['start_time'], 0, 5); ?>) to settle your fee at the counter.</span>
+                                <div>
+                                    <strong>Arrive 15 minutes before kickoff</strong> (<?php echo substr($booking['start_time'], 0, 5); ?>)
+                                    <span>Settle your fee of Rs <?php echo number_format($netTotal, 0); ?> directly at the ground desk.</span>
+                                </div>
                             </div>
                             <form method="post" action="">
                                 <?php echo csrf_field(); ?>
@@ -359,7 +386,10 @@ $qrFile = ground_qr((int)$booking['ground_id']);
         <!-- Right Column: Sticky Order Summary -->
         <div class="checkout-sidebar">
             <div class="order-summary-card">
-                <h3 class="osc-title">Booking Summary</h3>
+                <div class="osc-head">
+                    <h3 class="osc-title">Match Summary</h3>
+                    <span class="osc-ref"><?php echo e($booking['booking_ref']); ?></span>
+                </div>
 
                 <div class="osc-venue-header">
                     <div class="osc-date-badge">
@@ -368,15 +398,15 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                     </div>
                     <div class="osc-venue-info">
                         <h4><?php echo e($booking['ground_name']); ?></h4>
-                        <p><i class="fa-solid fa-location-dot"></i> <?php echo e($booking['location']); ?></p>
-                        <p><i class="fa-regular fa-clock"></i> <?php echo substr($booking['start_time'], 0, 5); ?> - <?php echo substr($booking['end_time'], 0, 5); ?> (<?php echo $durationHours; ?> hr)</p>
+                        <p class="osc-loc"><i class="fa-solid fa-location-dot"></i> <?php echo e($booking['location']); ?></p>
+                        <p class="osc-time"><i class="fa-regular fa-clock"></i> <?php echo substr($booking['start_time'], 0, 5); ?> &ndash; <?php echo substr($booking['end_time'], 0, 5); ?> (<?php echo $durationHours; ?> hr)</p>
                     </div>
                 </div>
 
                 <!-- Price Itemization -->
                 <div class="osc-lines">
                     <div class="osc-row">
-                        <span>Court rate (<?php echo $durationHours; ?> hr)</span>
+                        <span>Pitch fee (<?php echo $durationHours; ?> hr)</span>
                         <strong>Rs <?php echo number_format($total, 0); ?></strong>
                     </div>
                     <?php if ($discount > 0): ?>
@@ -407,7 +437,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                         <span><i class="fa-solid fa-tag"></i> Coupon <strong><?php echo e($booking['promo_code']); ?></strong> applied</span>
                         <form method="post" action="">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" name="remove_promo" value="1" class="promo-remove"><i class="fa-solid fa-xmark"></i></button>
+                            <button type="submit" name="remove_promo" value="1" class="promo-remove" aria-label="Remove promo"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                     </div>
                 <?php else: ?>
@@ -415,7 +445,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                         <?php echo csrf_field(); ?>
                         <div class="promo-input">
                             <i class="fa-solid fa-tag"></i>
-                            <input type="text" name="promo_code" placeholder="Have a promo code?" maxlength="40" autocomplete="off">
+                            <input type="text" name="promo_code" placeholder="Promo code" maxlength="40" autocomplete="off">
                             <button type="submit" name="apply_promo" value="1" class="btn btn-outline btn-sm">Apply</button>
                         </div>
                     </form>
@@ -425,19 +455,18 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                 <div class="trust-badges-list">
                     <div class="trust-badge-row">
                         <i class="fa-solid fa-shield-halved"></i>
-                        <span><strong>100% Guaranteed Slot</strong> &middot; Instantly held in court schedule</span>
+                        <span><strong>Instant Slot Lock</strong> &middot; Real-time schedule hold</span>
                     </div>
                     <div class="trust-badge-row">
                         <i class="fa-solid fa-rotate-left"></i>
-                        <span><strong>Free Cancellation</strong> &middot; Up to 24 hours prior to kickoff</span>
+                        <span><strong>Free Cancellation</strong> &middot; Up to 24h before kickoff</span>
                     </div>
                     <div class="trust-badge-row">
-                        <i class="fa-solid fa-file-invoice"></i>
-                        <span><strong>Digital Pass &amp; Receipt</strong> &middot; Instant download with calendar sync</span>
+                        <i class="fa-solid fa-ticket"></i>
+                        <span><strong>Digital Match Pass</strong> &middot; Instant confirmation</span>
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 </div>
 

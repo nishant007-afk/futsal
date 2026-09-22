@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $postSlug = $_POST['slug'] ?? '';
     $title   = trim($_POST['title'] ?? '');
     $summary = trim($_POST['summary'] ?? '');
-    $body    = $_POST['body'] ?? '';
+    $body    = sanitize_page_body($_POST['body'] ?? '');
 
     if (!isset($legal[$postSlug])) {
         set_flash_error('Unknown page.', 'The slug you sent was not recognised.', 'Use the editor form.', 'admin/edit_page.php?slug=' . urlencode($slug));

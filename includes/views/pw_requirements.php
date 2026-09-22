@@ -1,7 +1,14 @@
-<ul class="pw-requirements" id="pwRequirements">
-    <li data-req="length">At least 8 characters</li>
-    <li data-req="max">72 characters or fewer</li>
-    <li data-req="letter">At least one letter</li>
-    <li data-req="number">At least one number</li>
-    <li data-req="special">At least one special character (any of !@#$%^&amp;*...)</li>
-</ul>
+<div class="pw-meter" id="pwRequirements">
+    <div class="pw-meter-bar">
+        <div class="pw-meter-seg" data-req="length"></div>
+        <div class="pw-meter-seg" data-req="special"></div>
+        <div class="pw-meter-seg" data-req="upper"></div>
+        <div class="pw-meter-seg" data-req="number"></div>
+    </div>
+    <div class="pw-meter-labels">
+        <span data-req="length">8 characters</span>
+        <span data-req="special">Special char</span>
+        <span data-req="upper">Capital letter</span>
+        <span data-req="number">Number</span>
+    </div>
+</div>

@@ -1,4 +1,8 @@
 <?php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
 /**
  * GoalSpace Email Queue Worker
  * Processes queued background emails asynchronously without blocking web requests.

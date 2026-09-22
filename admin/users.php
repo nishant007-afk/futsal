@@ -13,6 +13,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
             'admin/users.php'
         );
     } else {
+        // Prevent deleting the last admin
+        $delTarget = $conn->prepare('SELECT role FROM users WHERE id = ?');
+        $delTarget->bind_param('i', $id);
+        $delTarget->execute();
+        $delRow = $delTarget->get_result()->fetch_assoc();
+        $delTarget->close();
+        if ($delRow && $delRow['role'] === 'admin') {
+            $adminCount = $conn->query('SELECT COUNT(*) c FROM users WHERE role = "admin"')->fetch_assoc()['c'] ?? 0;
+            if ((int)$adminCount <= 1) {
+                set_flash_error(
+                    'Cannot delete the last admin.',
+                    'This would lock out all administrators.',
+                    'Promote another user to admin first.',
+                    'admin/users.php'
+                );
+                redirect('admin/users.php');
+            }
+        }
         $stmt = $conn->prepare('DELETE FROM users WHERE id = ?');
         $stmt->bind_param('i', $id);
         if ($stmt->execute() && $stmt->affected_rows > 0) {
@@ -38,6 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role'])) {
     } elseif ($id === (int)$_SESSION['user_id'] && $role !== 'admin') {
         flash_form(['role' => 'You can\'t change your own role - you are the logged-in admin.'], ['user_id' => $id, 'role' => $role]);
     } else {
+        // Prevent demoting the last admin
+        $targetUser = $conn->prepare('SELECT role FROM users WHERE id = ?');
+        $targetUser->bind_param('i', $id);
+        $targetUser->execute();
+        $targetRow = $targetUser->get_result()->fetch_assoc();
+        $targetUser->close();
+        if ($targetRow && $targetRow['role'] === 'admin' && $role !== 'admin') {
+            $adminCount = $conn->query('SELECT COUNT(*) c FROM users WHERE role = "admin"')->fetch_assoc()['c'] ?? 0;
+            if ((int)$adminCount <= 1) {
+                flash_form(['role' => 'Cannot demote the last admin. Promote another user first.'], ['user_id' => $id, 'role' => $role]);
+                redirect('admin/users.php');
+            }
+        }
         $stmt = $conn->prepare('UPDATE users SET role = ? WHERE id = ?');
         $stmt->bind_param('si', $role, $id);
         if ($stmt->execute()) {
@@ -93,8 +124,9 @@ if (isset($_GET['export']) || isset($_GET['export_excel'])) {
     }
     if (isset($_GET['export_excel'])) {
         export_excel($rows, 'users.xlsx');
+    } else {
+        export_csv($rows, 'users.csv');
     }
-    export_csv($rows, 'users.csv');
 }
 
 $page_title = 'Manage Users';

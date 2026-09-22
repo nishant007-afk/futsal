@@ -22,9 +22,9 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
-            <a href="<?php echo base_url('index.php'); ?>" class="brand">
+            <a href="<?php echo base_url('index.php'); ?>" class="brand" aria-label="GoalSpace home">
                 <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
-                GoalSpace
+                <span class="brand-name">GoalSpace</span>
             </a>
             <p>Find a free court near you, book your slot, and get on with the game.</p>
         </div>
@@ -54,8 +54,8 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 
         <div class="footer-col footer-contact">
             <h4>Contact</h4>
-            <span aria-label="Email"><i class="fa-solid fa-envelope"></i> hello@goalspace.com</span>
-            <span aria-label="Phone"><i class="fa-solid fa-phone"></i> +977 9800 000 000</span>
+            <span aria-label="Email"><i class="fa-solid fa-envelope"></i> <a href="mailto:hello@goalspace.com">hello@goalspace.com</a></span>
+            <span aria-label="Phone"><i class="fa-solid fa-phone"></i> <a href="tel:+9779800000000">+977 9800 000 000</a></span>
             <span aria-label="Location"><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</span>
         </div>
     </div>
@@ -90,7 +90,7 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=83'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=84'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

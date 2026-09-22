@@ -15,6 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['csrf_token']) ||
     exit;
 }
 
+if (rate_limit_exceeded('fav:' . $_SESSION['user_id'], 20, 60)) {
+    http_response_code(429);
+    echo json_encode(['error' => 'too many requests']);
+    exit;
+}
+
 $id = (int)($_POST['id'] ?? 0);
 if (!isset($_POST['id']) || $id <= 0) {
     http_response_code(400);

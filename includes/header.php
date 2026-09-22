@@ -98,6 +98,7 @@ $pageBackUrl = base_url('index.php');
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
     <link rel="manifest" href="<?php echo base_url('manifest.json'); ?>">
     <meta name="theme-color" content="#0a120e">
+    <meta name="color-scheme" content="light dark">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -321,6 +322,7 @@ $pageBackUrl = base_url('index.php');
     <?php endif; ?>
 </nav>
 
+<div id="ariaLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 <main class="container page" id="mainContent" tabindex="-1">
 
 <?php if ($flash): ?>

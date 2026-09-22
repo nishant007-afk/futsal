@@ -73,30 +73,25 @@ if (isset($reset_email)) {
     $page_title = 'Enter reset code';
     require __DIR__ . '/../includes/header.php';
     ?>
-    <div class="form-card lg">
-        <div class="form-head">
-            <div class="title-back-row">
-                <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2>Enter reset code</h2>
-            </div>
-            <p class="muted">First, confirm it's you. Enter the 6-digit code from <strong><?php echo e($reset_email); ?></strong>.</p>
+    <div class="auth-wrap">
+    <div class="auth-card form-card lg">
+        <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
+            <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
+            <span class="auth-brand-name">GoalSpace</span>
+        </a>
+        <div class="auth-topline">
+            <h1>Enter reset code</h1>
+            <p>First, confirm it's you. Enter the 6-digit code from <strong><?php echo e($reset_email); ?></strong>.</p>
         </div>
         <?php if (isset($email_sent)): ?>
-<div class="notice">
-    <i class="fa-solid fa-envelope-circle-check"></i>
-    <span><?php echo $email_sent
-        ? 'Check your inbox (and spam folder). The code expires in 5 minutes.'
-        : 'Email delivery is unavailable right now. Please try resending in a minute, or contact support.'; ?></span>
-</div>
+<div class="auth-msg auth-success"><i class="fa-solid fa-envelope-circle-check"></i> <span><?php echo $email_sent
+    ? 'Check your inbox (and spam folder). The code expires in 5 minutes.'
+    : 'Email delivery is unavailable right now. Please try resending in a minute, or contact support.'; ?></span></div>
         <?php endif; ?>
         <?php if (!empty($errors['code'])): ?>
-            <div class="toast toast-error" role="alert">
-                <div class="toast-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <div class="toast-content"><div class="toast-msg"><?php echo e($errors['code']); ?></div></div>
-                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+            <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['code']); ?></div>
         <?php endif; ?>
-        <form method="post" action="" class="mt-22" novalidate>
+        <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="email" value="<?php echo e($reset_email); ?>">
             <div class="form-group">
@@ -112,8 +107,9 @@ if (isset($reset_email)) {
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-shield-halved"></i> Verify code</button>
-            <p class="form-foot mt-20">Never got it? <a href="<?php echo base_url('pages/forgot_password.php'); ?>">Request another code</a></p>
         </form>
+        <p class="auth-foot">Never got it? <a href="<?php echo base_url('pages/forgot_password.php'); ?>">Request another code</a></p>
+    </div>
     </div>
     <?php
     require __DIR__ . '/../includes/footer.php';
@@ -125,28 +121,33 @@ $page_description = 'Reset your GoalSpace password safely. Enter your email and 
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card">
-    <div class="form-head">
-        <div class="title-back-row mt-n8">
-            <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>Forgot your password?</h2>
+<div class="auth-wrap">
+    <div class="auth-card form-card">
+        <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
+            <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
+            <span class="auth-brand-name">GoalSpace</span>
+        </a>
+        <div class="auth-topline">
+            <h1>Forgot your password?</h1>
+            <p>Enter the email on your account and we'll send you a 6-digit reset code.</p>
         </div>
-        <p class="muted">Enter the email on your account and we'll send you a 6-digit reset code.</p>
-    </div>
-    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
-    <form method="post" action="" novalidate>
-        <?php echo csrf_field(); ?>
-        <?php honeypot_field(); ?>
-        <div class="form-group<?php echo has_error($errors, 'email'); ?>">
-            <div class="input-group floating">
-                <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required aria-required="true" data-check-email="exists">
-                <label for="email">Email <span class="req">*</span></label>
+        <?php if (!empty($errors['general'])): ?>
+            <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
+        <?php endif; ?>
+        <form method="post" action="" novalidate>
+            <?php echo csrf_field(); ?>
+            <?php honeypot_field(); ?>
+            <div class="form-group<?php echo has_error($errors, 'email'); ?>">
+                <div class="input-group floating">
+                    <input type="email" id="email" name="email" value="<?php echo e($email); ?>" placeholder=" " autocomplete="email" required aria-required="true" data-check-email="exists">
+                    <label for="email">Email <span class="req">*</span></label>
+                </div>
+                <?php field_error($errors, 'email'); ?>
             </div>
-            <?php field_error($errors, 'email'); ?>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send reset code</button>
-        <p class="form-foot">Remembered your password? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
-    </form>
+            <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send reset code</button>
+        </form>
+        <p class="auth-foot">Remembered your password? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
+    </div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

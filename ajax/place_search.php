@@ -8,6 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !empty($_GET['x'])) {
     exit;
 }
 
+if (rate_limit_exceeded('placesearch', 20, 60)) {
+    echo json_encode(['results' => [], 'rate_limited' => true]);
+    exit;
+}
+
 $q = trim((string)($_GET['q'] ?? ''));
 if ($q === '' && !isset($_GET['lat'])) {
     echo json_encode(['results' => []]);

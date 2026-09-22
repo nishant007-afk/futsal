@@ -8,18 +8,38 @@ $featuredCover = $featured ? ground_cover((int)$featured['id']) : null;
 $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.9, 'count' => 38];
 ?>
 
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "GoalSpace",
+    "description": "Book futsal courts online in Kathmandu, Nepal",
+    "url": "<?php echo absolute_url(''); ?>",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kathmandu",
+        "addressCountry": "NP"
+    },
+    "priceRange": "Rs. 1500 - Rs. 2500"
+}
+</script>
+
 <section class="hero hero--clean">
     <div class="container">
         <div class="hero-grid">
             <div class="hero-main">
-                <h1>Find and book futsal courts.</h1>
-                <p class="hero-sub">Real-time availability, direct court pricing, and instant booking confirmation.</p>
+                <div class="hero-kicker">
+                    <span class="kicker-pill"><i class="fa-solid fa-futbol"></i> MATCH-READY VENUES</span>
+                    <span class="kicker-sub">Kathmandu &middot; Lalitpur &middot; Bhaktapur</span>
+                </div>
+                <h1>Book your next match in under a minute.</h1>
+                <p class="hero-sub">Direct court pricing, live slot availability, and instant confirmation. Zero phone tag.</p>
 
                 <form action="<?php echo grounds_list_url(); ?>" method="GET" class="hero-search-box hero-search-box--multi" role="search">
                     <div class="hsb-inner">
                         <div class="hsb-segment hsb-segment-query">
                             <i class="fa-solid fa-magnifying-glass hsb-icon" aria-hidden="true"></i>
-                            <input type="text" name="q" class="hsb-input" placeholder="Search by area or court name..." aria-label="Search courts by location or name" autocomplete="off">
+                            <input type="text" name="q" class="hsb-input" placeholder="Search area or court..." aria-label="Search courts by location or name" autocomplete="off">
                         </div>
                         <div class="hsb-divider" aria-hidden="true"></div>
                         <div class="hsb-segment hsb-segment-date">
@@ -31,14 +51,11 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 </form>
 
                 <div class="hero-areas">
-                    <span class="ha-label">Popular areas:</span>
-                    <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="ha-link">Baneshwor</a>
-                    <span class="ha-sep">&middot;</span>
-                    <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="ha-link">New Road</a>
-                    <span class="ha-sep">&middot;</span>
-                    <a href="<?php echo grounds_list_url() . '?q=Lalitpur'; ?>" class="ha-link">Lalitpur</a>
-                    <span class="ha-sep">&middot;</span>
-                    <a href="<?php echo grounds_list_url() . '?q=Kirtipur'; ?>" class="ha-link">Kirtipur</a>
+                    <span class="ha-label">Quick areas:</span>
+                    <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="ha-pill">Baneshwor</a>
+                    <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="ha-pill">New Road</a>
+                    <a href="<?php echo grounds_list_url() . '?q=Lalitpur'; ?>" class="ha-pill">Lalitpur</a>
+                    <a href="<?php echo grounds_list_url() . '?q=Kirtipur'; ?>" class="ha-pill">Kirtipur</a>
                 </div>
             </div>
 
@@ -51,10 +68,10 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                         <?php else: ?>
                             <div class="pitch fc-pitch"></div>
                         <?php endif; ?>
+                        <span class="fc-badge"><span class="badge-pulse"></span> Match Ready</span>
                     </a>
                     <div class="fc-caption">
                         <div class="fc-details">
-                            <span class="fc-badge">Featured Venue</span>
                             <h3 class="fc-title">
                                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>"><?php echo e($featured['name']); ?></a>
                             </h3>
@@ -79,8 +96,9 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     <div class="container">
         <div class="section-head section-head-between">
             <div>
-                <h2 class="section-title">Available Courts</h2>
-                <p class="section-sub">Browse verified futsal arenas open for booking.</p>
+                <span class="section-kicker">AVAILABLE TODAY</span>
+                <h2 class="section-title">Verified Futsal Courts</h2>
+                <p class="section-sub">Browse top arenas open for live booking across Kathmandu Valley.</p>
             </div>
             <div class="court-area-pills" role="navigation" aria-label="Filter pitches by neighborhood">
                 <a href="<?php echo grounds_list_url(); ?>" class="cap-pill active">All Areas</a>
@@ -98,7 +116,7 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
             </div>
             <div class="section-foot center">
-                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Pitches</a>
+                <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Pitches <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         <?php endif; ?>
     </div>
@@ -107,27 +125,28 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
 <section class="section section-steps">
     <div class="container">
         <div class="section-head center">
+            <span class="section-kicker">TACTICAL PLAYBOOK</span>
             <h2 class="section-title">How GoalSpace Works</h2>
-            <p class="section-sub">Book your futsal game in under a minute without phone calls.</p>
+            <p class="section-sub">Three simple steps from finding a pitch to kickoff.</p>
         </div>
         <div class="steps-grid">
             <div class="step-card">
-                <div class="step-num">1</div>
+                <div class="step-num">01</div>
                 <div class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
-                <h3>Find your pitch</h3>
-                <p>Browse futsal arenas across Kathmandu, Lalitpur, and Bhaktapur with clear hourly prices and real photos.</p>
+                <h3>Choose your arena</h3>
+                <p>Compare turf quality, floodlights, locations, and real player reviews across the valley.</p>
             </div>
             <div class="step-card">
-                <div class="step-num">2</div>
+                <div class="step-num">02</div>
                 <div class="step-icon"><i class="fa-solid fa-calendar-check"></i></div>
-                <h3>Choose a slot</h3>
-                <p>Check live hourly availability for today or up to 60 days ahead. Pick your team's hour and lock it instantly.</p>
+                <h3>Pick your slot</h3>
+                <p>View live hourly availability. Select your team's match hour and lock it with instant hold.</p>
             </div>
             <div class="step-card">
-                <div class="step-num">3</div>
+                <div class="step-num">03</div>
                 <div class="step-icon"><i class="fa-solid fa-futbol"></i></div>
                 <h3>Show up and play</h3>
-                <p>Pay advance via QR or pay cash at the court. Your confirmed digital receipt guarantees your game.</p>
+                <p>Pay 20% advance via QR or settle in cash at the counter. Your digital match pass guarantees kickoff.</p>
             </div>
         </div>
     </div>
@@ -137,9 +156,9 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     <div class="container">
         <div class="manager-cta-banner">
             <div class="mcb-content">
-                <span class="mcb-badge"><i class="fa-solid fa-store"></i> For Court Owners</span>
-                <h2>Own or operate a futsal ground?</h2>
-                <p>Keep your courts booked and stop answering phone calls. Manage availability, accept advance payments, and grow your revenue on GoalSpace.</p>
+                <span class="mcb-badge"><i class="fa-solid fa-store"></i> For Court Operators</span>
+                <h2>Own or manage a futsal arena?</h2>
+                <p>Fill empty daytime and late slots, stop answering endless phone calls, and automate your court schedule on GoalSpace.</p>
                 <div class="mcb-actions">
                     <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="btn btn-primary btn-lg">Register Your Court</a>
                     <a href="<?php echo base_url('pages/page.php?slug=help#for-managers'); ?>" class="btn btn-ghost btn-lg">Learn More</a>

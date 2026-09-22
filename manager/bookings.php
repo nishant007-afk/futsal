@@ -259,41 +259,44 @@ $stmt->execute();
 $totalRows = (int)$stmt->get_result()->fetch_assoc()['c'];
 $totalPages = (int)ceil($totalRows / $perPage);
 
-if (isset($_GET['export']) || isset($_GET['export_excel'])) {
-    $exportSql = 'SELECT b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-                         b.payment_status, b.payment_method, b.amount_paid, b.created_at,
-                         g.name AS ground_name, u.name AS user_name, u.email AS user_email
+if (isset($_GET['export'])) {
+    // Build the same query as the list but for CSV
+    $exportWhere = ['g.manager_id = ?'];
+    $exportParams = [(int)$_SESSION['user_id']];
+    $exportTypes = 'i';
+
+    $statusFilter = $_GET['status'] ?? '';
+    if (in_array($statusFilter, ['confirmed', 'cancelled', 'pending'], true)) {
+        $exportWhere[] = 'b.status = ?';
+        $exportParams[] = $statusFilter;
+        $exportTypes .= 's';
+    }
+
+    $exportSql = 'SELECT b.id, b.booking_ref, u.name AS user_name, u.email AS user_email,
+                    g.name AS ground_name, b.booking_date, b.start_time, b.end_time,
+                    b.total_price, b.discount, b.status, b.payment_status, b.payment_method,
+                    b.amount_paid, b.created_at
                   FROM bookings b
                   JOIN grounds g ON g.id = b.ground_id
                   JOIN users u ON u.id = b.user_id
-                  WHERE ' . implode(' AND ', $where) . '
+                  WHERE ' . implode(' AND ', $exportWhere) . '
                   ORDER BY b.booking_date DESC, b.start_time ASC';
-    $stmt = $conn->prepare($exportSql);
-    if ($types !== '') { $stmt->bind_param($types, ...$params); }
-    $stmt->execute();
-    $exportRows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $csv = [['Reference', 'Ground', 'Customer', 'Customer Email', 'Date', 'Start', 'End', 'Total (Rs)', 'Status', 'Payment', 'Method', 'Paid (Rs)', 'Booked At']];
-    foreach ($exportRows as $x) {
-        $csv[] = [
-            $x['booking_ref'] ?? '',
-            $x['ground_name'],
-            $x['user_name'],
-            $x['user_email'],
-            $x['booking_date'],
-            substr($x['start_time'], 0, 5),
-            substr($x['end_time'], 0, 5),
-            number_format((float)$x['total_price'], 2),
-            $x['status'],
-            $x['payment_status'],
-            $x['payment_method'] ?? '',
-            number_format((float)$x['amount_paid'], 2),
-            $x['created_at'],
+    $exportStmt = $conn->prepare($exportSql);
+    $exportStmt->bind_param($exportTypes, ...$exportParams);
+    $exportStmt->execute();
+    $exportRows = $exportStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $exportStmt->close();
+
+    $csvData = [['ID', 'Ref', 'Player', 'Email', 'Court', 'Date', 'Start', 'End', 'Total', 'Discount', 'Status', 'Payment', 'Method', 'Amount Paid', 'Created']];
+    foreach ($exportRows as $r) {
+        $csvData[] = [
+            $r['id'], $r['booking_ref'], $r['user_name'], $r['user_email'],
+            $r['ground_name'], $r['booking_date'], $r['start_time'], $r['end_time'],
+            $r['total_price'], $r['discount'], $r['status'], $r['payment_status'],
+            $r['payment_method'], $r['amount_paid'], $r['created_at']
         ];
     }
-    if (isset($_GET['export_excel'])) {
-        export_excel($csv, 'my-bookings.xlsx');
-    }
-    export_csv($csv, 'my-bookings.csv');
+    export_csv($csvData, 'bookings.csv');
 }
 
 $hasFilters = $f_date_from !== '' || $f_date_to !== '' || $f_status !== '' || $f_payment !== '' || $f_ground > 0;
@@ -315,6 +318,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <h2>Bookings on My Grounds</h2>
         <div class="actions">
+            <a href="<?php echo base_url('manager/bookings.php?export=1' . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : '')); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         </div>
     </div>
 </div>
@@ -364,7 +368,6 @@ require __DIR__ . '/../includes/header.php';
             </select>
         </div>
 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
-        <a href="<?php echo base_url('manager/bookings.php?view=' . $view . '&export_excel=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-excel"></i> Excel</a>
         <a href="<?php echo base_url('manager/bookings.php?view=' . $view . '&export=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         <?php if ($hasFilters): ?>
             <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>

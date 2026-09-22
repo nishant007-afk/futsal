@@ -300,6 +300,39 @@ require __DIR__ . '/../includes/header.php';
     </table>
 </div>
 
+<div class="dash-chart reveal">
+    <h3>Revenue (Last 7 Days)</h3>
+    <div class="rev-chart">
+        <?php
+        $chartDays = 7;
+        $chartData = [];
+        $maxRev = 1;
+        for ($d = $chartDays - 1; $d >= 0; $d--) {
+            $day = date('Y-m-d', strtotime("-{$d} days"));
+            $dayLabel = date('D', strtotime($day));
+            $dayStmt = $conn->prepare('SELECT COALESCE(SUM(b.amount_paid), 0) AS rev FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE g.manager_id = ? AND b.booking_date = ? AND b.payment_status IN ("paid", "partial")');
+            $dayStmt->bind_param('is', $_SESSION['user_id'], $day);
+            $dayStmt->execute();
+            $rev = (float)$dayStmt->get_result()->fetch_assoc()['rev'];
+            $dayStmt->close();
+            $chartData[] = ['label' => $dayLabel, 'value' => $rev, 'date' => date('M j', strtotime($day))];
+            if ($rev > $maxRev) $maxRev = $rev;
+        }
+        ?>
+        <div class="rev-bars">
+            <?php foreach ($chartData as $cd): ?>
+                <div class="rev-bar-col">
+                    <div class="rev-bar-wrap">
+                        <div class="rev-bar" style="height: <?php echo $maxRev > 0 ? round(($cd['value'] / $maxRev) * 100) : 0; ?>%;" title="Rs <?php echo number_format($cd['value'], 0); ?>"></div>
+                    </div>
+                    <span class="rev-label"><?php echo e($cd['label']); ?></span>
+                    <span class="rev-date"><?php echo e($cd['date']); ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+
 <h3 class="reveal block-title">Payout History</h3>
 <div class="table-wrap reveal">
     <table class="data-table">

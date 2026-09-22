@@ -98,16 +98,18 @@ document.addEventListener('DOMContentLoaded', function () {
             input.addEventListener('input', openReqs);
             function checkRequirements() {
                 const v = input.value;
-                const lenEl = pwReqs.querySelector('[data-req="length"]');
-                if (lenEl) lenEl.classList.toggle('met', v.length >= 8);
-                const letEl = pwReqs.querySelector('[data-req="letter"]');
-                if (letEl) letEl.classList.toggle('met', /[A-Za-z]/.test(v));
-                const numEl = pwReqs.querySelector('[data-req="number"]');
-                if (numEl) numEl.classList.toggle('met', /[0-9]/.test(v));
-                const specEl = pwReqs.querySelector('[data-req="special"]');
-                if (specEl) specEl.classList.toggle('met', /[^A-Za-z0-9]/.test(v));
-                const maxEl = pwReqs.querySelector('[data-req="max"]');
-                if (maxEl) maxEl.classList.toggle('met', v.length <= 72 || v.length === 0);
+                var checks = {
+                    length: v.length >= 8,
+                    special: /[^A-Za-z0-9]/.test(v),
+                    upper: /[A-Z]/.test(v),
+                    number: /[0-9]/.test(v)
+                };
+                Object.keys(checks).forEach(function (key) {
+                    var seg = pwReqs.querySelector('.pw-meter-seg[data-req="' + key + '"]');
+                    var label = pwReqs.querySelector('.pw-meter-labels span[data-req="' + key + '"]');
+                    if (seg) seg.classList.toggle('met', checks[key]);
+                    if (label) label.classList.toggle('met', checks[key]);
+                });
             }
             input.addEventListener('input', checkRequirements);
             checkRequirements();

@@ -11,11 +11,9 @@ $page_description = 'Find clear answers to common questions about booking futsal
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head reveal">
-    <div class="title-back-row">
-        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1 class="page-title">FAQ</h1>
-    </div>
+<div class="faq-hero reveal">
+    <h1 class="faq-hero-title">How can we help?</h1>
+    <p class="faq-hero-sub">Find answers about booking, payments, cancellations, and more.</p>
 </div>
 
 <div class="faq-search" role="search">
@@ -24,153 +22,162 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="faq-cats" aria-label="Jump to a topic">
-    <a href="#cat-booking" class="faq-cat active">Booking</a>
-    <a href="#cat-payment" class="faq-cat">Payments</a>
-    <a href="#cat-cancel" class="faq-cat">Cancellations</a>
-    <a href="#cat-account" class="faq-cat">Account</a>
-    <a href="#cat-owners" class="faq-cat">Managers</a>
-    <a href="#cat-tech" class="faq-cat">Technical</a>
+    <a href="#cat-booking" class="faq-cat active"><i class="fa-solid fa-calendar-check"></i> Booking</a>
+    <a href="#cat-payment" class="faq-cat"><i class="fa-solid fa-credit-card"></i> Payments</a>
+    <a href="#cat-cancel" class="faq-cat"><i class="fa-solid fa-circle-xmark"></i> Cancellations</a>
+    <a href="#cat-account" class="faq-cat"><i class="fa-solid fa-shield-halved"></i> Account</a>
+    <a href="#cat-owners" class="faq-cat"><i class="fa-solid fa-store"></i> Managers</a>
+    <a href="#cat-tech" class="faq-cat"><i class="fa-solid fa-gear"></i> Technical</a>
 </div>
 
 <div class="faq-list">
-
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-booking">Booking a Court</h2>
-
-        <details class="faq-item">
-            <summary>How do I book a futsal court on GoalSpace?</summary>
-            <p>Find a venue via search or the <a href="<?php echo base_url('pages/courts.php'); ?>">courts directory</a>, choose your date and time slot, confirm the booking, and pay via QR code or at the venue. Your slot is locked instantly.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Do I need an account to make a reservation?</summary>
-            <p>Yes. A free player account ensures your booking is recorded, your receipt is emailed, and you can reschedule or cancel if plans change.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Can I book recurring weekly slots?</summary>
-            <p>Yes. On courts that support it, select weekly recurrence to reserve the same time across multiple weeks.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Is my booking confirmed instantly?</summary>
-            <p>Yes. Every booking is confirmed immediately upon submission. No manual approval needed.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-calendar-check"></i></span>
+            <h2 class="faq-group-title" id="cat-booking">Booking a Court</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>How do I book a futsal court on GoalSpace?</summary>
+                <p>Find a venue via search or the <a href="<?php echo base_url('pages/courts.php'); ?>">courts directory</a>, choose your date and time slot, confirm the booking, and pay via QR code or at the venue. Your slot is locked instantly.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Do I need an account to make a reservation?</summary>
+                <p>Yes. A free player account ensures your booking is recorded, your receipt is emailed, and you can reschedule or cancel if plans change.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I book recurring weekly slots?</summary>
+                <p>Yes. On courts that support it, select weekly recurrence to reserve the same time across multiple weeks.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Is my booking confirmed instantly?</summary>
+                <p>Yes. Every booking is confirmed immediately upon submission. No manual approval needed.</p>
+            </details>
+        </div>
     </div>
 
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-payment">Payments and Pricing</h2>
-
-        <details class="faq-item">
-            <summary>What payment options are available?</summary>
-            <p>Three options: 20% advance via QR with balance at venue, 100% online via QR, or pay at the venue counter directly.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How does QR code payment work?</summary>
-            <p>During checkout, the court owner's verified QR code is displayed. Scan it with your digital wallet (Khalti, eSewa, IME Pay, or mobile banking) and approve the amount. Your booking status updates automatically.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Are digital payments secure?</summary>
-            <p>Yes. QR payments happen inside your bank or wallet app. GoalSpace never stores your payment credentials or PINs.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Where can I find my receipt?</summary>
-            <p>A receipt is emailed upon confirmation. You can also view it anytime from <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-credit-card"></i></span>
+            <h2 class="faq-group-title" id="cat-payment">Payments and Pricing</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>What payment options are available?</summary>
+                <p>Three options: 20% advance via QR with balance at venue, 100% online via QR, or pay at the venue counter directly.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How does QR code payment work?</summary>
+                <p>During checkout, the court owner's verified QR code is displayed. Scan it with your digital wallet (Khalti, eSewa, IME Pay, or mobile banking) and approve the amount. Your booking status updates automatically.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Are digital payments secure?</summary>
+                <p>Yes. QR payments happen inside your bank or wallet app. GoalSpace never stores your payment credentials or PINs.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Where can I find my receipt?</summary>
+                <p>A receipt is emailed upon confirmation. You can also view it anytime from <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>.</p>
+            </details>
+        </div>
     </div>
 
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-cancel">Cancellations and Refunds</h2>
-
-        <details class="faq-item">
-            <summary>What is the cancellation policy?</summary>
-            <p><strong>24+ hours before:</strong> Full refund. <strong>Within 24 hours:</strong> Advance retained as credit. <strong>No-show:</strong> Advance forfeited.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How do I cancel or reschedule?</summary>
-            <p>Go to <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>, find the reservation, and click Cancel or Reschedule. You'll see the refund breakdown before confirming.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>What if bad weather makes the court unplayable?</summary>
-            <p>The manager can cancel the slot. You'll receive a 100% refund or credit to reschedule.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+            <h2 class="faq-group-title" id="cat-cancel">Cancellations and Refunds</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>What is the cancellation policy?</summary>
+                <p><strong>24+ hours before:</strong> Full refund. <strong>Within 24 hours:</strong> Advance retained as credit. <strong>No-show:</strong> Advance forfeited.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I cancel or reschedule?</summary>
+                <p>Go to <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My Bookings</a>, find the reservation, and click Cancel or Reschedule. You'll see the refund breakdown before confirming.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What if bad weather makes the court unplayable?</summary>
+                <p>The manager can cancel the slot. You'll receive a 100% refund or credit to reschedule.</p>
+            </details>
+        </div>
     </div>
 
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-account">Account and Security</h2>
-
-        <details class="faq-item">
-            <summary>How do I register?</summary>
-            <p>Click <a href="<?php echo base_url('pages/register.php'); ?>">Sign Up</a>, fill in your details, select Player role. You can also sign in with Google.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>What if I forget my password?</summary>
-            <p>Click <a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a> on the login page, enter your email, and we'll send a one-time code.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Can I change my phone or email?</summary>
-            <p>Yes. Open your <a href="<?php echo base_url('pages/profile.php'); ?>">Profile</a> and go to Settings to update your details.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <h2 class="faq-group-title" id="cat-account">Account and Security</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>How do I register?</summary>
+                <p>Click <a href="<?php echo base_url('pages/register.php'); ?>">Sign Up</a>, fill in your details, select Player role. You can also sign in with Google.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What if I forget my password?</summary>
+                <p>Click <a href="<?php echo base_url('pages/forgot_password.php'); ?>">Forgot password?</a> on the login page, enter your email, and we'll send a one-time code.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I change my phone or email?</summary>
+                <p>Yes. Open your <a href="<?php echo base_url('pages/profile.php'); ?>">Profile</a> and go to Settings to update your details.</p>
+            </details>
+        </div>
     </div>
 
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-owners">For Court Owners</h2>
-
-        <details class="faq-item">
-            <summary>How do I list my court?</summary>
-            <p>Register as a <a href="<?php echo base_url('pages/register.php?role=manager'); ?>">Manager</a>, go to My Grounds, and click Add Ground to set specs, rates, photos, and location.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How do I receive QR payments?</summary>
-            <p>In My Grounds, edit your court and upload your merchant QR code. Players scan it during checkout.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How do I record cash payments?</summary>
-            <p>In your Bookings screen, find the reservation and click Mark Paid.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Can I block slots for private events?</summary>
-            <p>Yes. In the court edit page, use Blocked Dates to close hours, full days, or custom ranges.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How do promo codes work?</summary>
-            <p>In your manager portal, open Promos to create percentage or fixed discounts for filling quiet hours.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-store"></i></span>
+            <h2 class="faq-group-title" id="cat-owners">For Court Owners</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>How do I list my court?</summary>
+                <p>Register as a <a href="<?php echo base_url('pages/register.php?role=manager'); ?>">Manager</a>, go to My Grounds, and click Add Ground to set specs, rates, photos, and location.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I receive QR payments?</summary>
+                <p>In My Grounds, edit your court and upload your merchant QR code. Players scan it during checkout.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I record cash payments?</summary>
+                <p>In your Bookings screen, find the reservation and click Mark Paid.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I block slots for private events?</summary>
+                <p>Yes. In the court edit page, use Blocked Dates to close hours, full days, or custom ranges.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do promo codes work?</summary>
+                <p>In your manager portal, open Promos to create percentage or fixed discounts for filling quiet hours.</p>
+            </details>
+        </div>
     </div>
 
     <div class="faq-group">
-        <h2 class="faq-group-title" id="cat-tech">Technical Help</h2>
-
-        <details class="faq-item">
-            <summary>How does location sorting work?</summary>
-            <p>When enabled, your browser calculates distances to nearby courts. Your location is never stored on our servers.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Can I install GoalSpace as an app?</summary>
-            <p>Yes. On Android Chrome, tap menu and select "Install app". On iPhone Safari, tap Share and "Add to Home Screen".</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>How do I contact support?</summary>
-            <p>Email <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or use our <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">contact form</a>. We respond within 4 hours on business days.</p>
-        </details>
+        <div class="faq-group-head">
+            <span class="faq-group-icon"><i class="fa-solid fa-gear"></i></span>
+            <h2 class="faq-group-title" id="cat-tech">Technical Help</h2>
+        </div>
+        <div class="faq-group-body">
+            <details class="faq-item">
+                <summary>How does location sorting work?</summary>
+                <p>When enabled, your browser calculates distances to nearby courts. Your location is never stored on our servers.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I install GoalSpace as an app?</summary>
+                <p>Yes. On Android Chrome, tap menu and select "Install app". On iPhone Safari, tap Share and "Add to Home Screen".</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I contact support?</summary>
+                <p>Email <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or use our <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">contact form</a>. We respond within 4 hours on business days.</p>
+            </details>
+        </div>
     </div>
 </div>
 
 <div class="faq-empty" id="faqEmpty" hidden>
-    <p>No results for "<span id="faqEmptyTerm"></span>". Try different keywords.</p>
+    <div class="faq-empty-icon"><i class="fa-regular fa-face-meh"></i></div>
+    <p class="faq-empty-title">No results found</p>
+    <p class="faq-empty-sub">Try different keywords or browse categories above.</p>
 </div>
 
 <?php if ($logged_in && $isManager): ?>
@@ -184,7 +191,6 @@ require __DIR__ . '/../includes/header.php';
 (function () {
     var input = document.getElementById('faqSearch');
     var empty = document.getElementById('faqEmpty');
-    var termEl = document.getElementById('faqEmptyTerm');
     if (!input) return;
     var items = document.querySelectorAll('.faq-item');
     var cats = document.querySelectorAll('.faq-cat');
@@ -202,9 +208,8 @@ require __DIR__ . '/../includes/header.php';
             var vis = g.querySelectorAll('.faq-item:not([style*="display: none"])');
             g.style.display = vis.length === 0 ? 'none' : '';
         });
-        if (empty && termEl) {
+        if (empty) {
             empty.hidden = shown !== 0;
-            termEl.textContent = input.value.trim();
         }
     };
     input.addEventListener('input', filter);

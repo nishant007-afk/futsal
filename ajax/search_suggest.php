@@ -9,6 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !empty($_GET['x'])) {
     exit;
 }
 
+if (rate_limit_exceeded('search', 30, 60)) {
+    echo json_encode(['results' => [], 'rate_limited' => true]);
+    exit;
+}
+
 $q = trim((string)($_GET['q'] ?? ''));
 if ($q === '') {
     echo json_encode(['results' => []]);

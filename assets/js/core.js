@@ -43,10 +43,20 @@ document.addEventListener('DOMContentLoaded', function () {
             pageSkeleton.remove();
         }
     }
-    // Dismiss skeleton immediately on DOM ready so the screen is never blocked
+    // Show skeleton briefly for perceived performance, then reveal content
     if (pageSkeleton) {
-        pageSkeleton.remove();
+        pageSkeleton.classList.add('visible');
+        // Auto-dismiss after max 800ms even if load event hasn't fired
+        skeletonTimers.push(setTimeout(hideSkeleton, 800));
     }
+
+    // Dismiss skeleton once the page fully loads
+    window.addEventListener('load', function () {
+        hideSkeleton();
+    });
+
+    // Safety: dismiss after DOMContentLoaded + 1.5s regardless
+    skeletonTimers.push(setTimeout(hideSkeleton, 1500));
 
     // Viewport-based lazy loading: only load images when the user scrolls near them
     function initLazyImages() {
@@ -448,13 +458,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('load', autosync);
     window.addEventListener('pageshow', autosync);
 
-    // Autofill can land a moment after load; keep polling briefly.
-    var recheckTries = 0;
-    var recheck = setInterval(function () {
-        recheckTries++;
-        autosync();
-        if (recheckTries >= 30) clearInterval(recheck);
-    }, 100);
     autosync();
 
     // ----- Inline live field validation ------------------------------
@@ -793,6 +796,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (b) b.remove();
         }
     }
+    function announceToScreenReader(text) {
+        var region = document.getElementById('ariaLiveRegion');
+        if (region) {
+            region.textContent = '';
+            setTimeout(function () { region.textContent = text; }, 100);
+        }
+    }
     function showBackdrop() {
         if (!document.querySelector('.popup-backdrop')) {
             const b = document.createElement('div');
@@ -973,6 +983,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (autoDismiss) setTimeout(function () { dismissToast(t); }, 2500);
         }
+        // Announce toast to screen readers
+        var toastMsg = t.querySelector('.toast-msg');
+        if (toastMsg) announceToScreenReader(toastMsg.textContent);
         if (isError) {
             highlightPasswordError(t);
         }
@@ -1058,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function () {
             d.textContent = v;
             return d.innerHTML;
         }
-        function show() { panel.hidden = false; input.setAttribute('aria-expanded', 'true'); }
+        function show() { panel.hidden = false; input.setAttribute('aria-expanded', 'true'); panel.setAttribute('role', 'listbox'); }
         function hide() {
             panel.hidden = true;
             input.setAttribute('aria-expanded', 'false');
@@ -1079,6 +1092,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function itemEl(item) {
             const a = document.createElement('a');
             a.className = 'hs-item';
+            a.setAttribute('role', 'option');
             a.href = base + '/pages/ground.php?id=' + item.id;
             const thumb = document.createElement('span');
             thumb.className = 'hs-thumb';
@@ -1274,45 +1288,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ---- Favorites (saved courts) toggle ---- */
-    const favToggle = document.querySelector('.fav-toggle');
-    if (favToggle) {
-        document.querySelectorAll('.fav-toggle').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                btn.disabled = true;
-                const id = btn.getAttribute('data-ground-id');
-                const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
-                const csrf = btn.getAttribute('data-csrf') || document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value;
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', url, true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4) {
-                        btn.disabled = false;
-                        if (xhr.status === 200) {
-                            let json;
-                            try { json = JSON.parse(xhr.responseText); } catch (e) { return; }
-                            if (json && json.ok) {
-                                const icon = btn.querySelector('i');
-                                btn.setAttribute('data-saved', json.saved);
-                                if (json.saved === 1) {
-                                    btn.classList.add('saved');
-                                    if (icon) icon.classList.remove('fa-regular');
-                                    if (icon) icon.classList.add('fa-solid');
-                                    if (icon) icon.style.color = 'var(--danger)';
-                                } else {
-                                    btn.classList.remove('saved');
-                                    if (icon) icon.classList.remove('fa-solid');
-                                    if (icon) icon.classList.add('fa-regular');
-                                    if (icon) icon.style.color = '';
-                                }
-                            }
+    document.querySelectorAll('.fav-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            const id = btn.getAttribute('data-ground-id');
+            const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
+            const csrf = btn.getAttribute('data-csrf') || document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value;
+            const fd = new URLSearchParams();
+            fd.append('id', id);
+            fd.append('csrf_token', csrf || '');
+            fetch(url, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (json) {
+                    btn.disabled = false;
+                    if (json && json.ok) {
+                        const icon = btn.querySelector('i');
+                        btn.setAttribute('data-saved', json.saved);
+                        if (json.saved === 1) {
+                            btn.classList.add('saved');
+                            if (icon) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid'); }
+                        } else {
+                            btn.classList.remove('saved');
+                            if (icon) { icon.classList.remove('fa-solid'); icon.classList.add('fa-regular'); }
                         }
                     }
-                };
-                xhr.send('id=' + encodeURIComponent(id) + '&csrf_token=' + encodeURIComponent(csrf || ''));
-            });
+                })
+                .catch(function () { btn.disabled = false; });
         });
-    }
+    });
 
     /* ---- Near-me geolocation (preference-driven) ---- */
     const NEARME_KEY = 'goalspace-nearme';

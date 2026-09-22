@@ -32,6 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Enter a valid email address.';
+    } elseif (strtolower($email) !== strtolower($user['email'])) {
+        $dupCheck = $conn->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
+        $dupCheck->bind_param('si', $email, $id);
+        $dupCheck->execute();
+        if ($dupCheck->get_result()->num_rows > 0) {
+            $errors['email'] = 'That email is already taken by another account.';
+        }
+        $dupCheck->close();
     }
     if (strlen($phone) > 20) {
         $errors['phone'] = 'Phone number is too long.';

@@ -510,11 +510,8 @@ function validate_password(string $password): ?string
     if (strlen($password) < 8) {
         return 'Password must be at least 8 characters long.';
     }
-    if (strlen($password) > 72) {
-        return 'Passwords must be 72 characters or fewer.';
-    }
-    if (!preg_match('/[A-Za-z]/', $password)) {
-        return 'Add at least one letter.';
+    if (!preg_match('/[A-Z]/', $password)) {
+        return 'Add at least one capital letter.';
     }
     if (!preg_match('/[0-9]/', $password)) {
         return 'Add at least one number.';

@@ -172,90 +172,82 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head reveal">
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1 class="page-title">All Courts</h1>
+        <div>
+            <span class="eyebrow"><i class="fa-solid fa-futbol"></i> DISCOVER ARENAS</span>
+            <h1 class="page-title">Browse Futsal Courts</h1>
+        </div>
+    </div>
+    <div class="page-head-meta">
+        <span class="courts-count-pill"><?php echo $total; ?> venue<?php echo $total === 1 ? '' : 's'; ?> available</span>
     </div>
 </div>
 
-    <div class="courts-toolbar reveal">
-        <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
-            <div class="courts-search-main">
-                <div class="search-field">
-                    <label for="courtsQ">Search courts</label>
-                    <div class="search-input-wrap">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <input type="text" id="courtsQ" name="q" placeholder="Court name or location" value="<?php echo e($q); ?>">
-                    </div>
-                </div>
-                <div class="search-field">
-                    <label for="courtsLocation">Location</label>
-                    <div class="search-input-wrap">
-                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        <select id="courtsLocation" name="location">
-                            <option value="">All locations</option>
-                            <?php foreach ($allowed_cities as $c): ?>
-                                <option value="<?php echo e($c); ?>" <?php echo $city === $c ? 'selected' : ''; ?>><?php echo e($c); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="search-field">
-                    <label for="courtsDate">Date</label>
-                    <div class="search-input-wrap">
-                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                        <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
-                    </div>
-                </div>
-                <div class="search-field">
-                    <label for="courtsSort">Sort by</label>
-                    <div class="search-input-wrap">
-                        <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-                        <select id="courtsSort" name="sort">
-                            <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: low to high</option>
-                            <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: high to low</option>
-                            <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
-                        </select>
-                    </div>
-                </div>
+<div class="courts-toolbar reveal">
+    <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
+        <div class="courts-search-main">
+            <div class="search-field sf-query">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="courtsQ" name="q" placeholder="Search court or area..." value="<?php echo e($q); ?>" autocomplete="off">
             </div>
-            <div class="toolbar-actions">
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Apply filters</button>
-                <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
-                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
-                <?php endif; ?>
+            <div class="search-field sf-loc">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                <select id="courtsLocation" name="location">
+                    <option value="">All Locations</option>
+                    <?php foreach ($allowed_cities as $c): ?>
+                        <option value="<?php echo e($c); ?>" <?php echo $city === $c ? 'selected' : ''; ?>><?php echo e($c); ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        </form>
-    </div>
-
-    <?php
-    $filterChips = [];
-    if ($q !== '') {
-        $filterChips[] = ['q', 'Search: "' . $q . '"'];
-    }
-    if ($city !== '') {
-        $filterChips[] = ['location', 'Location: ' . city_label($city)];
-    }
-    if ($date !== '') {
-        $filterChips[] = ['date', 'Date: ' . date('M j, Y', strtotime($date))];
-    }
-    if ($sort !== 'price_asc') {
-        $sortLabels = ['price_desc' => 'Price: high to low', 'name_asc' => 'Name: A to Z'];
-        $filterChips[] = ['sort', 'Sort: ' . ($sortLabels[$sort] ?? 'Custom')];
-    }
-    ?>
-    <?php if ($filterChips): ?>
-        <div class="filter-chips" aria-label="Active filters">
-            <?php foreach ($filterChips as [$key, $label]): ?>
-                <a class="fc-chip" href="<?php echo base_url('pages/courts.php?' . build_query([$key => ''])); ?>"><?php echo e($label); ?> <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
-            <?php endforeach; ?>
-            <?php if (count($filterChips) > 1): ?>
-                <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Clear all <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+            <div class="search-field sf-date">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+            </div>
+            <div class="search-field sf-sort">
+                <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+                <select id="courtsSort" name="sort">
+                    <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: Low to High</option>
+                    <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: High to Low</option>
+                    <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
+                </select>
+            </div>
+        </div>
+        <div class="toolbar-actions">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+            <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
+                <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Clear filters"><i class="fa-solid fa-xmark"></i></a>
             <?php endif; ?>
         </div>
-    <?php endif; ?>
+    </form>
+</div>
 
-    <p class="courts-count muted">
-        <?php echo $total; ?> court<?php echo $total === 1 ? '' : 's'; ?><?php echo $q !== '' ? ' matching "' . e($q) . '"' : ''; ?>
-    </p>
+<?php
+$filterChips = [];
+if ($q !== '') {
+    $filterChips[] = ['q', 'Search: "' . $q . '"'];
+}
+if ($city !== '') {
+    $filterChips[] = ['location', city_label($city)];
+}
+if ($date !== '') {
+    $filterChips[] = ['date', date('M j, Y', strtotime($date))];
+}
+if ($sort !== 'price_asc') {
+    $sortLabels = ['price_desc' => 'High to Low', 'name_asc' => 'A to Z'];
+    $filterChips[] = ['sort', ($sortLabels[$sort] ?? 'Custom')];
+}
+?>
+<?php if ($filterChips): ?>
+    <div class="filter-chips" aria-label="Active filters">
+        <?php foreach ($filterChips as [$key, $label]): ?>
+            <a class="fc-chip" href="<?php echo base_url('pages/courts.php?' . build_query([$key => ''])); ?>">
+                <?php echo e($label); ?> <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </a>
+        <?php endforeach; ?>
+        <?php if (count($filterChips) > 1): ?>
+            <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Reset all</a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
     <?php if (!$grounds): ?>
         <?php empty_state('fa-solid fa-futbol', 'No courts match your filters', 'Try removing a filter or searching for something else.', grounds_list_url(), 'Clear filters & browse all'); ?>

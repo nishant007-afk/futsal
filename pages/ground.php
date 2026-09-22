@@ -237,6 +237,13 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="detail-box booking-panel reveal">
         <span class="book-eyebrow">Book this court</span>
+        <div class="booking-steps" aria-label="Booking progress">
+            <div class="bstep active"><span class="bstep-num">1</span> Select</div>
+            <div class="bstep-line"></div>
+            <div class="bstep"><span class="bstep-num">2</span> Confirm</div>
+            <div class="bstep-line"></div>
+            <div class="bstep"><span class="bstep-num">3</span> Pay</div>
+        </div>
         <?php
         $discPrice = $ground['discount_price'] ?? null;
         $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);
@@ -345,43 +352,65 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="reviews-wrap">
-    <?php if ($rating['count'] > 0): ?>
-        <div class="section-head reveal full mb-18">
-            <span class="eyebrow">Reviews</span>
-            <h2 class="section-title sm">What players say</h2>
+<div class="reviews-wrap reveal" id="reviews">
+    <div class="reviews-horizon-head">
+        <div class="rh-left">
+            <span class="rh-kicker">PLAYER FEEDBACK</span>
+            <div class="rh-title-row">
+                <h2 class="rh-title">Reviews &amp; Ratings</h2>
+                <?php if ($rating['count'] > 0): ?>
+                    <span class="rh-score-pill">
+                        <i class="fa-solid fa-star"></i> <?php echo number_format((float)$rating['avg'], 1); ?>
+                    </span>
+                    <span class="rh-count-meta"><?php echo $rating['count']; ?> match review<?php echo $rating['count'] === 1 ? '' : 's'; ?></span>
+                <?php else: ?>
+                    <span class="rh-score-pill rh-score-pill--empty"><i class="fa-solid fa-star"></i> New</span>
+                    <span class="rh-count-meta">Be the first to review</span>
+                <?php endif; ?>
+            </div>
         </div>
-    <?php endif; ?>
 
-    <div class="review-form-card reveal">
-        <?php if (!is_logged_in()): ?>
-            <p class="muted text-14">Played here or want to share your experience? <a href="<?php echo base_url('pages/login.php'); ?>" class="inline-link">Log in</a> to leave a review.</p>
-        <?php elseif (is_player()): ?>
-            <?php if ($my_review): ?>
-                <p class="muted text-sm mb-12">You've rated this court <?php echo star_html($my_review['rating']); ?>. Update it below.</p>
-            <?php endif; ?>
-            <form method="post" action="">
+        <?php if (is_logged_in() && is_player()): ?>
+            <button type="button" class="btn btn-outline btn-sm rh-write-btn" id="toggleReviewFormBtn" onclick="toggleReviewForm()">
+                <i class="fa-solid fa-pen-to-square"></i> <?php echo $my_review ? 'Edit Review' : 'Write a Review'; ?>
+            </button>
+        <?php elseif (!is_logged_in()): ?>
+            <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline btn-sm rh-write-btn">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in to Review
+            </a>
+        <?php endif; ?>
+    </div>
+
+    <!-- Review Submission Card -->
+    <?php if (is_logged_in() && is_player()): ?>
+        <div class="review-form-card" id="reviewFormDrawer" style="<?php echo $my_review ? '' : 'display:none;'; ?>">
+            <div class="rfc-head">
+                <h4><?php echo $my_review ? 'Update your review' : 'Rate your match experience'; ?></h4>
+                <p>Share turf condition, lighting, parking, or match atmosphere.</p>
+            </div>
+            <form method="post" action="" class="rfc-form">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="review_submit" value="1">
-                <div class="form-group">
-                    <label id="ratingLabel">Your rating</label>
+                <div class="rfc-rating-group">
+                    <label id="ratingLabel">Your Score</label>
                     <div class="star-input" role="radiogroup" aria-labelledby="ratingLabel">
                         <?php for ($i = 5; $i >= 1; $i--): ?>
-                            <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" aria-label="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>" <?php echo ($my_review['rating'] ?? 0) == $i ? 'checked' : ''; ?>>
+                            <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" role="radio" aria-label="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>" <?php echo ($my_review['rating'] ?? 0) == $i ? 'checked' : ''; ?>>
                             <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> star<?php echo $i === 1 ? '' : 's'; ?>"><i class="fa-solid fa-star"></i></label>
                         <?php endfor; ?>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="reviewComment">Your review <span class="muted fw-400">(optional)</span></label>
-                    <textarea id="reviewComment" name="comment" rows="3" placeholder="Tell others about the court, lights, booking and atmosphere…"><?php echo e($my_review['comment'] ?? ''); ?></textarea>
+                <div class="form-group mb-12">
+                    <label for="reviewComment">Your Feedback <span class="muted font-normal">(optional)</span></label>
+                    <textarea id="reviewComment" name="comment" rows="3" placeholder="Tell other players about the pitch quality, lighting, and amenities..."><?php echo e($my_review['comment'] ?? ''); ?></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> <?php echo $my_review ? 'Update review' : 'Post review'; ?></button>
+                <div class="rfc-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> <?php echo $my_review ? 'Save Changes' : 'Publish Review'; ?></button>
+                    <button type="button" class="btn btn-ghost" onclick="toggleReviewForm()">Cancel</button>
+                </div>
             </form>
-        <?php else: ?>
-            <p class="muted text-14">Only player accounts can leave reviews.</p>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 
     <?php if ($reviews): ?>
         <div class="review-list">
@@ -395,7 +424,7 @@ require __DIR__ . '/../includes/header.php';
                     $hvStmt->close();
                 }
             ?>
-                <div class="review-item reveal">
+                <div class="review-item">
                     <div class="review-avatar">
                         <?php if (!empty($rv['avatar'])): ?>
                             <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($rv['avatar'])); ?>" alt="<?php echo e($rv['user_name']); ?>" loading="lazy" decoding="async">
@@ -404,11 +433,16 @@ require __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </div>
                     <div class="review-body">
-                        <div class="review-head">
-                            <span class="review-name"><?php echo e($rv['user_name']); ?></span>
+                        <div class="review-top-bar">
+                            <div class="review-author-wrap">
+                                <span class="review-name"><?php echo e($rv['user_name']); ?></span>
+                                <span class="review-verified"><i class="fa-solid fa-circle-check"></i> Verified Player</span>
+                            </div>
                             <span class="review-date"><?php echo e(date('M j, Y', strtotime($rv['created_at']))); ?></span>
                         </div>
-                        <?php echo star_html($rv['rating']); ?>
+                        <div class="review-stars-wrap">
+                            <?php echo star_html($rv['rating']); ?>
+                        </div>
                         <?php if ($rv['comment'] !== ''): ?>
                             <p class="review-comment"><?php echo e($rv['comment']); ?></p>
                         <?php endif; ?>
@@ -417,7 +451,7 @@ require __DIR__ . '/../includes/header.php';
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="review_id" value="<?php echo (int)$rv['id']; ?>">
                                 <button type="submit" class="helpful-btn <?php echo $helped ? 'helped' : ''; ?>" <?php echo $helped ? 'disabled' : ''; ?> aria-label="<?php echo $helped ? 'You found this helpful' : 'Mark as helpful'; ?>">
-                                    <i class="fa-solid fa-thumbs-up"></i> <span class="helpful-count"><?php echo (int)$rv['helpful_count']; ?></span>
+                                    <i class="fa-regular fa-thumbs-up"></i> <span>Helpful</span> <?php if ((int)$rv['helpful_count'] > 0): ?><strong class="helpful-count"><?php echo (int)$rv['helpful_count']; ?></strong><?php endif; ?>
                                 </button>
                             </form>
                         </div>
@@ -425,8 +459,26 @@ require __DIR__ . '/../includes/header.php';
                 </div>
             <?php endforeach; ?>
         </div>
+    <?php else: ?>
+        <div class="reviews-empty-state">
+            <i class="fa-regular fa-star"></i>
+            <p>No player reviews for this venue yet. Book your match and be the first to share your experience!</p>
+        </div>
     <?php endif; ?>
 </div>
+
+<script>
+function toggleReviewForm() {
+    var drawer = document.getElementById('reviewFormDrawer');
+    if (!drawer) return;
+    if (drawer.style.display === 'none' || drawer.style.display === '') {
+        drawer.style.display = 'block';
+        drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        drawer.style.display = 'none';
+    }
+}
+</script>
 
 <?php if ($similar): ?>
     <section class="section similar-courts">

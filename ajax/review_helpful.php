@@ -11,6 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 verify_csrf();
 
+if (rate_limit_exceeded('rvhelp:' . $_SESSION['user_id'], 15, 60)) {
+    http_response_code(429);
+    echo json_encode(['ok' => false, 'error' => 'Too many requests. Try again shortly.']);
+    exit;
+}
+
 $reviewId = (int)($_POST['review_id'] ?? 0);
 if (!$reviewId) {
     echo json_encode(['ok' => false, 'error' => 'Invalid review']);

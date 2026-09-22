@@ -49,14 +49,19 @@ $page_description = 'Choose a new password for your GoalSpace account and get ba
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card">
- <div class="form-head">
-    <div class="title-back-row">
-        <a href="<?php echo base_url('pages/forgot_password.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Choose a new password</h2>
+<div class="auth-wrap">
+<div class="auth-card form-card">
+    <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
+        <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
+        <span class="auth-brand-name">GoalSpace</span>
+    </a>
+    <div class="auth-topline">
+        <h1>Choose a new password</h1>
+        <p>Enter a new password for your account below.</p>
     </div>
- </div>
-    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+    <?php if (!empty($errors['general'])): ?>
+        <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
+    <?php endif; ?>
     <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'password'); ?>">
@@ -78,8 +83,9 @@ require __DIR__ . '/../includes/header.php';
             <?php field_error($errors, 'confirm'); ?>
         </div>
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-key"></i> Update password</button>
-        <p class="form-foot">Remembered it? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
     </form>
+    <p class="auth-foot">Remembered it? <a href="<?php echo base_url('pages/login.php'); ?>">Log in</a></p>
+</div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

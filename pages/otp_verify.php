@@ -78,31 +78,22 @@ $page_title = 'Enter your code';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="form-card">
-    <div class="form-head">
-        <div class="title-back-row">
-            <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>Two-step login</h2>
-        </div>
-        <p class="muted mt-12 lh-15">Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>
+<div class="auth-wrap">
+<div class="auth-card form-card">
+    <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
+        <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
+        <span class="auth-brand-name">GoalSpace</span>
+    </a>
+    <div class="auth-topline">
+        <h1>Two-step login</h1>
+        <p>Enter the 6-digit code we sent to <strong><?php echo e($email); ?></strong> to finish signing in.</p>
     </div>
 
-    <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+    <?php if (!empty($errors['general'])): ?>
+        <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
+    <?php endif; ?>
 
-    <?php
-    $isLocal = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
-    if ($isLocal) {
-        $devStmt = $conn->prepare('SELECT code FROM otps WHERE identifier = ? AND purpose = "login" AND used = 0 ORDER BY id DESC LIMIT 1');
-        $devStmt->bind_param('s', $email);
-        $devStmt->execute();
-        $devRow = $devStmt->get_result()->fetch_assoc();
-        if ($devRow) {
-            echo '<div class="notice notice-info mb-14"><i class="fa-solid fa-code"></i> <span><strong>Local Development Notice:</strong> SMTP failed (Brevo auth error). Your active verification code is: <strong style="letter-spacing:3px;font-size:18px;color:var(--brand-700);">' . e($devRow['code']) . '</strong></span></div>';
-        }
-    }
-    ?>
-
-    <form method="post" action="" class="mt-18" novalidate>
+    <form method="post" action="" novalidate>
         <?php echo csrf_field(); ?>
         <div class="form-group<?php echo has_error($errors, 'code'); ?>">
             <label for="code">Login code <span class="req">*</span></label>
@@ -120,7 +111,8 @@ require __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-right-to-bracket"></i> Verify and log in</button>
         <button type="submit" name="resend" value="1" formnovalidate class="btn btn-ghost btn-block mt-10"><i class="fa-solid fa-rotate-right"></i> Resend code</button>
     </form>
-    <p class="form-foot"><a href="<?php echo base_url('pages/login.php'); ?>">Use a different account</a></p>
+    <p class="auth-foot"><a href="<?php echo base_url('pages/login.php'); ?>">Use a different account</a></p>
+</div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

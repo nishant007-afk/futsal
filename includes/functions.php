@@ -1233,36 +1233,35 @@ function goalspace_email_html(string $title, string $greeting, string $bodyHtml,
 <title>' . $esc($title) . '</title>
 <style>
 @media only screen and (max-width: 600px) {
-    .email-container { width: 100% !important; border-radius: 8px !important; }
-    .email-outer { padding: 16px 8px !important; }
-    .email-body { padding: 24px 18px !important; }
-    .email-header { padding: 20px 18px !important; }
-    .email-footer { padding: 16px 18px !important; }
+    .email-container { width: 100% !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+    .email-outer { padding: 0 !important; }
+    .email-body { padding: 24px 20px !important; }
+    .email-header { padding: 20px 20px 16px !important; }
+    .email-footer { padding: 18px 20px !important; }
 }
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#0e1712;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 <!-- Hidden preview snippet for inbox list -->
-<div style="display:none;font-size:1px;color:#0e1712;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+<div style="display:none;font-size:1px;color:#f8fafc;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
     ' . $esc($preview) . '
 </div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-outer" style="background-color:#0e1712;padding:36px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-outer" style="background-color:#f8fafc;padding:36px 12px;">
 <tr>
 <td align="center">
-    <table role="presentation" width="560" cellpadding="0" cellspacing="0" class="email-container" style="max-width:560px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 14px 36px rgba(0,0,0,0.4);border:1px solid #1e3327;">
+    <table role="presentation" width="520" cellpadding="0" cellspacing="0" class="email-container" style="max-width:520px;width:100%;background-color:#ffffff;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;">
         <!-- Header -->
         <tr>
-            <td class="email-header" style="background-color:#0b130e;padding:26px 32px;border-bottom:3px solid #16a34a;">
+            <td class="email-header" style="padding:24px 32px 18px;border-bottom:1px solid #f1f5f9;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td>
-                            <a href="' . $siteUrl . '" style="text-decoration:none;">
-                                <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.4px;">GoalSpace</span>
-                                <span style="display:inline-block;margin-left:8px;padding:3px 8px;background-color:rgba(34,197,94,0.18);color:#4ade80;font-size:11px;font-weight:700;border-radius:6px;letter-spacing:0.5px;text-transform:uppercase;">Futsal</span>
+                            <a href="' . $siteUrl . '" style="text-decoration:none;display:inline-block;">
+                                <span style="color:#0f172a;font-size:18px;font-weight:800;letter-spacing:-0.4px;">GoalSpace</span><span style="display:inline-block;width:6px;height:6px;background-color:#10b981;border-radius:50%;margin-left:3px;vertical-align:baseline;"></span>
                             </a>
                         </td>
                         <td align="right">
-                            <span style="color:#7d9487;font-size:12px;">Kathmandu, Nepal</span>
+                            <span style="color:#94a3b8;font-size:12px;font-weight:500;">Security</span>
                         </td>
                     </tr>
                 </table>
@@ -1271,27 +1270,21 @@ function goalspace_email_html(string $title, string $greeting, string $bodyHtml,
 
         <!-- Main Body -->
         <tr>
-            <td class="email-body" style="padding:34px 32px 28px;">
-                <p style="margin:0 0 14px;color:#607368;font-size:15px;font-weight:600;">' . $esc($greeting) . '</p>
-                <h1 style="margin:0 0 20px;color:#0d1812;font-size:22px;font-weight:800;line-height:1.3;letter-spacing:-0.4px;">' . $esc($title) . '</h1>
+            <td class="email-body" style="padding:28px 32px 24px;">
+                <p style="margin:0 0 14px;color:#475569;font-size:15px;font-weight:600;">' . $esc($greeting) . '</p>
                 
                 ' . $bodyHtml . '
-                
-                <p style="margin:28px 0 0;color:#0d1812;font-size:14px;line-height:1.6;">
-                    See you on the pitch,<br>
-                    <strong style="color:#15803d;">The GoalSpace Team</strong>
-                </p>
             </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-            <td class="email-footer" style="background-color:#f6faf7;padding:18px 32px;border-top:1px solid #e7eee9;">
-                ' . ($footerNote !== '' ? '<p style="margin:0 0 8px;color:#7a8a81;font-size:12px;line-height:1.5;">' . $footerNote . '</p>' : '') . '
-                <p style="margin:0;color:#8f9f96;font-size:12px;line-height:1.5;">
-                    GoalSpace Platform &middot; Fast futsal reservations &middot; 
-                    <a href="' . $contactUrl . '" style="color:#16a34a;text-decoration:none;font-weight:600;">Contact Support</a> &middot; 
-                    <a href="' . $siteUrl . '" style="color:#16a34a;text-decoration:none;font-weight:600;">Visit GoalSpace</a>
+            <td class="email-footer" style="padding:18px 32px;background-color:#fafbfc;border-top:1px solid #f1f5f9;">
+                ' . ($footerNote !== '' ? '<p style="margin:0 0 8px;color:#64748b;font-size:12px;line-height:1.5;">' . $footerNote . '</p>' : '') . '
+                <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.5;">
+                    GoalSpace &middot; Fast futsal reservations &middot; 
+                    <a href="' . $contactUrl . '" style="color:#10b981;text-decoration:none;font-weight:600;">Support</a> &middot; 
+                    <a href="' . $siteUrl . '" style="color:#10b981;text-decoration:none;font-weight:600;">Website</a>
                 </p>
             </td>
         </tr>
@@ -1304,7 +1297,7 @@ function goalspace_email_html(string $title, string $greeting, string $bodyHtml,
 }
 
 /**
- * Revamped transactional booking email with high aesthetic appeal and clarity.
+ * Clean, professional transactional booking email.
  */
 function booking_email_html(string $heading, array $rows = [], string $note = '', string $name = ''): string
 {
@@ -1316,37 +1309,34 @@ function booking_email_html(string $heading, array $rows = [], string $note = ''
         $cells = '';
         $i = 0;
         foreach ($rows as $k => $v) {
-            $bg = ($i % 2 === 0) ? '#fbfdfc' : '#ffffff';
             $valStr = (string)$v;
             if (filter_var($valStr, FILTER_VALIDATE_URL)) {
-                $valHtml = '<a href="' . $esc($valStr) . '" style="display:inline-block;padding:7px 16px;background-color:#16a34a;color:#ffffff;text-decoration:none;border-radius:7px;font-size:13px;font-weight:700;">' . ($esc($k) === 'Book now' ? 'Book slot now &rarr;' : 'Open &rarr;') . '</a>';
+                $valHtml = '<a href="' . $esc($valStr) . '" style="display:inline-block;padding:7px 16px;background-color:#10b981;color:#ffffff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">' . ($esc($k) === 'Book now' ? 'Book slot now &rarr;' : 'Open &rarr;') . '</a>';
             } elseif (stripos($k, 'ref') !== false) {
-                $valHtml = '<code style="background-color:#edf7f0;color:#166534;font-family:Consolas,monospace;font-size:13px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:0.5px;">' . $esc($valStr) . '</code>';
+                $valHtml = '<code style="background-color:#f1f5f9;color:#0f172a;font-family:Consolas,monospace;font-size:13px;font-weight:700;padding:3px 7px;border-radius:4px;letter-spacing:0.5px;">' . $esc($valStr) . '</code>';
             } else {
                 $valHtml = $esc($valStr);
             }
 
-            $cells .= '<tr style="background-color:' . $bg . ';">'
-                . '<td style="padding:11px 14px;color:#617369;width:140px;font-size:13.5px;border-bottom:1px solid #edf2ee;vertical-align:middle;">' . $esc($k) . '</td>'
-                . '<td style="padding:11px 14px;color:#0f1d15;font-size:14px;font-weight:700;border-bottom:1px solid #edf2ee;vertical-align:middle;">' . $valHtml . '</td>'
+            $cells .= '<tr>'
+                . '<td style="padding:10px 14px;color:#64748b;width:140px;font-size:13.5px;border-bottom:1px solid #f1f5f9;vertical-align:middle;">' . $esc($k) . '</td>'
+                . '<td style="padding:10px 14px;color:#0f172a;font-size:14px;font-weight:600;border-bottom:1px solid #f1f5f9;vertical-align:middle;">' . $valHtml . '</td>'
                 . '</tr>';
             $i++;
         }
-        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;border:1px solid #e2eae4;border-radius:12px;overflow:hidden;">'
+        $table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'
             . $cells
             . '</table>';
     }
 
-    $noteBlock = $note !== '' ? '<div style="margin:20px 0 0;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;"><p style="margin:0;color:#166534;font-size:13.5px;line-height:1.6;">'
-        . $esc($note) . '</p></div>' : '';
+    $noteBlock = $note !== '' ? '<p style="margin:16px 0 0;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;color:#475569;font-size:13px;line-height:1.5;">'
+        . $esc($note) . '</p>' : '';
 
-    $bodyHtml = '<p style="margin:0 0 12px;color:#35493d;font-size:15px;line-height:1.6;">'
-        . 'Here are the details for your booking:'
-        . '</p>'
+    $bodyHtml = '<h2 style="margin:0 0 12px;color:#0f172a;font-size:18px;font-weight:700;">' . $esc($heading) . '</h2>'
         . $table
         . $noteBlock;
 
-    $footerNote = 'If you have any questions about your booking, feel free to reply or reach out to our team.';
+    $footerNote = '';
     return goalspace_email_html($heading, $greeting, $bodyHtml, $footerNote);
 }
 
@@ -1856,32 +1846,26 @@ function send_otp_mail(string $email, string $code, string $purpose): bool
             }
         }
     }
-    $greeting = $firstName !== '' ? 'Hello, ' . $firstName : 'Hello,';
+    $greeting = $firstName !== '' ? 'Hi ' . $firstName . ',' : 'Hello,';
 
     $title = otp_subject($purpose);
     $actionVerb = otp_purpose_verb($purpose);
 
     $bodyHtml = '
-    <p style="margin:0 0 16px;color:#2c3e34;font-size:15px;line-height:1.6;">
-        We received a request to ' . htmlspecialchars($actionVerb, ENT_QUOTES, 'UTF-8') . '. Enter this verification code on GoalSpace to continue:
+    <p style="margin:0 0 16px;color:#334155;font-size:15px;line-height:1.6;">
+        Here is your 6-digit verification code to ' . htmlspecialchars($actionVerb, ENT_QUOTES, 'UTF-8') . ':
     </p>
     
-    <div style="margin:26px 0;text-align:center;background:#f0fdf4;border:2px solid #86efac;border-radius:14px;padding:24px 16px;">
-        <span style="font-family:\'SF Pro Mono\',Consolas,\'Courier New\',monospace;font-size:38px;font-weight:800;letter-spacing:10px;color:#15803d;display:inline-block;padding-left:10px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</span>
-        <div style="margin-top:10px;font-size:12.5px;color:#166534;font-weight:600;">
-            <span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>
-            Valid for 5 minutes
-        </div>
+    <div style="margin:20px 0;text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:18px 12px;">
+        <span style="font-family:\'SF Pro Mono\',Consolas,Menlo,Monaco,monospace;font-size:36px;font-weight:800;letter-spacing:8px;color:#0f172a;display:inline-block;padding-left:8px;">' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '</span>
     </div>
 
-    <div style="margin:24px 0 0;padding:14px 18px;background:#f8faf9;border-radius:10px;border-left:3px solid #15803d;">
-        <p style="margin:0;color:#53665c;font-size:13px;line-height:1.55;">
-            <strong>Security Notice:</strong> Never share this code with anyone. If you did not make this request, you can safely ignore this email. Your GoalSpace account credentials remain secure.
-        </p>
-    </div>';
+    <p style="margin:0;color:#64748b;font-size:13px;line-height:1.6;">
+        This code is valid for 5 minutes. If you did not request this, you can safely ignore this email.
+    </p>';
 
-    $footerNote = 'If you need any help, our support team is always ready to assist you.';
-    $htmlContent = goalspace_email_html($title, $greeting, $bodyHtml, $footerNote);
+    $footerNote = '';
+    $htmlContent = goalspace_email_html($title, $greeting, $bodyHtml, $footerNote, 'Your GoalSpace verification code is ' . $code);
 
     return send_mail($email, $title, $htmlContent, true);
 }

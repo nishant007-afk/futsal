@@ -12,7 +12,10 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="faq-hero reveal">
-    <h1 class="faq-hero-title">How can we help?</h1>
+    <div class="title-back-row">
+        <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="faq-hero-title">How can we help?</h1>
+    </div>
     <p class="faq-hero-sub">Find answers about booking, payments, cancellations, and more.</p>
 </div>
 
@@ -43,11 +46,11 @@ require __DIR__ . '/../includes/header.php';
             </details>
             <details class="faq-item">
                 <summary>Do I need an account to make a reservation?</summary>
-                <p>Yes. A free player account ensures your booking is recorded, your receipt is emailed, and you can reschedule or cancel if plans change.</p>
+                <p>Yes. A free account records your booking and emails your receipt.</p>
             </details>
             <details class="faq-item">
                 <summary>Can I book recurring weekly slots?</summary>
-                <p>Yes. On courts that support it, select weekly recurrence to reserve the same time across multiple weeks.</p>
+                <p>Yes. On courts that support it, select weekly recurrence.</p>
             </details>
             <details class="faq-item">
                 <summary>Is my booking confirmed instantly?</summary>
@@ -64,15 +67,15 @@ require __DIR__ . '/../includes/header.php';
         <div class="faq-group-body">
             <details class="faq-item">
                 <summary>What payment options are available?</summary>
-                <p>Three options: 20% advance via QR with balance at venue, 100% online via QR, or pay at the venue counter directly.</p>
+                <p>20% advance via QR, 100% via QR, or pay at the counter.</p>
             </details>
             <details class="faq-item">
                 <summary>How does QR code payment work?</summary>
-                <p>During checkout, the court owner's verified QR code is displayed. Scan it with your digital wallet (Khalti, eSewa, IME Pay, or mobile banking) and approve the amount. Your booking status updates automatically.</p>
+                <p>Scan the venue's QR with Khalti, eSewa, IME Pay, or mobile banking. Status updates automatically.</p>
             </details>
             <details class="faq-item">
                 <summary>Are digital payments secure?</summary>
-                <p>Yes. QR payments happen inside your bank or wallet app. GoalSpace never stores your payment credentials or PINs.</p>
+                <p>Yes. QR payments happen in your bank or wallet app. We never store your credentials.</p>
             </details>
             <details class="faq-item">
                 <summary>Where can I find my receipt?</summary>
@@ -147,7 +150,7 @@ require __DIR__ . '/../includes/header.php';
             </details>
             <details class="faq-item">
                 <summary>How do promo codes work?</summary>
-                <p>In your manager portal, open Promos to create percentage or fixed discounts for filling quiet hours.</p>
+                <p>Open Promos to create percentage or fixed discounts.</p>
             </details>
         </div>
     </div>
@@ -159,12 +162,8 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="faq-group-body">
             <details class="faq-item">
-                <summary>How does location sorting work?</summary>
-                <p>When enabled, your browser calculates distances to nearby courts. Your location is never stored on our servers.</p>
-            </details>
-            <details class="faq-item">
                 <summary>Can I install GoalSpace as an app?</summary>
-                <p>Yes. On Android Chrome, tap menu and select "Install app". On iPhone Safari, tap Share and "Add to Home Screen".</p>
+                <p>Android Chrome: menu → Install app. iPhone Safari: Share → Add to Home Screen.</p>
             </details>
             <details class="faq-item">
                 <summary>How do I contact support?</summary>

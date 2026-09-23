@@ -22,16 +22,29 @@ if (rate_limit_exceeded('book:' . ($_SESSION['user_id'] ?? client_ip()), 5, 60))
 
 $ground_id = (int)($_POST['ground_id'] ?? 0);
 $booking_date = $_POST['booking_date'] ?? '';
-$slot = $_POST['selected_slot'] ?? '';
 
-$parts = explode('|', $slot);
-$start_time = $parts[0] ?? '';
-$end_time = $parts[1] ?? '';
+// Free-form pickers (start_time/end_time) or legacy selected_slot "HH:MM:SS|HH:MM:SS".
+$start_time = trim((string)($_POST['start_time'] ?? ''));
+$end_time = trim((string)($_POST['end_time'] ?? ''));
+if ($start_time === '' || $end_time === '') {
+    $parts = explode('|', (string)($_POST['selected_slot'] ?? ''));
+    if (count($parts) === 2) {
+        $start_time = $parts[0];
+        $end_time = $parts[1];
+    }
+}
+// Accept HH:MM from <input type="time"> as well as HH:MM:SS.
+if (preg_match('/^\d{2}:\d{2}$/', $start_time)) {
+    $start_time .= ':00';
+}
+if (preg_match('/^\d{2}:\d{2}$/', $end_time)) {
+    $end_time .= ':00';
+}
 
 $errors = [];
 
 if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) || !preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
-    $errors[] = ['what' => 'Please select a time slot.'];
+    $errors[] = ['what' => 'Please choose a start and end time.'];
 }
 if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
     if ($end_time <= $start_time) {
@@ -106,15 +119,25 @@ if (!$ground) {
     ];
 }
 
-// Validate slot against court hours/interval (prevents 00:00/23:59 POST forgery).
+// Validate free-form window against court hours + interval (prevents 00:00/23:59 POST forgery).
 if (!$errors) {
-    $validSlots = slots_for_day($booking_date, $ground_id);
-    $slotOk = false;
-    foreach ($validSlots as $vs) {
-        if ($vs['start'] === $start_time && $vs['end'] === $end_time) { $slotOk = true; break; }
+    $ss = ground_slot_settings($ground_id);
+    $openT = $ss['open_time'];
+    $closeT = $ss['close_time'];
+    if (strlen($openT) === 5) {
+        $openT .= ':00';
     }
-    if (!$slotOk) {
+    if (strlen($closeT) === 5) {
+        $closeT .= ':00';
+    }
+    $interval = max(15, (int)$ss['slot_interval']);
+    $durMin = (strtotime($booking_date . ' ' . $end_time) - strtotime($booking_date . ' ' . $start_time)) / 60;
+    if ($start_time < $openT || $end_time > $closeT) {
         $errors[] = ['what' => 'That time is outside this court\'s opening hours.'];
+    } elseif ($durMin < $interval) {
+        $errors[] = ['what' => 'Minimum booking is ' . $interval . ' minutes.'];
+    } elseif ($durMin > 480) {
+        $errors[] = ['what' => 'Maximum booking length is 8 hours.'];
     }
 }
 
@@ -122,11 +145,32 @@ if (!$errors && date_is_blocked($ground_id, $booking_date)) {
     $errors[] = ['what' => 'This court is closed on that day.'];
 }
 
+// Range conflict: any non-cancelled booking that overlaps [start, end).
 if (!$errors) {
-    if (slot_is_taken($ground_id, $booking_date, $start_time)) {
-        $errors[] = ['what' => 'That time slot was just taken.'];
-    } elseif (is_slot_held($ground_id, $booking_date, $start_time, (int)$_SESSION['user_id'])) {
-        $errors[] = ['what' => 'Another player is currently checking out this slot. Try again in a couple of minutes.'];
+    $ov = $conn->prepare(
+        'SELECT id FROM bookings
+         WHERE ground_id = ? AND booking_date = ? AND status != "cancelled"
+           AND start_time < ? AND end_time > ?'
+    );
+    $ov->bind_param('isss', $ground_id, $booking_date, $end_time, $start_time);
+    $ov->execute();
+    if ($ov->get_result()->num_rows > 0) {
+        $errors[] = ['what' => 'That time overlaps an existing booking.'];
+    }
+}
+// Live hold whose start falls inside the requested window (other user).
+if (!$errors) {
+    cleanup_expired_slot_holds();
+    $hv = $conn->prepare(
+        'SELECT id FROM slot_holds
+         WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()
+           AND start_time >= ? AND start_time < ?'
+    );
+    $holdUid = (int)($_SESSION['user_id'] ?? 0);
+    $hv->bind_param('isiss', $ground_id, $booking_date, $holdUid, $start_time, $end_time);
+    $hv->execute();
+    if ($hv->get_result()->num_rows > 0) {
+        $errors[] = ['what' => 'Another player is currently checking out this time. Try again in a couple of minutes.'];
     }
 }
 
@@ -166,7 +210,14 @@ for ($w = 0; $w < $repeat_weeks; $w++) {
     if ($week_date < date('Y-m-d') || date_is_blocked($ground_id, $week_date)) {
         continue;
     }
-    if (slot_is_taken($ground_id, $week_date, $start_time)) {
+    $wOv = $conn->prepare(
+        'SELECT id FROM bookings
+         WHERE ground_id = ? AND booking_date = ? AND status != "cancelled"
+           AND start_time < ? AND end_time > ?'
+    );
+    $wOv->bind_param('isss', $ground_id, $week_date, $end_time, $start_time);
+    $wOv->execute();
+    if ($wOv->get_result()->num_rows > 0) {
         $skipped[] = date('M j', strtotime($week_date));
         continue;
     }

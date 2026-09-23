@@ -151,7 +151,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2>Manager Dashboard</h2>
+    <h1 class="page-title">Manager Dashboard</h1>
     <div class="actions">
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> All Bookings</a>
@@ -277,23 +277,23 @@ require __DIR__ . '/../includes/header.php';
                 <?php foreach ($groundSummary as $gs): ?>
                     <?php $gross = (float)$gs['gross']; $fee = platform_fee_amount($gross); ?>
                     <tr>
-                        <td class="strong"><?php echo e($gs['name']); ?></td>
-                        <td class="num"><?php echo (int)$gs['booking_count']; ?></td>
-                        <td class="num"><?php echo (int)$gs['paid_count']; ?></td>
-                        <td class="num"><?php echo format_price($gross); ?></td>
-                        <td class="num"><?php echo format_price($fee); ?>
+                        <td class="strong" data-label="Ground"><?php echo e($gs['name']); ?></td>
+                        <td class="num" data-label="Bookings"><?php echo (int)$gs['booking_count']; ?></td>
+                        <td class="num" data-label="Paid"><?php echo (int)$gs['paid_count']; ?></td>
+                        <td class="num" data-label="Gross Revenue"><?php echo format_price($gross); ?></td>
+                        <td class="num" data-label="Platform Fee"><?php echo format_price($fee); ?>
                             <span class="muted" style="font-size:11px">(<?php echo (int)platform_fee_percent(); ?>%)</span>
                         </td>
-                        <td class="num strong"><?php echo format_price(manager_payout($gross)); ?></td>
+                        <td class="num strong" data-label="Your Payout"><?php echo format_price(manager_payout($gross)); ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <tr class="table-total">
-                    <td class="strong">Total</td>
-                    <td class="num"><?php echo (int)array_sum(array_column($groundSummary, 'booking_count')); ?></td>
-                    <td class="num"><?php echo (int)array_sum(array_column($groundSummary, 'paid_count')); ?></td>
-                    <td class="num"><?php echo format_price($grossTotal); ?></td>
-                    <td class="num"><?php echo format_price($platformFeeTotal); ?></td>
-                    <td class="num strong"><?php echo format_price($payoutTotal); ?></td>
+                    <td class="strong" data-label="Total">Total</td>
+                    <td class="num" data-label="Bookings"><?php echo (int)array_sum(array_column($groundSummary, 'booking_count')); ?></td>
+                    <td class="num" data-label="Paid"><?php echo (int)array_sum(array_column($groundSummary, 'paid_count')); ?></td>
+                    <td class="num" data-label="Gross Revenue"><?php echo format_price($grossTotal); ?></td>
+                    <td class="num" data-label="Platform Fee"><?php echo format_price($platformFeeTotal); ?></td>
+                    <td class="num strong" data-label="Your Payout"><?php echo format_price($payoutTotal); ?></td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -351,11 +351,11 @@ require __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <?php foreach ($settlements as $s): ?>
                     <tr>
-                        <td><?php echo e(date('M j, Y', strtotime($s['period_start']))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($s['period_end']))); ?></td>
-                        <td class="num"><?php echo format_price((float)$s['gross']); ?></td>
-                        <td class="num"><?php echo format_price((float)$s['fee']); ?></td>
-                        <td class="num strong"><?php echo format_price((float)$s['payout']); ?></td>
-                        <td>
+                        <td data-label="Period"><?php echo e(date('M j, Y', strtotime($s['period_start']))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($s['period_end']))); ?></td>
+                        <td class="num" data-label="Gross Revenue"><?php echo format_price((float)$s['gross']); ?></td>
+                        <td class="num" data-label="Platform Fee"><?php echo format_price((float)$s['fee']); ?></td>
+                        <td class="num strong" data-label="Your Payout"><?php echo format_price((float)$s['payout']); ?></td>
+                        <td data-label="Status">
                             <?php if ($s['paid_at']): ?>
                                 <span class="badge badge-confirmed">Paid <?php echo e(date('M j, Y', strtotime($s['paid_at']))); ?></span>
                             <?php else: ?>

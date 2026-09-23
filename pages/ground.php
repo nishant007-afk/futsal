@@ -144,11 +144,14 @@ require __DIR__ . '/../includes/header.php';
 ?>
 <?php echo $json_ld; // JSON-LD structured data ?>
 <div class="container">
-<nav class="breadcrumb">
-    <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
-    <a href="<?php echo grounds_list_url(); ?>">Grounds</a> &nbsp;/&nbsp;
-    <span><?php echo e($ground['name']); ?></span>
-</nav>
+<div class="title-back-row" style="margin-bottom:12px;">
+    <a href="<?php echo grounds_list_url(); ?>" class="page-back-arrow" data-back aria-label="Back to courts"><i class="fa-solid fa-arrow-left"></i></a>
+    <nav class="breadcrumb">
+        <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
+        <a href="<?php echo grounds_list_url(); ?>">Courts</a> &nbsp;/&nbsp;
+        <span><?php echo e($ground['name']); ?></span>
+    </nav>
+</div>
 
 <?php if (is_demo_ground($ground)): ?>
     <div class="notice">
@@ -247,13 +250,6 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="detail-box booking-panel reveal">
         <span class="book-eyebrow">Book this court</span>
-        <div class="booking-steps" aria-label="Booking progress">
-            <div class="bstep active"><span class="bstep-num">1</span> Select</div>
-            <div class="bstep-line"></div>
-            <div class="bstep"><span class="bstep-num">2</span> Confirm</div>
-            <div class="bstep-line"></div>
-            <div class="bstep"><span class="bstep-num">3</span> Pay</div>
-        </div>
         <?php
         $discPrice = $ground['discount_price'] ?? null;
         $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);
@@ -261,15 +257,22 @@ require __DIR__ . '/../includes/header.php';
         ?>
         <p class="price-line">
             <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
-            <strong>Rs <?php echo number_format($price, 0); ?></strong> per hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend rate</span>' : ''; ?>
+            <strong>Rs <?php echo number_format($price, 0); ?></strong> / hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend</span>' : ''; ?>
         </p>
-        <p class="slot-meta"><?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots · Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?></p>
 
-        <div class="date-chips-wrap mb-12">
-            <div class="date-chips-label text-xs muted font-semibold mb-6">Quick Date</div>
+        <div class="bp-section">
+            <div class="bp-label-row">
+                <span class="bp-label">Date</span>
+                <form method="get" action="" class="bp-date-form">
+                    <input type="hidden" name="id" value="<?php echo (int)$ground['id']; ?>">
+                    <label class="visually-hidden" for="bookingDate">Choose another date</label>
+                    <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" max="<?php echo e(date('Y-m-d', strtotime('+60 days'))); ?>">
+                </form>
+            </div>
             <div class="date-chips" role="tablist" aria-label="Select date">
                 <?php
-                for ($d = 0; $d < 7; $d++):
+                // Quick picks: next 5 days only — use the calendar for anything later.
+                for ($d = 0; $d < 5; $d++):
                     $chipTs = strtotime("+$d day");
                     $chipDate = date('Y-m-d', $chipTs);
                     $chipActive = ($chipDate === $selected_date);
@@ -287,70 +290,110 @@ require __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
-        <form method="get" action="" class="date-picker-form mb-14">
-            <input type="hidden" name="id" value="<?php echo (int)$ground['id']; ?>">
-            <div class="form-group mb-0">
-                <label for="bookingDate" class="text-xs muted">Or choose specific date</label>
-                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" onchange="this.form.submit()">
-            </div>
-        </form>
-
         <?php if ($is_blocked): ?>
             <div class="role-lock">
                 <i class="fa-solid fa-ban"></i>
-                <span>The court is closed on <strong><?php echo e(date('D, M j', strtotime($selected_date))); ?></strong>. Pick another day.</span>
+                <span>Closed on <strong><?php echo e(date('D, M j', strtotime($selected_date))); ?></strong> — pick another day.</span>
             </div>
         <?php else: ?>
-            <p class="slot-hint" id="priceHint">Choose an hour that works for your team</p>
-            <div class="slot-grid" id="slotGrid">
-                <?php foreach ($slots as $slot): ?>
-                    <?php $isTaken = in_array($slot['start'], $taken, true); ?>
-                    <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
-                         data-start="<?php echo e($slot['start']); ?>"
-                         data-end="<?php echo e($slot['end']); ?>"
-                         data-label="<?php echo e($slot['label']); ?>"
-                         data-price="<?php echo 'Rs ' . number_format($price, 0); ?>" <?php echo $isTaken ? 'disabled' : ''; ?>>
-                        <?php echo e($slot['label']); ?>
-                    </button>
-                <?php endforeach; ?>
-            </div>
+            <?php
+            $slotSet = ground_slot_settings((int)$ground['id']);
+            $openHM = substr((string)$slotSet['open_time'], 0, 5);
+            $closeHM = substr((string)$slotSet['close_time'], 0, 5);
+            $openEndHM = $openHM;
+            $closeStartHM = $closeHM;
+            // Earliest end = open + interval; latest start = close − interval.
+            $iv = max(15, (int)$slotSet['slot_interval']);
+            $openM = (int)substr($openHM, 0, 2) * 60 + (int)substr($openHM, 3, 2);
+            $closeM = (int)substr($closeHM, 0, 2) * 60 + (int)substr($closeHM, 3, 2);
+            $openEndHM = sprintf('%02d:%02d', intdiv($openM + $iv, 60) % 24, ($openM + $iv) % 60);
+            $closeStartHM = sprintf('%02d:%02d', intdiv($closeM - $iv, 60), ($closeM - $iv) % 60);
 
-            <?php echo cancellation_policy_html(); ?>
-            <form method="post" action="<?php echo base_url('pages/book.php'); ?>">
+            // Busy ranges (active bookings + other users' live holds) — display only.
+            $busyRanges = [];
+            $bs = $conn->prepare('SELECT start_time, end_time FROM bookings WHERE ground_id = ? AND booking_date = ? AND status != "cancelled"');
+            $bs->bind_param('is', $ground['id'], $selected_date);
+            $bs->execute();
+            $br = $bs->get_result();
+            while ($row = $br->fetch_assoc()) {
+                $busyRanges[] = [substr($row['start_time'], 0, 5), substr($row['end_time'], 0, 5)];
+            }
+            $hs = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
+            $hs->bind_param('isi', $ground['id'], $selected_date, $curUid);
+            $hs->execute();
+            $hr = $hs->get_result();
+            while ($row = $hr->fetch_assoc()) {
+                $hsM = (int)substr($row['start_time'], 0, 2) * 60 + (int)substr($row['start_time'], 3, 2);
+                $busyRanges[] = [
+                    substr($row['start_time'], 0, 5),
+                    sprintf('%02d:%02d', intdiv(min($closeM, $hsM + $iv), 60), min($closeM, $hsM + $iv) % 60),
+                ];
+            }
+            ?>
+            <form method="post" action="<?php echo base_url('pages/book.php'); ?>" class="bp-cta-form">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
                 <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
                 <input type="hidden" name="selected_slot" id="selectedSlot" value="">
+                <div class="bp-section bp-time-section">
+                    <div class="bp-label-row">
+                        <span class="bp-label">Select Slot</span>
+                        <span class="bp-label-hint" id="priceHint" data-hourly="<?php echo (float)$price; ?>">Tap an available hour</span>
+                    </div>
+                    <div class="slot-grid" id="slotGrid">
+                        <?php foreach ($slots as $slot): ?>
+                            <?php $isTaken = in_array($slot['start'], $taken, true); ?>
+                            <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
+                                 data-start="<?php echo e($slot['start']); ?>"
+                                 data-end="<?php echo e($slot['end']); ?>"
+                                 data-label="<?php echo e($slot['label']); ?>"
+                                 data-price="Rs <?php echo number_format($price, 0); ?>"
+                                 <?php echo $isTaken ? 'disabled aria-disabled="true"' : 'aria-pressed="false"'; ?>>
+                                <?php echo e($slot['label']); ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <input type="hidden" id="startTime" name="start_time" value="">
+                    <input type="hidden" id="endTime" name="end_time" value="">
+                </div>
                 <?php if (!is_logged_in()): ?>
+                    <?php
+                    // Preserve this court/date so login returns here.
+                    $returnTo = 'pages/ground.php?id=' . (int)$ground['id'];
+                    if (!empty($selected_date)) {
+                        $returnTo .= '&date=' . rawurlencode((string)$selected_date);
+                    }
+                    $_SESSION['return_path'] = $returnTo;
+                    ?>
                     <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
                 <?php else: ?>
                     <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn">Reserve this slot</button>
                     <?php if (!is_player()): ?>
-                        <p class="text-xs muted text-center mt-6">
-                            <i class="fa-solid fa-circle-info"></i> Signed in as <?php echo e(ucfirst($site_user['role'])); ?> (testing/personal reservation)
+                        <p class="bp-role-note">
+                            <i class="fa-solid fa-circle-info"></i> Signed in as <?php echo e(ucfirst($site_user['role'])); ?>
                         </p>
                     <?php endif; ?>
                 <?php endif; ?>
             </form>
+            <p class="bp-policy">Free cancel up to 24h before · <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" class="inline-link">terms</a></p>
 
             <?php
             $takenSlots = array_values(array_filter($slots, fn($s) => in_array($s['start'], $taken, true)));
             if ($takenSlots && (is_logged_in())): ?>
                 <div class="waitlist-box">
-                    <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Sold out? Join the waitlist</div>
-                    <p class="muted text-xs mb-10">Join a waitlist and we'll ping you the moment a slot frees up.</p>
+                    <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Slot full? Join waitlist</div>
                     <div class="waitlist-list">
                         <?php foreach ($takenSlots as $ts): ?>
                             <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
                             <?php $joined = is_logged_in() && on_waitlist((int)$ground['id'], $selected_date, $ts['start'], (int)$site_user['id']); ?>
-<form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
+                            <form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
                                 <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
                                 <input type="hidden" name="selected_slot" value="<?php echo e($ts['start'] . '|' . $ts['end']); ?>">
                                 <button type="submit" name="join_waitlist" value="1" class="waitlist-row <?php echo $joined ? 'joined' : ''; ?>" <?php echo $joined ? 'disabled' : ''; ?>>
                                     <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e($ts['label']); ?></span>
-                                    <span class="wl-info"><?php echo $joined ? 'You\'re in line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
+                                    <span class="wl-info"><?php echo $joined ? 'In line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
                                     <span class="wl-btn"><i class="fa-solid <?php echo $joined ? 'fa-check' : 'fa-plus'; ?>"></i></span>
                                 </button>
                             </form>

@@ -1,13 +1,14 @@
 /* GoalSpace service worker: enables install-as-app and a basic offline shell. */
 'use strict';
 
-const CACHE = 'goalspace-v4';
+const CACHE = 'goalspace-v5';
 
 // Core styles/scripts used on every page plus the offline shell, manifest and
 // icons so the installed app can open and render even fully offline. HTML
 // pages are never precached because they can contain personalized data.
 const PRECACHE = [
   './assets/css/style.css',
+  './assets/vendor/fontawesome/css/all.min.css',
   './assets/js/core.js',
   './assets/img/favicon.svg',
   './offline.html',

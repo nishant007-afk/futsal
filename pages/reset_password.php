@@ -51,12 +51,11 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="auth-wrap">
 <div class="auth-card form-card">
-    <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
-        <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
-        <span class="auth-brand-name">GoalSpace</span>
-    </a>
     <div class="auth-topline">
-        <h1>Choose a new password</h1>
+        <div class="title-back-row">
+            <a href="<?php echo base_url('pages/forgot_password.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Choose a new password</h1>
+        </div>
         <p>Enter a new password for your account below.</p>
     </div>
     <?php if (!empty($errors['general'])): ?>

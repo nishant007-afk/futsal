@@ -101,7 +101,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head">
     <div class="title-back-row">
         <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>My Promo Codes</h2>
+        <h1 class="page-title">My Promo Codes</h1>
     </div>
 </div>
 
@@ -176,12 +176,12 @@ require __DIR__ . '/../includes/header.php';
                     $maxed = $p['max_uses'] > 0 && (int)$p['used_count'] >= (int)$p['max_uses'];
                     ?>
                     <tr>
-                        <td class="strong"><span class="promo-chip"><?php echo e($p['code']); ?></span></td>
-                        <td class="num"><?php echo $p['discount_type'] === 'percent' ? number_format((float)$p['discount_value'], 0) . '% off' : 'Rs ' . number_format((float)$p['discount_value'], 0) . ' off'; ?></td>
-                        <td class="num"><?php echo (float)$p['min_total'] > 0 ? 'Rs ' . number_format((float)$p['min_total'], 0) : '-'; ?></td>
-                        <td class="num"><?php echo (int)$p['used_count']; ?><?php echo $p['max_uses'] > 0 ? ' / ' . (int)$p['max_uses'] : ' / ∞'; ?></td>
-                        <td><?php echo $p['expires_at'] ? 'until ' . e(date('M j, Y', strtotime($p['expires_at']))) : 'no expiry'; ?></td>
-                        <td>
+                        <td class="strong" data-label="Code"><span class="promo-chip"><?php echo e($p['code']); ?></span></td>
+                        <td class="num" data-label="Discount"><?php echo $p['discount_type'] === 'percent' ? number_format((float)$p['discount_value'], 0) . '% off' : 'Rs ' . number_format((float)$p['discount_value'], 0) . ' off'; ?></td>
+                        <td class="num" data-label="Min booking"><?php echo (float)$p['min_total'] > 0 ? 'Rs ' . number_format((float)$p['min_total'], 0) : '-'; ?></td>
+                        <td class="num" data-label="Uses"><?php echo (int)$p['used_count']; ?><?php echo $p['max_uses'] > 0 ? ' / ' . (int)$p['max_uses'] : ' / ∞'; ?></td>
+                        <td data-label="Valid"><?php echo $p['expires_at'] ? 'until ' . e(date('M j, Y', strtotime($p['expires_at']))) : 'no expiry'; ?></td>
+                        <td data-label="Status">
                             <?php if ($expired || $maxed): ?>
                                 <span class="badge badge-cancelled"><?php echo $expired ? 'Expired' : 'Maxed'; ?></span>
                             <?php elseif ((int)$p['is_active'] === 1): ?>
@@ -190,7 +190,7 @@ require __DIR__ . '/../includes/header.php';
                                 <span class="badge badge-pending">Paused</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="">
                             <div class="row-actions">
                                 <?php echo post_action_form(base_url('manager/promos.php'), 'toggle_promo', (string)(int)$p['id'], '<i class="fa-solid ' . ((int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play') . '"></i>', 'btn btn-outline btn-xs', '', 'Toggle active'); ?>
                                 <?php echo post_action_form(base_url('manager/promos.php'), 'delete_promo', (string)(int)$p['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-xs', 'Delete this promo code?', 'Delete promo'); ?>

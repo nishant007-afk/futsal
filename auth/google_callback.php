@@ -146,8 +146,17 @@ if ($existing) {
 
     $returnPath = $_SESSION['return_path'] ?? '';
     unset($_SESSION['return_path']);
-    if ($returnPath !== '' && $returnPath !== 'index.php') {
-        $finish($returnPath);
+    if (is_string($returnPath) && $returnPath !== '' && $returnPath !== 'index.php') {
+        if ($returnPath[0] !== '/') {
+            $returnPath = '/' . ltrim($returnPath, '/');
+        }
+        if ($returnPath[0] === '/'
+            && (!isset($returnPath[1]) || $returnPath[1] !== '/')
+            && !preg_match('#^//[^/]#', $returnPath)
+            && preg_match('#^/(pages|admin|manager|ajax|auth|index\.php)#', $returnPath)
+        ) {
+            $finish(ltrim($returnPath, '/'));
+        }
     }
 
     $finish('index.php');

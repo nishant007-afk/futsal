@@ -79,7 +79,14 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <?php if ($b['status'] === 'confirmed'): ?>
+    <?php if (($b['status'] === 'confirmed' || $b['status'] === 'pending') && (($_GET['paid'] ?? '') === '1')): ?>
+        <div class="notice bd-notice notice-success mb-14">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><strong>Payment details submitted.</strong> The court will confirm verification shortly — your slot stays reserved.</span>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($b['status'] === 'confirmed' || $b['status'] === 'pending'): ?>
         <div class="step-note bd-note <?php echo $b['payment_status'] === 'paid' ? 'success' : ($b['payment_status'] === 'partial' ? '' : 'urgent'); ?>">
             <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : 'lightbulb'; ?>"></i>
             <?php if ($me['role'] === 'user'): ?>
@@ -183,10 +190,8 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="bd-actions">
         <?php if ($me['role'] === 'user'): ?>
-            <?php if ($b['payment_status'] === 'paid'): ?>
-                <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-file-invoice-dollar"></i> Receipt</a>
-            <?php endif; ?>
-            <?php if ($b['status'] === 'confirmed'): ?>
+            <a href="<?php echo base_url('pages/receipt.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-file-invoice-dollar"></i> Receipt</a>
+            <?php if ($b['status'] === 'confirmed' || $b['status'] === 'pending'): ?>
                 <a href="<?php echo base_url('pages/reschedule.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-arrows-rotate"></i> Reschedule</a>
                 <a href="<?php echo base_url('pages/booking_ics.php?id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-plus"></i> Add to Calendar</a>
                 <?php if ((int)$b['repeat_weeks'] > 1): ?>
@@ -197,7 +202,7 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         <?php elseif ($me['role'] === 'manager' && $b['status'] !== 'cancelled'): ?>
             <?php if ($b['payment_status'] !== 'paid'): ?>
-                <?php echo post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'btn btn-outline', 'Mark this booking as paid (paid at court)?', 'Mark paid'); ?>
+                <?php echo post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'btn btn-outline', 'Mark this booking as paid (verified at court)?', 'Mark paid'); ?>
             <?php endif; ?>
             <?php echo post_action_form(base_url('manager/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
         <?php elseif ($me['role'] === 'admin' && $b['status'] !== 'cancelled'): ?>

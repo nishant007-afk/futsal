@@ -207,7 +207,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $reschedUser['name'] ?? ''
             );
         }
-        set_flash('success', 'Your booking was rescheduled. Check the new details below.');
+
+        // Notify the court manager so the schedule change is visible to staff.
+        $mgrStmt = $conn->prepare(
+            'SELECT g.manager_id FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE b.id = ?'
+        );
+        $mgrStmt->bind_param('i', $booking_id);
+        $mgrStmt->execute();
+        $mgrRow = $mgrStmt->get_result()->fetch_assoc();
+        if ($mgrRow && (int)$mgrRow['manager_id'] > 0) {
+            notify_user(
+                (int)$mgrRow['manager_id'],
+                'Booking rescheduled by player',
+                $booking['ground_name'] . ' &middot; ' . date('D, M j', strtotime($new_date)) . ' ' . substr($start_time, 0, 5)
+                    . ' (was ' . date('D, M j', strtotime($old_date)) . ' ' . substr($old_start, 0, 5) . ')',
+                'fa-arrows-rotate',
+                'pages/booking_details.php?id=' . $booking_id
+            );
+        }
+
+        set_flash('success', 'Your booking was rescheduled. The court has been notified of the new time.');
         redirect('pages/my_bookings.php');
     } else {
         $conn->rollback();
@@ -244,7 +263,7 @@ require __DIR__ . '/../includes/header.php';
         <form method="get" action="">
             <div class="form-group">
                 <label for="bookingDate">Pick a new day</label>
-                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" max="<?php echo e(date('Y-m-d', strtotime('+60 days'))); ?>">
             </div>
         </form>
 

@@ -1,24 +1,8 @@
     </main>
 
 <?php
-$scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
 $active = basename($_SERVER['SCRIPT_NAME']);
-$isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf.php', 'book.php'], true)
-    || in_array($scriptDir, ['manager', 'admin'], true);
 ?>
-<?php if ($isAppOrCheckout): ?>
-<footer class="site-footer-compact">
-    <div class="container footer-compact-inner">
-        <p>&copy; <?php echo date('Y'); ?> GoalSpace. All rights reserved.</p>
-        <p>
-            <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy</a> &middot;
-            <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms</a> &middot;
-            <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help</a> &middot;
-            <a href="<?php echo base_url('pages/faq.php'); ?>">FAQ</a>
-        </p>
-    </div>
-</footer>
-<?php else: ?>
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
@@ -31,9 +15,9 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 
         <div class="footer-col">
             <h4>Players</h4>
-            <a href="<?php echo grounds_list_url(); ?>">Browse grounds</a>
+            <a href="<?php echo grounds_list_url(); ?>">Browse courts</a>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>">My bookings</a>
-            <a href="<?php echo base_url('pages/register.php'); ?>">Become a member</a>
+            <a href="<?php echo base_url('pages/register.php'); ?>">Create an account</a>
         </div>
 
         <div class="footer-col">
@@ -72,7 +56,6 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
         </div>
     </div>
 </footer>
-<?php endif; ?>
 
 <?php if (!is_logged_in()): ?>
 <!-- Cookie consent for guests only -->
@@ -90,7 +73,8 @@ $isAppOrCheckout = in_array($active, ['payment.php', 'receipt.php', 'receipt_pdf
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=85'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=86'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/modules/ui.js?v=1'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];
@@ -110,7 +94,7 @@ if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
     $pageModules[] = 'manager';
 }
 foreach ($pageModules as $module) {
-    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=2') . '" defer></script>' . "\n";
+    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=4') . '" defer></script>' . "\n";
 }
 ?>
 </body>

@@ -51,7 +51,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<main class="page">
+<div class="admin-page-body">
 <div class="admin-legal-edit-card">
     <form method="post" action="" class="admin-legal-form">
         <?php echo csrf_field(); ?>
@@ -82,7 +82,7 @@ require __DIR__ . '/../includes/header.php';
     </form>
     <p class="muted small">Tip: <code>&lt;p&gt;</code>, <code>&lt;h2&gt;</code>, <code>&lt;ul&gt;</code>/<code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;a&gt;</code> are supported.</p>
 </div>
-</main>
+</div>
 
 <script>
 (function () {

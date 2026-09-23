@@ -136,7 +136,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <h2>Manage Users</h2>
+        <h1 class="page-title">Manage Users</h1>
         <div class="actions">
             <a href="<?php echo base_url('admin/users.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
             <a href="<?php echo base_url('admin/users.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
@@ -187,11 +187,11 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
             <?php foreach ($users as $u): ?>
                 <tr>
-                    <td><?php echo e($u['name']); ?></td>
-                    <td><?php echo e($u['email']); ?></td>
-                    <td><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo e($u['role']); ?></span></td>
-                    <td class="num"><?php echo (int)$u['grounds_owned']; ?></td>
-                    <td>
+                    <td data-label="Name"><?php echo e($u['name']); ?></td>
+                    <td data-label="Email"><?php echo e($u['email']); ?></td>
+                    <td data-label="Role"><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo e($u['role']); ?></span></td>
+                    <td class="num" data-label="Grounds Owned"><?php echo (int)$u['grounds_owned']; ?></td>
+                    <td data-label="">
                         <div class="actions">
                             <form method="post" action="" class="role-switch<?php echo (int)$u['id'] === $affectedId ? ' has-error' : ''; ?>" data-role="<?php echo e($u['role']); ?>">
                                 <?php echo csrf_field(); ?>

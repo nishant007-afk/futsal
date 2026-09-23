@@ -6,10 +6,16 @@
 <title>You are offline | GoalSpace</title>
 <style>
   html, body { margin: 0; padding: 0; height: 100%; background: #0a120e; color: #f0f4f1; font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; text-align: center; }
-  .card { padding: 40px 28px; }
+  .card { padding: 40px 28px; max-width: 420px; box-sizing: border-box; }
   img { width: 72px; height: 72px; border-radius: 18px; }
   h1 { font-size: 22px; margin: 20px 0 8px; }
-  p { font-size: 14px; color: #8aa296; line-height: 1.6; margin: 0; }
+  p { font-size: 14px; color: #8aa296; line-height: 1.6; margin: 0 0 24px; }
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+  a.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 12px 20px; border-radius: 8px; font-size: 15px; font-weight: 700; text-decoration: none; }
+  a.btn-primary { background: #16a34a; color: #fff; border: 1px solid #16a34a; cursor: pointer; }
+  a.btn-primary:hover { background: #15803d; }
+  a.btn-ghost { background: transparent; color: #f0f4f1; border: 1px solid rgba(255,255,255,.35); }
+  a.btn-ghost:hover { background: rgba(255,255,255,.08); }
 </style>
 </head>
 <body>
@@ -17,6 +23,13 @@
     <img src="assets/img/icon-192.png" alt="GoalSpace">
     <h1>You're offline</h1>
     <p>Looks like you've lost your connection.<br>Reconnect to book courts and check your games.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="./" onclick="location.reload(); return false;">Try again</a>
+      <a class="btn btn-ghost" href="./">Go home</a>
+    </div>
   </div>
+  <script>
+    window.addEventListener('online', function () { location.reload(); });
+  </script>
 </body>
 </html>

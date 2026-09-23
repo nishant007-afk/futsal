@@ -47,15 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
         roleSelect.addEventListener('click', syncGoogleRole);
     }
 
-    const signupIntroToggle = document.getElementById('signupIntroToggle');
-    const signupIntroDetails = document.getElementById('signupIntroDetails');
-    if (signupIntroToggle && signupIntroDetails) {
-        signupIntroToggle.addEventListener('click', function () {
-            const open = signupIntroDetails.classList.toggle('open');
-            signupIntroToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-    }
-
     document.querySelectorAll('a.btn-google[href*="login_google"]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();

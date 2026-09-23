@@ -133,34 +133,17 @@ if (!empty($pending['email'])) {
     ?>
     <div class="auth-wrap">
     <div class="auth-card form-card">
-        <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
-            <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
-            <span class="auth-brand-name">GoalSpace</span>
-        </a>
         <div class="auth-topline">
-            <h1>Reset your password</h1>
-            <p>Enter the 6-digit reset code sent to <strong><?php echo e($resetEmail); ?></strong> from <strong><?php echo e($senderEmail); ?></strong>.</p>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1>Reset your password</h1>
+            </div>
+            <p>Enter the 6-digit reset code sent to <strong><?php echo e($resetEmail); ?></strong>.</p>
         </div>
 
         <?php if (!empty($errors['general'])): ?>
             <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
         <?php endif; ?>
-
-        <div class="otp-hint-card">
-            <div class="otp-hint-header" onclick="this.parentElement.classList.toggle('expanded')" role="button" tabindex="0">
-                <i class="fa-solid fa-circle-question"></i>
-                <span>Not seeing the email from <?php echo e($senderEmail); ?>?</span>
-                <i class="fa-solid fa-chevron-down otp-hint-chevron"></i>
-            </div>
-            <div class="otp-hint-body">
-                <ul>
-                    <li>Check your <strong>Spam / Junk</strong> or <strong>Promotions</strong> folder.</li>
-                    <li>Search your inbox for <code>from:<?php echo e($senderEmail); ?></code> or <code>GoalSpace</code>.</li>
-                    <li>Mark the email as <em>Not Spam</em> so future codes land in your inbox.</li>
-                    <li>Confirm that your email <strong><?php echo e($resetEmail); ?></strong> is spelled correctly.</li>
-                </ul>
-            </div>
-        </div>
 
         <form method="post" action="" novalidate id="otpForm">
             <?php echo csrf_field(); ?>
@@ -230,19 +213,18 @@ if (!empty($pending['email'])) {
 // -------------------------------------------------------------
 $emailVal = trim($_POST['email'] ?? '');
 
-$page_title = 'Forgot Password';
+$page_title = 'Reset Password';
 $page_description = 'Reset your GoalSpace password safely. Enter your email and we\'ll send you a link to get back into your account.';
 require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="auth-wrap">
     <div class="auth-card form-card">
-        <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
-            <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
-            <span class="auth-brand-name">GoalSpace</span>
-        </a>
         <div class="auth-topline">
-            <h1>Forgot your password?</h1>
+            <div class="title-back-row">
+                <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+                <h1>Reset password</h1>
+            </div>
             <p>Enter the email on your account and we'll send you a 6-digit reset code.</p>
         </div>
         <?php if (!empty($errors['general'])): ?>

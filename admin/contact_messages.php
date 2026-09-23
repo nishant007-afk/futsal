@@ -94,7 +94,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <h2>Contact Messages</h2>
+        <h1 class="page-title">Contact Messages</h1>
         <div class="actions">
             <a href="?filter=all&export=1" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
             <a href="?filter=all" class="btn btn-outline btn-sm <?php echo $filter === 'all' ? 'btn-primary' : ''; ?>">All (<?php echo count($messages); ?>)</a>

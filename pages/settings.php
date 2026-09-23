@@ -47,7 +47,7 @@ require __DIR__ . '/../includes/header.php';
                 <p class="stg-content-desc">Manage your password and account security.</p>
                 <div class="stg-content-row">
                     <span class="stg-content-label">Password</span>
-                    <span class="stg-content-value">Last changed: unknown</span>
+                    <span class="stg-content-value">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                     <a href="<?php echo base_url('pages/security.php'); ?>" class="btn btn-outline btn-sm">Change</a>
                 </div>
             </div>

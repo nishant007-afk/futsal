@@ -12,6 +12,7 @@ $suspended = false;
 $suspendedEmail = '';
 $failuresLeft = null;
 $errorTitle = 'Login failed';
+$showTimeout = isset($_GET['timeout']) && $_GET['timeout'] === '1';
 
 if (isset($_SESSION['login_lock']) && is_array($_SESSION['login_lock'])) {
     $ll = $_SESSION['login_lock'];
@@ -103,8 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $returnPath = $_SESSION['return_path'] ?? '';
                 unset($_SESSION['return_path']);
-                if ($returnPath !== '') {
-                    redirect($returnPath);
+                // Normalize + only honor same-site app paths (blocks open redirects).
+                if (is_string($returnPath) && $returnPath !== '' && $returnPath[0] !== '/') {
+                    $returnPath = '/' . ltrim($returnPath, '/');
+                }
+                if (is_string($returnPath) && $returnPath !== ''
+                    && $returnPath[0] === '/'
+                    && (!isset($returnPath[1]) || $returnPath[1] !== '/')
+                    && !preg_match('#^//[^/]#', $returnPath)
+                    && preg_match('#^/(pages|admin|manager|ajax|auth|index\.php)#', $returnPath)
+                ) {
+                    redirect(ltrim($returnPath, '/'));
                 }
                 if ($user['role'] === 'admin') {
                     redirect('admin/dashboard.php');
@@ -149,36 +159,6 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="signup-shell">
-    <section class="signup-intro">
-        <h1>Welcome back to GoalSpace</h1>
-        <p class="lead">Pick up right where you left off. Your courts, bookings and stats are waiting.</p>
-        <div class="signup-intro-details">
-            <ul class="benefit-list">
-                <li>
-                    <i class="fa-solid fa-calendar-check b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Quick rebook</strong>
-                        <span class="benefit-desc">Jump back into your favourite courts.</span>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-clock-rotate-left b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Booking history</strong>
-                        <span class="benefit-desc">See past games and upcoming slots.</span>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-trophy b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Track progress</strong>
-                        <span class="benefit-desc">See your playing streak and stats.</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </section>
-
     <section class="signup-right">
         <div class="auth-topline">
             <div class="title-back-row">
@@ -228,6 +208,12 @@ require __DIR__ . '/../includes/header.php';
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send to admin</button>
         </form>
     <?php else: ?>
+        <?php if ($showTimeout && empty($errors['general'])): ?>
+            <div class="notice notice-strong" role="status" style="margin-bottom:16px;">
+                <i class="fa-solid fa-clock"></i>
+                <span>Your session expired after 30 minutes of inactivity. Sign in again to continue.</span>
+            </div>
+        <?php endif; ?>
         <?php if (!empty($errors['general'])): ?>
             <div hidden data-error-modal-title="<?php echo e($errorTitle); ?>" data-error-modal-msg="<?php echo e($errors['general']); ?>"></div>
         <?php endif; ?>

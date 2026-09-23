@@ -41,7 +41,7 @@ if (!table_exists('favorites')) {
     echo "Applied: added `favorites` table.\n";
 }
 
-// Backfill coordinates for seeded Kathmandu grounds so near-me sorting works.
+// Backfill coordinates for seeded Kathmandu grounds (map picker / geo display).
 $needsCoords = (int)$conn->query("SELECT COUNT(*) c FROM grounds WHERE latitude IS NULL OR longitude IS NULL")->fetch_assoc()['c'];
 if ($needsCoords > 0) {
     $conn->query(

@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
     $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
     if ($stmt->execute() && $stmt->affected_rows > 0) {
         if ($cancelTarget) {
-            notify_user((int)$cancelTarget['user_id'], 'Booking cancelled by the court', 'The court cancelled your booking. Any advance will be refunded.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $booking_id);
+            notify_user((int)$cancelTarget['user_id'], 'Booking cancelled by the court', 'The court cancelled your booking. Any eligible advance will be refunded after confirmation.', 'fa-circle-xmark', 'pages/booking_details.php?id=' . $booking_id);
             notify_waitlist_freed((int)$cancelTarget['ground_id'], $cancelTarget['booking_date'], $cancelTarget['start_time']);
         }
         set_flash('success', 'Booking cancelled.');
@@ -316,7 +316,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <h2>Bookings on My Grounds</h2>
+        <h1 class="page-title">Bookings on My Grounds</h1>
         <div class="actions">
             <a href="<?php echo base_url('manager/bookings.php?export=1' . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : '')); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
         </div>
@@ -367,8 +367,7 @@ require __DIR__ . '/../includes/header.php';
                 <option value="paid" <?php echo $f_payment === 'paid' ? 'selected' : ''; ?>>Paid</option>
             </select>
         </div>
-<button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
-        <a href="<?php echo base_url('manager/bookings.php?view=' . $view . '&export=1' . ($hasFilters ? '&' . http_build_query(['ground' => $f_ground, 'date_from' => $f_date_from, 'date_to' => $f_date_to, 'status' => $f_status, 'payment' => $f_payment]) : '')); ?>" class="btn btn-outline"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
         <?php endif; ?>

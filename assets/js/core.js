@@ -1,5 +1,5 @@
 /* GoalSpace core.js
-   Shared runtime loaded on every page: skeleton loader, panels, modals,
+   Shared runtime loaded on every page: app loader, panels, modals,
    toasts, top bar, cookie consent, scroll helpers. Page-specific modules
    live in assets/js/modules/ and are loaded only where needed. */
 document.addEventListener('DOMContentLoaded', function () {
@@ -7,22 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         el.setAttribute('aria-invalid', 'true');
     });
 
-    const pageSkeleton = document.getElementById('pageSkeleton');
-    const skeletonMsg = document.getElementById('skeletonMsg');
-    const skeletonMsgText = document.getElementById('skeletonMsgText');
     const appLoader = document.getElementById('appLoader');
-    const alText = document.getElementById('alText');
-    let skeletonShown = false;
-    let skeletonTimers = [];
-    function setSkeletonMsg(text) {
-        if (skeletonMsgText) skeletonMsgText.textContent = text;
-    }
-    function showSkeletonMsg() {
-        if (skeletonMsg) skeletonMsg.classList.add('show');
-    }
-    function hideSkeletonMsg() {
-        if (skeletonMsg) skeletonMsg.classList.remove('show');
-    }
     function showLoader() {
         if (appLoader && !appLoader.classList.contains('active')) {
             appLoader.classList.add('active');
@@ -33,30 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     window.showLoader = showLoader;
     window.hideLoader = hideLoader;
-    function hideSkeleton() {
-        skeletonTimers.forEach(function (t) { clearTimeout(t); });
-        skeletonTimers = [];
-        hideSkeletonMsg();
-        hideLoader();
-        if (pageSkeleton) {
-            pageSkeleton.classList.remove('visible');
-            pageSkeleton.remove();
-        }
-    }
-    // Show skeleton briefly for perceived performance, then reveal content
-    if (pageSkeleton) {
-        pageSkeleton.classList.add('visible');
-        // Auto-dismiss after max 800ms even if load event hasn't fired
-        skeletonTimers.push(setTimeout(hideSkeleton, 800));
-    }
-
-    // Dismiss skeleton once the page fully loads
-    window.addEventListener('load', function () {
-        hideSkeleton();
-    });
-
-    // Safety: dismiss after DOMContentLoaded + 1.5s regardless
-    skeletonTimers.push(setTimeout(hideSkeleton, 1500));
 
     // Viewport-based lazy loading: only load images when the user scrolls near them
     function initLazyImages() {
@@ -781,7 +742,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function dismissToast(t) {
         if (!t || t.classList.contains('hide')) return;
         t.classList.add('hide');
-        setTimeout(function () { t.remove(); removeBackdropIfEmpty(); }, 300);
+        setTimeout(function () {
+            const wrap = t.closest('.top-flash-wrap');
+            t.remove();
+            if (wrap && !wrap.querySelector('.toast')) {
+                wrap.remove();
+            }
+            removeBackdropIfEmpty();
+        }, 260);
     }
     function dismissMsgCard(card) {
         if (!card || card.classList.contains('hide')) return;
@@ -995,18 +963,32 @@ document.addEventListener('DOMContentLoaded', function () {
         const close = t.querySelector('.toast-close');
         if (close) close.addEventListener('click', function () { dismissToast(t); });
         const isError = t.classList.contains('toast-error');
-        const autoDismiss = t.classList.contains('toast-success') || t.classList.contains('toast-info');
         const isInline = t.classList.contains('toast-inline');
         const isTop = t.classList.contains('toast-top') || !!t.closest('.top-flash-wrap');
-        if (isTop) {
-            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 4500);
-        } else if (isInline) {
-            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 3000);
-        } else {
-            if (toasts.length > 1) {
-                t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
+        const hasRichDetail = !!t.querySelector('.toast-why, .toast-how, .toast-fix');
+        const delay = isError ? (hasRichDetail ? 5200 : 4200) : (isInline ? 3000 : 3500);
+
+        let timer = null;
+        const startTimer = function () {
+            if (!timer) {
+                timer = setTimeout(function () { dismissToast(t); }, delay);
             }
-            if (autoDismiss) setTimeout(function () { dismissToast(t); }, 3500);
+        };
+        const stopTimer = function () {
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
+        };
+
+        startTimer();
+        t.addEventListener('mouseenter', stopTimer);
+        t.addEventListener('mouseleave', startTimer);
+        t.addEventListener('touchstart', stopTimer, { passive: true });
+        t.addEventListener('touchend', startTimer, { passive: true });
+
+        if (!isTop && !isInline && toasts.length > 1) {
+            t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
         }
         // Announce toast to screen readers
         var toastMsg = t.querySelector('.toast-msg');
@@ -1041,29 +1023,43 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('pageshow', clearRestoredPasswords);
     setTimeout(clearRestoredPasswords, 200);
 
-    /* Live search on bookings lists (filters .mbooking cards via data-search) */
-    function wireBookingsSearch(inputId, clearId) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const clearBtn = document.getElementById(clearId);
-        const grid = document.querySelector('.mbookings');
-        if (!grid) return;
-        const items = grid.querySelectorAll('.mbooking');
-        function filter() {
-            const q = (input.value || '').toLowerCase().trim();
-            if (!q) { items.forEach(function (c) { c.style.display = ''; }); return; }
-            items.forEach(function (card) {
-                const txt = (card.getAttribute('data-search') || '').toLowerCase();
-                card.style.display = txt.indexOf(q) === -1 ? 'none' : '';
-            });
-        }
-        input.addEventListener('input', filter);
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function () { input.value = ''; filter(); input.focus(); });
-        }
+    /* Mobile: expandable table rows (≤720px) — tap summary to reveal detail cells */
+    function syncTableAria() {
+        var isMobile = window.matchMedia('(max-width: 720px)').matches;
+        document.querySelectorAll('.table-wrap tbody tr:not(.table-empty):not(.table-total)').forEach(function (tr) {
+            if (isMobile) {
+                if (!tr.hasAttribute('aria-expanded')) tr.setAttribute('aria-expanded', 'false');
+                tr.setAttribute('tabindex', '0');
+            } else {
+                tr.removeAttribute('aria-expanded');
+                tr.removeAttribute('tabindex');
+            }
+        });
     }
-    wireBookingsSearch('managerSearch', 'managerClear');
-    wireBookingsSearch('adminSearch', 'adminClear');
+    syncTableAria();
+    window.addEventListener('resize', syncTableAria);
+
+    document.addEventListener('click', function (e) {
+        if (window.matchMedia('(min-width: 721px)').matches) return;
+        const tr = e.target.closest('.table-wrap tbody tr');
+        if (!tr) return;
+        if (tr.classList.contains('table-empty') || tr.classList.contains('table-total')) return;
+        if (e.target.closest('a, button, input, select, textarea, label, form, [role="button"]')) return;
+        const open = !tr.classList.contains('is-open');
+        tr.classList.toggle('is-open', open);
+        tr.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('keydown', function (e) {
+        if (window.matchMedia('(min-width: 721px)').matches) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const tr = e.target.closest && e.target.closest('.table-wrap tbody tr');
+        if (!tr || tr.classList.contains('table-empty') || tr.classList.contains('table-total')) return;
+        if (e.target !== tr) return;
+        e.preventDefault();
+        const open = !tr.classList.contains('is-open');
+        tr.classList.toggle('is-open', open);
+        tr.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
 
     document.querySelectorAll('a[href^="#"]').forEach(function (a) {
         a.addEventListener('click', function (e) {
@@ -1101,17 +1097,6 @@ document.addEventListener('DOMContentLoaded', function () {
             panel.hidden = true;
             input.setAttribute('aria-expanded', 'false');
             items = []; active = -1;
-        }
-
-        function skeleton() {
-            panel.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
-                const sk = document.createElement('div');
-                sk.className = 'hs-skel';
-                sk.innerHTML = '<span class="hs-thumb"></span><span class="hs-meta"><span class="hs-bar"></span><span class="hs-bar short"></span></span>';
-                panel.appendChild(sk);
-            }
-            show();
         }
 
         function itemEl(item) {
@@ -1201,8 +1186,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 hide();
                 return;
             }
-            skeleton();
-            timer = setTimeout(function () { fetchSuggest(v); }, 500);
+            timer = setTimeout(function () { fetchSuggest(v); }, 220);
         });
 
         input.addEventListener('keydown', function (e) {
@@ -1312,13 +1296,23 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ---- Favorites (saved courts) toggle ---- */
+    /* ---- Favorites (saved courts) toggle (optimistic UI) ---- */
     document.querySelectorAll('.fav-toggle').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            btn.disabled = true;
+            if (btn.disabled) return;
             const id = btn.getAttribute('data-ground-id');
             const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
             const csrf = btn.getAttribute('data-csrf') || document.body.getAttribute('data-csrf') || (document.querySelector('input[name="csrf_token"]') || {}).value;
+            const prevSaved = btn.getAttribute('data-saved') === '1' ? 1 : 0;
+            const nextSaved = prevSaved ? 0 : 1;
+            const icon = btn.querySelector('i');
+            btn.disabled = true;
+            btn.setAttribute('data-saved', String(nextSaved));
+            btn.classList.toggle('saved', nextSaved === 1);
+            if (icon) {
+                icon.classList.toggle('fa-solid', nextSaved === 1);
+                icon.classList.toggle('fa-regular', nextSaved !== 1);
+            }
             const fd = new URLSearchParams();
             fd.append('id', id);
             fd.append('csrf_token', csrf || '');
@@ -1327,128 +1321,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(function (json) {
                     btn.disabled = false;
                     if (json && json.ok) {
-                        const icon = btn.querySelector('i');
-                        btn.setAttribute('data-saved', json.saved);
-                        if (json.saved === 1) {
-                            btn.classList.add('saved');
-                            if (icon) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid'); }
-                        } else {
-                            btn.classList.remove('saved');
-                            if (icon) { icon.classList.remove('fa-solid'); icon.classList.add('fa-regular'); }
+                        const saved = json.saved === 1 ? 1 : 0;
+                        btn.setAttribute('data-saved', String(saved));
+                        btn.classList.toggle('saved', saved === 1);
+                        if (icon) {
+                            icon.classList.toggle('fa-solid', saved === 1);
+                            icon.classList.toggle('fa-regular', saved !== 1);
+                        }
+                    } else {
+                        btn.setAttribute('data-saved', String(prevSaved));
+                        btn.classList.toggle('saved', prevSaved === 1);
+                        if (icon) {
+                            icon.classList.toggle('fa-solid', prevSaved === 1);
+                            icon.classList.toggle('fa-regular', prevSaved !== 1);
+                        }
+                        if (json && json.error && typeof openErrorModal === 'function') {
+                            openErrorModal('Could not save', json.error);
                         }
                     }
                 })
-                .catch(function () { btn.disabled = false; });
+                .catch(function () {
+                    btn.disabled = false;
+                    btn.setAttribute('data-saved', String(prevSaved));
+                    btn.classList.toggle('saved', prevSaved === 1);
+                    if (icon) {
+                        icon.classList.toggle('fa-solid', prevSaved === 1);
+                        icon.classList.toggle('fa-regular', prevSaved !== 1);
+                    }
+                    if (typeof openErrorModal === 'function') {
+                        openErrorModal('Could not save', 'You may be signed out, or the network failed. Try again.');
+                    }
+                });
         });
     });
-
-    /* ---- Near-me geolocation (preference-driven) ---- */
-    const NEARME_KEY = 'goalspace-nearme';
-    const nearMePage = document.querySelector('[data-nearme]');
-    const nearMeToggle = document.getElementById('nearmeToggle');
-
-    function getNearMePref() {
-        try { return localStorage.getItem(NEARME_KEY) === '1'; } catch (e) { return false; }
-    }
-    function setNearMePref(on) {
-        try { localStorage.setItem(NEARME_KEY, on ? '1' : '0'); } catch (e) {}
-    }
-
-    function nearMeError(err) {
-        if (err && err.code === 1) {
-            return 'Location permission denied. Enable it in browser settings, or search by city instead.';
-        }
-        if (err && err.code === 3) {
-            return 'Location request timed out. Try again.';
-        }
-        if (err && err.code === 2) {
-            return 'Location unavailable. Try again, or search by city.';
-        }
-        return 'Location access was denied. Search by city instead.';
-    }
-
-    // Preferences toggle - always responsive, triggers the browser prompt directly.
-    if (nearMeToggle) {
-        nearMeToggle.checked = getNearMePref();
-        nearMeToggle.addEventListener('change', function () {
-            const on = nearMeToggle.checked;
-            setNearMePref(on);
-            if (!on) return;
-            if (!navigator.geolocation) {
-                nearMeToggle.checked = false;
-                setNearMePref(false);
-                openErrorModal('Location is unavailable on this device or connection. Use HTTPS (or localhost) and enable Location services, then try again.', 'Location unavailable', { button: false });
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(function () {
-                showNearMeSuccess();
-            }, function (err) {
-                if (err && err.code === 1) {
-                    // Already rejected once: browsers won't re-ask - guide them.
-                    nearMeToggle.checked = false;
-                    setNearMePref(false);
-                    openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
-                } else {
-                    // Granted but no fix/timeout yet - courts.php retries for a real position.
-                    showNearMeSuccess();
-                }
-            }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
-        });
-    }
-
-    if (navigator.geolocation) {
-        function requestLocation(target) {
-            navigator.geolocation.getCurrentPosition(function (pos) {
-                const base = target || (window.location.origin + window.location.pathname);
-                const url = new URL(base, window.location.origin);
-                // Keep the user's active filters when redirecting within the courts page.
-                const current = new URL(window.location.href);
-                ['q', 'location', 'date', 'sort'].forEach(function (k) {
-                    const v = current.searchParams.get(k);
-                    if (v !== null) url.searchParams.set(k, v);
-                });
-                url.searchParams.delete('page');
-                url.searchParams.set('lat', pos.coords.latitude.toFixed(6));
-                url.searchParams.set('lng', pos.coords.longitude.toFixed(6));
-                window.location.href = url.toString();
-            }, function (err) {
-                openErrorModal(nearMeError(err), 'Location unavailable', { button: false });
-            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-        }
-
-        // Auto near-me on courts.php when the preference is on (no coords yet).
-        // Guarded so we only auto-attempt once per session to avoid re-prompting.
-        if (nearMePage && getNearMePref() && !sessionStorage.getItem('nearmeAutoTried')) {
-            const url = new URL(window.location.href);
-            if (!url.searchParams.get('lat') && !url.searchParams.get('lng')) {
-                sessionStorage.setItem('nearmeAutoTried', '1');
-                requestLocation(nearMePage.getAttribute('data-nearme-url'));
-            }
-        }
-    }
-
-    function showNearMeSuccess() {
-        const toast = document.createElement('div');
-        toast.className = 'toast toast-success toast-inline';
-        toast.setAttribute('role', 'status');
-        toast.innerHTML =
-            '<div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>' +
-            '<div class="toast-content"><div class="toast-msg"><span>Location enabled: courts will be sorted by distance.</span></div></div>' +
-            '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
-        const wrap = document.createElement('div');
-        wrap.className = 'container';
-        wrap.appendChild(toast);
-        const main = document.querySelector('main.page');
-        if (main) main.insertBefore(wrap, main.firstChild);
-        else document.body.appendChild(wrap);
-        const close = toast.querySelector('.toast-close');
-        function dismiss() {
-            toast.classList.add('hide');
-            setTimeout(function () { wrap.remove(); }, 300);
-        }
-        if (close) close.addEventListener('click', dismiss);
-        setTimeout(dismiss, 3000);
-    }
 
     /* ---- Ground photo gallery (ground.php) ---- */
     function initGallery() {
@@ -1514,53 +1419,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initGallery();
     /* end ground gallery */
 
-    /* Promo code badge copy-to-clipboard */
-    document.querySelectorAll('.promo-code-badge').forEach(function (badge) {
-        badge.addEventListener('click', function () {
-            const code = badge.getAttribute('data-code');
-            if (!code) return;
-            navigator.clipboard.writeText(code).then(function () {
-                const orig = badge.textContent;
-                badge.textContent = 'Copied!';
-                badge.style.background = 'var(--brand)';
-                badge.style.color = '#fff';
-                setTimeout(function () {
-                    badge.textContent = orig;
-                    badge.style.background = '';
-                    badge.style.color = '';
-                }, 1200);
-            });
-        });
-    });
-    /* end promo badges */
 
-    /* Review helpful voting */
-    document.querySelectorAll('.helpful-form').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const btn = form.querySelector('.helpful-btn');
-            if (btn.disabled) return;
-            btn.disabled = true;
-            const fd = new FormData(form);
-            const url = form.action;
-            fetch(url, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.ok) {
-                        btn.classList.add('helped');
-                        btn.disabled = true;
-                        btn.setAttribute('aria-label', 'You found this helpful');
-                        const countEl = btn.querySelector('.helpful-count');
-                        if (countEl) countEl.textContent = data.count;
-                    } else {
-                        btn.disabled = false;
-                        openErrorModal(data.error || 'Could not vote', 'Could not vote');
-                    }
-                })
-                .catch(function () { btn.disabled = false; });
-        });
-    });
-    /* end review helpful */
 
     /* ---- Install as app (PWA) ---- */
     (function () {
@@ -1603,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="install-actions">' +
                     '<button type="button" class="btn btn-ghost btn-sm" data-install-later>Not now</button>' +
                     (isIOS
-                        ? '<a class="btn btn-primary btn-sm" href="' + base + '/pages/how_to_use.php">How to install</a>'
+                        ? '<a class="btn btn-primary btn-sm" href="' + base + '/pages/faq.php#cat-tech">How to install</a>'
                         : '<button type="button" class="btn btn-primary btn-sm" data-install-ok>Install</button>') +
                 '</div>';
             document.body.appendChild(card);

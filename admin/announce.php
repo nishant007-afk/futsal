@@ -139,16 +139,17 @@ require __DIR__ . '/../includes/header.php';
 <style>
 .announce-layout {
     display: grid;
-    grid-template-columns: minmax(320px, 1.15fr) minmax(320px, 1fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     gap: 28px;
     align-items: start;
     margin-top: 16px;
     margin-bottom: 40px;
+    min-width: 0;
 }
 .announce-form-pane {
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-lg, 12px);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
     padding: 24px;
 }
 .scope-options {
@@ -162,25 +163,25 @@ require __DIR__ . '/../includes/header.php';
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
     cursor: pointer;
-    background: var(--surface-subtle, #f9fafb);
+    background: var(--bg-soft);
     transition: all 0.15s ease;
 }
 .scope-row:hover {
-    border-color: var(--primary, #10b981);
-    background: var(--surface, #ffffff);
+    border-color: var(--brand);
+    background: var(--bg);
 }
 .scope-row input[type="radio"] {
     margin: 0;
-    accent-color: var(--primary, #10b981);
+    accent-color: var(--brand);
     cursor: pointer;
 }
 .scope-row .scope-label {
     font-size: 0.9rem;
     font-weight: 500;
-    color: var(--text, #1f2937);
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -190,18 +191,18 @@ require __DIR__ . '/../includes/header.php';
     align-items: flex-start;
     gap: 12px;
     padding: 12px 14px;
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
     cursor: pointer;
-    background: var(--surface-subtle, #f9fafb);
+    background: var(--bg-soft);
     transition: all 0.15s ease;
 }
 .tick-card:hover {
-    border-color: var(--primary, #10b981);
+    border-color: var(--brand);
 }
 .tick-card input[type="checkbox"] {
     margin-top: 4px;
-    accent-color: var(--primary, #10b981);
+    accent-color: var(--brand);
     cursor: pointer;
 }
 .tick-card-body {
@@ -212,7 +213,7 @@ require __DIR__ . '/../includes/header.php';
 .tick-title {
     font-size: 0.92rem;
     font-weight: 600;
-    color: var(--text, #1f2937);
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -238,7 +239,7 @@ require __DIR__ . '/../includes/header.php';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--muted, #6b7280);
+    color: var(--ink-3);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -248,23 +249,23 @@ require __DIR__ . '/../includes/header.php';
     font-weight: 600;
     padding: 3px 9px;
     border-radius: 999px;
-    background: var(--primary-subtle, #ecfdf5);
-    color: var(--primary-dark, #065f46);
-    border: 1px solid var(--primary, #10b981);
+    background: var(--brand-soft);
+    color: var(--brand-700);
+    border: 1px solid var(--brand);
     display: inline-flex;
     align-items: center;
     gap: 5px;
 }
 .preview-card-box {
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-lg, 12px);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
     padding: 18px;
 }
 .preview-subhead {
     font-size: 0.88rem;
     font-weight: 600;
-    color: var(--text, #1f2937);
+    color: var(--ink);
     margin: 0 0 12px 0;
     display: flex;
     align-items: center;
@@ -275,15 +276,15 @@ require __DIR__ . '/../includes/header.php';
     gap: 12px;
     align-items: flex-start;
     padding: 12px;
-    background: var(--surface-subtle, #f9fafb);
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-md, 8px);
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
 }
 .notif-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--primary, #10b981);
+    background: var(--brand);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -305,17 +306,17 @@ require __DIR__ . '/../includes/header.php';
 .notif-title {
     font-weight: 600;
     font-size: 0.92rem;
-    color: var(--text, #111827);
+    color: var(--ink);
     word-break: break-word;
 }
 .notif-time {
     font-size: 0.75rem;
-    color: var(--muted, #6b7280);
+    color: var(--ink-3);
     white-space: nowrap;
 }
 .notif-body {
     font-size: 0.85rem;
-    color: var(--text-muted, #4b5563);
+    color: var(--ink-2);
     line-height: 1.45;
     word-break: break-word;
     white-space: pre-line;
@@ -324,18 +325,18 @@ require __DIR__ . '/../includes/header.php';
     margin-left: auto;
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--muted, #6b7280);
+    color: var(--ink-3);
     padding: 2px 7px;
     border-radius: 999px;
-    background: var(--surface-subtle, #f3f4f6);
+    background: var(--bg-soft);
 }
 .email-preview-box.active-mail .email-preview-status {
-    background: var(--primary-subtle, #ecfdf5);
-    color: var(--primary-dark, #065f46);
+    background: var(--brand-soft);
+    color: var(--brand-700);
 }
 .email-preview-card {
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
     overflow: hidden;
     background: #ffffff;
     opacity: 0.65;
@@ -343,7 +344,7 @@ require __DIR__ . '/../includes/header.php';
 }
 .email-preview-box.active-mail .email-preview-card {
     opacity: 1;
-    border-color: var(--primary, #10b981);
+    border-color: var(--brand);
 }
 .email-header-bar {
     background: #f8fafc;
@@ -406,9 +407,9 @@ require __DIR__ . '/../includes/header.php';
     line-height: 1.4;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .announce-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
     .announce-preview-pane {
         position: static;

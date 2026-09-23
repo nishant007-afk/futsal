@@ -19,6 +19,15 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
+    if (rate_limit_exceeded('otp_ip', 30, 300)) {
+        set_flash_error(
+            'Too many verification attempts from this location.',
+            'We blocked further OTP checks for a few minutes.',
+            'Wait a moment, then try again with the newest code.',
+            'pages/otp_verify.php'
+        );
+        redirect('pages/otp_verify.php');
+    }
     $resend = !empty($_POST['resend']);
 
     if ($resend) {
@@ -96,40 +105,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Enter your code';
+$page_title = 'Verification Code';
 require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="auth-wrap">
 <div class="auth-card form-card">
-    <a href="<?php echo base_url('pages/login.php'); ?>" class="auth-brand">
-        <span class="auth-brand-mark"><i class="fa-solid fa-futbol"></i></span>
-        <span class="auth-brand-name">GoalSpace</span>
-    </a>
     <div class="auth-topline">
-        <h1>Two-step verification</h1>
-        <p>Enter the 6-digit code sent to <strong><?php echo e($email); ?></strong> from <strong><?php echo e($senderEmail); ?></strong>.</p>
+        <div class="title-back-row">
+            <a href="<?php echo base_url('pages/login.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1>Verification code</h1>
+        </div>
+        <p>Enter the 6-digit code sent to <strong><?php echo e($email); ?></strong>.</p>
     </div>
 
     <?php if (!empty($errors['general'])): ?>
         <div class="auth-msg auth-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo e($errors['general']); ?></div>
     <?php endif; ?>
-
-    <div class="otp-hint-card">
-        <div class="otp-hint-header" onclick="this.parentElement.classList.toggle('expanded')" role="button" tabindex="0">
-            <i class="fa-solid fa-circle-question"></i>
-            <span>Not seeing the email from <?php echo e($senderEmail); ?>?</span>
-            <i class="fa-solid fa-chevron-down otp-hint-chevron"></i>
-        </div>
-        <div class="otp-hint-body">
-            <ul>
-                <li>Check your <strong>Spam / Junk</strong> or <strong>Promotions</strong> folder.</li>
-                <li>Search your inbox for <code>from:<?php echo e($senderEmail); ?></code> or <code>GoalSpace</code>.</li>
-                <li>Mark the email as <em>Not Spam</em> so future codes land directly in your inbox.</li>
-                <li>Make sure your email address <strong><?php echo e($email); ?></strong> is spelled correctly.</li>
-            </ul>
-        </div>
-    </div>
 
     <form method="post" action="" novalidate id="otpForm">
         <?php echo csrf_field(); ?>

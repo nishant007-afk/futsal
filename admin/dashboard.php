@@ -80,7 +80,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="page-head">
-    <h2>Admin Dashboard</h2>
+    <h1 class="page-title">Admin Dashboard</h1>
 </div>
 
 <div class="stat-grid">

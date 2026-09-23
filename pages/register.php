@@ -164,47 +164,6 @@ require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="signup-shell">
-    <section class="signup-intro">
-        <h1>Book a futsal court in minutes</h1>
-        <p class="lead">Find a free court near you, lock in your slot in seconds and focus on the game. Managers get one dashboard to run their grounds, bookings and payments.</p>
-        <button type="button" class="signup-intro-toggle" id="signupIntroToggle" aria-expanded="false" aria-controls="signupIntroDetails">
-            <span class="sint-label">See what's included</span>
-            <i class="fa-solid fa-chevron-down sint-chev" aria-hidden="true"></i>
-        </button>
-        <div class="signup-intro-details" id="signupIntroDetails">
-            <ul class="benefit-list">
-                <li>
-                    <i class="fa-solid fa-map-location-dot b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Find a free court</strong>
-                        <span class="benefit-desc">Browse grounds near you and check live availability.</span>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-bolt b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Book in seconds</strong>
-                        <span class="benefit-desc">Reserve your slot in a few taps, pay when it suits you.</span>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-bell b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Never miss a game</strong>
-                        <span class="benefit-desc">Get instant reminders and booking updates.</span>
-                    </div>
-                </li>
-                <li>
-                    <i class="fa-solid fa-user-tie b-icon" aria-hidden="true"></i>
-                    <div class="benefit-copy">
-                        <strong class="benefit-title">Run a court</strong>
-                        <span class="benefit-desc">Managers get a dashboard for bookings and payments.</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </section>
-
     <section class="signup-right">
         <div class="auth-topline">
             <div class="title-back-row">

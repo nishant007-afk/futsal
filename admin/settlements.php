@@ -78,7 +78,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head">
     <div class="title-back-row">
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2>Manager Billing</h2>
+        <h1 class="page-title">Manager Billing</h1>
     </div>
     <div class="actions">
         <a href="<?php echo base_url('admin/settlements.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
@@ -134,21 +134,21 @@ require __DIR__ . '/../includes/header.php';
                     }
                     ?>
                     <tr>
-                        <td class="strong"><?php echo e($m['name']); ?><br><span class="muted"><?php echo e($m['email']); ?></span></td>
-                        <td class="num"><?php echo (int)$m['ground_count']; ?></td>
-                        <td class="num">
+                        <td class="strong" data-label="Manager"><?php echo e($m['name']); ?><br><span class="muted"><?php echo e($m['email']); ?></span></td>
+                        <td class="num" data-label="Grounds"><?php echo (int)$m['ground_count']; ?></td>
+                        <td class="num" data-label="Setup fee">
                             Rs <?php echo number_format((float)$m['setup_fee'], 0); ?>
                             <?php if ($m['setup_paid_at']): ?><span class="badge badge-confirmed ml-4">Paid <?php echo e(date('M j', strtotime($m['setup_paid_at']))); ?></span><?php endif; ?>
                         </td>
-                        <td class="num">Rs <?php echo number_format((float)$m['monthly_fee'], 0); ?>/mo</td>
-                        <td>
+                        <td class="num" data-label="Monthly charge">Rs <?php echo number_format((float)$m['monthly_fee'], 0); ?>/mo</td>
+                        <td data-label="Period">
                             <?php if ($m['period_end']): ?>
                                 <?php echo e(date('M j', strtotime($m['period_start']))); ?> &rarr; <?php echo e(date('M j, Y', strtotime($m['period_end']))); ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <?php if ($status === 'active'): ?>
                                 <span class="badge badge-confirmed">Active</span>
                             <?php elseif ($status === 'overdue'): ?>
@@ -159,7 +159,7 @@ require __DIR__ . '/../includes/header.php';
                                 <span class="badge badge-pending">No subscription</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="">
                             <div class="row-actions">
                                 <?php if ($status === 'setup_pending'): ?>
                                     <form method="post" action="">

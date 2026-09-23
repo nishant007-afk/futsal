@@ -35,21 +35,6 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <p class="form-hint theme-hint"><i class="fa-solid fa-circle-info"></i> You can also flip the theme from the <strong>profile menu</strong> in the top-right corner.</p>
             </div>
-            <div class="stg-content-section">
-                <h3>Location</h3>
-                <p class="stg-content-desc">Manage how your location is used.</p>
-                <div class="pref-row">
-                    <div class="pref-row-text">
-                        <strong>Use my location</strong>
-                        <em>Show courts near you and sort by distance</em>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="nearmeToggle">
-                        <span class="switch-track" aria-hidden="true"></span>
-                    </label>
-                </div>
-                <p class="form-hint theme-hint"><i class="fa-solid fa-shield-halved"></i> Your exact position is only used in your browser to find nearby courts. It is never stored or shared.</p>
-            </div>
         </div>
     </div>
 </div>

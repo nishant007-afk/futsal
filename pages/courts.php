@@ -19,17 +19,6 @@ if (!in_array($sort, ['price_asc', 'price_desc', 'name_asc'], true)) {
     $sort = 'price_asc';
 }
 
-// Near-me mode: sort by real distance using the browser's location + ground coords.
-$nearLatLng = null;
-if (isset($_GET['lat']) && isset($_GET['lng'])) {
-    $lat = (float)$_GET['lat'];
-    $lng = (float)$_GET['lng'];
-    if ($lat !== 0.0 && $lng !== 0.0 && abs($lat) <= 90 && abs($lng) <= 180) {
-        $nearLatLng = [$lat, $lng];
-        $sort = 'nearest';
-    }
-}
-
 $where = ['g.is_active = 1'];
 $params = [];
 $types = '';
@@ -58,22 +47,9 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $perPage;
 
 $selectedCols = 'g.*, u.name AS owner_name';
-$having = '';
-if ($nearLatLng !== null) {
-    $R = 6371;
-    $lat1 = $nearLatLng[0];
-    $lng1 = $nearLatLng[1];
-    $maxKm = (float)($_GET['radius'] ?? 40);
-    $maxKm = max(1, min(200, $maxKm));
-    $selectedCols = 'g.*, u.name AS owner_name,
-        ROUND(' . $R . ' * acos(cos(radians(?)) * cos(radians(g.latitude)) * cos(radians(g.longitude) - radians(?)) + sin(radians(?)) * sin(radians(g.latitude))), 1) AS distance_km';
-    $having = ' HAVING distance_km < ' . $maxKm . '';
-    $params = array_merge([$lat1, $lng1, $lat1], $params);
-    $types = 'ddd' . $types;
-}
 $sql = 'SELECT ' . $selectedCols . ' FROM grounds g
          LEFT JOIN users u ON u.id = g.manager_id
-         WHERE ' . implode(' AND ', $where) . $having . ' ORDER BY ' . ($nearLatLng !== null ? 'distance_km ASC' : $orderBy) . ' LIMIT ? OFFSET ?';
+         WHERE ' . implode(' AND ', $where) . ' ORDER BY ' . $orderBy . ' LIMIT ? OFFSET ?';
 $types .= 'ii';
 $params[] = $perPage;
 $params[] = $offset;
@@ -183,7 +159,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="courts-toolbar reveal">
-    <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-nearme data-nearme-url="<?php echo grounds_list_url(); ?>">
+    <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search">
         <div class="courts-search-main">
             <div class="search-field sf-query">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -210,12 +186,12 @@ require __DIR__ . '/../includes/header.php';
                     <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
                 </select>
             </div>
-        </div>
-        <div class="toolbar-actions">
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-            <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
-                <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Clear filters"><i class="fa-solid fa-xmark"></i></a>
-            <?php endif; ?>
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+                <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
+                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Clear filters"><i class="fa-solid fa-xmark"></i></a>
+                <?php endif; ?>
+            </div>
         </div>
     </form>
 </div>
@@ -246,6 +222,13 @@ if ($sort !== 'price_asc') {
         <?php if (count($filterChips) > 1): ?>
             <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Reset all</a>
         <?php endif; ?>
+    </div>
+<?php endif; ?>
+
+<?php if ($date !== ''): ?>
+    <div class="notice notice-info mb-14">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Showing free-slot badges for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear — open a court to pick another day.</span>
     </div>
 <?php endif; ?>
 

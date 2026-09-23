@@ -1,9 +1,68 @@
-/* GoalSpace module: booking pages (slot grid, gallery, payment options, date picker).
-   Loaded only on ground/book/payment pages. */
+/* GoalSpace module: booking pages (free time pickers / reschedule slots, gallery, payment).
+   Loaded only on ground/book/payment/reschedule pages. */
 document.addEventListener('DOMContentLoaded', function () {
     const slotGrid = document.getElementById('slotGrid');
     const selectedSlot = document.getElementById('selectedSlot');
     const bookBtn = document.getElementById('bookBtn');
+    const startTime = document.getElementById('startTime');
+    const endTime = document.getElementById('endTime');
+    const priceHint = document.getElementById('priceHint');
+    const hourlyPrice = priceHint && priceHint.dataset.hourly ? Number(priceHint.dataset.hourly) : null;
+
+    function toHMS(hm) {
+        if (!hm) return '';
+        return hm.length === 5 ? hm + ':00' : hm;
+    }
+
+    function minutesOf(hm) {
+        if (!hm) return NaN;
+        const p = hm.split(':');
+        return Number(p[0]) * 60 + Number(p[1]);
+    }
+
+    function syncFreeTime() {
+        if (!startTime || !endTime || !selectedSlot) return;
+        const s = startTime.value;
+        const e = endTime.value;
+        if (!s || !e) {
+            selectedSlot.value = '';
+            if (bookBtn) bookBtn.disabled = true;
+            if (priceHint && !priceHint.dataset.hourly) priceHint.textContent = 'Choose any open hours';
+            return;
+        }
+        if (minutesOf(e) <= minutesOf(s)) {
+            selectedSlot.value = '';
+            if (bookBtn) bookBtn.disabled = true;
+            if (priceHint) priceHint.textContent = 'End must be after start';
+            return;
+        }
+        selectedSlot.value = toHMS(s) + '|' + toHMS(e);
+        if (bookBtn) {
+            bookBtn.disabled = false;
+            bookBtn.removeAttribute('aria-disabled');
+        }
+        if (priceHint) {
+            const mins = minutesOf(e) - minutesOf(s);
+            const hrs = mins / 60;
+            if (hourlyPrice && Number.isFinite(hourlyPrice)) {
+                const total = Math.round(hourlyPrice * hrs);
+                priceHint.textContent = hrs + ' h · Rs ' + total.toLocaleString();
+            } else {
+                priceHint.textContent = s + ' – ' + e;
+            }
+        }
+    }
+
+    if (startTime && endTime) {
+        startTime.addEventListener('change', syncFreeTime);
+        endTime.addEventListener('change', syncFreeTime);
+        startTime.addEventListener('input', syncFreeTime);
+        endTime.addEventListener('input', syncFreeTime);
+        if (bookBtn) bookBtn.disabled = true;
+        if (!slotGrid) {
+            syncFreeTime();
+        }
+    }
 
     if (slotGrid && selectedSlot) {
         if (bookBtn) bookBtn.disabled = true;
@@ -20,12 +79,49 @@ document.addEventListener('DOMContentLoaded', function () {
             slot.setAttribute('aria-pressed', 'true');
 
             selectedSlot.value = slot.dataset.start + '|' + slot.dataset.end;
+            if (startTime && slot.dataset.start) startTime.value = slot.dataset.start.slice(0, 5);
+            if (endTime && slot.dataset.end) endTime.value = slot.dataset.end.slice(0, 5);
 
             const priceEl = document.getElementById('priceHint');
             if (priceEl && slot.dataset.label) {
-                priceEl.textContent = 'Selected: ' + slot.dataset.label + ' - ' + (slot.dataset.price || '');
+                priceEl.textContent = 'Selected: ' + slot.dataset.label + (slot.dataset.price ? ' · ' + slot.dataset.price : '');
             }
-            if (bookBtn) bookBtn.disabled = false;
+            if (bookBtn) {
+                bookBtn.disabled = false;
+                bookBtn.removeAttribute('aria-disabled');
+            }
+        });
+    }
+
+    // Guard: never POST without a chosen window (Enter key / stale disabled state).
+    const bookForm = document.getElementById('bookBtn') && document.getElementById('bookBtn').form;
+    if (bookForm) {
+        bookForm.addEventListener('submit', function (e) {
+            const slotVal = selectedSlot ? selectedSlot.value : '';
+            const hasFree = startTime && endTime && startTime.value && endTime.value;
+            if (!hasFree && (!slotVal || slotVal.indexOf('|') === -1)) {
+                e.preventDefault();
+                if (window.openErrorModal) {
+                    openErrorModal('Pick a From and To time in the booking panel, then press Reserve again.', 'No time selected');
+                } else {
+                    alert('Please choose a start and end time.');
+                }
+                return false;
+            }
+            if (hasFree && selectedSlot && selectedSlot.value.indexOf('|') === -1) {
+                e.preventDefault();
+                if (window.openErrorModal) {
+                    openErrorModal('End time must be after start time.', 'Check times');
+                } else {
+                    alert('End time must be after start time.');
+                }
+                return false;
+            }
+            if (bookBtn) {
+                bookBtn.disabled = true;
+                bookBtn.classList.add('btn-loading');
+            }
+            return true;
         });
     }
 
@@ -185,4 +281,97 @@ document.addEventListener('DOMContentLoaded', function () {
         slots[next].focus();
         slots[next].click();
     });
+
+    /* Checkout: payment method cards + advance/full split pills (payment.php) */
+    window.selectPayMethod = function (method) {
+        var cardQr = document.getElementById('cardMethodQr');
+        var cardCourt = document.getElementById('cardMethodCourt');
+        var courtBox = document.getElementById('courtPayBox');
+        var headQr = cardQr ? cardQr.querySelector('.pm-head') : null;
+        var headCourt = cardCourt ? cardCourt.querySelector('.pm-head') : null;
+        if (method === 'court') {
+            if (cardQr) cardQr.classList.remove('active');
+            if (cardCourt) cardCourt.classList.add('active');
+            if (courtBox) courtBox.style.display = 'block';
+            if (headQr) headQr.setAttribute('aria-checked', 'false');
+            if (headCourt) headCourt.setAttribute('aria-checked', 'true');
+        } else {
+            if (cardCourt) cardCourt.classList.remove('active');
+            if (cardQr) cardQr.classList.add('active');
+            if (courtBox) courtBox.style.display = 'none';
+            if (headQr) headQr.setAttribute('aria-checked', 'true');
+            if (headCourt) headCourt.setAttribute('aria-checked', 'false');
+        }
+    };
+
+    window.setSplitOption = function (choice, amount) {
+        var pillAdv = document.getElementById('pillAdvance');
+        var pillFull = document.getElementById('pillFull');
+        var input = document.getElementById('splitChoiceInput');
+        var btnLabel = document.getElementById('btnSubmitQrLabel');
+        if (input) input.value = choice;
+        if (choice === 'full') {
+            if (pillAdv) {
+                pillAdv.classList.remove('active');
+                pillAdv.setAttribute('aria-checked', 'false');
+            }
+            if (pillFull) {
+                pillFull.classList.add('active');
+                pillFull.setAttribute('aria-checked', 'true');
+            }
+        } else {
+            if (pillFull) {
+                pillFull.classList.remove('active');
+                pillFull.setAttribute('aria-checked', 'false');
+            }
+            if (pillAdv) {
+                pillAdv.classList.add('active');
+                pillAdv.setAttribute('aria-checked', 'true');
+            }
+        }
+        var formatted = 'Rs ' + Number(amount).toLocaleString();
+        if (btnLabel) btnLabel.textContent = 'I paid — submit ' + formatted;
+    };
+
+    var pmHeads = document.querySelectorAll('.pay-method-card .pm-head');
+    if (pmHeads.length) {
+        pmHeads.forEach(function (head) {
+            function activate() {
+                var method = head.getAttribute('data-method');
+                if (method) selectPayMethod(method);
+            }
+            head.addEventListener('click', activate);
+            head.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activate();
+                }
+            });
+        });
+    }
+
+    var splitPills = document.querySelectorAll('.split-pill');
+    if (splitPills.length) {
+        splitPills.forEach(function (pill) {
+            function activate() {
+                var split = pill.getAttribute('data-split');
+                var amount = pill.getAttribute('data-amount');
+                if (split) setSplitOption(split, amount);
+            }
+            pill.addEventListener('click', activate);
+            pill.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activate();
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    var sibling = e.key === 'ArrowRight' ? pill.nextElementSibling : pill.previousElementSibling;
+                    if (sibling && sibling.classList.contains('split-pill')) {
+                        sibling.focus();
+                        sibling.click();
+                    }
+                }
+            });
+        });
+    }
 });

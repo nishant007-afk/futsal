@@ -123,13 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
                             'Time' => substr($target['start_time'], 0, 5) . ' onwards',
                         ],
                         $policy['refund'] > 0
-                            ? 'A refund of Rs ' . number_format($policy['refund'], 0) . ' is on its way back to you. We hope to see you on another court soon!'
+                            ? 'If eligible, a refund of Rs ' . number_format($policy['refund'], 0) . ' will be returned to your original payment method after the court confirms the cancellation. We hope to see you on another court soon!'
                             : 'The freed slot will show up as available again. We hope to see you on another court soon!',
                         $cancelRow['name'] ?? ''
                     );
                 }
                 if ($policy['refund'] > 0) {
-                    set_flash('success', 'Booking cancelled. A refund of Rs ' . number_format($policy['refund'], 0) . ' will be returned to you.');
+                    set_flash('success', 'Booking cancelled. Refund of Rs ' . number_format($policy['refund'], 0) . ' will be processed after confirmation.');
                 } else {
                     set_flash('success', 'Booking cancelled.');
                 }
@@ -164,12 +164,15 @@ $bookings = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $upcoming = array_values(array_filter($bookings, function ($b) use ($today) {
     return $b['booking_date'] >= $today && $b['status'] !== 'cancelled';
 }));
+$unpaid = array_values(array_filter($bookings, function ($b) {
+    return in_array($b['payment_status'], ['unpaid', 'partial'], true) && $b['status'] !== 'cancelled';
+}));
+// Past = date passed or cancelled (cancelled future slots still show under Past).
 $past = array_values(array_filter($bookings, function ($b) use ($today) {
-    return !($b['booking_date'] >= $today && $b['status'] !== 'cancelled');
+    return $b['booking_date'] < $today || $b['status'] === 'cancelled';
 }));
-$unpaid = array_values(array_filter($bookings, function ($b) use ($today) {
-    return $b['payment_status'] === 'unpaid' && $b['status'] !== 'cancelled';
-}));
+// Most recent first for past/cancelled rows.
+usort($past, fn($a, $b) => strcmp($b['booking_date'], $a['booking_date']) ?: strcmp($b['start_time'], $a['start_time']));
 
 // View filter: all / upcoming / unpaid / past
 $view = $_GET['view'] ?? 'all';
@@ -195,20 +198,21 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('pages/my_bookings.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
     </div>
 </div>
-<div class="bookings-stats reveal">
-        <div class="bstat">
-            <i class="fa-solid fa-calendar-day"></i>
-            <span class="bstat-in"><strong><?php echo count($upcoming); ?></strong><span class="bstat-lbl">Upcoming</span></span>
-        </div>
-        <div class="bstat">
-            <i class="fa-solid fa-hourglass-half"></i>
-            <span class="bstat-in"><strong><?php echo count(array_filter($bookings, fn($b) => $b['payment_status'] === 'unpaid' && $b['status'] !== 'cancelled')); ?></strong><span class="bstat-lbl">Unpaid</span></span>
-        </div>
-        <div class="bstat">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <span class="bstat-in"><strong><?php echo count($past); ?></strong><span class="bstat-lbl">Past</span></span>
-        </div>
-    </div>
+
+<?php
+$showRows = $bookings;
+if ($view === 'unpaid') {
+    $showRows = $unpaid;
+} elseif ($view === 'upcoming') {
+    $showRows = $upcoming;
+} elseif ($view === 'past') {
+    $showRows = $past;
+}
+// All view: upcoming soonest-first, then past most-recent-first.
+if ($view === 'all') {
+    $showRows = array_merge($upcoming, $past);
+}
+?>
 
 <?php if (!$bookings): ?>
     <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing booked yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
@@ -220,44 +224,86 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo mb_view_url('past'); ?>" class="view-tab <?php echo $view === 'past' ? 'active' : ''; ?>">Past &amp; cancelled (<?php echo count($past); ?>)</a>
     </div>
 
-    <?php
-    $showUpcoming = ($view === 'all' || $view === 'upcoming') && $upcoming;
-    $showUnpaid = $view === 'unpaid' && $unpaid;
-    $showPast = ($view === 'all' || $view === 'past') && $past;
-
-    if ($view === 'unpaid' && !$unpaid): ?>
-        <?php empty_state('fa-solid fa-circle-check', "You're all paid up", '', base_url('pages/my_bookings.php'), 'View all bookings'); ?>
-    <?php elseif ($view === 'upcoming' && !$upcoming): ?>
-        <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing upcoming', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
-    <?php elseif ($view === 'past' && !$past): ?>
-        <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
+    <?php if (!$showRows): ?>
+        <?php if ($view === 'unpaid'): ?>
+            <?php empty_state('fa-solid fa-circle-check', "You're all paid up", '', base_url('pages/my_bookings.php'), 'View all bookings'); ?>
+        <?php elseif ($view === 'upcoming'): ?>
+            <?php empty_state('fa-regular fa-calendar-xmark', 'Nothing upcoming', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
+        <?php else: ?>
+            <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
+        <?php endif; ?>
     <?php else: ?>
-        <?php if ($showUpcoming): ?>
-            <div class="section-head reveal push tight">
-                <h2 class="section-title sm">Upcoming</h2>
-            </div>
-            <div class="mbookings reveal">
-                <?php foreach ($upcoming as $b) { booking_card($b); } ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($showUnpaid): ?>
-            <div class="section-head reveal gap tight">
-                <h2 class="section-title sm">Needs payment</h2>
-            </div>
-            <div class="mbookings reveal">
-                <?php foreach ($unpaid as $b) { booking_card($b); } ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($showPast): ?>
-            <div class="section-head reveal gap tight">
-                <h2 class="section-title sm">Past &amp; cancelled</h2>
-            </div>
-            <div class="mbookings reveal">
-                <?php foreach ($past as $b) { booking_card($b); } ?>
-            </div>
-        <?php endif; ?>
+        <div class="table-wrap reveal">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Court</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th class="num">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($showRows as $b): ?>
+                        <?php
+                        $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
+                        $netDue = max(0, (float)$b['total_price'] - (float)($b['discount'] ?? 0));
+                        if ($b['status'] === 'cancelled') {
+                            $statusText = 'Cancelled';
+                            $statusIcon = 'fa-circle-xmark';
+                            $statusClass = 'status-cancelled';
+                        } elseif ($b['payment_status'] === 'paid') {
+                            $statusText = 'Confirmed · Paid';
+                            $statusIcon = 'fa-circle-check';
+                            $statusClass = 'status-confirmed';
+                        } elseif ($b['payment_status'] === 'partial') {
+                            $statusText = 'Partially paid';
+                            $statusIcon = 'fa-circle-half-stroke';
+                            $statusClass = 'status-pending';
+                        } elseif ($needsPayment || $b['status'] === 'pending') {
+                            $statusText = 'Payment pending';
+                            $statusIcon = 'fa-clock';
+                            $statusClass = 'status-pending';
+                        } else {
+                            $statusText = 'Confirmed';
+                            $statusIcon = 'fa-circle-check';
+                            $statusClass = 'status-confirmed';
+                        }
+                        ?>
+                        <tr>
+                            <td data-label="Court">
+                                <div class="mbt-court">
+                                    <strong><?php echo e($b['ground_name']); ?></strong>
+                                    <span class="muted"><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
+                                </div>
+                            </td>
+                            <td data-label="Date">
+                                <?php echo e(date('D, M j', strtotime($b['booking_date']))); ?><br>
+                                <span class="muted" style="font-size:12px;"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
+                            </td>
+                            <td class="mbt-time" data-label="Time"><?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></td>
+                            <td data-label="Status"><span class="status-badge <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo e($statusText); ?></span></td>
+                            <td class="num strong" data-label="Total">
+                                Rs <?php echo number_format($netDue, 0); ?>
+                                <?php if ((float)$b['discount'] > 0): ?>
+                                    <br><span class="muted" style="font-size:12px;text-decoration:line-through;">Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="mbt-actions" data-label="">
+                                <div class="mbt-actions-row">
+                                    <?php if ($needsPayment && $b['status'] !== 'cancelled'): ?>
+                                        <a href="<?php echo base_url('pages/payment.php?booking_id=' . (int)$b['id']); ?>" class="mb-cta mb-cta-pay"><i class="fa-solid fa-wallet"></i> Pay</a>
+                                    <?php endif; ?>
+                                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm" title="View details"><i class="fa-solid fa-chevron-right"></i><span class="sr-only">Details</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 <?php endif; ?>
 

@@ -78,7 +78,6 @@ require __DIR__ . '/../includes/header.php';
         <div class="stg-content-card">
             <div class="stg-content-section">
                 <h3>Change password</h3>
-                <p class="stg-content-desc">Update your account password.</p>
                 <form method="post" action="" novalidate role="form" id="passwordCard">
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="change_password">
@@ -97,7 +96,6 @@ require __DIR__ . '/../includes/header.php';
                             <label for="pwNew">New password <span class="req">*</span></label>
                             <button type="button" class="pw-toggle" data-target="pwNew" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                         </div>
-                        <p class="form-hint">Your new password needs:</p>
                         <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
                         <p class="form-hint pw-same-warn" id="pwSameWarn" hidden><i class="fa-solid fa-circle-exclamation"></i> That looks like your current password.</p>
                         <?php field_error($pwErrors, 'new_password'); ?>
@@ -115,7 +113,6 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="stg-content-section stg-content-section--danger">
                 <h3>Danger zone</h3>
-                <p class="stg-content-desc">Irreversible actions.</p>
                 <div class="pref-row">
                     <div class="pref-row-text">
                         <strong>Delete account</strong>

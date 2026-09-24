@@ -91,7 +91,6 @@ $gridGrounds = count($allGrounds) > 1 ? array_slice($allGrounds, 1, 6) : $allGro
     <div class="container">
         <div class="section-head section-head-between">
             <div class="section-head-copy">
-                <span class="section-kicker">AVAILABLE TODAY</span>
                 <h2 class="section-title">Verified Futsal Courts</h2>
                 <p class="section-sub">Open courts across Kathmandu Valley.</p>
                 <div class="court-area-pills" role="navigation" aria-label="Explore courts by area">
@@ -120,7 +119,6 @@ $gridGrounds = count($allGrounds) > 1 ? array_slice($allGrounds, 1, 6) : $allGro
 <section class="section section-steps">
     <div class="container">
         <div class="section-head center">
-            <span class="section-kicker">HOW IT WORKS</span>
             <h2 class="section-title">Three steps to kick off</h2>
         </div>
         <div class="steps-grid">

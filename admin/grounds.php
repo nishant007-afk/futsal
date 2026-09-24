@@ -349,7 +349,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="ground-form-side">
         <div class="form-card sub">
             <h3>Photos</h3>
-            <p class="muted">Show players this court before they book. JPG, PNG, WebP or GIF (max 5MB each).</p>
+            <p class="muted">JPG, PNG, WebP (max 5MB each).</p>
             <?php if ($editing): ?>
                 <div class="photo-grid mb">
                     <?php $photos = ground_images((int)$editing['id']); ?>
@@ -391,7 +391,7 @@ require __DIR__ . '/../includes/header.php';
 
         <div class="form-card sub">
             <h3>Payment QR code</h3>
-            <p class="muted">Upload your payment QR so players can scan and pay you directly.</p>
+            <p class="muted">Player scan-to-pay QR image.</p>
             <?php if ($editing): ?>
                 <?php $groundQr = ground_qr((int)$editing['id']); ?>
                 <?php if ($groundQr !== ''): ?>

@@ -152,7 +152,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="promos-list">
-<h3 class="reveal block-title">My promo codes <span class="muted">· applies to your <?php echo (int)$myGroundCount; ?> court<?php echo $myGroundCount == 1 ? '' : 's'; ?></span></h3>
+<h3 class="reveal block-title">My promo codes</h3>
 <div class="table-wrap reveal">
     <table>
         <thead>

@@ -56,7 +56,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <div>
             <h1 class="page-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h1>
-            <p class="muted" style="margin: 2px 0 0 0; font-size: 0.88rem;">Configure court details, pricing, location pin, media, and blackout schedules.</p>
         </div>
         <div class="actions">
             <?php if ($editing): ?>
@@ -116,7 +115,6 @@ require __DIR__ . '/../includes/header.php';
             <div class="editor-panel-card" id="panel-details" role="tabpanel">
                 <div class="panel-intro">
                     <h3>Basic Court Information</h3>
-                    <p class="muted">Set your court name, venue capacity, and player-facing description.</p>
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group<?php echo has_error($errors, 'name'); ?>">
@@ -159,8 +157,7 @@ require __DIR__ . '/../includes/header.php';
             <!-- TAB 2: PRICING & OPERATING HOURS -->
             <div class="editor-panel-card" id="panel-pricing" role="tabpanel" hidden>
                 <div class="panel-intro">
-                    <h3>Pricing, Rates & Hours</h3>
-                    <p class="muted">Set your regular hourly pricing, sales discounts, and daily opening windows.</p>
+                    <h3>Pricing & Operating Hours</h3>
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
@@ -201,8 +198,7 @@ require __DIR__ . '/../includes/header.php';
             <!-- TAB 3: LOCATION & PIN -->
             <div class="editor-panel-card" id="panel-location" role="tabpanel" hidden>
                 <div class="panel-intro">
-                    <h3>Court Geolocation & Map Pin</h3>
-                    <p class="muted">Drag the map or type your address to pin the exact entrance for player directions.</p>
+                    <h3>Location & Pin</h3>
                 </div>
                 <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
             </div>
@@ -211,12 +207,10 @@ require __DIR__ . '/../includes/header.php';
                 <!-- NEW GROUND: MEDIA TAB DIRECTLY IN FORM -->
                 <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
                     <div class="panel-intro">
-                        <h3>Court Photos & Payment QR</h3>
-                        <p class="muted">Upload showcase photos and your payment QR code directly with this new court.</p>
+                        <h3>Photos & Payment QR</h3>
                     </div>
                     <div class="form-card sub" style="margin-bottom: 20px;">
                         <h4><i class="fa-solid fa-camera"></i> Court Photos</h4>
-                        <p class="muted" style="font-size: 0.85rem;">Select photos of your turf, changing rooms, and venue. JPG, PNG, WebP or GIF up to 5 MB.</p>
                         <div class="form-group file-pick">
                             <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
                             <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
@@ -227,7 +221,6 @@ require __DIR__ . '/../includes/header.php';
 
                     <div class="form-card sub">
                         <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
-                        <p class="muted" style="font-size: 0.85rem;">Upload your Fonepay/eSewa/Khalti QR so players can scan and pay you directly.</p>
                         <div class="form-group file-pick">
                             <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
                             <input type="file" id="qrInput" name="payment_qr" accept="image/*">
@@ -242,15 +235,13 @@ require __DIR__ . '/../includes/header.php';
             <!-- TAB 4: MEDIA & QR FOR EXISTING GROUND -->
             <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
                 <div class="panel-intro">
-                    <h3>Court Media & Payment Methods</h3>
-                    <p class="muted">Manage your photo gallery and player scan-to-pay QR code.</p>
+                    <h3>Photos & Payment QR</h3>
                 </div>
 
                 <div class="form-card sub" style="margin-bottom: 24px;">
                     <div class="media-section-head">
                         <div>
                             <h4><i class="fa-solid fa-camera"></i> Photo Gallery</h4>
-                            <p class="muted" style="font-size: 0.85rem; margin: 0;">Show off your turf quality, lighting, and amenities.</p>
                         </div>
                         <span class="media-count-tag"><?php echo count($photos); ?> photos</span>
                     </div>
@@ -289,7 +280,6 @@ require __DIR__ . '/../includes/header.php';
                     <div class="media-section-head">
                         <div>
                             <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
-                            <p class="muted" style="font-size: 0.85rem; margin: 0;">Displayed on the checkout screen so players pay your account directly.</p>
                         </div>
                     </div>
 
@@ -306,7 +296,6 @@ require __DIR__ . '/../includes/header.php';
                             </div>
                             <div class="qr-info-note">
                                 <span class="badge badge-confirmed"><i class="fa-solid fa-check"></i> Active QR</span>
-                                <p class="muted" style="font-size: 0.85rem; margin: 6px 0 0 0;">Upload a replacement below if your payment QR or merchant details change.</p>
                             </div>
                         </div>
                         <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
@@ -338,8 +327,7 @@ require __DIR__ . '/../includes/header.php';
             <!-- TAB 5: BLACKOUT DATES (EDIT ONLY) -->
             <div class="editor-panel-card" id="panel-schedule" role="tabpanel" hidden>
                 <div class="panel-intro">
-                    <h3>Court Blackouts & Maintenance Lock</h3>
-                    <p class="muted">Tap any calendar date to block it for tournaments, holidays, or field maintenance.</p>
+                    <h3>Blackout Schedule</h3>
                 </div>
 
                 <?php
@@ -473,7 +461,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="courts-section-header">
         <div>
             <h3>Your Managed Grounds (<?php echo count($grounds); ?>)</h3>
-            <p class="muted" style="margin: 2px 0 0 0; font-size: 0.85rem;">All futsal venues assigned to your manager account.</p>
         </div>
     </div>
 

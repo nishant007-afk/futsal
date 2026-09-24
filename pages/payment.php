@@ -60,7 +60,6 @@ $qrFile = ground_qr((int)$booking['ground_id']);
     <div class="title-back-row bd-title-row">
         <a href="<?php echo base_url('pages/booking_details.php?id=' . $booking_id); ?>" class="page-back-arrow" data-back aria-label="Back to booking"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <span class="eyebrow">Checkout</span>
             <h1><?php echo $isPartial ? 'Pay remaining balance' : 'Complete your booking'; ?></h1>
         </div>
     </div>
@@ -151,7 +150,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                 <div class="pm-icon pm-icon--cash" aria-hidden="true"><i class="fa-solid fa-store"></i></div>
                                 <div class="pm-title-wrap">
                                     <h3>Pay at the court</h3>
-                                    <p>Reserve now, pay the counter on arrival</p>
+                                    <p>Pay on arrival</p>
                                 </div>
                             </div>
                             <span class="pm-badge">On arrival</span>

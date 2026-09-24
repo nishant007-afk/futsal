@@ -121,7 +121,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="nd-booking-head">
                     <div class="mbooking-thumb"><i class="fa-solid fa-calendar-check"></i></div>
                     <div>
-                        <span class="eyebrow">Related booking</span>
                         <h3><?php echo e($relatedBooking['ground_name']); ?></h3>
                         <p class="muted text-sm"><?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
                     </div>

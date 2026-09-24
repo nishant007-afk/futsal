@@ -18,22 +18,20 @@ require __DIR__ . '/../includes/header.php';
         <div class="stg-content-card">
             <div class="stg-content-section">
                 <h3>Theme</h3>
-                <p class="stg-content-desc">Choose your preferred colour theme.</p>
                 <div class="theme-options" id="themeOptions" role="radiogroup" aria-label="Colour theme">
                     <button type="button" class="theme-option" data-theme="system" role="radio" aria-checked="false">
                         <i class="fa-solid fa-circle-half-stroke"></i>
-                        <span><strong>System</strong><em>Follow your device</em></span>
+                        <span><strong>System</strong></span>
                     </button>
                     <button type="button" class="theme-option" data-theme="light" role="radio" aria-checked="false">
                         <i class="fa-solid fa-sun"></i>
-                        <span><strong>Light</strong><em>Bright and clean</em></span>
+                        <span><strong>Light</strong></span>
                     </button>
                     <button type="button" class="theme-option" data-theme="dark" role="radio" aria-checked="false">
                         <i class="fa-solid fa-moon"></i>
-                        <span><strong>Dark</strong><em>Easy on the eyes</em></span>
+                        <span><strong>Dark</strong></span>
                     </button>
                 </div>
-                <p class="form-hint theme-hint"><i class="fa-solid fa-circle-info"></i> You can also flip the theme from the <strong>profile menu</strong> in the top-right corner.</p>
             </div>
         </div>
     </div>

@@ -172,7 +172,7 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($attentionUnpaid): ?>
             <a href="<?php echo base_url('manager/bookings.php?payment=unpaid&status=confirmed'); ?>" class="attention-item">
                 <i class="fa-solid fa-wallet"></i>
-                <span><strong><?php echo count($attentionUnpaid); ?> booking<?php echo count($attentionUnpaid) > 1 ? 's' : ''; ?> need payment</strong> <em><?php echo count($attentionUnpaid) > 1 ? 'The first is ' . e($attentionUnpaid[0]['user_name']) . ' at ' . e($attentionUnpaid[0]['ground_name']) . '.' : e($attentionUnpaid[0]['user_name']) . ' at ' . e($attentionUnpaid[0]['ground_name']) . ' - ' . e(date('D, M j', strtotime($attentionUnpaid[0]['booking_date']))); ?></em></span>
+                <span><strong><?php echo count($attentionUnpaid); ?> booking<?php echo count($attentionUnpaid) > 1 ? 's need' : ' needs'; ?> payment</strong> <em>Latest: <?php echo e($attentionUnpaid[0]['user_name']); ?> (<?php echo e($attentionUnpaid[0]['ground_name']); ?>)</em></span>
                 <i class="fa-solid fa-arrow-right attention-go"></i>
             </a>
         <?php endif; ?>

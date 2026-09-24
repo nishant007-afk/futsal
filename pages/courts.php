@@ -149,7 +149,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="title-back-row">
         <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <span class="eyebrow"><i class="fa-solid fa-futbol"></i> DISCOVER ARENAS</span>
             <h1 class="page-title">Browse Futsal Courts</h1>
         </div>
     </div>

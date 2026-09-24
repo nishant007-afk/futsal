@@ -84,12 +84,11 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="form-card lg">
     <div class="form-head">
-        <p class="muted text-15 m-0 mb-4">Hi, <?php echo e($gName); ?></p>
         <div class="title-back-row">
             <a href="<?php echo base_url($back); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2>One last step to set up your account</h2>
+            <h2>Complete your account</h2>
         </div>
-        <p class="muted">Choose how you'll use GoalSpace and confirm your preferences below.</p>
+        <p class="muted">Hi <?php echo e($gName); ?>, choose your account type to finish setup.</p>
     </div>
 
     <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>

@@ -39,7 +39,6 @@ require __DIR__ . '/../includes/header.php';
         <div class="stg-content-card">
             <div class="stg-content-section">
                 <h3>Email notifications</h3>
-                <p class="stg-content-desc">Choose what email updates you receive.</p>
                 <form method="post" action="" novalidate>
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="update_notifications">

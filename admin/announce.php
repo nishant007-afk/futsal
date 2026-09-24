@@ -35,7 +35,7 @@ require __DIR__ . '/../includes/header.php';
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
         <h1>Send announcement</h1>
     </div>
-    <p class="muted">Send a broadcast message to all users, managers, or players. Creates an in-app notification and optionally delivers a formatted email.</p>
+    <p class="muted">Broadcast notification and email to platform users.</p>
 </div>
 
 <div class="announce-layout">

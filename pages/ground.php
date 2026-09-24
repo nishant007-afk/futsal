@@ -550,7 +550,6 @@ function toggleReviewForm() {
 <?php if ($similar): ?>
     <section class="section similar-courts">
         <div class="section-head reveal full mb-18">
-            <span class="eyebrow">Keep exploring</span>
             <h2 class="section-title">Similar courts<?php echo $cityMatch !== '' ? ' in ' . e($cityMatch) : ''; ?></h2>
         </div>
         <div class="grid grid-3 similar-grid">

@@ -77,7 +77,6 @@ require __DIR__ . '/../includes/header.php';
                             <input type="text" id="name" name="name" value="<?php echo e($user['name']); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
                             <label for="name">Full name <span class="req">*</span></label>
                         </div>
-                        <p class="form-hint">Letters, numbers, spaces and special characters are all allowed.</p>
                         <?php field_error($errors, 'name'); ?>
                     </div>
                     <div class="form-group<?php echo has_error($errors, 'email'); ?>">

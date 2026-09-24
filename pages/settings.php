@@ -22,7 +22,6 @@ require __DIR__ . '/../includes/header.php';
         <div class="stg-content-card">
             <div class="stg-content-section">
                 <h3>Profile</h3>
-                <p class="stg-content-desc">Your basic account information.</p>
                 <div class="stg-content-row">
                     <span class="stg-content-label">Name</span>
                     <span class="stg-content-value"><?php echo e($user['name']); ?></span>
@@ -44,7 +43,6 @@ require __DIR__ . '/../includes/header.php';
 
             <div class="stg-content-section">
                 <h3>Security</h3>
-                <p class="stg-content-desc">Manage your password and account security.</p>
                 <div class="stg-content-row">
                     <span class="stg-content-label">Password</span>
                     <span class="stg-content-value">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
@@ -54,7 +52,6 @@ require __DIR__ . '/../includes/header.php';
 
             <div class="stg-content-section">
                 <h3>Danger zone</h3>
-                <p class="stg-content-desc">Irreversible actions.</p>
                 <div class="stg-content-row">
                     <span class="stg-content-label">Delete account</span>
                     <span class="stg-content-value stg-content-value-warn">This cannot be undone.</span>

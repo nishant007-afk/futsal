@@ -918,11 +918,12 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 .fc-title a:hover { text-decoration: underline; }
 .fc-location { font-size: 13px; color: var(--ink-3); display: flex; align-items: center; gap: 4px; }
 .fc-location i { font-size: 12px; }
-/* ============ COURTS SECTION: Balanced Rhythm ============ */ .section-head-between { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
-.section-head-between .section-head-copy { flex: 1 1 260px; min-width: 0; text-align: left; }
+/* ============ COURTS SECTION: Balanced Rhythm ============ */ .section-head-between { display: flex; justify-content: flex-start; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.section-head-between .section-head-copy { flex: 1 1 100%; min-width: 0; text-align: left; }
 .section-head-between .section-head-copy .section-kicker, .section-head-between .section-head-copy .section-title { text-align: left; }
-.section-head-between .section-head-copy .section-sub { margin-left: 0; margin-right: 0; text-align: left; max-width: none; }
-.section-head-between .court-area-pills { margin-left: auto; }
+.section-head-between .section-head-copy .section-title { margin-bottom: 4px; }
+.section-head-between .section-head-copy .section-sub { margin-left: 0; margin-right: 0; margin-bottom: 12px; text-align: left; max-width: none; }
+.section-head-between .court-area-pills { margin-left: 0; }
 .court-area-pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .cap-pill { padding: 6px 14px; border-radius: 5px; font-size: 12.5px; font-weight: 700; text-decoration: none; background: var(--bg); border: 1px solid var(--line-2); color: var(--ink-2); transition: all .15s; }
 .cap-pill.active { background: var(--dark); color: #ffffff; border-color: var(--dark); }

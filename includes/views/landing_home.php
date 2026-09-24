@@ -94,13 +94,13 @@ $gridGrounds = count($allGrounds) > 1 ? array_slice($allGrounds, 1, 6) : $allGro
                 <span class="section-kicker">AVAILABLE TODAY</span>
                 <h2 class="section-title">Verified Futsal Courts</h2>
                 <p class="section-sub">Open courts across Kathmandu Valley.</p>
-            </div>
-            <div class="court-area-pills" role="navigation" aria-label="Explore courts by area">
-                <span class="cap-label">Popular areas:</span>
-                <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="cap-pill">New Road</a>
-                <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="cap-pill">Baneshwor</a>
-                <a href="<?php echo grounds_list_url() . '?q=Lalitpur'; ?>" class="cap-pill">Lalitpur</a>
-                <a href="<?php echo grounds_list_url() . '?q=Kirtipur'; ?>" class="cap-pill">Kirtipur</a>
+                <div class="court-area-pills" role="navigation" aria-label="Explore courts by area">
+                    <span class="cap-label">Popular areas:</span>
+                    <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="cap-pill">New Road</a>
+                    <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="cap-pill">Baneshwor</a>
+                    <a href="<?php echo grounds_list_url() . '?q=Lalitpur'; ?>" class="cap-pill">Lalitpur</a>
+                    <a href="<?php echo grounds_list_url() . '?q=Kirtipur'; ?>" class="cap-pill">Kirtipur</a>
+                </div>
             </div>
         </div>
 

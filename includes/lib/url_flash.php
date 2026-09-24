@@ -11,7 +11,7 @@ function base_url(string $path = ''): string
         $root = '/' . trim($override, '/');
     } else {
         $docRoot = str_replace('\\', '/', (string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
-        // File lives in includes/lib/ — app root is two levels up.
+        // File lives in includes/lib/  -  app root is two levels up.
         $appDir  = str_replace('\\', '/', (string)realpath(dirname(__DIR__, 2)));
         if ($docRoot !== '' && $appDir !== '' && strpos($appDir . '/', $docRoot . '/') === 0) {
             $root = rtrim(substr($appDir, strlen($docRoot)), '/');

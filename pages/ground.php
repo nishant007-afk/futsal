@@ -278,7 +278,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="date-chips" role="tablist" aria-label="Select date">
                 <?php
-                // Quick picks: next 5 days only — use the calendar for anything later.
+                // Quick picks: next 5 days only  -  use the calendar for anything later.
                 for ($d = 0; $d < 5; $d++):
                     $chipTs = strtotime("+$d day");
                     $chipDate = date('Y-m-d', $chipTs);
@@ -300,7 +300,7 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($is_blocked): ?>
             <div class="role-lock">
                 <i class="fa-solid fa-ban"></i>
-                <span>Closed on <strong><?php echo e(date('D, M j', strtotime($selected_date))); ?></strong> — pick another day.</span>
+                <span>Closed on <strong><?php echo e(date('D, M j', strtotime($selected_date))); ?></strong>  -  pick another day.</span>
             </div>
         <?php else: ?>
             <?php
@@ -316,7 +316,7 @@ require __DIR__ . '/../includes/header.php';
             $openEndHM = sprintf('%02d:%02d', intdiv($openM + $iv, 60) % 24, ($openM + $iv) % 60);
             $closeStartHM = sprintf('%02d:%02d', intdiv($closeM - $iv, 60), ($closeM - $iv) % 60);
 
-            // Busy ranges (active bookings + other users' live holds) — display only.
+            // Busy ranges (active bookings + other users' live holds)  -  display only.
             $busyRanges = [];
             $bs = $conn->prepare('SELECT start_time, end_time FROM bookings WHERE ground_id = ? AND booking_date = ? AND status != "cancelled"');
             $bs->bind_param('is', $ground['id'], $selected_date);

@@ -133,7 +133,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                     </div>
 
                                     <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmitQr">
-                                        <i class="fa-solid fa-lock"></i> <span id="btnSubmitQrLabel">I paid — submit Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></span>
+                                        <i class="fa-solid fa-lock"></i> <span id="btnSubmitQrLabel">I paid  -  submit Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></span>
                                     </button>
                                     <p class="form-hint mt-8 mb-0"><i class="fa-solid fa-shield-halved"></i> Status stays unpaid until the court verifies your transfer.</p>
                                 </div>

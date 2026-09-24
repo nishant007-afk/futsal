@@ -82,7 +82,7 @@ require __DIR__ . '/../includes/header.php';
     <?php if (($b['status'] === 'confirmed' || $b['status'] === 'pending') && (($_GET['paid'] ?? '') === '1')): ?>
         <div class="notice bd-notice notice-success mb-14">
             <i class="fa-solid fa-circle-check"></i>
-            <span><strong>Payment details submitted.</strong> The court will confirm verification shortly — your slot stays reserved.</span>
+            <span><strong>Payment details submitted.</strong> The court will confirm verification shortly  -  your slot stays reserved.</span>
         </div>
     <?php endif; ?>
 

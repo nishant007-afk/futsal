@@ -61,7 +61,7 @@ function is_bot_ua(): bool
  */
 function block_bots(): void
 {
-    // Only act on POST requests — search crawlers never POST
+    // Only act on POST requests  -  search crawlers never POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         return;
     }

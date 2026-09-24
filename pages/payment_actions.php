@@ -1,5 +1,5 @@
 <?php
-// POST handlers for pages/payment.php — promo apply/remove, pay-at-court, QR submit.
+// POST handlers for pages/payment.php  -  promo apply/remove, pay-at-court, QR submit.
 // Never marks a booking paid from the client path: QR only records method + intent.
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -89,7 +89,7 @@ if ($action === 'pay_qr') {
         $claimLabel = 'Full payment';
     }
 
-    // Keep payment_status as-is (unpaid/partial) — only record method + intent.
+    // Keep payment_status as-is (unpaid/partial)  -  only record method + intent.
     $stmt = $conn->prepare(
         'UPDATE bookings SET payment_method = "qr", payment_type = ?
          WHERE id = ? AND user_id = ? AND status = "confirmed"'
@@ -106,7 +106,7 @@ if ($action === 'pay_qr') {
     if ((int)$booking['manager_id'] > 0) {
         notify_user(
             (int)$booking['manager_id'],
-            'QR payment submitted — verify',
+            'QR payment submitted  -  verify',
             $notifMsg,
             'fa-qrcode',
             'pages/booking_details.php?id=' . $booking_id
@@ -115,7 +115,7 @@ if ($action === 'pay_qr') {
 
     set_flash(
         'success',
-        'QR payment submitted. The court will verify your transfer and mark it paid — usually within a few minutes. Keep your transaction ID handy.'
+        'QR payment submitted. The court will verify your transfer and mark it paid  -  usually within a few minutes. Keep your transaction ID handy.'
     );
     redirect('pages/booking_details.php?id=' . $booking_id . '&paid=1');
 }

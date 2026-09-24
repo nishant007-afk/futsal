@@ -1,6 +1,6 @@
 <?php
 
-// Auto-split loader — function bodies live in includes/lib/*.php
+// Auto-split loader  -  function bodies live in includes/lib/*.php
 // Callers still require this file only.
 
 require_once __DIR__ . '/lib/auth.php';

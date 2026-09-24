@@ -228,7 +228,7 @@ if ($sort !== 'price_asc') {
 <?php if ($date !== ''): ?>
     <div class="notice notice-info mb-14">
         <i class="fa-solid fa-calendar-day"></i>
-        <span>Showing free-slot badges for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear — open a court to pick another day.</span>
+        <span>Showing free-slot badges for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear  -  open a court to pick another day.</span>
     </div>
 <?php endif; ?>
 

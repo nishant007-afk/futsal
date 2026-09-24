@@ -74,7 +74,7 @@ require __DIR__ . '/../includes/header.php';
                 <form method="post" action="">
                     <?php echo csrf_field(); ?>
                     <button type="submit" name="request_setup_payment" value="1" class="btn btn-primary">
-                        <i class="fa-solid fa-file-invoice-dollar"></i> I paid — request activation
+                        <i class="fa-solid fa-file-invoice-dollar"></i> I paid  -  request activation
                     </button>
                 </form>
             <?php elseif ($status['key'] === 'overdue'): ?>
@@ -85,7 +85,7 @@ require __DIR__ . '/../includes/header.php';
                 <form method="post" action="">
                     <?php echo csrf_field(); ?>
                     <button type="submit" name="request_renew" value="1" class="btn btn-primary">
-                        <i class="fa-solid fa-calendar-plus"></i> I paid — renew subscription
+                        <i class="fa-solid fa-calendar-plus"></i> I paid  -  renew subscription
                     </button>
                 </form>
             <?php endif; ?>

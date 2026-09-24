@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $left = otp_attempts_left($verifyEmail, 'password_reset');
             $resendCount = (int)($pending['resend_count'] ?? 0);
             if ($left <= 0) {
-                $errors['code'] = 'Too many failed attempts. This code is locked — click "Resend code" below for a fresh one.';
+                $errors['code'] = 'Too many failed attempts. This code is locked  -  click "Resend code" below for a fresh one.';
             } elseif ($resendCount > 0) {
                 $errors['code'] = 'That code didn\'t match. Since you resent the code, make sure you\'re entering the newest one from ' . $senderEmail . '. (' . $left . ' attempt' . ($left === 1 ? '' : 's') . ' left)';
             } else {

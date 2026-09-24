@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $left = otp_attempts_left($email, 'login');
             if ($left <= 0) {
-                $errors['code'] = 'Too many failed attempts. This code is locked — click "Resend code" below for a brand new code.';
+                $errors['code'] = 'Too many failed attempts. This code is locked  -  click "Resend code" below for a brand new code.';
             } elseif ($resendCount > 0) {
                 $errors['code'] = 'That code didn\'t match. Since you resent the code, please make sure you\'re entering the newest one sent by ' . $senderEmail . '. (' . $left . ' attempt' . ($left === 1 ? '' : 's') . ' left)';
             } else {

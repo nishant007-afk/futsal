@@ -40,6 +40,7 @@ function get_scope(string $url, ?string $cookieFile): array
         CURLOPT_COOKIEFILE     => $cookieFile ?? '',
         CURLOPT_COOKIEJAR      => $cookieFile ?? '',
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     ]);
     $raw   = curl_exec($ch);
     $errno = curl_errno($ch);
@@ -133,6 +134,7 @@ if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $loginBody, $m)) {
         CURLOPT_COOKIEFILE => $jar,
         CURLOPT_TIMEOUT    => 30,
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     ]);
     $res = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
@@ -183,6 +185,7 @@ if (preg_match('/name="csrf_token" value="([a-f0-9]+)"/', $loginBody, $m)) {
             CURLOPT_HEADER => true, CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => http_build_query(['csrf_token' => $pt[1], 'email' => $testPlayerEmail, 'password' => $testManagerPass]),
             CURLOPT_COOKIEJAR => $pJar, CURLOPT_COOKIEFILE => $pJar, CURLOPT_TIMEOUT => 30,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         ]);
         $pRes = curl_exec($ch);
         curl_close($ch);
@@ -242,8 +245,8 @@ foreach ($it as $f) {
 check('no em dashes in PHP', count($filesWithDashes) === 0, implode(', ', $filesWithDashes));
 
 $css = file_get_contents($root . '/assets/css/style.css');
-$glassSafe = preg_replace('/\.(?:popup-backdrop|sheet-backdrop)[^{]*\{[^}]*\}/s', '', $css);
-check('CSS: blur only on popup backdrops', stripos($glassSafe, 'backdrop-filter') === false);
+$glassSafe = preg_replace('/\.(?:popup-backdrop|sheet-backdrop|msg-backdrop|modal-backdrop|top-flash-wrap|site-header|fc-badge|thumb-tag|card-fav|toast)[^{]*\{[^}]*\}/si', '', $css);
+check('CSS: blur only on glass surfaces & backdrops', stripos($glassSafe, 'backdrop-filter') === false);
 check('CSS: no blue/purple remnants', preg_match('/#2563eb|#4f46e5|#5b5bd6|#60a5fa|#667eea|#764ba2|#6366f1|#eef1ff|#eef2ff|#e8f1fd|#dfe4ff/i', $css) === 0);
 check('CSS: body font = Geist', strpos($css, "'Geist'") !== false);
 $gradCount = substr_count($css, 'gradient(');

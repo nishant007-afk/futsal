@@ -209,7 +209,7 @@ require __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
-                                <form method="post" action="" style="display:inline;" onsubmit="return confirm('Delete this user?');">
+                                <form method="post" action="" style="display:inline;" data-confirm="Are you sure you want to delete this user? All their data will be removed.">
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="delete_user" value="<?php echo (int)$u['id']; ?>">
                                     <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete user"><i class="fa-solid fa-trash"></i></button>

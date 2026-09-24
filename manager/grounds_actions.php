@@ -1,5 +1,5 @@
 <?php
-// POST handlers for manager/grounds.php — keeps the main page view-focused.
+// POST handlers for manager/grounds.php  -  keeps the main page view-focused.
 // Paths use __DIR__ relative to manager/ (this file lives beside grounds.php).
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_ground'])) {

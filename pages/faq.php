@@ -162,10 +162,6 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="faq-group-body">
             <details class="faq-item">
-                <summary>Can I install GoalSpace as an app?</summary>
-                <p>Android Chrome: menu → Install app. iPhone Safari: Share → Add to Home Screen.</p>
-            </details>
-            <details class="faq-item">
                 <summary>How do I contact support?</summary>
                 <p>Email <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or use our <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">contact form</a>. We respond within 4 hours on business days.</p>
             </details>

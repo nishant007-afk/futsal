@@ -1,11 +1,14 @@
 <?php
-$grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 ORDER BY g.id LIMIT 6')->fetch_all(MYSQLI_ASSOC);
-if (!empty($grounds)) {
-    preload_ground_cards(array_column($grounds, 'id'));
+$allGrounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.is_active = 1 ORDER BY g.id LIMIT 7')->fetch_all(MYSQLI_ASSOC);
+if (!empty($allGrounds)) {
+    preload_ground_cards(array_column($allGrounds, 'id'));
 }
-$featured = $grounds[0] ?? null;
+$featured = $allGrounds[0] ?? null;
 $featuredCover = $featured ? ground_cover((int)$featured['id']) : null;
 $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.9, 'count' => 38];
+
+// The grid below features the subsequent courts so the featured court is not duplicated
+$gridGrounds = count($allGrounds) > 1 ? array_slice($allGrounds, 1, 6) : $allGrounds;
 ?>
 
 <script type="application/ld+json">
@@ -28,6 +31,10 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
     <div class="container">
         <div class="hero-grid">
             <div class="hero-main">
+                <div class="hero-kicker">
+                    <span class="kicker-pill"><i class="fa-solid fa-bolt"></i> Instant Booking</span>
+                    <span class="kicker-sub">Kathmandu Valley</span>
+                </div>
                 <h1>Book your next match in under a minute.</h1>
                 <p class="hero-sub">Live slots, instant confirmation, direct pricing.</p>
 
@@ -56,13 +63,13 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                         <?php else: ?>
                             <div class="pitch fc-pitch"></div>
                         <?php endif; ?>
-                        <span class="fc-badge"><span class="badge-pulse"></span> Match Ready</span>
+                        <span class="fc-badge"><span class="badge-pulse"></span> Featured Arena</span>
                     </a>
                     <div class="fc-caption">
                         <div class="fc-details">
-                            <h3 class="fc-title">
+                            <h2 class="fc-title">
                                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$featured['id']); ?>"><?php echo e($featured['name']); ?></a>
-                            </h3>
+                            </h2>
                             <span class="fc-location"><i class="fa-solid fa-location-dot"></i> <?php echo e($featured['location']); ?></span>
                         </div>
                         <div class="fc-action-side">
@@ -88,8 +95,8 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
                 <h2 class="section-title">Verified Futsal Courts</h2>
                 <p class="section-sub">Open courts across Kathmandu Valley.</p>
             </div>
-            <div class="court-area-pills" role="navigation" aria-label="Filter courts by neighborhood">
-                <a href="<?php echo grounds_list_url(); ?>" class="cap-pill active">All Areas</a>
+            <div class="court-area-pills" role="navigation" aria-label="Explore courts by area">
+                <span class="cap-label">Popular areas:</span>
                 <a href="<?php echo grounds_list_url() . '?q=New+Road'; ?>" class="cap-pill">New Road</a>
                 <a href="<?php echo grounds_list_url() . '?q=Baneshwor'; ?>" class="cap-pill">Baneshwor</a>
                 <a href="<?php echo grounds_list_url() . '?q=Lalitpur'; ?>" class="cap-pill">Lalitpur</a>
@@ -97,11 +104,11 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
             </div>
         </div>
 
-        <?php if (!$grounds): ?>
+        <?php if (!$gridGrounds): ?>
             <?php empty_state('fa-solid fa-futbol', 'No grounds available right now', 'Check back soon &middot; courts open for booking will appear here.'); ?>
         <?php else: ?>
             <div class="courts-grid">
-                <?php foreach ($grounds as $ground) { ground_card_html($ground); } ?>
+                <?php foreach ($gridGrounds as $ground) { ground_card_html($ground); } ?>
             </div>
             <div class="section-foot center">
                 <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline btn-lg">View All Courts <i class="fa-solid fa-arrow-right"></i></a>
@@ -118,20 +125,26 @@ $featuredRating = $featured ? ground_rating((int)$featured['id']) : ['avg' => 4.
         </div>
         <div class="steps-grid">
             <div class="step-card">
-                <div class="step-num">01</div>
-                <div class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+                <div class="step-card-head">
+                    <div class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+                    <span class="step-badge">01</span>
+                </div>
                 <h3>Find a court</h3>
                 <p>Compare venues, prices, and open hours.</p>
             </div>
             <div class="step-card">
-                <div class="step-num">02</div>
-                <div class="step-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="step-card-head">
+                    <div class="step-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <span class="step-badge">02</span>
+                </div>
                 <h3>Pick a slot</h3>
                 <p>See live availability and lock your hour.</p>
             </div>
             <div class="step-card">
-                <div class="step-num">03</div>
-                <div class="step-icon"><i class="fa-solid fa-futbol"></i></div>
+                <div class="step-card-head">
+                    <div class="step-icon"><i class="fa-solid fa-futbol"></i></div>
+                    <span class="step-badge">03</span>
+                </div>
                 <h3>Play</h3>
                 <p>Pay by QR or at the counter. Game on.</p>
             </div>

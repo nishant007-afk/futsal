@@ -851,23 +851,6 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 @media (max-width: 600px) {
     .sheet { width: 100%; }
 }
-/* ============ INSTALL APP PROMPT ============ */ .install-prompt { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); transform: translate(-50%, 16px); z-index: 1240; width: min(400px, calc(100vw - 24px)); background: var(--bg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 44px -12px rgba(6, 12, 9, .42); padding: 16px 16px 14px; opacity: 0; pointer-events: none; transition: opacity .3s ease, transform .3s cubic-bezier(.16, 1, .3, 1); }
-.install-prompt.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
-.install-prompt.hide { opacity: 0; transform: translate(-50%, 16px); transition: opacity .26s ease, transform .26s ease; }
-.install-card { display: flex; align-items: flex-start; gap: 10px; }
-.install-icon { width: 46px; height: 46px; border-radius: 12px; flex: none; box-shadow: 0 4px 12px -4px rgba(13, 80, 46, .45); }
-.install-text { flex: 1; min-width: 0; }
-.install-text strong { display: block; font-size: 15px; color: var(--ink); }
-.install-text span { display: block; font-size: 14px; line-height: 1.5; color: var(--muted); margin-top: 2px; }
-.install-x { width: 36px; height: 36px; flex: none; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background .15s, color .15s; }
-.install-x:hover { background: var(--bg-soft); color: var(--ink); }
-.install-actions { display: flex; gap: 7px; margin-top: 12px; }
-.install-actions .btn { flex: 1; justify-content: center; }
-@media (min-width: 821px) {
-    .install-prompt { left: auto; right: 20px; bottom: 20px; width: 380px; transform: translateY(16px); }
-    .install-prompt.show { transform: translateY(0); }
-    .install-prompt.hide { transform: translateY(16px); }
-}
 /* status notice banner - calm neutral container with a slim accent */ .notice { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 0; font-size: 14px; line-height: 1.5; border: 1px solid var(--line); background: #fff; }
 .notice i { flex-shrink: 0; margin-top: 2px; font-size: 14px; color: var(--ink-3); }
 .notice a { color: var(--ink); font-weight: 600; text-decoration: underline; }
@@ -3344,14 +3327,14 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 .ha-label { color: var(--ink-3); font-weight: 500; }
 .ha-pill { padding: 4px 12px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-pill); color: var(--ink-2); text-decoration: none; font-size: 12.5px; font-weight: 500; transition: all 0.15s ease; }
 .ha-pill:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-700); }
-/* Featured Arena Card */ .featured-card { background: #ffffff; border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--s2); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+/* Featured Arena Card */ .featured-card { background: var(--bg, #ffffff); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--s2); transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .featured-card:hover { transform: translateY(-3px); box-shadow: var(--s3); }
 .fc-media { position: relative; display: block; aspect-ratio: 16/10; overflow: hidden; background: var(--bg-subtle); }
 .fc-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s ease; }
 .featured-card:hover .fc-img { transform: scale(1.03); }
 .fc-badge { position: absolute; top: 14px; left: 14px; background: rgba(10, 20, 15, 0.75); backdrop-filter: blur(8px); color: #ffffff; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: 7px; border: 1px solid rgba(255, 255, 255, 0.15); }
 .badge-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--floodlight); box-shadow: 0 0 8px var(--floodlight); display: inline-block; }
-.fc-caption { padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #ffffff; }
+.fc-caption { padding: 20px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--bg, #ffffff); border-top: 1px solid var(--line); }
 .fc-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
 .fc-title a { text-decoration: none; color: var(--ink); }
 .fc-title a:hover { color: var(--brand); }
@@ -3359,6 +3342,24 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 .fc-action-side { display: flex; align-items: center; gap: 16px; text-align: right; flex-shrink: 0; }
 .fc-price strong { font-size: 18px; font-weight: 800; color: var(--ink); }
 .fc-price small { font-size: 12px; color: var(--ink-3); }
+@media (max-width: 520px) {
+    .fc-caption {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+        padding: 16px 18px !important;
+    }
+    .fc-details { width: 100% !important; }
+    .fc-action-side {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        text-align: left !important;
+        gap: 12px !important;
+    }
+    .fc-action-side .fc-btn { flex-shrink: 0 !important; padding: 9px 20px !important; }
+}
 /* Court Cards — Horizon Style (flat, border-only; no drop shadow; no inner frame) */ .card, .ground-card { background: #ffffff !important; border: 1px solid var(--line) !important; border-radius: var(--r-lg) !important; padding: 0 !important; overflow: hidden; box-shadow: none !important; transition: border-color 0.2s ease !important; display: flex; flex-direction: column; }
 .card:hover, .ground-card:hover { border-color: var(--line-2) !important; box-shadow: none !important; transform: none; }
 .card .card-img { aspect-ratio: 16/10; height: auto; position: relative; background: var(--bg-subtle); overflow: hidden; }
@@ -3378,14 +3379,16 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 .card-meta .price small { font-size: 12px; color: var(--ink-3); font-weight: 500; }
 .card-cta-link { border-radius: var(--r-pill) !important; padding: 6px 14px !important; font-size: 12.5px !important; font-weight: 600 !important; text-decoration: none; }
 /* Court Area Pills Bar */ .court-area-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cap-label { font-size: 13px; color: var(--ink-3); font-weight: 500; margin-right: 4px; }
 .cap-pill { padding: 6px 14px; border-radius: var(--r-pill); background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s ease; }
 .cap-pill:hover { background: var(--bg-subtle); color: var(--ink); border-color: var(--line-2); }
 .cap-pill.active { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-700); font-weight: 600; }
 /* 3-Step Playbook */ .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; }
-.step-card { background: #ffffff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px 24px; box-shadow: var(--s1); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; align-items: flex-start; text-align: left; height: 100%; }
+.step-card { background: #ffffff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px 22px; box-shadow: var(--s1); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; align-items: flex-start; text-align: left; height: 100%; }
 .step-card:hover { transform: translateY(-3px); box-shadow: var(--s2); }
-.step-num { font-size: 14px; font-weight: 800; color: var(--brand); letter-spacing: 0.04em; margin-bottom: 12px; }
-.step-icon { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-700); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 16px; }
+.step-card-head { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 16px; }
+.step-badge { font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; color: var(--brand-700); background: var(--brand-soft); padding: 4px 11px; border-radius: var(--r-pill); }
+.step-icon { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-700); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 0; }
 .step-card h3 { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 8px; letter-spacing: -0.01em; }
 .step-card p { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin: 0; }
 /* Manager Stadium Banner */ .manager-cta-banner { background: linear-gradient(135deg, #0a1710 0%, #11281c 100%); border-radius: var(--r-lg); padding: 36px 24px; color: #ffffff; box-shadow: var(--s3); position: relative; overflow: hidden; text-align: center; }
@@ -3551,6 +3554,14 @@ html[data-theme="dark"] .btn-outline { background: transparent !important; borde
 html[data-theme="dark"] .btn-outline:hover { background: var(--bg-soft) !important; border-color: var(--brand) !important; color: #34d399 !important; }
 html[data-theme="dark"] .ha-pill, html[data-theme="dark"] .cap-pill { background: var(--bg-soft) !important; border-color: rgba(255, 255, 255, 0.12) !important; color: #cbd5e1 !important; }
 html[data-theme="dark"] .cap-pill.active { background: rgba(16, 185, 129, 0.2) !important; border-color: var(--brand) !important; color: #34d399 !important; }
+html[data-theme="dark"] .fc-caption { background: var(--dark-2) !important; border-top-color: var(--dark-3) !important; }
+html[data-theme="dark"] .fc-title, html[data-theme="dark"] .fc-title a { color: #ffffff !important; }
+html[data-theme="dark"] .fc-location { color: #94a3b8 !important; }
+html[data-theme="dark"] .fc-price strong { color: #ffffff !important; }
+html[data-theme="dark"] .fc-price small { color: #94a3b8 !important; }
+html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.2) !important; opacity: 0.85 !important; }
+body.landing .site-header .header-search-wrap,
+body.landing .site-header .header-search-toggle { display: none !important; }
 /* Responsive Checkout */ @media (max-width: 860px) { .checkout-grid { grid-template-columns: 1fr; } .order-summary-card { position: static; } .courts-search-main { grid-template-columns: 1fr 1fr; } .steps-grid { grid-template-columns: 1fr; } .match-pass-schedule { grid-template-columns: 1fr; gap: 12px; } .mps-divider { display: none; } .qr-showcase { grid-template-columns: 1fr; justify-items: center; text-align: center; }; }
 @media (max-width: 600px) {
     .courts-search-main { grid-template-columns: 1fr; }
@@ -3843,11 +3854,6 @@ html[data-theme="dark"] .site-footer-compact .sfc-links a:hover { color: #ffffff
     .sheet {
         max-height: calc(100vh - 70px);
         bottom: calc(var(--bottomnav-h) + 8px + env(safe-area-inset-bottom, 0px));
-    }
-    .install-prompt {
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
-        max-height: calc(100vh - 70px);
-        overflow-y: auto;
     }
     .cookie-banner {
         bottom: calc(var(--bottomnav-h) + 8px + env(safe-area-inset-bottom, 0px));

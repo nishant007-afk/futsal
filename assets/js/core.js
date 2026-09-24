@@ -782,12 +782,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function openConfirmModal(message, onConfirm, labels) {
         labels = labels || {};
+        const prevFocused = document.activeElement;
         showBackdrop();
+        document.body.style.overflow = 'hidden';
         const esc = function (s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
         const modal = document.createElement('div');
         modal.className = 'modal open';
+        modal.setAttribute('role', 'alertdialog');
+        modal.setAttribute('aria-modal', 'true');
         modal.innerHTML =
             '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="modal-head">' +
@@ -803,13 +807,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const onEsc = function (e) {
             if (e.key === 'Escape') close();
+            if (e.key === 'Tab') {
+                const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (!focusables.length) return;
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    last.focus();
+                    e.preventDefault();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    first.focus();
+                    e.preventDefault();
+                }
+            }
         };
         document.addEventListener('keydown', onEsc);
 
         function close() {
             modal.classList.add('hide');
             document.removeEventListener('keydown', onEsc);
-            setTimeout(function () { modal.remove(); removeBackdropIfEmpty(); }, 220);
+            document.body.style.overflow = '';
+            setTimeout(function () {
+                modal.remove();
+                removeBackdropIfEmpty();
+                if (prevFocused && typeof prevFocused.focus === 'function') prevFocused.focus();
+            }, 220);
         }
 
         const backdrop = document.querySelector('.popup-backdrop');
@@ -831,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 close();
                 if (typeof onConfirm === 'function') onConfirm();
             });
-            okBtn.focus();
+            setTimeout(function () { okBtn.focus(); }, 40);
         }
     }
     function showSheet(message, opts) {
@@ -897,6 +919,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function openErrorModal(message, title, opts) {
         opts = opts || {};
+        const prevFocused = document.activeElement;
+        document.body.style.overflow = 'hidden';
         const esc = function (s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
@@ -904,6 +928,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnLabel = opts.button === true ? 'Try again' : (opts.button || 'Try again');
         const backdrop = document.createElement('div');
         backdrop.className = 'msg-backdrop';
+        backdrop.setAttribute('role', 'alertdialog');
+        backdrop.setAttribute('aria-modal', 'true');
         const card = document.createElement('div');
         card.className = 'msg-card msg-error';
         card.innerHTML =
@@ -918,17 +944,36 @@ document.addEventListener('DOMContentLoaded', function () {
         function close() {
             if (card.classList.contains('hide')) return;
             card.classList.add('hide');
-            setTimeout(function () { backdrop.remove(); }, 220);
+            document.removeEventListener('keydown', keyHandler);
+            document.body.style.overflow = '';
+            setTimeout(function () {
+                backdrop.remove();
+                if (prevFocused && typeof prevFocused.focus === 'function') prevFocused.focus();
+            }, 220);
         }
         const closeBtn = card.querySelector('.msg-close');
         if (closeBtn) closeBtn.addEventListener('click', close);
         const btn = card.querySelector('.msg-btn');
         if (btn) btn.addEventListener('click', close);
         backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(); });
-        document.addEventListener('keydown', function handler(e) {
-            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
-        });
-        setTimeout(function () { (btn || closeBtn).focus(); }, 10);
+        function keyHandler(e) {
+            if (e.key === 'Escape') { close(); }
+            if (e.key === 'Tab') {
+                const focusables = card.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (!focusables.length) return;
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    last.focus();
+                    e.preventDefault();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    first.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+        document.addEventListener('keydown', keyHandler);
+        setTimeout(function () { (btn || closeBtn).focus(); }, 40);
     }
     window.openErrorModal = openErrorModal;
     document.querySelectorAll('[data-error-modal-msg]').forEach(function (el) {
@@ -959,7 +1004,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    toasts.forEach(function (t, i) {
+    function initToast(t, i) {
+        if (!t || t.__toast_init) return;
+        t.__toast_init = true;
+
         const close = t.querySelector('.toast-close');
         if (close) close.addEventListener('click', function () { dismissToast(t); });
         const isError = t.classList.contains('toast-error');
@@ -968,35 +1016,141 @@ document.addEventListener('DOMContentLoaded', function () {
         const hasRichDetail = !!t.querySelector('.toast-why, .toast-how, .toast-fix');
         const delay = isError ? (hasRichDetail ? 5200 : 4200) : (isInline ? 3000 : 3500);
 
+        t.style.setProperty('--toast-duration', delay + 'ms');
+
         let timer = null;
         const startTimer = function () {
             if (!timer) {
+                t.classList.remove('is-paused');
                 timer = setTimeout(function () { dismissToast(t); }, delay);
             }
         };
         const stopTimer = function () {
             if (timer) {
+                t.classList.add('is-paused');
                 clearTimeout(timer);
                 timer = null;
             }
         };
 
         startTimer();
+
+        // Mouse hover pause
         t.addEventListener('mouseenter', stopTimer);
         t.addEventListener('mouseleave', startTimer);
-        t.addEventListener('touchstart', stopTimer, { passive: true });
-        t.addEventListener('touchend', startTimer, { passive: true });
+
+        // Touch gestures: hold to pause + swipe up/flick to dismiss immediately
+        let touchStartY = 0;
+        let touchDeltaY = 0;
+        let isTouching = false;
+
+        t.addEventListener('touchstart', function (e) {
+            if (e.touches && e.touches.length === 1) {
+                touchStartY = e.touches[0].clientY;
+                touchDeltaY = 0;
+                isTouching = true;
+                stopTimer();
+            }
+        }, { passive: true });
+
+        t.addEventListener('touchmove', function (e) {
+            if (!isTouching || !e.touches || e.touches.length !== 1) return;
+            touchDeltaY = e.touches[0].clientY - touchStartY;
+            if (touchDeltaY < 0) {
+                // Swiping up towards top edge: smoothly follow finger
+                t.style.transform = 'translateY(' + (touchDeltaY * 0.85) + 'px)';
+                t.style.opacity = Math.max(0.15, 1 + touchDeltaY / 140);
+            }
+        }, { passive: true });
+
+        t.addEventListener('touchend', function () {
+            if (!isTouching) return;
+            isTouching = false;
+            if (touchDeltaY < -32) {
+                // User swiped up with intention: dismiss immediately
+                dismissToast(t);
+            } else {
+                // Snap back smoothly
+                t.style.transform = '';
+                t.style.opacity = '';
+                startTimer();
+            }
+        }, { passive: true });
+
+        t.addEventListener('touchcancel', function () {
+            isTouching = false;
+            t.style.transform = '';
+            t.style.opacity = '';
+            startTimer();
+        }, { passive: true });
 
         if (!isTop && !isInline && toasts.length > 1) {
             t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
         }
+
+        // Tactile haptic feedback for errors on mobile devices
+        if (isError && typeof navigator !== 'undefined' && navigator.vibrate) {
+            try { navigator.vibrate([15, 35, 15]); } catch (_) {}
+        }
+
         // Announce toast to screen readers
         var toastMsg = t.querySelector('.toast-msg');
         if (toastMsg) announceToScreenReader(toastMsg.textContent);
         if (isError) {
             highlightPasswordError(t);
         }
-    });
+    }
+
+    toasts.forEach(initToast);
+
+    // Global client-side GoalSpace.toast API
+    window.GoalSpace = window.GoalSpace || {};
+    window.GoalSpace.toast = function (opts) {
+        if (!opts) return null;
+        const type = opts.type || 'error';
+        const message = opts.message || opts.text || '';
+        if (!message) return null;
+
+        let wrap = document.querySelector('.top-flash-wrap');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.className = 'top-flash-wrap';
+            document.body.appendChild(wrap);
+        }
+
+        const esc = function (s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+
+        const t = document.createElement('div');
+        const isSuccess = type === 'success';
+        const isInfo = type === 'info';
+        t.className = 'toast toast-' + (isSuccess ? 'success' : (isInfo ? 'info' : 'error')) + ' toast-top';
+        t.setAttribute('role', isSuccess || isInfo ? 'status' : 'alert');
+
+        const iconClass = isSuccess ? 'fa-circle-check' : (isInfo ? 'fa-circle-info' : 'fa-circle-exclamation');
+
+        let html = '<div class="toast-icon"><i class="fa-solid ' + iconClass + '"></i></div>';
+        html += '<div class="toast-content"><div class="toast-msg">';
+        html += '<span>' + esc(message) + '</span>';
+        if (opts.why) {
+            html += '<span class="toast-why">' + esc(opts.why) + '</span>';
+        }
+        if (opts.how) {
+            html += '<span class="toast-how">' + esc(opts.how) + '</span>';
+        }
+        if (opts.actionLabel && opts.actionUrl) {
+            html += '<a href="' + esc(opts.actionUrl) + '" class="toast-fix">' + esc(opts.actionLabel) + '</a>';
+        }
+        html += '</div></div>';
+        html += '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
+        html += '<div class="toast-progress" aria-hidden="true"></div>';
+
+        t.innerHTML = html;
+        wrap.appendChild(t);
+        initToast(t, wrap.querySelectorAll('.toast').length - 1);
+        return t;
+    };
     function highlightPasswordError(toast) {
         const card = toast.closest('.form-card');
         const scope = card || document;
@@ -1328,6 +1482,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             icon.classList.toggle('fa-solid', saved === 1);
                             icon.classList.toggle('fa-regular', saved !== 1);
                         }
+                        if (window.GoalSpace && window.GoalSpace.toast) {
+                            window.GoalSpace.toast({
+                                type: 'success',
+                                message: saved ? 'Added to your saved courts.' : 'Removed from saved courts.'
+                            });
+                        }
                     } else {
                         btn.setAttribute('data-saved', String(prevSaved));
                         btn.classList.toggle('saved', prevSaved === 1);
@@ -1335,8 +1495,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             icon.classList.toggle('fa-solid', prevSaved === 1);
                             icon.classList.toggle('fa-regular', prevSaved !== 1);
                         }
-                        if (json && json.error && typeof openErrorModal === 'function') {
-                            openErrorModal('Could not save', json.error);
+                        const errMsg = (json && json.error) ? json.error : 'Could not update saved courts.';
+                        if (window.GoalSpace && window.GoalSpace.toast) {
+                            window.GoalSpace.toast({ type: 'error', message: errMsg });
+                        } else if (typeof openErrorModal === 'function') {
+                            openErrorModal('Could not save', errMsg);
                         }
                     }
                 })
@@ -1348,8 +1511,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         icon.classList.toggle('fa-solid', prevSaved === 1);
                         icon.classList.toggle('fa-regular', prevSaved !== 1);
                     }
-                    if (typeof openErrorModal === 'function') {
-                        openErrorModal('Could not save', 'You may be signed out, or the network failed. Try again.');
+                    const netMsg = 'Network connection issue. Please try again.';
+                    if (window.GoalSpace && window.GoalSpace.toast) {
+                        window.GoalSpace.toast({ type: 'error', message: netMsg });
+                    } else if (typeof openErrorModal === 'function') {
+                        openErrorModal('Could not save', netMsg);
                     }
                 });
         });

@@ -508,7 +508,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
 @keyframes toastOut {
     to { opacity: 0; transform: none; }
 }
-/* ============ MESSAGE CONFIRMATION CARDS ============ */ .msg-backdrop { position: fixed; inset: 0; z-index: 1250; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 18, .55); animation: msgFadeIn .28s ease; }
+/* ============ MESSAGE CONFIRMATION CARDS ============ */ .msg-backdrop { position: fixed; inset: 0; z-index: 1250; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 18, .62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: msgFadeIn .28s ease; }
 .msg-card { position: relative; z-index: 1260; width: min(430px, 100%); border-radius: 16px; padding: 40px 30px 30px; text-align: center; background: #ffffff; border: 1px solid rgba(15, 23, 18, .08); box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 24px 60px -18px rgba(30, 41, 35, .28), 0 4px 14px rgba(30, 41, 35, .06); animation: msgPop .4s cubic-bezier(.16, 1, .3, 1); }
 .msg-card.has-detail { width: min(460px, 100%); }
 .msg-card.hide { animation: msgFadeOut .22s ease forwards; }
@@ -540,7 +540,7 @@ a.card-mini:hover { border-color: var(--role, var(--brand)); }
     from { opacity: 0; }
     to { opacity: 1; }
 }
-/* ============ CONFIRM MODAL ============ */ .modal-backdrop { position: fixed; inset: 0; z-index: 1250; background: rgba(6, 12, 9, .68); display: flex; align-items: center; justify-content: center; animation: fadeIn .25s ease; }
+/* ============ CONFIRM MODAL ============ */ .modal-backdrop { position: fixed; inset: 0; z-index: 1250; background: rgba(6, 12, 9, .68); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; animation: fadeIn .25s ease; }
 .modal-backdrop[hidden] { display: none; }
 .modal-backdrop .modal { position: static; transform: none; width: min(480px, 92vw); }
 .modal { position: fixed !important; inset: 0 !important; margin: auto !important; z-index: 1260 !important; width: min(440px, 92vw) !important; height: fit-content !important; max-height: min(620px, 85vh) !important; overflow-y: auto !important; align-self: center !important; justify-self: center !important; background: var(--bg, #ffffff) !important; border: 1px solid var(--line, rgba(15, 23, 18, .12)) !important; border-radius: 16px !important; box-shadow: 0 30px 70px -24px rgba(6, 15, 10, .5), 0 10px 30px rgba(0, 0, 0, .2) !important; padding: 28px 28px 24px !important; text-align: left !important; animation: modalIn .28s cubic-bezier(.16, 1, .3, 1) forwards !important; display: flex !important; flex-direction: column !important; }
@@ -2631,7 +2631,7 @@ tbody tr:hover td { background: var(--bg-soft); }
 .header-search input::placeholder, #headerSearchInput::placeholder, #hsOverlayInput::placeholder { font-size: 12px !important; letter-spacing: -0.01em !important; }
 /* 3. Auth Page Title Sizes */ .auth-title-lg { font-size: 26px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; margin: 0 !important; }
 .signup-right .auth-head h2 { font-size: 25px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; color: var(--ink) !important; margin: 0 !important; }
-/* 4. Top Floating Flash Notification */
+/* 4. Top Floating Flash Notification (Impeccable Sonner & Linear inspired) */
 .top-flash-wrap {
     position: fixed !important;
     top: calc(var(--header-h, 60px) + 12px) !important;
@@ -2639,12 +2639,14 @@ tbody tr:hover td { background: var(--bg-soft); }
     transform: translateX(-50%) !important;
     z-index: 99999 !important;
     width: auto !important;
-    max-width: min(480px, calc(100vw - 28px)) !important;
+    max-width: min(500px, calc(100vw - 24px)) !important;
     margin: 0 !important;
     padding: 0 !important;
     pointer-events: none !important;
     display: flex !important;
-    justify-content: center !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 .top-flash-wrap .toast-top {
     position: relative !important;
@@ -2652,47 +2654,48 @@ tbody tr:hover td { background: var(--bg-soft); }
     right: auto !important;
     bottom: auto !important;
     top: auto !important;
-    width: auto !important;
-    max-width: min(480px, calc(100vw - 28px)) !important;
+    width: 100% !important;
+    max-width: min(500px, calc(100vw - 24px)) !important;
     margin: 0 !important;
     pointer-events: auto !important;
     display: flex !important;
     align-items: flex-start !important;
-    gap: 10px !important;
-    padding: 10px 14px !important;
-    border-radius: 12px !important;
-    background: rgba(12, 18, 15, 0.95) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
+    gap: 12px !important;
+    padding: 12px 14px 14px 14px !important;
+    border-radius: 14px !important;
+    background: rgba(14, 20, 16, 0.94) !important;
+    backdrop-filter: blur(18px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-left: 3.5px solid #10b981 !important;
-    box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 18px 40px -10px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.25) !important;
     animation: topNotificationSlideDown 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    touch-action: pan-y !important;
+    user-select: none !important;
+    overflow: hidden !important;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease !important;
 }
 .top-flash-wrap .toast-top.toast-success {
-    background: rgba(10, 20, 15, 0.95) !important;
-    color: #ffffff !important;
-    border-left: 3.5px solid #10b981 !important;
+    background: rgba(10, 22, 16, 0.94) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.15) inset, 0 18px 40px -10px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(16, 185, 129, 0.18) !important;
 }
 .top-flash-wrap .toast-top.toast-error {
-    background: rgba(22, 12, 12, 0.96) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(239, 68, 68, 0.28) !important;
-    border-left: 3.5px solid #ef4444 !important;
-    box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(239, 68, 68, 0.2) !important;
+    background: rgba(24, 12, 12, 0.95) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18) inset, 0 20px 42px -10px rgba(0, 0, 0, 0.55), 0 4px 18px rgba(239, 68, 68, 0.22) !important;
 }
 .top-flash-wrap .toast-top.toast-info {
-    background: rgba(10, 16, 26, 0.95) !important;
-    color: #ffffff !important;
-    border-left: 3.5px solid #3b82f6 !important;
+    background: rgba(10, 18, 28, 0.94) !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15) inset, 0 18px 40px -10px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(59, 130, 246, 0.18) !important;
 }
 .top-flash-wrap .toast-icon {
-    width: 26px !important;
-    height: 26px !important;
+    width: 28px !important;
+    height: 28px !important;
     border-radius: 50% !important;
-    font-size: 13px !important;
-    color: #10b981 !important;
+    font-size: 13.5px !important;
+    color: #34d399 !important;
     background: rgba(16, 185, 129, 0.16) !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -2701,9 +2704,8 @@ tbody tr:hover td { background: var(--bg-soft); }
     margin-top: 1px !important;
 }
 .top-flash-wrap .toast-top.toast-error .toast-icon {
-    color: #ef4444 !important;
+    color: #f87171 !important;
     background: rgba(239, 68, 68, 0.18) !important;
-    box-shadow: none !important;
 }
 .top-flash-wrap .toast-top.toast-info .toast-icon {
     color: #60a5fa !important;
@@ -2712,6 +2714,7 @@ tbody tr:hover td { background: var(--bg-soft); }
 .top-flash-wrap .toast-content {
     flex: 1 1 auto !important;
     min-width: 0 !important;
+    padding-right: 4px !important;
 }
 .top-flash-wrap .toast-msg {
     font-size: 13.5px !important;
@@ -2722,58 +2725,103 @@ tbody tr:hover td { background: var(--bg-soft); }
     overflow-wrap: anywhere;
     text-align: left;
 }
-.top-flash-wrap .toast-why, .top-flash-wrap .toast-how {
+.top-flash-wrap .toast-why {
     display: block !important;
     font-size: 12.5px !important;
     font-weight: 400 !important;
-    opacity: .9 !important;
     margin-top: 3px !important;
-    color: rgba(255, 255, 255, 0.85) !important;
-    line-height: 1.4 !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+    line-height: 1.45 !important;
+}
+.top-flash-wrap .toast-how {
+    display: block !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    margin-top: 4px !important;
+    color: #fca5a5 !important;
+    line-height: 1.45 !important;
 }
 .top-flash-wrap .toast-fix {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 5px !important;
-    margin-top: 6px !important;
-    padding: 4px 9px !important;
-    border-radius: 6px !important;
+    gap: 6px !important;
+    margin-top: 7px !important;
+    padding: 5px 12px !important;
+    border-radius: 9999px !important;
     background: rgba(255, 255, 255, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.18) !important;
     color: #ffffff !important;
     text-decoration: none !important;
     font-weight: 600 !important;
     font-size: 12px !important;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+}
+.top-flash-wrap .toast-fix:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
 }
 .top-flash-wrap .toast-top.toast-error .toast-fix {
-    background: rgba(239, 68, 68, 0.18) !important;
-    border-color: rgba(239, 68, 68, 0.35) !important;
-    color: #fecaca !important;
+    background: rgba(239, 68, 68, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.42) !important;
+    color: #ffffff !important;
+}
+.top-flash-wrap .toast-top.toast-error .toast-fix:hover {
+    background: rgba(239, 68, 68, 0.32) !important;
 }
 .top-flash-wrap .toast-close {
     background: none !important;
     border: none !important;
-    color: rgba(255, 255, 255, 0.55) !important;
+    color: rgba(255, 255, 255, 0.45) !important;
     cursor: pointer !important;
     padding: 4px !important;
     margin-left: auto !important;
-    min-width: 28px !important;
-    min-height: 28px !important;
-    font-size: 13px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    font-size: 12px !important;
     line-height: 1 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     transition: color 0.15s ease, background 0.15s ease !important;
     flex-shrink: 0 !important;
-    border-radius: 6px !important;
+    border-radius: 50% !important;
 }
 .top-flash-wrap .toast-close:hover {
     color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+/* Progress countdown bar */
+.top-flash-wrap .toast-progress {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 2.5px !important;
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform-origin: left !important;
+    animation: toastProgressCountdown var(--toast-duration, 4200ms) linear forwards !important;
+}
+.top-flash-wrap .toast-top.toast-error .toast-progress {
+    background: #ef4444 !important;
+}
+.top-flash-wrap .toast-top.toast-success .toast-progress {
+    background: #10b981 !important;
+}
+.top-flash-wrap .toast-top.toast-info .toast-progress {
+    background: #3b82f6 !important;
+}
+.top-flash-wrap .toast-top:hover .toast-progress,
+.top-flash-wrap .toast-top.is-paused .toast-progress {
+    animation-play-state: paused !important;
+}
+@keyframes toastProgressCountdown {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
 }
 .top-flash-wrap .toast-top.hide {
-    animation: topNotificationSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: topNotificationSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    pointer-events: none !important;
 }
 @keyframes topNotificationSlideDown {
     0% { opacity: 0; transform: translateY(-16px) scale(0.96); }
@@ -2781,7 +2829,7 @@ tbody tr:hover td { background: var(--bg-soft); }
 }
 @keyframes topNotificationSlideUp {
     0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-14px) scale(0.96); }
+    100% { opacity: 0; transform: translateY(-16px) scale(0.96); }
 }
 /* 5. Profile Menu Left Aligned with Full Email Visibility */ .profile-menu { position: absolute !important; top: calc(100% + 8px) !important; right: 0 !important; width: 252px !important; background: var(--bg) !important; border: 1px solid var(--line) !important; border-radius: 12px !important; box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04) !important; padding: 6px !important; display: flex !important; flex-direction: column !important; gap: 2px !important; z-index: 300 !important; }
 .profile-menu-head { display: flex !important; align-items: center !important; gap: 8px !important; padding: 8px 6px 10px 4px !important; border-bottom: 1px solid var(--line) !important; margin-bottom: 4px !important; min-width: 0 !important; }

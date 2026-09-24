@@ -380,6 +380,7 @@ $pageBackUrl = base_url('index.php');
                     <div class="toast-msg"><span><?php echo e($flash['message']); ?></span></div>
                 </div>
                 <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+                <div class="toast-progress" aria-hidden="true"></div>
             </div>
         </div>
     <?php else: ?>
@@ -401,6 +402,7 @@ $pageBackUrl = base_url('index.php');
                     </div>
                 </div>
                 <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+                <div class="toast-progress" aria-hidden="true"></div>
             </div>
         </div>
     <?php endif; ?>

@@ -101,19 +101,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const hasFree = startTime && endTime && startTime.value && endTime.value;
             if (!hasFree && (!slotVal || slotVal.indexOf('|') === -1)) {
                 e.preventDefault();
-                if (window.openErrorModal) {
+                if (window.GoalSpace && window.GoalSpace.toast) {
+                    window.GoalSpace.toast({
+                        type: 'error',
+                        message: 'No time slot selected.',
+                        why: 'You tried to reserve without picking an open slot.',
+                        how: 'Tap an available hour above, then press Reserve.'
+                    });
+                } else if (window.openErrorModal) {
                     openErrorModal('Pick a From and To time in the booking panel, then press Reserve again.', 'No time selected');
-                } else {
-                    alert('Please choose a start and end time.');
                 }
                 return false;
             }
             if (hasFree && selectedSlot && selectedSlot.value.indexOf('|') === -1) {
                 e.preventDefault();
-                if (window.openErrorModal) {
+                if (window.GoalSpace && window.GoalSpace.toast) {
+                    window.GoalSpace.toast({
+                        type: 'error',
+                        message: 'Invalid time selection.',
+                        why: 'The end time must be after the start time.',
+                        how: 'Choose an end time that gives at least 1 hour of play.'
+                    });
+                } else if (window.openErrorModal) {
                     openErrorModal('End time must be after start time.', 'Check times');
-                } else {
-                    alert('End time must be after start time.');
                 }
                 return false;
             }

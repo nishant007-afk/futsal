@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 badge.textContent = 'Copied!';
                 badge.style.background = 'var(--brand)';
                 badge.style.color = '#fff';
+                if (window.GoalSpace && window.GoalSpace.toast) {
+                    window.GoalSpace.toast({ type: 'success', message: 'Promo code ' + code + ' copied to clipboard!' });
+                }
                 setTimeout(function () {
                     badge.textContent = orig;
                     badge.style.background = '';
@@ -65,10 +68,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (countEl) countEl.textContent = data.count;
                     } else {
                         btn.disabled = false;
-                        openErrorModal(data.error || 'Could not vote', 'Could not vote');
+                        if (window.GoalSpace && window.GoalSpace.toast) {
+                            window.GoalSpace.toast({ type: 'error', message: data.error || 'Could not record your vote.' });
+                        } else if (typeof openErrorModal === 'function') {
+                            openErrorModal(data.error || 'Could not vote', 'Could not vote');
+                        }
                     }
                 })
-                .catch(function () { btn.disabled = false; });
+                .catch(function () {
+                    btn.disabled = false;
+                    if (window.GoalSpace && window.GoalSpace.toast) {
+                        window.GoalSpace.toast({ type: 'error', message: 'Network error. Please check your connection.' });
+                    }
+                });
         });
     });
     /* end review helpful */

@@ -3122,21 +3122,72 @@ html[data-theme="dark"] body.register-page .check-line a { color: var(--brand); 
 /* 2. Same font, size (32px), thickness (800), line-height, letter-spacing as "Good evening (name)" */ .welcome h1, .page-title, .page-head h1, .page-head h2, .content-hero h1, .title-back-row h1, .title-back-row h2, .dash-head-main h1, .dash-head-main h2 { font-size: 32px !important; font-weight: 800 !important; letter-spacing: -0.025em !important; line-height: 1.2 !important; text-wrap: balance !important; margin: 0 !important; padding: 0 !important; color: var(--ink) !important; }
 /* ========================================================= LANDING PAGE ENHANCEMENTS - Responsive & Dark Mode ========================================================= */ @media (max-width: 992px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } .hero-main { max-width: 100%; } .hero-showcase { max-width: 520px; margin: 0 auto; width: 100%; }; }
 @media (max-width: 640px) {
-    .hero--clean { padding: 36px 0 28px; }
-    .hero-main h1 { font-size: 28px; letter-spacing: -0.02em; text-transform: none; font-weight: 800; }
-    .hero-sub { font-size: 14.5px; margin-bottom: 18px; }
+    .hero { padding: 24px 0 16px !important; }
+    .hero--clean { padding: 24px 0 16px !important; }
+    .hero-grid { gap: 18px !important; }
+    .hero-main h1 { font-size: 26px !important; letter-spacing: -0.02em !important; text-transform: none !important; font-weight: 800 !important; margin-bottom: 10px !important; line-height: 1.2 !important; }
+    .hero-sub { font-size: 14px !important; margin-bottom: 14px !important; line-height: 1.45 !important; }
+    .hero-kicker { margin-bottom: 8px !important; }
     .hsb-inner { flex-direction: column; align-items: stretch; gap: 0; }
-    .hsb-segment { padding: 10px 16px; }
+    .hsb-segment { padding: 8px 14px !important; }
     .hsb-divider { width: 100%; height: 1px; }
     .hsb-icon { display: none; }
-    .hsb-input { padding: 10px 0; width: 100%; }
-    .hsb-btn { width: 100%; justify-content: center; padding: 12px 28px; }
-    .section-courts { padding: 36px 0 0; }
-    .section-courts .section-foot { margin-top: 24px; }
-    body.landing .site-footer, main:has(.section-courts) + .site-footer { margin-top: 28px; }
-    .section-head-between { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-    .court-area-pills { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-    .cap-pill { flex-shrink: 0; }
+    .hsb-input { padding: 8px 0 !important; width: 100%; }
+    .hsb-btn { width: 100%; justify-content: center; padding: 11px 24px !important; }
+    
+    /* Courts Section Spacing — eliminates the huge gap after the section title & subtitle */
+    .section-courts { padding: 18px 0 0 !important; }
+    .section-courts .section-head { margin-bottom: 10px !important; }
+    .section-head-between { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; margin-bottom: 10px !important; }
+    .section-head-copy { width: 100% !important; margin-bottom: 0 !important; }
+    .section-head-copy .section-kicker { margin-bottom: 4px !important; font-size: 10.5px !important; }
+    .section-head-copy .section-title { font-size: 21px !important; line-height: 1.2 !important; margin-bottom: 3px !important; }
+    .section-head-copy .section-sub { font-size: 13px !important; line-height: 1.35 !important; margin-bottom: 0 !important; }
+    
+    /* Popular Area Pills on Mobile: single slick scrollable row, no wrap, no huge multi-line gap */
+    .court-area-pills { width: 100% !important; max-width: 100% !important; display: flex !important; overflow-x: auto !important; flex-wrap: nowrap !important; padding: 2px 0 4px 0 !important; margin: 4px 0 0 0 !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 6px !important; }
+    .court-area-pills::-webkit-scrollbar { display: none; }
+    .cap-label { display: none !important; }
+    .cap-pill { flex-shrink: 0 !important; padding: 5px 12px !important; font-size: 12px !important; }
+    
+    /* Courts Grid & Instant Visibility */
+    .courts-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+    .card, .ground-card { opacity: 1 !important; transform: none !important; }
+    
+    /* Section Foot & How it Works Section */
+    .section-courts .section-foot, .section-foot { margin-top: 14px !important; }
+    .section-steps { padding: 20px 0 !important; }
+    .section-steps .section-head { margin-bottom: 12px !important; }
+    .steps-grid { grid-template-columns: 1fr !important; gap: 10px !important; margin-top: 10px !important; }
+    .step-card { padding: 16px 14px !important; }
+    .step-card-head { margin-bottom: 10px !important; }
+    
+    /* Manager CTA Banner */
+    .section-manager-cta { padding: 12px 0 20px !important; }
+    .manager-cta-banner { padding: 22px 16px !important; border-radius: var(--r-md) !important; }
+    .manager-cta-banner h2 { font-size: 19px !important; margin-bottom: 6px !important; }
+    .manager-cta-banner p { font-size: 13px !important; margin-bottom: 14px !important; }
+    
+    /* Footer Spacing */
+    body.landing .site-footer, main:has(.section-courts) + .site-footer { margin-top: 16px !important; }
+    .site-footer { padding: 22px 0 0 !important; }
+    
+    /* Ground Detail & Reviews */
+    .ground-detail { gap: 14px !important; padding: 12px 0 24px !important; }
+    .reviews-wrap { margin-top: 16px !important; padding-top: 14px !important; }
+    .reviews-horizon-head { margin-bottom: 12px !important; }
+    
+    /* Courts Filter Page */
+    .courts-toolbar { padding: 10px !important; margin-bottom: 12px !important; }
+    .filter-chips { margin-bottom: 10px !important; gap: 6px !important; }
+    
+    /* Bookings, Forms & Checkout */
+    .checkout-wrap { margin: 10px auto 18px !important; }
+    .checkout-grid { gap: 14px !important; }
+    .bookings-stats { margin: 10px 0 12px 0 !important; }
+    .mbooking.mbooking--card { margin-bottom: 10px !important; padding: 12px 14px !important; }
+    .stat-grid { gap: 10px !important; margin: 14px 0 20px !important; }
+    .form-card { margin-top: 18px !important; }
 }
 /* Desktop Main Nav (Public & Player) */ .desktop-main-nav { display: flex; align-items: center; gap: 4px; margin-left: 20px; }
 .dmn-link { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); text-decoration: none; border-radius: 0; transition: color .15s ease, background .15s ease; letter-spacing: 0.02em; }

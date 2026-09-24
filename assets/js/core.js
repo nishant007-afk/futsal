@@ -305,10 +305,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     revealObserver.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+        }, { threshold: 0, rootMargin: '120px 0px 120px 0px' });
         reveals.forEach(function (el) {
             const r = el.getBoundingClientRect();
-            if (r.top < window.innerHeight && r.bottom > 0) {
+            if (r.top < window.innerHeight + 120 && r.bottom > -80) {
                 el.classList.add('visible');
             } else {
                 revealObserver.observe(el);
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
             reveals.forEach(function (el) {
                 if (!el.classList.contains('visible')) {
                     const r = el.getBoundingClientRect();
-                    if (r.top < window.innerHeight && r.bottom > 0) { el.classList.add('visible'); }
+                    if (r.top < window.innerHeight + 120 && r.bottom > -80) { el.classList.add('visible'); }
                 }
             });
         });

@@ -237,7 +237,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                         <?php echo csrf_field(); ?>
                         <div class="promo-input">
                             <i class="fa-solid fa-tag"></i>
-                            <input type="text" name="promo_code" placeholder="Promo code" maxlength="40" autocomplete="off">
+                            <input type="text" id="promo_code" name="promo_code" aria-label="Promo code" placeholder="Promo code" maxlength="40" autocomplete="off">
                             <button type="submit" name="apply_promo" value="1" class="btn btn-outline btn-sm">Apply</button>
                         </div>
                     </form>

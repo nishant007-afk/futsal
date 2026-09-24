@@ -163,11 +163,11 @@ require __DIR__ . '/../includes/header.php';
         <div class="courts-search-main">
             <div class="search-field sf-query">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input type="text" id="courtsQ" name="q" placeholder="Search court or area..." value="<?php echo e($q); ?>" autocomplete="off">
+                <input type="text" id="courtsQ" name="q" placeholder="Search court or area..." aria-label="Search court or area" value="<?php echo e($q); ?>" autocomplete="off">
             </div>
             <div class="search-field sf-loc">
                 <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                <select id="courtsLocation" name="location">
+                <select id="courtsLocation" name="location" aria-label="Filter by location">
                     <option value="">All Locations</option>
                     <?php foreach ($allowed_cities as $c): ?>
                         <option value="<?php echo e($c); ?>" <?php echo $city === $c ? 'selected' : ''; ?>><?php echo e($c); ?></option>
@@ -176,11 +176,11 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <div class="search-field sf-date">
                 <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                <input type="date" id="courtsDate" name="date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
+                <input type="date" id="courtsDate" name="date" aria-label="Filter by date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
             <div class="search-field sf-sort">
                 <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-                <select id="courtsSort" name="sort">
+                <select id="courtsSort" name="sort" aria-label="Sort courts by">
                     <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: Low to High</option>
                     <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: High to Low</option>
                     <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>

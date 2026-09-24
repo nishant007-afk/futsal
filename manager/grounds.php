@@ -148,8 +148,8 @@ require __DIR__ . '/../includes/header.php';
                     <textarea id="description" name="description" rows="3" placeholder="Describe your turf quality, lighting, parking, changing rooms, and amenities..."><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
                 </div>
                 <div class="form-group" style="margin-top: 14px;">
-                    <label class="check-line">
-                        <input type="checkbox" name="is_active" <?php echo !isset($editing) || $editing['is_active'] ? 'checked' : ''; ?>>
+                    <label class="check-line" for="is_active">
+                        <input type="checkbox" id="is_active" name="is_active" aria-label="Make this court visible and bookable for players" <?php echo !isset($editing) || $editing['is_active'] ? 'checked' : ''; ?>>
                         <span class="check-box"><i class="fa-solid fa-check"></i></span>
                         <span><strong>Active status:</strong> Make this court visible and bookable for players</span>
                     </label>

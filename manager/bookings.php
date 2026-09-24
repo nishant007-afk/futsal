@@ -326,7 +326,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="table-toolbar reveal">
     <div class="search-pill">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="managerSearch" placeholder="Search bookings by ground, player, ref…" autocomplete="off">
+        <input type="text" id="managerSearch" aria-label="Search bookings by ground, player, or reference" placeholder="Search bookings by ground, player, ref..." autocomplete="off">
         <i class="fa-regular fa-circle-xmark" id="managerClear" role="button" aria-label="Clear search"></i>
     </div>
 </div>

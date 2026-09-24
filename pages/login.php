@@ -163,7 +163,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="auth-topline">
             <div class="title-back-row">
                 <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2 class="auth-title-lg">Sign in to GoalSpace</h2>
+                <h1 class="auth-title-lg">Sign in to GoalSpace</h1>
             </div>
         </div>
 
@@ -256,8 +256,8 @@ require __DIR__ . '/../includes/header.php';
                 <?php field_error($errors, 'password'); ?>
             </div>
             <div class="auth-aux-row">
-                <label class="check-line">
-                    <input type="checkbox" name="remember_me" value="1">
+                <label class="check-line" for="remember_me">
+                    <input type="checkbox" id="remember_me" name="remember_me" value="1" aria-label="Remember me">
                     <span class="check-box"><i class="fa-solid fa-check"></i></span>
                     <span>Remember me</span>
                 </label>

@@ -125,7 +125,7 @@ if (isset($verification_email)) {
     ?>
     <div class="form-card lg">
         <div class="form-head">
-            <h2>Verify your email</h2>
+            <h1>Verify your email</h1>
             <p class="muted mt-12 lh-15">Enter the 6-digit code we sent to <strong><?php echo e($verification_email); ?></strong> to activate your account.</p>
         </div>
         <div class="notice">
@@ -168,7 +168,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="auth-topline">
             <div class="title-back-row">
                 <a href="<?php echo base_url('index.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-                <h2 class="auth-title-lg">Create your account</h2>
+                <h1 class="auth-title-lg">Create your account</h1>
             </div>
         </div>
         <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
@@ -209,8 +209,9 @@ require __DIR__ . '/../includes/header.php';
                 <span id="roleLabel" class="sr-only">Account type</span>
                 <div class="role-select" role="radiogroup" aria-labelledby="roleLabel">
                     <label class="role-option <?php echo $role === 'user' ? 'checked' : ''; ?>"
+                           for="role_user"
                            data-hint="Players book courts, track their games and cancel their own bookings.">
-                        <input type="radio" name="role" value="user" <?php echo $role === 'user' ? 'checked' : ''; ?>>
+                        <input type="radio" id="role_user" name="role" value="user" aria-label="Player" <?php echo $role === 'user' ? 'checked' : ''; ?>>
                         <span class="role-icon"><i class="fa-solid fa-user"></i></span>
                         <span class="role-text">
                             <span class="role-name">Player</span>
@@ -219,8 +220,9 @@ require __DIR__ . '/../includes/header.php';
                         <span class="role-check"><i class="fa-solid fa-check"></i></span>
                     </label>
                     <label class="role-option <?php echo $role === 'manager' ? 'checked' : ''; ?>"
+                           for="role_manager"
                            data-hint="Managers get a dashboard to list their courts, manage bookings and see what's been paid.">
-                        <input type="radio" name="role" value="manager" <?php echo $role === 'manager' ? 'checked' : ''; ?>>
+                        <input type="radio" id="role_manager" name="role" value="manager" aria-label="Manager" <?php echo $role === 'manager' ? 'checked' : ''; ?>>
                         <span class="role-icon"><i class="fa-solid fa-user-tie"></i></span>
                         <span class="role-text">
                             <span class="role-name">Manager</span>
@@ -253,15 +255,15 @@ require __DIR__ . '/../includes/header.php';
                 <?php require __DIR__ . '/../includes/views/pw_requirements.php'; ?>
             </div>
 
-            <label class="check-line mb-6">
-                <input type="checkbox" id="termsCheck" name="accept" value="1" required aria-required="true" <?php echo $accept ? 'checked' : ''; ?>>
+            <label class="check-line mb-6" for="termsCheck">
+                <input type="checkbox" id="termsCheck" name="accept" value="1" aria-label="I accept the Terms of Service and Privacy Policy" required aria-required="true" <?php echo $accept ? 'checked' : ''; ?>>
                 <span class="check-box"><i class="fa-solid fa-check"></i></span>
                 <span>I accept the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a> <span class="req">*</span></span>
             </label>
             <?php field_error($errors, 'terms'); ?>
 
-            <label class="check-line check-line-sub mb-14">
-                <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
+            <label class="check-line check-line-sub mb-14" for="updatesCheck">
+                <input type="checkbox" id="updatesCheck" name="email_updates" value="1" aria-label="Send me booking tips and court updates" <?php echo $email_updates ? 'checked' : ''; ?>>
                 <span class="check-box"><i class="fa-solid fa-check"></i></span>
                 <span>Send me booking tips and court updates</span>
             </label>

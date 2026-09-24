@@ -31,12 +31,19 @@ while ($row = $rows->fetch_assoc()) {
 
 cleanup_expired_slot_holds();
 $curUid = (int)($_SESSION['user_id'] ?? 0);
-$heldQuery = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
-$heldQuery->bind_param('isi', $ground['id'], $selected_date, $curUid);
-$heldQuery->execute();
-$hRows = $heldQuery->get_result();
-while ($hRow = $hRows->fetch_assoc()) {
-    $taken[] = $hRow['start_time'];
+try {
+    $heldQuery = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
+    if ($heldQuery) {
+        $heldQuery->bind_param('isi', $ground['id'], $selected_date, $curUid);
+        $heldQuery->execute();
+        $hRows = $heldQuery->get_result();
+        while ($hRow = $hRows->fetch_assoc()) {
+            $taken[] = $hRow['start_time'];
+        }
+        $heldQuery->close();
+    }
+} catch (Throwable $e) {
+    error_log('heldQuery error: ' . $e->getMessage());
 }
 
 $slots = slots_for_day($selected_date, $ground['id']);
@@ -318,16 +325,23 @@ require __DIR__ . '/../includes/header.php';
             while ($row = $br->fetch_assoc()) {
                 $busyRanges[] = [substr($row['start_time'], 0, 5), substr($row['end_time'], 0, 5)];
             }
-            $hs = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
-            $hs->bind_param('isi', $ground['id'], $selected_date, $curUid);
-            $hs->execute();
-            $hr = $hs->get_result();
-            while ($row = $hr->fetch_assoc()) {
-                $hsM = (int)substr($row['start_time'], 0, 2) * 60 + (int)substr($row['start_time'], 3, 2);
-                $busyRanges[] = [
-                    substr($row['start_time'], 0, 5),
-                    sprintf('%02d:%02d', intdiv(min($closeM, $hsM + $iv), 60), min($closeM, $hsM + $iv) % 60),
-                ];
+            try {
+                $hs = $conn->prepare('SELECT start_time FROM slot_holds WHERE ground_id = ? AND booking_date = ? AND user_id != ? AND expires_at > NOW()');
+                if ($hs) {
+                    $hs->bind_param('isi', $ground['id'], $selected_date, $curUid);
+                    $hs->execute();
+                    $hr = $hs->get_result();
+                    while ($row = $hr->fetch_assoc()) {
+                        $hsM = (int)substr($row['start_time'], 0, 2) * 60 + (int)substr($row['start_time'], 3, 2);
+                        $busyRanges[] = [
+                            substr($row['start_time'], 0, 5),
+                            sprintf('%02d:%02d', intdiv(min($closeM, $hsM + $iv), 60), min($closeM, $hsM + $iv) % 60),
+                        ];
+                    }
+                    $hs->close();
+                }
+            } catch (Throwable $e) {
+                error_log('busyRanges slot_holds error: ' . $e->getMessage());
             }
             ?>
             <form method="post" action="<?php echo base_url('pages/book.php'); ?>" class="bp-cta-form">

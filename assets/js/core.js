@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('pageshow', clearRestoredPasswords);
     setTimeout(clearRestoredPasswords, 200);
 
-    /* Mobile: expandable table rows (≤720px) — tap summary to reveal detail cells */
+    /* Mobile: expandable table rows (≤720px) - tap summary to reveal detail cells */
     function syncTableAria() {
         var isMobile = window.matchMedia('(max-width: 720px)').matches;
         document.querySelectorAll('.table-wrap tbody tr:not(.table-empty):not(.table-total)').forEach(function (tr) {
@@ -1588,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     if ('serviceWorker' in navigator) {
-        var base = document.body.getAttribute('data-base') || '';
-        navigator.serviceWorker.register(base + '/sw.js').catch(function () {});
+        var swBase = document.body.getAttribute('data-base') || '';
+        navigator.serviceWorker.register(swBase + '/sw.js').catch(function () {});
     }
 });

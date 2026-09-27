@@ -73,8 +73,8 @@ $active = basename($_SERVER['SCRIPT_NAME']);
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=86'); ?>" defer></script>
-<script src="<?php echo base_url('assets/js/modules/ui.js?v=1'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=87'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/modules/ui.js?v=2'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];

@@ -29,10 +29,13 @@ function ground_card_html(array $ground, array|string|null $availability = null,
     <div class="card <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>">
         <div class="card-img">
             <?php if ($cover): ?>
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 10'%3E%3C/svg%3E" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover lazy-load" loading="lazy" decoding="async">
-                <noscript><img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover"></noscript>
+                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
             <?php else: ?>
-                <div class="pitch"></div>
+                <div class="pitch">
+                    <div class="pitch-circle"></div>
+                    <div class="pitch-penalty-left"></div>
+                    <div class="pitch-penalty-right"></div>
+                </div>
             <?php endif; ?>
             <?php if (is_logged_in()): ?>
                 <button type="button"
@@ -46,7 +49,7 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                     <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
-                <?php if ($availability !== null): ?>
+            <?php if ($availability !== null): ?>
                 <span class="thumb-tag availability <?php echo $full ? 'is-full' : 'is-free'; ?>">
                     <?php if ($full): ?>
                         <i class="fa-solid fa-circle-xmark"></i> Fully booked
@@ -59,7 +62,14 @@ function ground_card_html(array $ground, array|string|null $availability = null,
             <?php endif; ?>
         </div>
         <div class="card-body">
-            <h3 class="card-title"><?php echo e($ground['name']); ?></h3>
+            <h3 class="card-title">
+                <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>"><?php echo e($ground['name']); ?></a>
+            </h3>
+            <div class="card-specs">
+                <span><i class="fa-solid fa-users"></i> 5A-Side</span>
+                <span class="card-spec-dot">&middot;</span>
+                <span><i class="fa-regular fa-clock"></i> 06:00 - 23:00</span>
+            </div>
             <div class="card-meta">
                 <span class="price">
                     <?php
@@ -68,14 +78,12 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                     $cardSale = $cardDisc > 0 && $cardDisc < $cardPrice;
                     ?>
                     <?php if ($cardSale): ?><span class="price-orig">Rs <?php echo number_format($cardPrice, 0); ?></span><?php endif; ?>
-                    <?php echo number_format($cardSale ? $cardDisc : $cardPrice, 0); ?><small> Rs / hour</small>
+                    <strong>Rs <?php echo number_format($cardSale ? $cardDisc : $cardPrice, 0); ?></strong><small> / hr</small>
                 </span>
-                <?php if ($rating['count'] > 0): ?>
-                    <span class="card-rating-inline"><?php echo star_html($rating['avg']); ?> <small><?php echo number_format((float)$rating['avg'], 1); ?></small></span>
-                <?php else: ?>
-                    <span class="card-rating-inline"><i class="fa-solid fa-star star-muted"></i> <small>No reviews yet</small></span>
-                <?php endif; ?>
-                <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm card-cta-link">View details <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm card-action-btn">
+                    <span>Book Slot</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
         </div>
     </div>

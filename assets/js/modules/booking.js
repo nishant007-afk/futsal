@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         var formatted = 'Rs ' + Number(amount).toLocaleString();
-        if (btnLabel) btnLabel.textContent = 'I paid — submit ' + formatted;
+        if (btnLabel) btnLabel.textContent = 'I paid - submit ' + formatted;
     };
 
     var pmHeads = document.querySelectorAll('.pay-method-card .pm-head');

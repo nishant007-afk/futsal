@@ -1,0 +1,354 @@
+<?php
+// Unified Split Screen Auth View (Full-page, 100vh non-scrolling, smooth sliding transition)
+$active_mode = $active_auth_tab ?? 'login';
+$suspended = $suspended ?? false;
+$suspendedEmail = $suspendedEmail ?? '';
+$showTimeout = $showTimeout ?? false;
+$loginErrors = $loginErrors ?? ($errors ?? []);
+$loginEmail = $loginEmail ?? ($email ?? '');
+$lock = $lock ?? null;
+
+$regErrors = $regErrors ?? ($errors ?? []);
+$regName = $name ?? '';
+$regPhone = $phone ?? '';
+$regEmail = $email ?? '';
+$regRole = $role ?? 'user';
+$regAccept = $accept ?? false;
+?>
+
+<div class="auth-split-container <?php echo $active_mode === 'register' ? 'mode-register' : 'mode-login'; ?>" id="authSplitApp">
+    
+    <!-- 1. THE FOOTBALL PITCH HALF (Clean photo pitch on desktop; atmospheric branded cover on mobile) -->
+    <div class="auth-pitch-half" id="authPitchHalf">
+        <div class="auth-pitch-bg auth-pitch-bg-login"></div>
+        <div class="auth-pitch-bg auth-pitch-bg-register"></div>
+        <div class="auth-pitch-overlay" aria-hidden="true"></div>
+
+        <!-- Mobile Top Actions (Visible only on mobile screens <= 900px) -->
+        <div class="auth-mobile-header">
+            <a href="<?php echo base_url('index.php'); ?>" class="auth-mobile-back" aria-label="Back to home" title="Back to GoalSpace home">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. THE FORMS HALF (Single page, no scrolling, form occupies the remaining 50%) -->
+    <div class="auth-forms-half">
+        
+        <!-- LOGIN PANEL: Left Side (0 - 50vw) -->
+        <div class="auth-form-panel auth-panel-login" id="panelLogin">
+            <div class="auth-form-inner">
+                <div class="auth-form-header">
+                    <h1 class="auth-heading">Sign in to GoalSpace</h1>
+                </div>
+
+                <?php if ($suspended): ?>
+                    <div class="notice notice-error mb-12" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Logins paused for <strong><?php echo e($suspendedEmail); ?></strong>. Contact admin to restore access.</span>
+                    </div>
+                    <form method="post" action="<?php echo base_url('pages/contact_submit.php'); ?>" novalidate>
+                        <?php echo csrf_field(); ?>
+                        <input type="hidden" name="topic" value="login_locked">
+                        <input type="hidden" name="email" value="<?php echo e($suspendedEmail); ?>">
+                        <div class="form-group">
+                            <div class="input-group floating">
+                                <input type="text" id="subj" name="subject" value="Account locked after login attempts" required>
+                                <label for="subj">Subject</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="msg" name="message" rows="3" class="compact-textarea" placeholder="Explain what happened..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send to admin</button>
+                    </form>
+                <?php else: ?>
+                    <?php if ($showTimeout && empty($loginErrors['general'])): ?>
+                        <div class="notice notice-strong mb-10" role="status">
+                            <i class="fa-solid fa-clock"></i>
+                            <span>Session expired after 30m of inactivity. Please sign in again.</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($loginErrors['general'])): ?>
+                        <div class="notice notice-error mb-10" role="alert">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            <span><?php echo e($loginErrors['general']); ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($lock): ?>
+                        <div class="lock-card mb-10" data-lock-ends="<?php echo e($lock['ends']); ?>" data-lock-total="<?php echo (int)$lock['seconds']; ?>" id="lockNotice">
+                            <div class="lock-head"><strong>Too many wrong attempts. Retry in <?php echo gmdate('i:s', $lock['seconds']); ?>.</strong></div>
+                        </div>
+                    <?php endif; ?>
+
+                    <a href="<?php echo base_url('pages/login_google.php?intent=login'); ?>" class="btn-google">
+                        <?php google_svg_icon(); ?>
+                        Continue with Google
+                    </a>
+                    
+                    <div class="auth-divider"><span>or sign in with email</span></div>
+
+                    <form method="post" action="<?php echo base_url('pages/login.php'); ?>" class="auth-form-body" novalidate id="loginForm">
+                        <?php echo csrf_field(); ?>
+                        <?php honeypot_field(); ?>
+                        <div class="form-group<?php echo has_error($loginErrors, 'email'); ?>">
+                            <div class="input-group floating">
+                                <input type="email" id="loginEmail" name="email" value="<?php echo e($loginEmail); ?>" placeholder=" " autocomplete="email" required aria-required="true" <?php echo $lock ? 'disabled' : ''; ?>>
+                                <label for="loginEmail">Email <span class="req">*</span></label>
+                            </div>
+                            <?php field_error($loginErrors, 'email'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($loginErrors, 'password'); ?>">
+                            <div class="input-group floating">
+                                <input type="password" id="loginPassword" name="password" placeholder=" " autocomplete="current-password" required aria-required="true" <?php echo $lock ? 'disabled' : ''; ?>>
+                                <label for="loginPassword">Password <span class="req">*</span></label>
+                                <button type="button" class="pw-toggle" data-target="loginPassword" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+                            </div>
+                            <?php field_error($loginErrors, 'password'); ?>
+                        </div>
+                        <div class="auth-aux-row">
+                            <label class="check-line" for="remember_me">
+                                <input type="checkbox" id="remember_me" name="remember_me" value="1" aria-label="Remember me">
+                                <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                                <span>Remember me</span>
+                            </label>
+                            <a href="<?php echo base_url('pages/forgot_password.php'); ?>" class="auth-forgot-link">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block auth-submit-btn" <?php echo $lock ? 'disabled' : 'data-autogate=""'; ?>><i class="fa-solid fa-right-to-bracket"></i> Log in</button>
+                        
+                        <p class="auth-switch-row">
+                            Don't have an account? 
+                            <button type="button" class="auth-toggle-btn" id="toRegisterBtn" data-target-mode="register">
+                                <strong>Sign up</strong>
+                            </button>
+                        </p>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- REGISTER PANEL: Right Side (50vw - 100vw) -->
+        <div class="auth-form-panel auth-panel-register" id="panelRegister">
+            <div class="auth-form-inner">
+                <div class="auth-form-header">
+                    <h1 class="auth-heading">Create your account</h1>
+                </div>
+
+                <?php if (!empty($regErrors['general'])): ?>
+                    <div class="notice notice-error mb-10" role="alert">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span><?php echo e($regErrors['general']); ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <a href="<?php echo base_url('pages/login_google.php?intent=signup'); ?>" class="btn-google">
+                    <?php google_svg_icon(); ?>
+                    Continue with Google
+                </a>
+
+                <div class="auth-divider"><span>or fill details</span></div>
+
+                <form method="post" action="<?php echo base_url('pages/register.php'); ?>" class="auth-form-body" novalidate id="registerForm">
+                    <?php echo csrf_field(); ?>
+                    <?php honeypot_field(); ?>
+                    
+                    <div class="form-row-2">
+                        <div class="form-group<?php echo has_error($regErrors, 'name'); ?>">
+                            <div class="input-group floating">
+                                <input type="text" id="regName" name="name" value="<?php echo e($regName); ?>" autocomplete="name" placeholder=" " maxlength="100" required aria-required="true">
+                                <label for="regName">Full name <span class="req">*</span></label>
+                            </div>
+                            <?php field_error($regErrors, 'name'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($regErrors, 'phone'); ?>">
+                            <div class="input-group floating">
+                                <input type="tel" id="regPhone" name="phone" value="<?php echo e($regPhone); ?>" autocomplete="tel" placeholder=" " maxlength="20">
+                                <label for="regPhone">Phone <span class="opt">(opt)</span></label>
+                            </div>
+                            <?php field_error($regErrors, 'phone'); ?>
+                        </div>
+                    </div>
+
+                    <div class="form-group<?php echo has_error($regErrors, 'email'); ?>">
+                        <div class="input-group floating">
+                            <input type="email" id="regEmail" name="email" value="<?php echo e($regEmail); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available">
+                            <label for="regEmail">Email <span class="req">*</span></label>
+                        </div>
+                        <?php field_error($regErrors, 'email'); ?>
+                    </div>
+
+                    <div class="form-group form-group-role-cards">
+                        <div class="role-grid-cards" role="radiogroup" aria-label="Select role">
+                            <label class="role-card-opt <?php echo $regRole === 'user' ? 'active' : ''; ?>">
+                                <input type="radio" name="role" value="user" <?php echo $regRole === 'user' ? 'checked' : ''; ?>>
+                                <i class="fa-solid fa-futbol"></i>
+                                <span>Player</span>
+                            </label>
+                            <label class="role-card-opt <?php echo $regRole === 'manager' ? 'active' : ''; ?>">
+                                <input type="radio" name="role" value="manager" <?php echo $regRole === 'manager' ? 'checked' : ''; ?>>
+                                <i class="fa-solid fa-building-user"></i>
+                                <span>Venue Manager</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group<?php echo has_error($regErrors, 'password'); ?>">
+                            <div class="input-group floating">
+                                <input type="password" id="regPassword" name="password" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
+                                <label for="regPassword">Password <span class="req">*</span></label>
+                                <button type="button" class="pw-toggle" data-target="regPassword" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+                            </div>
+                            <?php field_error($regErrors, 'password'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($regErrors, 'confirm'); ?>">
+                            <div class="input-group floating">
+                                <input type="password" id="regConfirm" name="confirm" autocomplete="new-password" minlength="8" placeholder=" " required aria-required="true">
+                                <label for="regConfirm">Confirm <span class="req">*</span></label>
+                                <button type="button" class="pw-toggle" data-target="regConfirm" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+                            </div>
+                            <?php field_error($regErrors, 'confirm'); ?>
+                        </div>
+                    </div>
+
+                    <div class="pw-requirements-wrap">
+                        <?php require __DIR__ . '/pw_requirements.php'; ?>
+                    </div>
+
+                    <label class="check-line compact-check" for="regTerms">
+                        <input type="checkbox" id="regTerms" name="accept" value="1" aria-label="Accept terms" required aria-required="true" <?php echo $regAccept ? 'checked' : ''; ?>>
+                        <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                        <span>I agree to the <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" target="_blank" rel="noopener">Terms of Service</a> and <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>" target="_blank" rel="noopener">Privacy Policy</a> <span class="req">*</span></span>
+                    </label>
+                    <?php field_error($regErrors, 'terms'); ?>
+
+                    <button type="submit" class="btn btn-primary btn-block auth-submit-btn" data-autogate=""><i class="fa-solid fa-user-plus"></i> Create account</button>
+                    
+                    <p class="auth-switch-row">
+                        Already have an account? 
+                        <button type="button" class="auth-toggle-btn" id="toLoginBtn" data-target-mode="login">
+                            <strong>Sign in</strong>
+                        </button>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var container = document.getElementById('authSplitApp');
+    if (!container) return;
+
+    var baseDir = document.body.getAttribute('data-base') || '';
+
+    function setAuthMode(mode, pushUrl) {
+        if (mode === 'register') {
+            container.classList.remove('mode-login');
+            container.classList.add('mode-register');
+            document.title = 'Sign Up | GoalSpace';
+            if (pushUrl) {
+                history.pushState({ mode: 'register' }, '', 'register.php');
+            }
+        } else {
+            container.classList.remove('mode-register');
+            container.classList.add('mode-login');
+            document.title = 'Login | GoalSpace';
+            if (pushUrl) {
+                history.pushState({ mode: 'login' }, '', 'login.php');
+            }
+        }
+        if (window.innerWidth <= 991) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (container.scrollTop > 0) {
+                container.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    }
+
+    var toRegisterBtn = document.getElementById('toRegisterBtn');
+    if (toRegisterBtn) {
+        toRegisterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            setAuthMode('register', true);
+        });
+    }
+
+    var toLoginBtn = document.getElementById('toLoginBtn');
+    if (toLoginBtn) {
+        toLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            setAuthMode('login', true);
+        });
+    }
+
+    window.addEventListener('popstate', function(e) {
+        if (e.state && e.state.mode) {
+            setAuthMode(e.state.mode, false);
+        } else {
+            var path = window.location.pathname;
+            if (path.indexOf('register.php') !== -1) {
+                setAuthMode('register', false);
+            } else {
+                setAuthMode('login', false);
+            }
+        }
+    });
+
+    // Role switcher segment logic
+    var roleOpts = container.querySelectorAll('.role-card-opt, .role-seg-opt');
+    roleOpts.forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            roleOpts.forEach(function(o) { o.classList.remove('active'); });
+            opt.classList.add('active');
+            var radio = opt.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+        });
+    });
+
+    // Password requirements meter live validation
+    var regPw = document.getElementById('regPassword');
+    var pwReqs = document.getElementById('pwRequirements');
+    if (regPw && pwReqs) {
+        function checkPwMeter() {
+            var v = regPw.value || '';
+            if (v.length > 0 || document.activeElement === regPw) {
+                pwReqs.classList.add('open');
+            } else {
+                pwReqs.classList.remove('open');
+            }
+            var checks = {
+                length: v.length >= 8,
+                special: /[^A-Za-z0-9]/.test(v),
+                upper: /[A-Z]/.test(v),
+                number: /[0-9]/.test(v)
+            };
+            Object.keys(checks).forEach(function(key) {
+                var seg = pwReqs.querySelector('.pw-meter-seg[data-req="' + key + '"]');
+                var lbl = pwReqs.querySelector('.pw-meter-labels span[data-req="' + key + '"]');
+                if (seg) seg.classList.toggle('met', checks[key]);
+                if (lbl) lbl.classList.toggle('met', checks[key]);
+            });
+        }
+        regPw.addEventListener('focus', function() {
+            pwReqs.classList.add('open');
+            checkPwMeter();
+        });
+        regPw.addEventListener('input', checkPwMeter);
+        regPw.addEventListener('blur', function() {
+            if (!regPw.value) {
+                pwReqs.classList.remove('open');
+            }
+        });
+        if (regPw.value) {
+            checkPwMeter();
+        }
+    }
+});
+</script>

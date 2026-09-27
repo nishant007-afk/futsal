@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    const pwInputs = document.querySelectorAll('#password, #pwNew');
+    const pwInputs = document.querySelectorAll('#password, #pwNew, #regPassword');
     const pwReqs = document.getElementById('pwRequirements');
     if (pwReqs && pwInputs.length) {
         pwInputs.forEach(function (input) {

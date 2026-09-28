@@ -53,6 +53,7 @@ $photos = ground_images((int)$ground['id']);
 $reviews = ground_reviews((int)$ground['id']);
 $rating = ground_rating((int)$ground['id']);
 $my_review = user_rating_for((int)$ground['id']);
+$groundFeatures = ground_card_features($ground);
 $is_blocked = date_is_blocked((int)$ground['id'], $selected_date);
 
 // Similar courts: same city first, then fill with any other active courts.
@@ -220,6 +221,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
             <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
             <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
+            <div class="info-row"><i class="fa-solid fa-layer-group"></i> <span><?php echo e($groundFeatures['surface']); ?> · <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
             <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
                 <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
             <?php endif; ?>
@@ -239,6 +241,14 @@ require __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
             <?php endif; ?>
+            <div class="facilities">
+                <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities</div>
+                <ul class="facility-chips">
+                    <?php foreach ($groundFeatures['amenities'] as $am): ?>
+                        <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
             <div class="ground-map">
                 <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
                 <div class="ground-map-frame">

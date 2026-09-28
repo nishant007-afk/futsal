@@ -36,6 +36,11 @@ if ($active === 'index.php' && !$site_user) {
 if ($active === 'login.php') {
     $body_classes[] = 'login-page';
 }
+if ($active === 'courts.php') {
+    // The courts page owns search through its filter bar, so the global navbar
+    // search is collapsed there to avoid two competing inputs stacked together.
+    $body_classes[] = 'courts-page';
+}
 if ($active === 'register.php') {
     $body_classes[] = 'register-page';
 }
@@ -59,7 +64,7 @@ $pageBackUrl = base_url('index.php');
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
     <script>document.documentElement.classList.add('js');
     try {
         var savedTheme = localStorage.getItem('goalspace-theme');
@@ -372,11 +377,20 @@ $pageBackUrl = base_url('index.php');
         $rawHowUrl = is_array($detail) && !empty($detail['how_url']) ? (string)$detail['how_url'] : '';
         $backUrl = ($rawHowUrl !== '') ? (preg_match('#^(https?://|/)#', $rawHowUrl) ? $rawHowUrl : base_url($rawHowUrl)) : '';
     ?>
-    <?php if ($type === 'success' || $type === 'info'): ?>
+    <?php if ($type === 'success' || $type === 'info' || $type === 'warning'): ?>
+        <?php
+            $toastVariant = $type === 'success' ? 'success' : ($type === 'warning' ? 'warning' : 'info');
+            $toastIcon = $type === 'success' ? 'fa-circle-check' : ($type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info');
+            $toastRole = $type === 'warning' ? 'alert' : 'status';
+            $toastTitle = is_array($detail) && !empty($detail['title']) ? (string)$detail['title'] : '';
+        ?>
         <div class="top-flash-wrap">
-            <div class="toast toast-<?php echo $type === 'success' ? 'success' : 'info'; ?> toast-top" role="status">
-                <div class="toast-icon"><i class="fa-solid <?php echo $type === 'success' ? 'fa-circle-check' : 'fa-circle-info'; ?>"></i></div>
+            <div class="toast toast-<?php echo $toastVariant; ?>" role="<?php echo $toastRole; ?>" aria-live="<?php echo $toastRole === 'alert' ? 'assertive' : 'polite'; ?>">
+                <div class="toast-icon"><i class="fa-solid <?php echo $toastIcon; ?>" aria-hidden="true"></i></div>
                 <div class="toast-content">
+                    <?php if ($toastTitle !== ''): ?>
+                        <div class="toast-title"><?php echo e($toastTitle); ?></div>
+                    <?php endif; ?>
                     <div class="toast-msg"><span><?php echo e($flash['message']); ?></span></div>
                 </div>
                 <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
@@ -385,9 +399,12 @@ $pageBackUrl = base_url('index.php');
         </div>
     <?php else: ?>
         <div class="top-flash-wrap">
-            <div class="toast toast-error toast-top" role="alert">
-                <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <div class="toast toast-error" role="alert" aria-live="assertive">
+                <div class="toast-icon"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i></div>
                 <div class="toast-content">
+                    <?php if (is_array($detail) && !empty($detail['title'])): ?>
+                        <div class="toast-title"><?php echo e($detail['title']); ?></div>
+                    <?php endif; ?>
                     <div class="toast-msg">
                         <span><?php echo e($flash['message']); ?></span>
                         <?php if (is_array($detail) && !empty($detail['why'])): ?>

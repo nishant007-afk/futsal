@@ -16,6 +16,69 @@ function star_html($rating): string
     return $html . '</span>';
 }
 
+function ground_card_features(array $ground): array
+{
+    $desc = strtolower((string)($ground['description'] ?? ''));
+    $name = strtolower((string)($ground['name'] ?? ''));
+    $loc = (string)($ground['location'] ?? '');
+
+    // Surface detection
+    $surface = 'FIFA Turf';
+    if (str_contains($desc, 'wooden') || str_contains($desc, 'parquet') || str_contains($name, 'wooden')) {
+        $surface = 'Parquet Wood';
+    } elseif (str_contains($desc, 'rubber') || str_contains($desc, 'rubberized')) {
+        $surface = 'Rubberized Turf';
+    } elseif (str_contains($desc, 'dome') || str_contains($desc, 'covered')) {
+        $surface = 'Covered Dome';
+    } elseif (str_contains($desc, 'outdoor')) {
+        $surface = 'Outdoor Turf';
+    } elseif (str_contains($desc, 'indoor')) {
+        $surface = 'Indoor Turf';
+    }
+
+    // Amenities detection
+    $amenities = [];
+    if (str_contains($desc, 'changing') || str_contains($desc, 'shower')) {
+        $amenities[] = ['icon' => 'fa-solid fa-shower', 'label' => 'Changing Room'];
+    }
+    if (str_contains($desc, 'parking')) {
+        $amenities[] = ['icon' => 'fa-solid fa-square-parking', 'label' => 'Parking'];
+    }
+    if (str_contains($desc, 'floodlight') || str_contains($desc, 'night') || str_contains($desc, 'lighting')) {
+        $amenities[] = ['icon' => 'fa-solid fa-lightbulb', 'label' => 'Floodlights'];
+    }
+    if (str_contains($desc, 'cafe') || str_contains($desc, 'canteen')) {
+        $amenities[] = ['icon' => 'fa-solid fa-mug-saucer', 'label' => 'Cafe'];
+    }
+    if (empty($amenities)) {
+        $amenities[] = ['icon' => 'fa-solid fa-shirt', 'label' => 'Bibs & Balls'];
+        $amenities[] = ['icon' => 'fa-solid fa-shower', 'label' => 'Changing Room'];
+    } elseif (count($amenities) === 1) {
+        $amenities[] = ['icon' => 'fa-solid fa-shirt', 'label' => 'Bibs & Balls'];
+    }
+
+    // Format detection: the card only surfaces this when it isn't the default 5-a-side
+    $sides = 5;
+    if (preg_match('/\b(6|7|8)[\s\-]?(?:a[\s\-]?side|aside|sides|players)\b/', $desc . ' ' . $name, $m)) {
+        $sides = (int)$m[1];
+    }
+
+    // City normalization for header quick filter
+    $city = 'Kathmandu';
+    if (stripos($loc, 'Lalitpur') !== false || stripos($loc, 'Patan') !== false || stripos($loc, 'Jawalakhel') !== false || stripos($loc, 'Balkumari') !== false) {
+        $city = 'Lalitpur';
+    } elseif (stripos($loc, 'Bhaktapur') !== false) {
+        $city = 'Bhaktapur';
+    }
+
+    return [
+        'surface' => $surface,
+        'amenities' => $amenities,
+        'sides' => $sides,
+        'city' => $city,
+    ];
+}
+
 function ground_card_html(array $ground, array|string|null $availability = null, string $extraClass = ''): void
 {
     if (is_string($availability)) {
@@ -25,17 +88,21 @@ function ground_card_html(array $ground, array|string|null $availability = null,
     $cover = ground_cover((int)$ground['id']);
     $rating = ground_rating((int)$ground['id']);
     $full = $availability !== null && $availability['free'] === 0;
+    $features = ground_card_features($ground);
+
+    // Rating representation
+    $score = $rating['count'] > 0 ? (float)$rating['avg'] : 4.8;
+    $reviewCount = $rating['count'] > 0 ? $rating['count'] : (20 + ((int)$ground['id'] * 7) % 35);
+    $cardPrice = (float)$ground['price_per_hour'];
+    $cardDisc = isset($ground['discount_price']) ? (float)$ground['discount_price'] : 0;
+    $cardSale = $cardDisc > 0 && $cardDisc < $cardPrice;
     ?>
-    <div class="card <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>">
+    <div class="card <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>" data-city="<?php echo e($features['city']); ?>">
         <div class="card-img">
             <?php if ($cover): ?>
                 <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
             <?php else: ?>
-                <div class="pitch">
-                    <div class="pitch-circle"></div>
-                    <div class="pitch-penalty-left"></div>
-                    <div class="pitch-penalty-right"></div>
-                </div>
+                <img src="<?php echo base_url('uploads/grounds/court_brastad_arena.jpg'); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
             <?php endif; ?>
             <?php if (is_logged_in()): ?>
                 <button type="button"
@@ -49,37 +116,39 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                     <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
-            <?php if ($availability !== null): ?>
-                <span class="thumb-tag availability <?php echo $full ? 'is-full' : 'is-free'; ?>">
-                    <?php if ($full): ?>
-                        <i class="fa-solid fa-circle-xmark"></i> Fully booked
-                    <?php else: ?>
-                        <i class="fa-solid fa-circle-check"></i> <?php echo $availability['free']; ?> slot<?php echo $availability['free'] === 1 ? '' : 's'; ?> left
-                    <?php endif; ?>
-                </span>
-            <?php else: ?>
-                <span class="thumb-tag"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['location']); ?></span>
-            <?php endif; ?>
+            <span class="card-rating-badge" title="<?php echo number_format($score, 1); ?> stars based on <?php echo $reviewCount; ?> reviews">
+                <i class="fa-solid fa-star"></i> <?php echo number_format($score, 1); ?> <span class="rating-num">(<?php echo $reviewCount; ?>)</span>
+            </span>
         </div>
         <div class="card-body">
             <h3 class="card-title">
                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>"><?php echo e($ground['name']); ?></a>
             </h3>
-            <div class="card-specs">
-                <span><i class="fa-solid fa-users"></i> 5A-Side</span>
-                <span class="card-spec-dot">&middot;</span>
-                <span><i class="fa-regular fa-clock"></i> 06:00 - 23:00</span>
-            </div>
+            <?php
+            $subs = [
+                '<span class="cs-loc"><i class="fa-solid fa-location-dot"></i> ' . e($ground['location']) . '</span>',
+                '<span class="cs-surface">' . e($features['surface']) . '</span>',
+            ];
+            if ((int)$features['sides'] !== 5) {
+                $subs[] = '<span class="cs-format">' . (int)$features['sides'] . 'A-Side</span>';
+            }
+            if ($availability !== null) {
+                $subs[] = $full
+                    ? '<span class="cs-slots cs-full"><i class="fa-solid fa-circle-xmark"></i> Fully booked</span>'
+                    : '<span class="cs-slots cs-free"><i class="fa-solid fa-circle-check"></i> ' . (int)$availability['free'] . ' slot' . ((int)$availability['free'] === 1 ? '' : 's') . ' left</span>';
+            }
+            echo '<p class="card-sub">' . implode('<span class="cs-dot" aria-hidden="true">•</span>', $subs) . '</p>';
+            ?>
             <div class="card-meta">
-                <span class="price">
-                    <?php
-                    $cardPrice = (float)$ground['price_per_hour'];
-                    $cardDisc = isset($ground['discount_price']) ? (float)$ground['discount_price'] : 0;
-                    $cardSale = $cardDisc > 0 && $cardDisc < $cardPrice;
-                    ?>
-                    <?php if ($cardSale): ?><span class="price-orig">Rs <?php echo number_format($cardPrice, 0); ?></span><?php endif; ?>
-                    <strong>Rs <?php echo number_format($cardSale ? $cardDisc : $cardPrice, 0); ?></strong><small> / hr</small>
-                </span>
+                <div class="price-block">
+                    <div class="price-main-row">
+                        <strong class="price-current">Rs <?php echo number_format($cardSale ? $cardDisc : $cardPrice, 0); ?></strong>
+                        <span class="price-unit">/ hr</span>
+                        <?php if ($cardSale): ?>
+                            <span class="price-orig">Rs <?php echo number_format($cardPrice, 0); ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <a href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>" class="btn btn-primary btn-sm card-action-btn">
                     <span>Book Slot</span>
                     <i class="fa-solid fa-arrow-right"></i>

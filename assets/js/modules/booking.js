@@ -161,8 +161,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const galleryMain = document.getElementById('galleryMain');
     const galleryThumbs = document.querySelectorAll('.gallery-thumb');
-    if (galleryMain && galleryThumbs.length) {
-        const srcs = Array.prototype.map.call(galleryThumbs, function (t) { return t.dataset.src; });
+    if (galleryMain) {
+        const srcs = galleryThumbs.length
+            ? Array.prototype.map.call(galleryThumbs, function (t) { return t.dataset.src; })
+            : [galleryMain.currentSrc || galleryMain.src];
         let current = 0;
         const prevBtn = document.querySelector('.gallery-prev');
         const nextBtn = document.querySelector('.gallery-next');

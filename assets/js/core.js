@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!t || t.classList.contains('hide')) return;
         t.classList.add('hide');
         setTimeout(function () {
-            const wrap = t.closest('.top-flash-wrap');
+            const wrap = t.closest('.top-flash-wrap, .toast-wrap');
             t.remove();
             if (wrap && !wrap.querySelector('.toast')) {
                 wrap.remove();
@@ -1004,30 +1004,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function initToast(t, i) {
+    // Chrome only allows navigator.vibrate() after a real user gesture -
+    // calling it earlier logs a blocked-call error in the console.
+    let userGestured = false;
+    document.addEventListener('pointerdown', function () { userGestured = true; }, { once: true, capture: true, passive: true });
+
+    function initToast(t) {
         if (!t || t.__toast_init) return;
         t.__toast_init = true;
 
         const close = t.querySelector('.toast-close');
         if (close) close.addEventListener('click', function () { dismissToast(t); });
         const isError = t.classList.contains('toast-error');
-        const isInline = t.classList.contains('toast-inline');
-        const isTop = t.classList.contains('toast-top') || !!t.closest('.top-flash-wrap');
-        const hasRichDetail = !!t.querySelector('.toast-why, .toast-how, .toast-fix');
-        const delay = isError ? (hasRichDetail ? 5200 : 4200) : (isInline ? 3000 : 3500);
+        const isWarning = t.classList.contains('toast-warning');
+        const hasRichDetail = !!t.querySelector('.toast-why, .toast-how, .toast-fix, .toast-actions');
+
+        // Auto-dismiss window (spec: 4-5s default, errors/warnings linger a touch longer).
+        // Explicit per-toast override: data-duration="8000" or showToast({duration: 8000}).
+        let delay = parseInt(t.dataset.duration, 10);
+        if (!delay || isNaN(delay)) {
+            delay = (isError || isWarning) ? (hasRichDetail ? 6000 : 5000) : 4500;
+        }
 
         t.style.setProperty('--toast-duration', delay + 'ms');
 
         let timer = null;
         const startTimer = function () {
-            if (!timer) {
+            // stay paused while hovered or while keyboard focus is inside the toast
+            if (!timer && !t.matches(':hover') && !t.contains(document.activeElement)) {
                 t.classList.remove('is-paused');
                 timer = setTimeout(function () { dismissToast(t); }, delay);
             }
         };
         const stopTimer = function () {
+            t.classList.add('is-paused');
             if (timer) {
-                t.classList.add('is-paused');
                 clearTimeout(timer);
                 timer = null;
             }
@@ -1035,9 +1046,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         startTimer();
 
-        // Mouse hover pause
+        // Pause on mouse hover and while keyboard focus is inside the toast
         t.addEventListener('mouseenter', stopTimer);
         t.addEventListener('mouseleave', startTimer);
+        t.addEventListener('focusin', stopTimer);
+        t.addEventListener('focusout', function (e) {
+            if (!t.contains(e.relatedTarget)) startTimer();
+        });
 
         // Touch gestures: hold to pause + swipe up/flick to dismiss immediately
         let touchStartY = 0;
@@ -1084,18 +1099,14 @@ document.addEventListener('DOMContentLoaded', function () {
             startTimer();
         }, { passive: true });
 
-        if (!isTop && !isInline && toasts.length > 1) {
-            t.style.bottom = 'calc(' + (i * 62) + 'px + env(safe-area-inset-bottom, 0px))';
-        }
-
-        // Tactile haptic feedback for errors on mobile devices
-        if (isError && typeof navigator !== 'undefined' && navigator.vibrate) {
+        // Tactile haptic feedback for errors - only after a real user gesture
+        if (isError && userGestured && typeof navigator !== 'undefined' && navigator.vibrate) {
             try { navigator.vibrate([15, 35, 15]); } catch (_) {}
         }
 
-        // Announce toast to screen readers
+        // Announce toast to screen readers (title + message when a title exists)
         var toastMsg = t.querySelector('.toast-msg');
-        if (toastMsg) announceToScreenReader(toastMsg.textContent);
+        if (toastMsg) announceToScreenReader(t.dataset.announce || toastMsg.textContent);
         if (isError) {
             highlightPasswordError(t);
         }
@@ -1103,54 +1114,124 @@ document.addEventListener('DOMContentLoaded', function () {
 
     toasts.forEach(initToast);
 
-    // Global client-side GoalSpace.toast API
-    window.GoalSpace = window.GoalSpace || {};
-    window.GoalSpace.toast = function (opts) {
-        if (!opts) return null;
-        const type = opts.type || 'error';
-        const message = opts.message || opts.text || '';
-        if (!message) return null;
+    // ---- Universal toast / notification API -------------------------------
+    // showToast({ type, title, message, duration, actionText, onAction, position })
+    //   type:     'success' | 'error' | 'warning' | 'info' (default 'info')
+    //   duration: ms before auto-dismiss (default 4500, errors/warnings 5000-6000)
+    //   position: 'top-right' (default) | 'top-center' | 'bottom-right' | 'bottom-center'
+    //   actionText + onAction: inline action button with click callback
+    //   actionLabel + actionUrl: legacy link action (renders .toast-fix anchor)
+    const TOAST_POSITIONS = ['top-right', 'top-center', 'bottom-right', 'bottom-center'];
+    const TOAST_MAX_STACK = 4;
+    const TOAST_ICONS = {
+        success: 'fa-circle-check',
+        error: 'fa-circle-xmark',
+        warning: 'fa-triangle-exclamation',
+        info: 'fa-circle-info'
+    };
 
-        let wrap = document.querySelector('.top-flash-wrap');
+    function toastContainer(position) {
+        let wrap = document.querySelector('.toast-wrap[data-pos="' + position + '"]');
         if (!wrap) {
             wrap = document.createElement('div');
-            wrap.className = 'top-flash-wrap';
+            wrap.className = 'toast-wrap';
+            wrap.setAttribute('data-pos', position);
             document.body.appendChild(wrap);
         }
+        return wrap;
+    }
+
+    function showToast(opts) {
+        opts = opts || {};
+        let type = String(opts.type || 'info').toLowerCase();
+        if (type === 'danger' || type === 'fail' || type === 'failed') type = 'error';
+        if (type === 'warn') type = 'warning';
+        if (!TOAST_ICONS[type]) type = 'info';
+
+        const message = opts.message || opts.text || '';
+        const title = opts.title || '';
+        if (!message && !title) return null;
+
+        let position = opts.position || opts.pos || 'top-right';
+        if (TOAST_POSITIONS.indexOf(position) === -1) position = 'top-right';
 
         const esc = function (s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
 
+        const wrap = toastContainer(position);
+
+        // cap the visible stack: dismiss the oldest live toasts beyond the max
+        let live = wrap.querySelectorAll('.toast:not(.hide)');
+        while (live.length >= TOAST_MAX_STACK) {
+            dismissToast(live[0]);
+            live = wrap.querySelectorAll('.toast:not(.hide)');
+        }
+
         const t = document.createElement('div');
-        const isSuccess = type === 'success';
-        const isInfo = type === 'info';
-        t.className = 'toast toast-' + (isSuccess ? 'success' : (isInfo ? 'info' : 'error')) + ' toast-top';
-        t.setAttribute('role', isSuccess || isInfo ? 'status' : 'alert');
+        t.className = 'toast toast-' + type;
+        if (opts.duration) t.setAttribute('data-duration', String(opts.duration));
 
-        const iconClass = isSuccess ? 'fa-circle-check' : (isInfo ? 'fa-circle-info' : 'fa-circle-exclamation');
+        const assertive = (type === 'error' || type === 'warning');
+        t.setAttribute('role', assertive ? 'alert' : 'status');
+        t.setAttribute('aria-live', assertive ? 'assertive' : 'polite');
+        if (opts.id) t.id = opts.id;
 
-        let html = '<div class="toast-icon"><i class="fa-solid ' + iconClass + '"></i></div>';
-        html += '<div class="toast-content"><div class="toast-msg">';
-        html += '<span>' + esc(message) + '</span>';
-        if (opts.why) {
-            html += '<span class="toast-why">' + esc(opts.why) + '</span>';
+        let html = '<div class="toast-icon"><i class="fa-solid ' + TOAST_ICONS[type] + '" aria-hidden="true"></i></div>';
+        html += '<div class="toast-content">';
+        if (title) html += '<p class="toast-title">' + esc(title) + '</p>';
+        html += '<div class="toast-msg"><span>' + esc(message) + '</span>';
+        if (opts.why) html += '<span class="toast-why">' + esc(opts.why) + '</span>';
+        if (opts.how) html += '<span class="toast-how">' + esc(opts.how) + '</span>';
+        html += '</div>';
+
+        const actionText = opts.actionText || opts.actionLabel;
+        if (actionText || opts.actionUrl) {
+            html += '<div class="toast-actions">';
+            if (opts.actionUrl) {
+                html += '<a href="' + esc(opts.actionUrl) + '" class="toast-fix">' + esc(actionText || 'View') + '</a>';
+            } else {
+                html += '<button type="button" class="toast-action" data-toast-action>' + esc(actionText) + '</button>';
+            }
+            html += '</div>';
         }
-        if (opts.how) {
-            html += '<span class="toast-how">' + esc(opts.how) + '</span>';
+        html += '</div>';
+
+        if (opts.dismissible !== false) {
+            html += '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>';
         }
-        if (opts.actionLabel && opts.actionUrl) {
-            html += '<a href="' + esc(opts.actionUrl) + '" class="toast-fix">' + esc(opts.actionLabel) + '</a>';
-        }
-        html += '</div></div>';
-        html += '<button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>';
         html += '<div class="toast-progress" aria-hidden="true"></div>';
 
         t.innerHTML = html;
+        t.dataset.announce = (title ? title + '. ' : '') + (message || '');
         wrap.appendChild(t);
-        initToast(t, wrap.querySelectorAll('.toast').length - 1);
+
+        const actionBtn = t.querySelector('[data-toast-action]');
+        if (actionBtn) {
+            actionBtn.addEventListener('click', function () {
+                if (typeof opts.onAction === 'function') {
+                    try { opts.onAction(t); } catch (_) {}
+                }
+                dismissToast(t);
+            });
+        }
+
+        initToast(t);
+        t.dismiss = function () { dismissToast(t); };
         return t;
-    };
+    }
+
+    window.showToast = showToast;
+    window.GoalSpace = window.GoalSpace || {};
+    window.GoalSpace.showToast = showToast;
+    // legacy entry point kept for existing call sites (booking.js, etc.)
+    window.GoalSpace.toast = function (opts) { return showToast(opts || {}); };
+
+    // Escape dismisses every visible toast (keeps the stack reachable for keyboard users)
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('.toast:not(.hide)').forEach(dismissToast);
+    });
     function highlightPasswordError(toast) {
         const card = toast.closest('.form-card');
         const scope = card || document;
@@ -1452,7 +1533,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ---- Favorites (saved courts) toggle (optimistic UI) ---- */
     document.querySelectorAll('.fav-toggle').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (btn.disabled) return;
             const id = btn.getAttribute('data-ground-id');
             const url = btn.getAttribute('data-url') || (document.body.getAttribute('data-base') || '') + 'ajax/favorite.php';
@@ -1520,72 +1603,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     });
-
-    /* ---- Ground photo gallery (ground.php) ---- */
-    function initGallery() {
-        const wrap = document.getElementById('galleryWrap');
-        if (!wrap) return;
-
-        const mainImg = document.getElementById('galleryMain');
-        const thumbs = Array.from(wrap.querySelectorAll('.gallery-thumb'));
-        const prevBtn = wrap.querySelector('.gallery-prev');
-        const nextBtn = wrap.querySelector('.gallery-next');
-        const zoomBtn = wrap.querySelector('.gallery-zoom');
-        let current = 0;
-
-        function show(idx) {
-            if (!thumbs[idx]) return;
-            current = idx;
-            mainImg.src = thumbs[idx].dataset.src;
-            mainImg.alt = thumbs[idx].getAttribute('aria-label') || '';
-            thumbs.forEach(function (t, i) {
-                t.classList.toggle('active', i === idx);
-            });
-            if (prevBtn) prevBtn.hidden = idx === 0;
-            if (nextBtn) nextBtn.hidden = idx === thumbs.length - 1;
-        }
-
-        thumbs.forEach(function (thumb, i) {
-            thumb.addEventListener('click', function () { show(i); });
-        });
-
-        if (prevBtn) prevBtn.addEventListener('click', function () { if (current > 0) show(current - 1); });
-        if (nextBtn) nextBtn.addEventListener('click', function () { if (current < thumbs.length - 1) show(current + 1); });
-
-        if (zoomBtn && thumbs.length) {
-            zoomBtn.addEventListener('click', function () {
-                const overlay = document.createElement('div');
-                overlay.className = 'gallery-lightbox';
-                overlay.innerHTML =
-                    '<button class="gl-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-                    '<button class="gl-prev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>' +
-                    '<img src="' + mainImg.src + '" alt="">' +
-                    '<button class="gl-next" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>';
-                document.body.appendChild(overlay);
-                let lbIdx = current;
-                const lbImg = overlay.querySelector('img');
-                function lbShow(idx) {
-                    lbIdx = idx;
-                    lbImg.src = thumbs[idx].dataset.src;
-                    overlay.querySelector('.gl-prev').hidden = idx === 0;
-                    overlay.querySelector('.gl-next').hidden = idx === thumbs.length - 1;
-                }
-                overlay.querySelector('.gl-close').addEventListener('click', function () { overlay.remove(); });
-                overlay.querySelector('.gl-prev').addEventListener('click', function () { if (lbIdx > 0) lbShow(lbIdx - 1); });
-                overlay.querySelector('.gl-next').addEventListener('click', function () { if (lbIdx < thumbs.length - 1) lbShow(lbIdx + 1); });
-                overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
-                document.addEventListener('keydown', function esc(e) {
-                    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
-                });
-            });
-        }
-
-        if (thumbs.length) show(0);
-    }
-    initGallery();
-    /* end ground gallery */
-
-
 
     if ('serviceWorker' in navigator) {
         var swBase = document.body.getAttribute('data-base') || '';

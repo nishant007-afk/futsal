@@ -20,7 +20,20 @@ function ground_cover(int $ground_id): ?string
     $stmt->bind_param('i', $ground_id);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
-    return $row ? $row['image'] : null;
+    if ($row && !empty($row['image'])) {
+        return $row['image'];
+    }
+    $fallbacks = [
+        'ground_1_1a30c2b8d92a.webp',
+        'court_brastad_arena.jpg',
+        'court_arena_lights.jpg',
+        'court_night_floodlights.jpg',
+        'court_moody_turf.jpg',
+        'court_nike_field.jpg',
+        'court_indoor_futsal.jpg',
+        'court_pistas_futsal.jpg'
+    ];
+    return $fallbacks[$ground_id % count($fallbacks)];
 }
 
 function ground_reviews(int $ground_id): array
@@ -82,6 +95,21 @@ function preload_ground_cards(array $groundIds): void
             $covers[(int)$r['ground_id']] = $r['image'];
         }
         $s2->close();
+    }
+    $fallbacks = [
+        'ground_1_1a30c2b8d92a.webp',
+        'court_brastad_arena.jpg',
+        'court_arena_lights.jpg',
+        'court_night_floodlights.jpg',
+        'court_moody_turf.jpg',
+        'court_nike_field.jpg',
+        'court_indoor_futsal.jpg',
+        'court_pistas_futsal.jpg'
+    ];
+    foreach ($ids as $gid) {
+        if (!isset($covers[$gid]) || empty($covers[$gid])) {
+            $covers[$gid] = $fallbacks[$gid % count($fallbacks)];
+        }
     }
     $GLOBALS['__ground_covers'] = $covers;
     // Ratings

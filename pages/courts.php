@@ -153,7 +153,13 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
     <div class="page-head-meta">
-        <span class="courts-count-pill"><?php echo $total; ?> venue<?php echo $total === 1 ? '' : 's'; ?> available</span>
+        <span class="courts-count-pill">
+            <?php if ($total > count($grounds)): ?>
+                Showing <?php echo count($grounds); ?> of <?php echo $total; ?> venue<?php echo $total === 1 ? '' : 's'; ?>
+            <?php else: ?>
+                <?php echo $total; ?> venue<?php echo $total === 1 ? '' : 's'; ?> available
+            <?php endif; ?>
+        </span>
     </div>
 </div>
 
@@ -188,7 +194,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
                 <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
-                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Clear filters"><i class="fa-solid fa-xmark"></i></a>
+                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Reset all filters"><i class="fa-solid fa-rotate-left"></i> Reset</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -218,8 +224,8 @@ if ($sort !== 'price_asc') {
                 <?php echo e($label); ?> <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </a>
         <?php endforeach; ?>
-        <?php if (count($filterChips) > 1): ?>
-            <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>">Reset all</a>
+        <?php if ($filterChips): ?>
+            <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>" title="Reset all filters"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset all</a>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -227,12 +233,12 @@ if ($sort !== 'price_asc') {
 <?php if ($date !== ''): ?>
     <div class="notice notice-info mb-14">
         <i class="fa-solid fa-calendar-day"></i>
-        <span>Showing free-slot badges for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear  -  open a court to pick another day.</span>
+        <span>Showing free-slot counts for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear  -  open a court to pick another day.</span>
     </div>
 <?php endif; ?>
 
     <?php if (!$grounds): ?>
-        <?php empty_state('fa-solid fa-futbol', 'No courts match your filters', 'Try removing a filter or searching for something else.', grounds_list_url(), 'Clear filters & browse all'); ?>
+        <?php empty_state('fa-solid fa-futbol', 'No courts found matching your filters', 'Try clearing your location or changing the date or time slot.', grounds_list_url(), 'Clear all filters', 'btn btn-primary btn-sm'); ?>
     <?php else: ?>
         <div class="grid grid-3">
             <?php foreach ($grounds as $ground) { ground_card_html($ground, $availability[(int)$ground['id']] ?? null); } ?>

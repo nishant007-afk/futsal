@@ -73,7 +73,7 @@ $active = basename($_SERVER['SCRIPT_NAME']);
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=87'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=90'); ?>" defer></script>
 <script src="<?php echo base_url('assets/js/modules/ui.js?v=2'); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
@@ -94,7 +94,7 @@ if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
     $pageModules[] = 'manager';
 }
 foreach ($pageModules as $module) {
-    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=4') . '" defer></script>' . "\n";
+    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=5') . '" defer></script>' . "\n";
 }
 ?>
 </body>

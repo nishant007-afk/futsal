@@ -122,7 +122,7 @@ require __DIR__ . '/../includes/header.php';
                 <form method="post" action="" novalidate>
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="action" value="delete_account">
-                    <button type="submit" class="btn btn-danger btn-block" data-confirm="Delete your account permanently?" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash-can"></i> Delete my account</button>
+                    <button type="submit" class="btn btn-danger btn-block" data-confirm="Delete your account permanently?" data-confirm-title="Delete account" data-confirm-ok="Yes, delete" data-confirm-cancel="No"><i class="fa-solid fa-trash-can"></i> Delete my account</button>
                 </form>
                 <p class="form-hint mt-12 text-xs">You'll get a security code by email to confirm.</p>
             </div>

@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // scrolling up (or near the top) -> reveal the top navbar
                 siteHeader.classList.remove('collapsed');
             }
+            siteHeader.classList.toggle('scrolled', y > 12);
             lastY = y;
         }
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -280,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (Date.now() - lastUserScroll < 500) return;
             const t = e.target;
             if (!(t instanceof Element)) return;
-            if (t.closest('.site-header') || t.closest('.bottom-nav')) return;
+            if (t.closest('.site-header') || t.closest('.bottom-nav') || t.closest('.card')) return;
             if (t.closest('a, button, input, textarea, select, label, [data-confirm], .otp-box')) return;
             if (t.closest('.toast, .modal, .popup-backdrop, .msg-backdrop, .msg-card, .cookie-banner, .drawer')) return;
             const hidden = siteHeader.classList.contains('collapsed');
@@ -292,6 +293,193 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    /* ---- Court card gallery: cover carousel with arrows, dots & swipe ---- */
+    function getCardGallery(card) {
+        const gal = card.querySelector('.card-gallery');
+        if (!gal) return null;
+        if (!gal._imgs) {
+            try { gal._imgs = JSON.parse(gal.getAttribute('data-images') || '[]'); } catch (err) { gal._imgs = []; }
+            gal._idx = 0;
+        }
+        return gal._imgs.length > 1 ? gal : null;
+    }
+
+    function setCardPhoto(card, i) {
+        const gal = getCardGallery(card);
+        if (!gal) return;
+        const imgs = gal._imgs;
+        const idx = ((i % imgs.length) + imgs.length) % imgs.length;
+        const cover = card.querySelector('.card-cover');
+        if (cover && imgs[idx]) {
+            cover.loading = 'eager';
+            cover.src = imgs[idx];
+        }
+        gal._idx = idx;
+        gal.querySelectorAll('.card-dot').forEach(function (d, di) {
+            const on = di === idx;
+            d.classList.toggle('is-active', on);
+            if (on) {
+                d.setAttribute('aria-current', 'true');
+            } else {
+                d.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    function stepCardPhoto(card, dir) {
+        const gal = getCardGallery(card);
+        if (!gal) return;
+        setCardPhoto(card, gal._idx + dir);
+    }
+
+    /* Keep the desktop hover zoom (scale 1.03) inside inline swipe transforms. */
+    function cardCoverTx(x) {
+        const hoverable = !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
+        return 'translateX(' + x + 'px)' + (hoverable ? ' scale(1.03)' : '');
+    }
+
+    /* Gallery swipe: the old photo slides out while the new one slides in
+       from the opposite edge, both on the same eased curve. fromX is the
+       live drag offset (0 for arrow clicks) so a released drag hands off
+       seamlessly. */
+    function cardSlideSwap(card, dir, fromX) {
+        const gal = getCardGallery(card);
+        const cover = card.querySelector('.card-cover');
+        if (!gal || !cover) { stepCardPhoto(card, dir); return; }
+        if (gal._anim) finishCardSlide(card);
+        gal._anim = true;
+        const host = cover.parentNode;
+        const W = cover.offsetWidth || host.offsetWidth;
+        const startX = fromX || 0;
+        const enterX = dir > 0 ? W : -W;
+        const exitX = dir > 0 ? -W : W;
+        const ghost = cover.cloneNode(false);
+        ghost.removeAttribute('id');
+        ghost.alt = '';
+        ghost.style.position = 'absolute';
+        ghost.style.left = '0';
+        ghost.style.top = '0';
+        ghost.style.width = W + 'px';
+        ghost.style.height = '100%';
+        ghost.style.zIndex = '1';
+        ghost.style.transform = '';
+        ghost.style.transition = '';
+        host.insertBefore(ghost, cover.nextSibling);
+        stepCardPhoto(card, dir);
+        cover.style.transition = 'none';
+        cover.style.transform = cardCoverTx(enterX);
+        cover.style.zIndex = '2';
+        void cover.offsetWidth;
+        const ease = 'transform .34s cubic-bezier(.2,.7,.3,1)';
+        cover.style.transition = ease;
+        cover.style.transform = cardCoverTx(0);
+        ghost.style.transition = ease;
+        ghost.style.transform = cardCoverTx(exitX);
+        gal._ghost = ghost;
+        setTimeout(function () { finishCardSlide(card); }, 360);
+    }
+
+    function finishCardSlide(card) {
+        const gal = card.querySelector('.card-gallery');
+        if (gal && gal._ghost) {
+            if (gal._ghost.parentNode) gal._ghost.parentNode.removeChild(gal._ghost);
+            gal._ghost = null;
+        }
+        const cover = card.querySelector('.card-cover');
+        if (cover) {
+            cover.style.transition = '';
+            cover.style.transform = '';
+            cover.style.zIndex = '';
+        }
+        if (gal) gal._anim = false;
+    }
+
+    /* Whole-card click: tapping a venue card anywhere opens it, except on the
+       real controls inside (links, buttons, inputs, labels, gallery controls). */
+    document.addEventListener('click', function (e) {
+        const t = e.target;
+        if (!(t instanceof Element)) return;
+        const card = t.closest('.card[data-href]');
+        if (!card) return;
+        if (card._swiped && Date.now() - card._swiped < 500) return;
+        if (t.closest('a, button, input, textarea, select, label, [data-confirm], .fav-toggle, .card-gallery')) return;
+        window.location.href = card.getAttribute('data-href');
+    });
+
+    /* Arrows & dots: step the card cover. */
+    document.addEventListener('click', function (e) {
+        const t = e.target;
+        if (!(t instanceof Element)) return;
+        const btn = t.closest('.card-gprev, .card-gnext, .card-dot');
+        if (!btn) return;
+        const card = btn.closest('.card[data-href]');
+        if (!card) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const gal = getCardGallery(card);
+        if (!gal) return;
+        if (btn.classList.contains('card-dot')) {
+            const dots = Array.prototype.slice.call(gal.querySelectorAll('.card-dot'));
+            const i = dots.indexOf(btn);
+            if (i > -1 && i !== gal._idx) {
+                if (gal._anim) finishCardSlide(card);
+                setCardPhoto(card, i);
+            }
+        } else if (btn.classList.contains('card-gprev')) {
+            cardSlideSwap(card, -1, 0);
+        } else {
+            cardSlideSwap(card, 1, 0);
+        }
+    });
+
+    /* Pointer swipe on card covers: horizontal drag swaps the photo,
+       vertical movement still scrolls the page (touch-action: pan-y). */
+    (function () {
+        let drag = null;
+        document.addEventListener('pointerdown', function (e) {
+            if (!(e.target instanceof Element)) return;
+            const card = e.target.closest('.card[data-href]');
+            if (!card || !getCardGallery(card)) return;
+            if (e.target.closest('button, a, input, label, select, textarea, .fav-toggle')) return;
+            if (e.button > 0) return;
+            if (getCardGallery(card)._anim) return;
+            drag = { card: card, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, on: false, t: Date.now() };
+        });
+        document.addEventListener('pointermove', function (e) {
+            if (!drag || e.pointerId !== drag.id) return;
+            const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+            if (!drag.on) {
+                if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) { drag = null; return; }
+                if (Math.abs(dx) <= 10) return;
+                drag.on = true;
+                const c0 = drag.card.querySelector('.card-cover');
+                if (c0) c0.style.transition = 'none';
+            }
+            drag.dx = dx;
+            const cover = drag.card.querySelector('.card-cover');
+            if (cover) cover.style.transform = cardCoverTx(dx);
+        });
+        function endDrag(e) {
+            if (!drag) return;
+            if (e && e.pointerId !== undefined && e.pointerId !== drag.id) return;
+            const d = drag;
+            drag = null;
+            if (!d.on) return;
+            d.card._swiped = Date.now();
+            const cover = d.card.querySelector('.card-cover');
+            if (!cover) return;
+            if (Math.abs(d.dx) < 45 || Date.now() - d.t > 900) {
+                cover.style.transition = 'transform .2s ease-out';
+                cover.style.transform = cardCoverTx(0);
+                setTimeout(function () { cover.style.transition = ''; cover.style.transform = ''; }, 230);
+                return;
+            }
+            cardSlideSwap(d.card, d.dx < 0 ? 1 : -1, d.dx);
+        }
+        document.addEventListener('pointerup', endDrag);
+        document.addEventListener('pointercancel', endDrag);
+    })();
 
     /* Reveal-on-scroll: above-the-fold content appears instantly, everything
        else fades up as it enters the viewport. A load-time safety net catches
@@ -338,8 +526,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (f) f.submit();
                 }
             }, {
-                okText: el.dataset.confirmOk || 'Yes, continue',
-                cancelText: el.dataset.confirmCancel || 'Cancel'
+                okText: el.dataset.confirmOk || confirmOkLabel(el.dataset.confirm),
+                cancelText: el.dataset.confirmCancel || 'Cancel',
+                title: el.dataset.confirmTitle || ''
             });
         });
     });
@@ -378,11 +567,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Both react to typing AND to browser autofill (which often fires no
     // input/change event). Central here so every page behaves the same.
     function syncFloatingLabels() {
-        document.querySelectorAll('.input-group.floating input').forEach(function (el) {
+        document.querySelectorAll('.input-group.floating input, .auth-fields .input-group.floating input').forEach(function (el) {
             if (!el.hasAttribute('placeholder')) {
                 el.setAttribute('placeholder', ' ');
             }
-            const on = (el.value && el.value.trim() !== '') || el === document.activeElement;
+            let isAutofilled = false;
+            try {
+                isAutofilled = el.matches(':-webkit-autofill') || el.matches(':autofill');
+            } catch (e) {}
+            const on = (el.value && el.value.trim() !== '') || el === document.activeElement || isAutofilled;
             if (el.classList.contains('has-value') !== on) {
                 el.classList.toggle('has-value', on);
             }
@@ -420,6 +613,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     window.addEventListener('load', autosync);
     window.addEventListener('pageshow', autosync);
+
+    window.syncFloatingLabels = syncFloatingLabels;
+    window.autosync = autosync;
+
+    // Run immediate RAF frames for zero-delay instant autofill recognition
+    let coreRafCount = 0;
+    function coreRafLoop() {
+        syncFloatingLabels();
+        if (++coreRafCount < 60) requestAnimationFrame(coreRafLoop);
+    }
+    requestAnimationFrame(coreRafLoop);
+
+    // Run rapid staggered checks to catch delayed password manager autofill
+    [30, 80, 160, 300, 600, 1200, 2000].forEach(function (delay) {
+        setTimeout(autosync, delay);
+    });
 
     autosync();
 
@@ -594,9 +803,38 @@ document.addEventListener('DOMContentLoaded', function () {
             source.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
+        // Fill every box from one pasted/autofilled code and park focus at the end.
+        function fillFrom(text) {
+            const digits = String(text === null || text === undefined ? '' : text).replace(/[^0-9]/g, '');
+            if (!digits) return '';
+            boxes.forEach(function (b) { b.value = ''; });
+            digits.split('').forEach(function (ch, j) { if (j < boxes.length) boxes[j].value = ch; });
+            readBoxes();
+            emitChange();
+            const last = Math.min(digits.length, boxes.length) - 1;
+            boxes[last >= 0 ? last : 0].focus();
+            return digits;
+        }
+
         boxes.forEach(function (box, i) {
+            box.addEventListener('beforeinput', function (e) {
+                // Mobile keyboards often deliver a paste as one insertion. The
+                // maxlength=1 attribute would truncate it to the first digit
+                // before `input` runs, so intercept the multi-character value here.
+                const multi = /^(insertFromPaste|insertReplacementText|insertText)$/.test(e.inputType || '')
+                    && typeof e.data === 'string' && e.data.replace(/[^0-9]/g, '').length > 1;
+                if (multi) {
+                    e.preventDefault();
+                    fillFrom(e.data);
+                }
+            });
             box.addEventListener('input', function () {
-                box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
+                const digits = box.value.replace(/[^0-9]/g, '');
+                if (digits.length > 1) {
+                    fillFrom(digits);
+                    return;
+                }
+                box.value = digits.slice(0, 1);
                 readBoxes();
                 emitChange();
                 if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
@@ -623,13 +861,8 @@ document.addEventListener('DOMContentLoaded', function () {
             box.addEventListener('focus', function () { box.select(); });
             box.addEventListener('paste', function (e) {
                 e.preventDefault();
-                const digits = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '');
-                boxes.forEach(function (b) { b.value = ''; });
-                digits.split('').forEach(function (ch, j) { if (j < boxes.length) boxes[j].value = ch; });
-                readBoxes();
-                emitChange();
-                const last = Math.min(digits.length, boxes.length) - 1;
-                boxes[last >= 0 ? last : 0].focus();
+                const cd = e.clipboardData || window.clipboardData;
+                if (cd) fillFrom(cd.getData('text'));
             });
         });
 
@@ -780,6 +1013,28 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.appendChild(b);
         }
     }
+    // Default confirm button label derived from the question, so destructive
+    // dialogs never fall back to a vague "Yes, continue". Call sites can still
+    // override it with data-confirm-ok.
+    function confirmOkLabel(message) {
+        const m = String(message || '').trim().toLowerCase();
+        if (m.indexOf('delete all') === 0) return 'Yes, delete all';
+        if (m.indexOf('delete') === 0) return 'Yes, delete';
+        if (m.indexOf('remove') === 0) return 'Yes, remove';
+        if (m.indexOf('cancel') === 0) return 'Yes, cancel';
+        if (m.indexOf('clear') === 0) return 'Yes, clear';
+        if (m.indexOf('duplicate') === 0 || m.indexOf('create a copy') === 0) return 'Yes, duplicate';
+        if (m.indexOf('unblock') === 0) return 'Yes, unblock';
+        if (m.indexOf('mark') === 0) return 'Yes, mark paid';
+        if (m.indexOf('log out') === 0 || m.indexOf('logout') === 0) return 'Yes, log out';
+        // Question phrasing ("Are you sure you want to delete this user?") - look
+        // for the destructive verb anywhere in the sentence.
+        if (/\bdelete\b/.test(m)) return 'Yes, delete';
+        if (/\bremove\b/.test(m)) return 'Yes, remove';
+        if (/\bcancel\b/.test(m)) return 'Yes, cancel';
+        return 'Yes, continue';
+    }
+
     function openConfirmModal(message, onConfirm, labels) {
         labels = labels || {};
         const prevFocused = document.activeElement;
@@ -792,13 +1047,15 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.className = 'modal open';
         modal.setAttribute('role', 'alertdialog');
         modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'confirmModalTitle');
+        modal.setAttribute('aria-describedby', 'confirmModalMsg');
         modal.innerHTML =
             '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
             '<div class="modal-head">' +
                 '<span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>' +
-                '<h3>Are you sure?</h3>' +
+                '<h3 id="confirmModalTitle">' + esc(labels.title || 'Are you sure?') + '</h3>' +
             '</div>' +
-            '<p class="modal-msg">' + esc(message) + '</p>' +
+            '<p class="modal-msg" id="confirmModalMsg">' + esc(message) + '</p>' +
             '<div class="modal-actions">' +
                 '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Cancel') + '</button>' +
                 '<button type="button" class="btn btn-danger" data-modal-ok>' + esc(labels.okText || 'Yes, continue') + '</button>' +
@@ -853,70 +1110,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 close();
                 if (typeof onConfirm === 'function') onConfirm();
             });
-            setTimeout(function () { okBtn.focus(); }, 40);
         }
+        // Focus the safe option: a stray Enter must never confirm a destructive action.
+        setTimeout(function () { if (cancelBtn) cancelBtn.focus(); }, 40);
     }
-    function showSheet(message, opts) {
-        opts = opts || {};
-        const type = opts.type || 'error';
-        const esc = function (s) {
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        };
-        const icons = { error: 'fa-circle-xmark', info: 'fa-circle-info', success: 'fa-circle-check', warning: 'fa-triangle-exclamation' };
-
-        // Reuse an open backdrop if there is one; otherwise create it.
-        let backdrop = document.querySelector('.sheet-backdrop');
-        if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.className = 'sheet-backdrop';
-            document.body.appendChild(backdrop);
-        }
-
-        // Stack multiple sheets a touch apart so they don't fully overlap,
-        // raised above the mobile bottom nav so they never appear hidden.
-        function sheetNavOffset() {
-            const nav = document.querySelector('.bottom-nav');
-            if (nav && getComputedStyle(nav).display !== 'none') return nav.offsetHeight || 62;
-            return 0;
-        }
-        const sheets = document.querySelectorAll('.sheet');
-        const sheet = document.createElement('div');
-        sheet.className = 'sheet' + (type === 'error' ? '' : ' sheet-' + type);
-        sheet.style.bottom = 'calc(' + (sheetNavOffset() + 16 + sheets.length * 12) + 'px + env(safe-area-inset-bottom, 0px))';
-        sheet.innerHTML =
-            '<button type="button" class="sheet-x" data-sheet-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-            '<div class="sheet-head">' +
-                '<span class="sheet-icon"><i class="fa-solid ' + icons[type] + '"></i></span>' +
-                '<h3>' + esc(opts.title || (type === 'error' ? 'Something went wrong' : 'Heads up')) + '</h3>' +
-            '</div>' +
-            '<p class="sheet-msg">' + esc(message) + '</p>' +
-            (opts.detail ? '<p class="sheet-detail">' + esc(opts.detail) + '</p>' : '');
-        document.body.appendChild(sheet);
-
-        function close() {
-            if (sheet.classList.contains('hide')) return;
-            sheet.classList.add('hide');
-            setTimeout(function () {
-                sheet.remove();
-                if (!document.querySelector('.sheet')) {
-                    const b = document.querySelector('.sheet-backdrop');
-                    if (b) b.remove();
-                }
-            }, 300);
-        }
-        sheet.querySelector('[data-sheet-close]').addEventListener('click', close);
-        sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
-        document.addEventListener('keydown', function handler(e) {
-            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
-        });
-        setTimeout(function () { sheet.querySelector('[data-sheet-close]').focus(); }, 10);
-
-        const autoDismiss = (type === 'success' || type === 'info'); // errors/warnings stay until dismissed
-        if (autoDismiss) setTimeout(close, 3200);
-        return { close: close };
-    }
-    window.showSheet = showSheet;
-
     function openErrorModal(message, title, opts) {
         opts = opts || {};
         const prevFocused = document.activeElement;
@@ -1021,6 +1218,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Auto-dismiss window (spec: 4-5s default, errors/warnings linger a touch longer).
         // Explicit per-toast override: data-duration="8000" or showToast({duration: 8000}).
+        const hasExplicitDuration = !!t.dataset.duration;
         let delay = parseInt(t.dataset.duration, 10);
         if (!delay || isNaN(delay)) {
             delay = (isError || isWarning) ? (hasRichDetail ? 6000 : 5000) : 4500;
@@ -1028,8 +1226,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         t.style.setProperty('--toast-duration', delay + 'ms');
 
+        // Inline toasts (render_inline / subscription banners) are statements, not
+        // notifications: they stay until dismissed or the form is resubmitted.
+        const isInline = t.classList.contains('toast-inline');
+
         let timer = null;
         const startTimer = function () {
+            if (isInline && !hasExplicitDuration) return;
             // stay paused while hovered or while keyboard focus is inside the toast
             if (!timer && !t.matches(':hover') && !t.contains(document.activeElement)) {
                 t.classList.remove('is-paused');
@@ -1227,10 +1430,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // legacy entry point kept for existing call sites (booking.js, etc.)
     window.GoalSpace.toast = function (opts) { return showToast(opts || {}); };
 
-    // Escape dismisses every visible toast (keeps the stack reachable for keyboard users)
+    // Escape dismisses visible toasts - but never while a dialog owns the key
+    // (the confirm / error dialogs close themselves), and never the persistent
+    // inline toasts, which stay until the user dismisses them.
     document.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape') return;
-        document.querySelectorAll('.toast:not(.hide)').forEach(dismissToast);
+        if (document.querySelector('.modal.open, .msg-backdrop, .popup-backdrop')) return;
+        document.querySelectorAll('.toast:not(.hide)').forEach(function (t) {
+            if (t.classList.contains('toast-inline')) return;
+            dismissToast(t);
+        });
     });
     function highlightPasswordError(toast) {
         const card = toast.closest('.form-card');
@@ -1564,12 +1773,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (icon) {
                             icon.classList.toggle('fa-solid', saved === 1);
                             icon.classList.toggle('fa-regular', saved !== 1);
-                        }
-                        if (window.GoalSpace && window.GoalSpace.toast) {
-                            window.GoalSpace.toast({
-                                type: 'success',
-                                message: saved ? 'Added to your saved courts.' : 'Removed from saved courts.'
-                            });
                         }
                     } else {
                         btn.setAttribute('data-saved', String(prevSaved));

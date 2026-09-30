@@ -11,13 +11,33 @@ if (!in_array($city, $allowed_cities, true)) {
     $city = '';
 }
 $date = trim($_GET['date'] ?? '');
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+// The hero search hands us dd/mm/yyyy; accept ISO too and normalize once so
+// filter chips, links and the toolbar all share the same value.
+if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $date, $dm)) {
+    $day = (int)$dm[1];
+    $mon = (int)$dm[2];
+    $yr = (int)$dm[3];
+    $date = checkdate($mon, $day, $yr) ? sprintf('%04d-%02d-%02d', $yr, $mon, $day) : '';
+}
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !$date || strtotime($date) === false) {
+    $date = '';
+} elseif (date('Y-m-d', strtotime($date)) !== $date) {
     $date = '';
 }
+$_GET['date'] = $date;
 $sort = $_GET['sort'] ?? 'price_asc';
 if (!in_array($sort, ['price_asc', 'price_desc', 'name_asc'], true)) {
     $sort = 'price_asc';
 }
+$slot = trim($_GET['slot'] ?? '');
+$slotLabels = ['morning' => 'Morning', 'afternoon' => 'Afternoon', 'evening' => 'Prime Evening', 'night' => 'Late Night'];
+if (!isset($slotLabels[$slot])) {
+    $slot = '';
+} elseif ($date === '') {
+    // A time-slot filter only makes sense with a day attached; default to today.
+    $date = date('Y-m-d');
+}
+$slotWindows = ['morning' => [360, 720], 'afternoon' => [720, 1020], 'evening' => [1020, 1320], 'night' => [1320, 1800]];
 
 $where = ['g.is_active = 1'];
 $params = [];
@@ -33,6 +53,50 @@ if ($city !== '') {
     $where[] = 'g.location LIKE ?';
     $params[] = '%' . $city . '%';
     $types .= 's';
+}
+
+// Narrow the venue set to courts with at least one free slot in the chosen window.
+if ($slot !== '') {
+    $win = $slotWindows[$slot];
+    $cands = $conn->query('SELECT id FROM grounds WHERE is_active = 1')->fetch_all(MYSQLI_ASSOC);
+    $candIds = array_map(fn($r) => (int)$r['id'], $cands);
+    $takenSet = [];
+    $blockedSet = [];
+    if ($candIds !== []) {
+        $ph = implode(',', array_fill(0, count($candIds), '?'));
+        $ts = $conn->prepare("SELECT ground_id, start_time FROM bookings WHERE booking_date = ? AND status != 'cancelled' AND ground_id IN ($ph)");
+        $ts->bind_param('s' . str_repeat('i', count($candIds)), $date, ...$candIds);
+        $ts->execute();
+        $takenRows = $ts->get_result();
+        while ($row = $takenRows->fetch_assoc()) {
+            $takenSet[(int)$row['ground_id']][(string)$row['start_time']] = true;
+        }
+        $bs = $conn->prepare("SELECT ground_id FROM blocked_dates WHERE block_date = ? AND ground_id IN ($ph)");
+        $bs->bind_param('s' . str_repeat('i', count($candIds)), $date, ...$candIds);
+        $bs->execute();
+        $blockedRows = $bs->get_result();
+        while ($row = $blockedRows->fetch_assoc()) {
+            $blockedSet[(int)$row['ground_id']] = true;
+        }
+    }
+    $freeIds = [];
+    foreach ($candIds as $gid) {
+        if (isset($blockedSet[$gid])) {
+            continue;
+        }
+        foreach (slots_for_day($date, $gid) as $row) {
+            $startMin = (int)substr($row['start'], 0, 2) * 60 + (int)substr($row['start'], 3, 2);
+            if ($startMin < $win[0] || $startMin >= $win[1]) {
+                continue;
+            }
+            if (isset($takenSet[$gid][$row['start']])) {
+                continue;
+            }
+            $freeIds[] = $gid;
+            break;
+        }
+    }
+    $where[] = $freeIds !== [] ? 'g.id IN (' . implode(',', array_map('intval', $freeIds)) . ')' : '1 = 0';
 }
 
 $orderBy = 'g.price_per_hour ASC';
@@ -127,6 +191,7 @@ function build_query(array $overrides): string
             'q' => trim($_GET['q'] ?? ''),
             'location' => trim($_GET['location'] ?? ''),
             'date' => trim($_GET['date'] ?? ''),
+            'slot' => trim($_GET['slot'] ?? ''),
             'sort' => $_GET['sort'] ?? 'price_asc',
         ],
         $overrides
@@ -183,17 +248,26 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-regular fa-calendar" aria-hidden="true"></i>
                 <input type="date" id="courtsDate" name="date" aria-label="Filter by date" value="<?php echo e($date); ?>" min="<?php echo e(date('Y-m-d')); ?>">
             </div>
+            <div class="search-field sf-slot">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                <select id="courtsSlot" name="slot" aria-label="Filter by time slot">
+                    <option value="">Any time</option>
+                    <?php foreach ($slotLabels as $slotKey => $slotName): ?>
+                        <option value="<?php echo e($slotKey); ?>" <?php echo $slot === $slotKey ? 'selected' : ''; ?>><?php echo e($slotName); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="search-field sf-sort">
                 <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
                 <select id="courtsSort" name="sort" aria-label="Sort courts by">
-                    <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price: Low to High</option>
-                    <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price: High to Low</option>
-                    <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name: A to Z</option>
+                    <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Lowest price</option>
+                    <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Highest price</option>
+                    <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name A to Z</option>
                 </select>
             </div>
             <div class="toolbar-actions">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-                <?php if ($q !== '' || $city !== '' || $date !== '' || $sort !== 'price_asc'): ?>
+                <?php if ($q !== '' || $city !== '' || $date !== '' || $slot !== '' || $sort !== 'price_asc'): ?>
                     <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Reset all filters"><i class="fa-solid fa-rotate-left"></i> Reset</a>
                 <?php endif; ?>
             </div>
@@ -210,7 +284,10 @@ if ($city !== '') {
     $filterChips[] = ['location', city_label($city)];
 }
 if ($date !== '') {
-    $filterChips[] = ['date', date('M j, Y', strtotime($date))];
+    $filterChips[] = ['date', date('j M Y', strtotime($date))];
+}
+if ($slot !== '') {
+    $filterChips[] = ['slot', $slotLabels[$slot]];
 }
 if ($sort !== 'price_asc') {
     $sortLabels = ['price_desc' => 'High to Low', 'name_asc' => 'A to Z'];
@@ -230,10 +307,15 @@ if ($sort !== 'price_asc') {
     </div>
 <?php endif; ?>
 
-<?php if ($date !== ''): ?>
+<?php if ($slot !== ''): ?>
+    <div class="courts-summary" role="status">
+        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+        <span>Showing courts for <strong><?php echo e(date('D j M', strtotime($date))); ?></strong>, <strong><?php echo e($slotLabels[$slot]); ?></strong></span>
+    </div>
+<?php elseif ($date !== ''): ?>
     <div class="notice notice-info mb-14">
         <i class="fa-solid fa-calendar-day"></i>
-        <span>Showing free-slot counts for <strong><?php echo e(date('D, M j, Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear  -  open a court to pick another day.</span>
+        <span>Showing free-slot counts for <strong><?php echo e(date('D, j M Y', strtotime($date))); ?></strong>. Courts with zero free slots still appear  -  open a court to pick another day.</span>
     </div>
 <?php endif; ?>
 

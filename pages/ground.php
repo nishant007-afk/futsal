@@ -1,6 +1,17 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 
+function hm12(string $hm): string
+{
+    $parts = explode(':', $hm);
+    $h = (int)$parts[0];
+    $min = $parts[1] ?? '00';
+    $ampm = $h >= 12 ? 'PM' : 'AM';
+    $h12 = $h % 12;
+    if ($h12 === 0) $h12 = 12;
+    return sprintf('%02d:%s %s', $h12, $min, $ampm);
+}
+
 $id = (int)($_GET['id'] ?? 0);
 
 $stmt = $conn->prepare('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JOIN users u ON u.id = g.manager_id WHERE g.id = ? AND g.is_active = 1');
@@ -48,8 +59,8 @@ try {
 
 $slots = slots_for_day($selected_date, $ground['id']);
 $price = ground_price_for_date((int)$ground['id'], (float)$ground['price_per_hour'], $selected_date);
-
-$photos = ground_images((int)$ground['id']);
+$photosList = ground_gallery((int)$ground['id']);
+$photos = array_map(fn($img) => ['image' => $img], $photosList);
 $reviews = ground_reviews((int)$ground['id']);
 $rating = ground_rating((int)$ground['id']);
 $my_review = user_rating_for((int)$ground['id']);
@@ -151,14 +162,15 @@ $page_description = 'Check availability, pricing, and amenities at ' . $ground['
 require __DIR__ . '/../includes/header.php';
 ?>
 <?php echo $json_ld; // JSON-LD structured data ?>
-<div class="container">
-<div class="title-back-row" style="margin-bottom:12px;">
-    <a href="<?php echo grounds_list_url(); ?>" class="page-back-arrow" data-back aria-label="Back to courts"><i class="fa-solid fa-arrow-left"></i></a>
-    <nav class="breadcrumb">
-        <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
-        <a href="<?php echo grounds_list_url(); ?>">Courts</a> &nbsp;/&nbsp;
-        <span><?php echo e($ground['name']); ?></span>
-    </nav>
+<div class="page-head">
+    <div class="title-back-row">
+        <a href="<?php echo grounds_list_url(); ?>" class="page-back-arrow" data-back aria-label="Back to courts"><i class="fa-solid fa-arrow-left"></i></a>
+        <nav class="breadcrumb">
+            <a href="<?php echo base_url('index.php'); ?>">Home</a> &nbsp;/&nbsp;
+            <a href="<?php echo grounds_list_url(); ?>">Courts</a> &nbsp;/&nbsp;
+            <span><?php echo e($ground['name']); ?></span>
+        </nav>
+    </div>
 </div>
 
 <?php if (is_demo_ground($ground)): ?>
@@ -169,141 +181,80 @@ require __DIR__ . '/../includes/header.php';
 <?php endif; ?>
 
 <div class="ground-detail">
-    <div class="reveal">
-        <div class="gallery-wrap" id="galleryWrap">
+    <div class="gallery-wrap reveal" id="galleryWrap"<?php if ($photos): ?> data-images="<?php echo e(json_encode(array_map(function ($p) { return base_url('uploads/grounds/' . rawurlencode($p['image'])); }, $photos))); ?>"<?php endif; ?>>
             <?php if ($photos): ?>
                 <div class="gallery-main">
                     <img id="galleryMain" src="<?php echo base_url('uploads/grounds/' . rawurlencode($photos[0]['image'])); ?>" alt="<?php echo e($ground['name']); ?>" decoding="async">
+                    <?php if (count($photos) > 1): ?>
+                        <div class="gallery-dots">
+                            <?php foreach ($photos as $pi => $ph): ?>
+                                <button type="button" class="gallery-dot<?php echo $pi === 0 ? ' active' : ''; ?>" aria-label="View photo <?php echo $pi + 1; ?> of <?php echo count($photos); ?>"<?php echo $pi === 0 ? ' aria-current="true"' : ''; ?>></button>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <?php if (count($photos) > 1): ?>
                     <button type="button" class="gallery-nav gallery-prev" aria-label="Previous photo" hidden><i class="fa-solid fa-chevron-left"></i></button>
                     <button type="button" class="gallery-nav gallery-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
                 <?php endif; ?>
                 <button type="button" class="gallery-zoom" aria-label="Zoom photo"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <?php if (count($photos) > 1): ?>
-                    <div class="gallery-thumbs">
-                        <?php foreach ($photos as $pi => $ph): ?>
-                            <button type="button" class="gallery-thumb" data-src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" aria-label="View photo <?php echo $pi + 1; ?> of <?php echo count($photos); ?>">
-                                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="" loading="lazy" decoding="async">
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
             <?php else: ?>
                 <div class="gallery pitch"></div>
             <?php endif; ?>
         </div>
-        <div class="detail-box ground-info ground-facts">
-            <div class="ground-title-row">
-                <h1 class="ground-title"><?php echo e($ground['name']); ?></h1>
-                <?php if (is_logged_in()): ?>
-                    <button type="button"
-                            class="fav-toggle ground-fav"
-                            data-ground-id="<?php echo (int)$ground['id']; ?>"
-                            data-url="<?php echo base_url('ajax/favorite.php'); ?>"
-                            aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
-                            title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
-                            data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
-                        <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>" aria-hidden="true"></i>
-                        <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
-                    </button>
-                <?php endif; ?>
-            </div>
-            <div class="rating-summary">
-                <?php if ($rating['count'] > 0): ?>
-                    <span class="rating-big"><?php echo number_format((float)$rating['avg'], 1); ?></span>
-                    <?php echo star_html($rating['avg']); ?>
-                    <span class="rating-meta"><?php echo $rating['count']; ?> review<?php echo $rating['count'] === 1 ? '' : 's'; ?></span>
-                <?php else: ?>
-                    <span class="rating-meta">No reviews yet – be the first to play here.</span>
-                <?php endif; ?>
-            </div>
-            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
-            <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
-            <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
-            <div class="info-row"><i class="fa-solid fa-layer-group"></i> <span><?php echo e($groundFeatures['surface']); ?> · <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
-            <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
-                <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
-            <?php endif; ?>
-            <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
-            <?php $mapQuery = $hasCoords
-                ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
-                : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
-            <?php if (!empty($ground['address'])): ?>
-                <a class="btn btn-outline btn-block" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-map-location-dot"></i> Open in Google Maps</a>
-            <?php endif; ?>
-        </div>
-
-        <div class="detail-box about-box mt-24">
-            <h3>About this court</h3>
-            <?php if (!empty($ground['description'])): ?>
-                <p class="desc"><?php echo e($ground['description']); ?></p>
-            <?php else: ?>
-                <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
-            <?php endif; ?>
-            <div class="facilities">
-                <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities</div>
-                <ul class="facility-chips">
-                    <?php foreach ($groundFeatures['amenities'] as $am): ?>
-                        <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-            <div class="ground-map">
-                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
-                <div class="ground-map-frame">
-                    <iframe
-                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                        width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
-                </div>
-            </div>
-            <?php if (!empty($ground['address'])): ?>
-                <p class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></p>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <div class="detail-box booking-panel reveal">
+    <div class="detail-box booking-panel">
         <span class="book-eyebrow">Book this court</span>
         <?php
         $discPrice = $ground['discount_price'] ?? null;
         $isWeekendRate = (int)date('N', strtotime($selected_date)) >= 6 && !empty($ground['price_weekend']);
         $showDiscount = !$isWeekendRate && $discPrice !== null && (float)$discPrice > 0 && (float)$discPrice < (float)$ground['price_per_hour'];
+        $showOff = $showDiscount ? (int)round((1 - (float)$discPrice / (float)$ground['price_per_hour']) * 100) : 0;
         ?>
         <p class="price-line">
             <?php if ($showDiscount): ?><span class="price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></span><?php endif; ?>
-            <strong>Rs <?php echo number_format($price, 0); ?></strong> / hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend</span>' : ''; ?>
+            <strong>Rs <?php echo number_format($price, 0); ?></strong> / hour<?php echo $isWeekendRate ? ' <span class="weekend-tag">weekend</span>' : ''; ?><?php if ($showOff > 0): ?> <span class="price-off">-<?php echo $showOff; ?>%</span><?php endif; ?>
         </p>
 
         <div class="bp-section">
             <div class="bp-label-row">
-                <span class="bp-label">Date</span>
-                <form method="get" action="" class="bp-date-form">
-                    <input type="hidden" name="id" value="<?php echo (int)$ground['id']; ?>">
-                    <label class="visually-hidden" for="bookingDate">Choose another date</label>
-                    <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" max="<?php echo e(date('Y-m-d', strtotime('+60 days'))); ?>">
-                </form>
+                <span class="bp-label">Pick a date</span>
             </div>
-            <div class="date-chips" role="tablist" aria-label="Select date">
+            <form method="get" action="" class="bp-date-form" id="bpDateField" hidden>
+                <input type="hidden" name="id" value="<?php echo (int)$ground['id']; ?>">
+                <label class="visually-hidden" for="bookingDate">Pick another date</label>
+                <input type="date" id="bookingDate" name="date" value="<?php echo e($selected_date); ?>" min="<?php echo e(date('Y-m-d')); ?>" max="<?php echo e(date('Y-m-d', strtotime('+60 days'))); ?>">
+            </form>
+            <div class="date-chips" id="dateChips" role="tablist" aria-label="Select date">
                 <?php
-                // Quick picks: next 5 days only  -  use the calendar for anything later.
+                // Quick picks: next 5 days - use the calendar for anything later.
                 for ($d = 0; $d < 5; $d++):
                     $chipTs = strtotime("+$d day");
                     $chipDate = date('Y-m-d', $chipTs);
                     $chipActive = ($chipDate === $selected_date);
-                    $chipDayName = $d === 0 ? 'Today' : ($d === 1 ? 'Tomorrow' : date('D', $chipTs));
-                    $chipDayNum = date('j M', $chipTs);
                 ?>
                     <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($chipDate); ?>"
                        class="date-chip <?php echo $chipActive ? 'active' : ''; ?>"
                        role="tab"
                        aria-selected="<?php echo $chipActive ? 'true' : 'false'; ?>">
-                        <span class="chip-day"><?php echo e($chipDayName); ?></span>
-                        <span class="chip-num"><?php echo e($chipDayNum); ?></span>
+                        <span class="chip-day"><?php echo e(date('D', $chipTs)); ?></span>
+                        <span class="chip-num"><?php echo e(date('j', $chipTs)); ?></span>
+                        <span class="chip-mon"><?php echo e(date('M', $chipTs)); ?></span>
                     </a>
                 <?php endfor; ?>
+                <?php if ($selected_date > date('Y-m-d', strtotime('+6 days'))): ?>
+                    <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($selected_date); ?>"
+                       class="date-chip active"
+                       role="tab"
+                       aria-selected="true">
+                        <span class="chip-day"><?php echo e(date('D', strtotime($selected_date))); ?></span>
+                        <span class="chip-num"><?php echo e(date('j', strtotime($selected_date))); ?></span>
+                        <span class="chip-mon"><?php echo e(date('M', strtotime($selected_date))); ?></span>
+                    </a>
+                <?php endif; ?>
+                <button type="button" class="date-chip date-chip-cal" id="calToggle" aria-expanded="false" aria-controls="bpDateField" title="Pick another date">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Pick Date</span>
+                </button>
             </div>
         </div>
 
@@ -353,6 +304,53 @@ require __DIR__ . '/../includes/header.php';
             } catch (Throwable $e) {
                 error_log('busyRanges slot_holds error: ' . $e->getMessage());
             }
+
+            // Slot presentation: free-slot helpers + per-period free counts.
+            $freeSlots = array_values(array_filter($slots, fn($s) => !in_array($s['start'], $taken, true)));
+            $periodFree = ['morning' => 0, 'afternoon' => 0, 'evening' => 0];
+            foreach ($slots as $slotItem) {
+                if (in_array($slotItem['start'], $taken, true)) continue;
+                $slotHour = (int)substr($slotItem['start'], 0, 2);
+                $periodFree[$slotHour < 12 ? 'morning' : ($slotHour < 17 ? 'afternoon' : 'evening')]++;
+            }
+            $nextOpenDate = '';
+            if (!$freeSlots) {
+                $rangeEnd = date('Y-m-d', strtotime('+14 day'));
+                $futureBusy = [];
+                try {
+                    $fq = $conn->prepare('SELECT booking_date, start_time FROM bookings WHERE ground_id = ? AND booking_date > ? AND booking_date <= ? AND status != "cancelled"');
+                    $fq->bind_param('iss', $ground['id'], $selected_date, $rangeEnd);
+                    $fq->execute();
+                    $fr = $fq->get_result();
+                    while ($fRow = $fr->fetch_assoc()) {
+                        $futureBusy[$fRow['booking_date']][] = $fRow['start_time'];
+                    }
+                    $fq->close();
+                    $fh = $conn->prepare('SELECT booking_date, start_time FROM slot_holds WHERE ground_id = ? AND booking_date > ? AND booking_date <= ? AND expires_at > NOW()');
+                    $fh->bind_param('iss', $ground['id'], $selected_date, $rangeEnd);
+                    $fh->execute();
+                    $hr2 = $fh->get_result();
+                    while ($hRow2 = $hr2->fetch_assoc()) {
+                        $futureBusy[$hRow2['booking_date']][] = $hRow2['start_time'];
+                    }
+                    $fh->close();
+                } catch (Throwable $e) {
+                    error_log('nextOpenDate query error: ' . $e->getMessage());
+                }
+                for ($fd = 1; $fd <= 14 && $nextOpenDate === ''; $fd++) {
+                    $checkDate = date('Y-m-d', strtotime($selected_date . ' +' . $fd . ' day'));
+                    if (date_is_blocked((int)$ground['id'], $checkDate)) {
+                        continue;
+                    }
+                    $dateBusy = $futureBusy[$checkDate] ?? [];
+                    foreach (slots_for_day($checkDate, (int)$ground['id']) as $freeCheck) {
+                        if (!in_array($freeCheck['start'], $dateBusy, true)) {
+                            $nextOpenDate = $checkDate;
+                            break;
+                        }
+                    }
+                }
+            }
             ?>
             <form method="post" action="<?php echo base_url('pages/book.php'); ?>" class="bp-cta-form">
                 <?php echo csrf_field(); ?>
@@ -361,24 +359,49 @@ require __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="selected_slot" id="selectedSlot" value="">
                 <div class="bp-section bp-time-section">
                     <div class="bp-label-row">
-                        <span class="bp-label">Select Slot</span>
-                        <span class="bp-label-hint" id="priceHint" data-hourly="<?php echo (float)$price; ?>">Tap an available hour</span>
+                        <span class="bp-label">Pick your time</span>
                     </div>
-                    <div class="slot-grid" id="slotGrid">
+                    <?php if (!$freeSlots): ?>
+                        <div class="slot-empty">
+                            <i class="fa-solid fa-calendar-xmark"></i>
+                            <span>No free slots this day<?php if ($nextOpenDate !== ''): ?> &mdash; <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($nextOpenDate); ?>">next open day: <strong><?php echo e(date('D, M j', strtotime($nextOpenDate))); ?></strong></a><?php endif; ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <div class="slot-tabs" role="tablist" aria-label="Filter slots by time of day">
+                        <button type="button" class="slot-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+                        <button type="button" class="slot-tab" data-filter="morning" role="tab" aria-selected="false">Morning <span class="st-count"><?php echo $periodFree['morning'] > 0 ? $periodFree['morning'] . ' free' : 'full'; ?></span></button>
+                        <button type="button" class="slot-tab" data-filter="afternoon" role="tab" aria-selected="false">Afternoon <span class="st-count"><?php echo $periodFree['afternoon'] > 0 ? $periodFree['afternoon'] . ' free' : 'full'; ?></span></button>
+                        <button type="button" class="slot-tab" data-filter="evening" role="tab" aria-selected="false">Evening <span class="st-count"><?php echo $periodFree['evening'] > 0 ? $periodFree['evening'] . ' free' : 'full'; ?></span></button>
+                    </div>
+                    <div class="slot-grid" id="slotGrid" data-hourly="<?php echo (float)$price; ?>" data-date="<?php echo e($selected_date); ?>">
                         <?php foreach ($slots as $slot): ?>
-                            <?php $isTaken = in_array($slot['start'], $taken, true); ?>
+                            <?php
+                            $isTaken = in_array($slot['start'], $taken, true);
+                            $slotHour = (int)substr($slot['start'], 0, 2);
+                            $period = $slotHour < 12 ? 'morning' : ($slotHour < 17 ? 'afternoon' : 'evening');
+                            ?>
                             <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
                                  data-start="<?php echo e($slot['start']); ?>"
                                  data-end="<?php echo e($slot['end']); ?>"
                                  data-label="<?php echo e($slot['label']); ?>"
                                  data-price="Rs <?php echo number_format($price, 0); ?>"
+                                 data-period="<?php echo $period; ?>"
+                                 aria-label="<?php echo e($slot['label']); ?>, <?php echo $isTaken ? 'booked' : 'available'; ?>"
                                  <?php echo $isTaken ? 'disabled aria-disabled="true"' : 'aria-pressed="false"'; ?>>
-                                <?php echo e($slot['label']); ?>
+                                <span class="slot-time"><?php echo e(hm12($slot['start'])); ?></span>
+                                <?php if ($isTaken): ?><span class="slot-note">Booked</span><?php endif; ?>
                             </button>
                         <?php endforeach; ?>
                     </div>
                     <input type="hidden" id="startTime" name="start_time" value="">
                     <input type="hidden" id="endTime" name="end_time" value="">
+                </div>
+                <div class="bp-summary" id="bpSummary" hidden>
+                    <div class="bp-sum-info">
+                        <span class="bp-sum-when" id="sumWhen"></span>
+                        <span class="bp-sum-note" id="sumNote"></span>
+                    </div>
+                    <div class="bp-sum-price" id="sumPrice"></div>
                 </div>
                 <?php if (!is_logged_in()): ?>
                     <?php
@@ -391,7 +414,7 @@ require __DIR__ . '/../includes/header.php';
                     ?>
                     <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary btn-block btn-lg">Log in to book</a>
                 <?php else: ?>
-                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn">Reserve this slot</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="bookBtn" disabled>Select a time first</button>
                     <?php if (!is_player()): ?>
                         <p class="bp-role-note">
                             <i class="fa-solid fa-circle-info"></i> Signed in as <?php echo e(ucfirst($site_user['role'])); ?>
@@ -399,32 +422,113 @@ require __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 <?php endif; ?>
             </form>
-            <p class="bp-policy">Free cancel up to 24h before · <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>" class="inline-link">terms</a></p>
 
             <?php
             $takenSlots = array_values(array_filter($slots, fn($s) => in_array($s['start'], $taken, true)));
-            if ($takenSlots && (is_logged_in())): ?>
+            if ($takenSlots && (is_logged_in())) :
+                ob_start(); ?>
+                <div class="waitlist-list">
+                    <?php foreach ($takenSlots as $ts): ?>
+                        <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
+                        <?php $joined = is_logged_in() && on_waitlist((int)$ground['id'], $selected_date, $ts['start'], (int)$site_user['id']); ?>
+                        <form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
+                            <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
+                            <input type="hidden" name="selected_slot" value="<?php echo e($ts['start'] . '|' . $ts['end']); ?>">
+                            <button type="submit" name="join_waitlist" value="1" class="waitlist-row <?php echo $joined ? 'joined' : ''; ?>" <?php echo $joined ? 'disabled' : ''; ?>>
+                                <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e($ts['label']); ?></span>
+                                <span class="wl-info"><?php echo $joined ? 'In line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
+                                <span class="wl-btn"><i class="fa-solid <?php echo $joined ? 'fa-check' : 'fa-plus'; ?>"></i></span>
+                            </button>
+                        </form>
+                    <?php endforeach; ?>
+                </div>
+                <?php $wlList = ob_get_clean(); ?>
                 <div class="waitlist-box">
-                    <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Slot full? Join waitlist</div>
-                    <div class="waitlist-list">
-                        <?php foreach ($takenSlots as $ts): ?>
-                            <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
-                            <?php $joined = is_logged_in() && on_waitlist((int)$ground['id'], $selected_date, $ts['start'], (int)$site_user['id']); ?>
-                            <form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
-                                <?php echo csrf_field(); ?>
-                                <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
-                                <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
-                                <input type="hidden" name="selected_slot" value="<?php echo e($ts['start'] . '|' . $ts['end']); ?>">
-                                <button type="submit" name="join_waitlist" value="1" class="waitlist-row <?php echo $joined ? 'joined' : ''; ?>" <?php echo $joined ? 'disabled' : ''; ?>>
-                                    <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e($ts['label']); ?></span>
-                                    <span class="wl-info"><?php echo $joined ? 'In line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
-                                    <span class="wl-btn"><i class="fa-solid <?php echo $joined ? 'fa-check' : 'fa-plus'; ?>"></i></span>
-                                </button>
-                            </form>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php if (count($takenSlots) > 3): ?>
+                        <details class="waitlist-details">
+                            <summary class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times — join a waitlist</summary>
+                            <?php echo $wlList; ?>
+                        </details>
+                    <?php else: ?>
+                        <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times — join a waitlist</div>
+                        <?php echo $wlList; ?>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
+        <?php endif; ?>
+    </div>
+
+    <div class="detail-box ground-info ground-facts reveal">
+        <div class="ground-title-row">
+            <h1 class="ground-title"><?php echo e($ground['name']); ?></h1>
+            <?php if (is_logged_in()): ?>
+                <button type="button"
+                        class="fav-toggle ground-fav"
+                        data-ground-id="<?php echo (int)$ground['id']; ?>"
+                        data-url="<?php echo base_url('ajax/favorite.php'); ?>"
+                        aria-label="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                        title="<?php echo favorite_exists((int)$ground['id']) ? 'Remove from saved courts' : 'Save this court'; ?>"
+                        data-saved="<?php echo favorite_exists((int)$ground['id']) ? '1' : '0'; ?>">
+                    <i class="fa-heart <?php echo favorite_exists((int)$ground['id']) ? 'fa-solid' : 'fa-regular'; ?>" aria-hidden="true"></i>
+                    <span class="fav-text fav-text-save">Save</span>
+                    <span class="fav-text fav-text-saved">Saved</span>
+                </button>
+            <?php endif; ?>
+        </div>
+        <div class="rating-summary">
+            <?php if ($rating['count'] > 0): ?>
+                <span class="rating-big"><?php echo number_format((float)$rating['avg'], 1); ?></span>
+                <?php echo star_html($rating['avg']); ?>
+                <span class="rating-meta"><?php echo $rating['count']; ?> review<?php echo $rating['count'] === 1 ? '' : 's'; ?></span>
+            <?php else: ?>
+                <span class="rating-meta">No reviews yet – be the first to play here.</span>
+            <?php endif; ?>
+        </div>
+        <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
+        <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
+        <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
+        <div class="info-row"><i class="fa-solid fa-layer-group"></i> <span><?php echo e($groundFeatures['surface']); ?> · <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
+        <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
+            <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
+        <?php endif; ?>
+        <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
+        <?php $mapQuery = $hasCoords
+            ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
+            : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
+        <?php if (!empty($ground['address'])): ?>
+            <a class="btn btn-outline btn-block" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-map-location-dot"></i> Open in Google Maps</a>
+        <?php endif; ?>
+    </div>
+
+    <div class="detail-box about-box reveal">
+        <h3>About this court</h3>
+        <?php if (!empty($ground['description'])): ?>
+            <p class="desc"><?php echo e($ground['description']); ?></p>
+        <?php else: ?>
+            <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
+        <?php endif; ?>
+        <div class="facilities">
+            <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities</div>
+            <ul class="facility-chips">
+                <?php foreach ($groundFeatures['amenities'] as $am): ?>
+                    <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <div class="ground-map">
+            <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
+            <div class="ground-map-frame">
+                <iframe
+                    src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                    width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+            </div>
+        </div>
+        <?php if (!empty($ground['address'])): ?>
+            <p class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></p>
         <?php endif; ?>
     </div>
 </div>
@@ -540,6 +644,11 @@ require __DIR__ . '/../includes/header.php';
         <div class="reviews-empty-state">
             <i class="fa-regular fa-star"></i>
             <p>No player reviews for this venue yet. Book your match and be the first to share your experience!</p>
+            <?php if (is_logged_in() && is_player()): ?>
+                <button type="button" class="btn btn-outline btn-sm" onclick="toggleReviewForm()">
+                    <i class="fa-solid fa-pen-to-square"></i> Be the first to review
+                </button>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
@@ -567,6 +676,18 @@ function toggleReviewForm() {
         </div>
     </section>
 <?php endif; ?>
+
+<div class="bp-sticky-bar" id="bpStickyBar">
+    <div class="bsb-info">
+        <span class="bsb-price">Rs <?php echo number_format($price, 0); ?><small>/hr</small></span>
+        <span class="bsb-slot" id="bsbSlot">Select a time</span>
+    </div>
+    <?php if (!is_logged_in()): ?>
+        <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-primary bsb-cta">Log in to book</a>
+    <?php else: ?>
+        <button type="button" class="btn btn-primary bsb-cta" id="bsbBook">Select Time</button>
+    <?php endif; ?>
 </div>
+<div class="bp-bar-spacer"></div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

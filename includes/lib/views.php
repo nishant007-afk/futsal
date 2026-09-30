@@ -90,19 +90,21 @@ function ground_card_html(array $ground, array|string|null $availability = null,
     $full = $availability !== null && $availability['free'] === 0;
     $features = ground_card_features($ground);
 
-    // Rating representation
-    $score = $rating['count'] > 0 ? (float)$rating['avg'] : 4.8;
-    $reviewCount = $rating['count'] > 0 ? $rating['count'] : (20 + ((int)$ground['id'] * 7) % 35);
+    // Rating representation: no fabricated review counts - a court with little
+    // or no feedback simply shows no rating badge instead of a made-up score.
+    $reviewCount = (int)$rating['count'];
+    $score = $reviewCount > 0 ? (float)$rating['avg'] : 0.0;
     $cardPrice = (float)$ground['price_per_hour'];
     $cardDisc = isset($ground['discount_price']) ? (float)$ground['discount_price'] : 0;
     $cardSale = $cardDisc > 0 && $cardDisc < $cardPrice;
+    $cardOff = $cardSale ? (int)round((1 - $cardDisc / $cardPrice) * 100) : 0;
     ?>
-    <div class="card <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>" data-city="<?php echo e($features['city']); ?>">
+    <div class="card <?php echo $full ? 'card-full' : ''; ?><?php echo $extraClass !== '' ? ' ' . e($extraClass) : ''; ?>" data-city="<?php echo e($features['city']); ?>" data-href="<?php echo base_url('pages/ground.php?id=' . (int)$ground['id']); ?>">
         <div class="card-img">
             <?php if ($cover): ?>
-                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
+                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async" draggable="false">
             <?php else: ?>
-                <img src="<?php echo base_url('uploads/grounds/court_brastad_arena.jpg'); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async">
+                <img src="<?php echo base_url('uploads/grounds/court_brastad_arena.jpg'); ?>" alt="<?php echo e($ground['name']); ?>" class="card-cover" loading="lazy" decoding="async" draggable="false">
             <?php endif; ?>
             <?php if (is_logged_in()): ?>
                 <button type="button"
@@ -116,9 +118,27 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                     <span class="fav-text"><?php echo favorite_exists((int)$ground['id']) ? 'Saved' : 'Save'; ?></span>
                 </button>
             <?php endif; ?>
-            <span class="card-rating-badge" title="<?php echo number_format($score, 1); ?> stars based on <?php echo $reviewCount; ?> reviews">
-                <i class="fa-solid fa-star"></i> <?php echo number_format($score, 1); ?> <span class="rating-num">(<?php echo $reviewCount; ?>)</span>
-            </span>
+            <?php if ($reviewCount > 0): ?>
+                <span class="card-rating-badge" title="<?php echo number_format($score, 1); ?> stars based on <?php echo $reviewCount; ?> review<?php echo $reviewCount === 1 ? '' : 's'; ?>">
+                    <i class="fa-solid fa-star"></i> <?php echo number_format($score, 1); ?> <span class="rating-num">(<?php echo $reviewCount; ?>)</span>
+                </span>
+            <?php endif; ?>
+            <?php $gallery = ground_gallery((int)$ground['id']); ?>
+            <?php if (count($gallery) > 1): ?>
+                <?php $galUrls = []; foreach ($gallery as $gimg) { $galUrls[] = base_url('uploads/grounds/' . rawurlencode($gimg)); } ?>
+                <div class="card-gallery" role="group" aria-label="Photos of <?php echo e($ground['name']); ?>" data-images="<?php echo e(json_encode($galUrls)); ?>">
+                    <button type="button" class="card-gnav card-gprev" aria-label="Previous photo" title="Previous photo"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                    <button type="button" class="card-gnav card-gnext" aria-label="Next photo" title="Next photo"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+                    <div class="card-dots">
+                        <?php foreach ($galUrls as $gi => $gurl): ?>
+                            <button type="button"
+                                    class="card-dot<?php echo $gi === 0 ? ' is-active' : ''; ?>"
+                                    aria-label="Show photo <?php echo $gi + 1; ?> of <?php echo e($ground['name']); ?>"
+                                    <?php echo $gi === 0 ? 'aria-current="true"' : ''; ?>></button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
         <div class="card-body">
             <h3 class="card-title">
@@ -146,6 +166,7 @@ function ground_card_html(array $ground, array|string|null $availability = null,
                         <span class="price-unit">/ hr</span>
                         <?php if ($cardSale): ?>
                             <span class="price-orig">Rs <?php echo number_format($cardPrice, 0); ?></span>
+                            <span class="price-off">-<?php echo $cardOff; ?>%</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -308,7 +329,7 @@ function settings_sidebar(string $active): void
         <div class="stg-sidebar-section">
             <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
                 <?php echo csrf_field(); ?>
-                <button type="submit" class="stg-sidebar-link stg-sidebar-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
+                <button type="submit" class="stg-sidebar-link stg-sidebar-danger" data-confirm="Log out of your account?" data-confirm-title="Log out" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
             </form>
         </div>
     </nav>

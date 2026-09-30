@@ -141,7 +141,7 @@ require __DIR__ . '/../includes/header.php';
             <form method="post" action="" class="d-inline">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="delete_notification" value="1">
-                <button type="submit" class="btn btn-danger" data-confirm="Delete this notification?"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                <button type="submit" class="btn btn-danger" data-confirm="Delete this notification?" data-confirm-title="Delete notification"><i class="fa-solid fa-trash-can"></i> Delete</button>
             </form>
         </div>
     </div>

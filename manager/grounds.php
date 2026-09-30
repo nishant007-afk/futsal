@@ -254,7 +254,7 @@ require __DIR__ . '/../includes/header.php';
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
                                     <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Remove this photo from your court?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
+                                    <button type="submit" class="photo-remove" data-confirm="Remove this photo from your court?" data-confirm-title="Remove photo" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
                                 </form>
                             </div>
                         <?php endforeach; ?>
@@ -291,7 +291,7 @@ require __DIR__ . '/../includes/header.php';
                                 <form method="post" action="" style="display:inline;">
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="delete_qr_ground" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
+                                    <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
                                 </form>
                             </div>
                             <div class="qr-info-note">
@@ -393,7 +393,7 @@ require __DIR__ . '/../includes/header.php';
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="unblock_date" value="<?php echo (int)$bd['id']; ?>">
                                     <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Unblock this date and make slots available again?" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
+                                    <button type="submit" class="photo-remove" data-confirm="Unblock this date and make slots available again?" data-confirm-title="Unblock date" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
                                 </form>
                             </div>
                         <?php endforeach; ?>
@@ -494,8 +494,8 @@ require __DIR__ . '/../includes/header.php';
                 <div class="mbooking-side">
                     <div class="actions tight">
                         <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                        <?php echo post_action_form(base_url('manager/grounds.php'), 'duplicate_ground', (string)(int)$g['id'], '<i class="fa-solid fa-copy"></i> Duplicate', 'btn btn-outline btn-sm', 'Create a copy of this ground?', 'Duplicate ground'); ?>
-                        <?php echo post_action_form(base_url('manager/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground'); ?>
+                        <?php echo post_action_form(base_url('manager/grounds.php'), 'duplicate_ground', (string)(int)$g['id'], '<i class="fa-solid fa-copy"></i> Duplicate', 'btn btn-outline btn-sm', 'Create a copy of this ground?', 'Duplicate ground', [], 'Duplicate ground?'); ?>
+                        <?php echo post_action_form(base_url('manager/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground', [], 'Delete ground?'); ?>
                     </div>
                 </div>
             </div>

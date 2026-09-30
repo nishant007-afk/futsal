@@ -41,6 +41,10 @@ if ($active === 'courts.php') {
     // search is collapsed there to avoid two competing inputs stacked together.
     $body_classes[] = 'courts-page';
 }
+if ($active === 'faq.php') {
+    // The FAQ canvas is a soft off-white so its pure-white topic cards read as elevated.
+    $body_classes[] = 'faq-page';
+}
 if ($active === 'register.php') {
     $body_classes[] = 'register-page';
 }
@@ -245,12 +249,12 @@ $pageBackUrl = base_url('index.php');
                         </button>
                         <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                            <button type="submit" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-title="Log out" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                         </form>
                     </div>
                 </div>
             <?php else: ?>
-                <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline-dark btn-sm">Log in</a>
+                <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-ghost btn-sm">Log in</a>
                 <a href="<?php echo base_url('pages/register.php'); ?>" class="btn btn-primary btn-sm">Sign up</a>
             <?php endif; ?>
         </div>
@@ -384,7 +388,7 @@ $pageBackUrl = base_url('index.php');
             $toastRole = $type === 'warning' ? 'alert' : 'status';
             $toastTitle = is_array($detail) && !empty($detail['title']) ? (string)$detail['title'] : '';
         ?>
-        <div class="top-flash-wrap">
+        <div class="top-flash-wrap toast-wrap" data-pos="top-right">
             <div class="toast toast-<?php echo $toastVariant; ?>" role="<?php echo $toastRole; ?>" aria-live="<?php echo $toastRole === 'alert' ? 'assertive' : 'polite'; ?>">
                 <div class="toast-icon"><i class="fa-solid <?php echo $toastIcon; ?>" aria-hidden="true"></i></div>
                 <div class="toast-content">
@@ -398,7 +402,7 @@ $pageBackUrl = base_url('index.php');
             </div>
         </div>
     <?php else: ?>
-        <div class="top-flash-wrap">
+        <div class="top-flash-wrap toast-wrap" data-pos="top-right">
             <div class="toast toast-error" role="alert" aria-live="assertive">
                 <div class="toast-icon"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i></div>
                 <div class="toast-content">

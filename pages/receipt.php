@@ -72,7 +72,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <?php $ownerLabel = ground_owner_label($booking); if ($ownerLabel !== ''): ?>
                 <div class="receipt-row">
-                    <span>Venue Management</span>
+                    <span>Managed by</span>
                     <strong><?php echo e($ownerLabel); ?></strong>
                 </div>
             <?php endif; ?>

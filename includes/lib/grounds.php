@@ -36,6 +36,66 @@ function ground_cover(int $ground_id): ?string
     return $fallbacks[$ground_id % count($fallbacks)];
 }
 
+/** Stock court photos used to fill a card gallery up to five views. */
+function ground_stock_images(): array
+{
+    return [
+        'ground_1_1a30c2b8d92a.webp',
+        'court_brastad_arena.jpg',
+        'court_arena_lights.jpg',
+        'court_night_floodlights.jpg',
+        'court_moody_turf.jpg',
+        'court_nike_field.jpg',
+        'court_indoor_futsal.jpg',
+        'court_pistas_futsal.jpg'
+    ];
+}
+
+/**
+ * Up to five photos per ground for the card gallery strip: the card cover
+ * first, then the court's own uploads, then stock courts to complete the set.
+ * Uses the batch preload on listing pages (1 query total instead of 1 per card).
+ */
+function ground_gallery(int $ground_id): array
+{
+    if (isset($GLOBALS['__ground_galleries'][$ground_id])) {
+        return $GLOBALS['__ground_galleries'][$ground_id];
+    }
+    global $conn;
+    $stmt = $conn->prepare('SELECT image FROM ground_images WHERE ground_id = ? ORDER BY id');
+    $stmt->bind_param('i', $ground_id);
+    $stmt->execute();
+    $own = [];
+    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $row) {
+        if (!empty($row['image'])) {
+            $own[] = $row['image'];
+        }
+        if (count($own) >= 5) {
+            break;
+        }
+    }
+    $stmt->close();
+    return ground_gallery_fill(ground_cover($ground_id), $own);
+}
+
+/** Build a five-image gallery: cover first, then the given photos, then stock. */
+function ground_gallery_fill(?string $cover, array $own): array
+{
+    $gallery = [];
+    if ($cover) {
+        $gallery[] = $cover;
+    }
+    foreach (array_merge($own, ground_stock_images()) as $img) {
+        if (count($gallery) >= 5) {
+            break;
+        }
+        if (!in_array($img, $gallery, true)) {
+            $gallery[] = $img;
+        }
+    }
+    return $gallery;
+}
+
 function ground_reviews(int $ground_id): array
 {
     global $conn;
@@ -112,6 +172,23 @@ function preload_ground_cards(array $groundIds): void
         }
     }
     $GLOBALS['__ground_covers'] = $covers;
+    // Galleries: up to five photos per ground (cover first, padded with stock)
+    $galleries = [];
+    $stmt = $conn->prepare("SELECT ground_id, image FROM ground_images WHERE ground_id IN ($ph) ORDER BY id");
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $ownByGround = [];
+    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $r) {
+        $g = (int)$r['ground_id'];
+        if (!empty($r['image']) && count($ownByGround[$g] ?? []) < 5) {
+            $ownByGround[$g][] = $r['image'];
+        }
+    }
+    $stmt->close();
+    foreach ($ids as $gid) {
+        $galleries[$gid] = ground_gallery_fill($covers[$gid] ?? null, $ownByGround[$gid] ?? []);
+    }
+    $GLOBALS['__ground_galleries'] = $galleries;
     // Ratings
     $stmt = $conn->prepare("SELECT ground_id, AVG(rating) avg, COUNT(*) cnt FROM reviews WHERE ground_id IN ($ph) GROUP BY ground_id");
     $stmt->bind_param($types, ...$ids);

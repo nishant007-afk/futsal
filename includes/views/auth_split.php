@@ -62,7 +62,6 @@ $regAccept = $accept ?? false;
 
                         <div class="auth-form-head">
                             <h1 class="auth-title">Welcome back</h1>
-                            <p class="auth-subtitle">Sign in to manage bookings and reserve your prime futsal court.</p>
                         </div>
 
                         <?php if ($suspended): ?>
@@ -115,8 +114,7 @@ $regAccept = $accept ?? false;
                                 <div class="form-group<?php echo has_error($loginErrors, 'email'); ?>">
                                     <div class="input-group floating">
                                         <input type="email" id="loginEmail" name="email" value="<?php echo e($loginEmail); ?>" placeholder=" " autocomplete="email" required aria-required="true" <?php echo $lock ? 'disabled' : ''; ?>>
-                                        <label for="loginEmail">Email address <span class="req">*</span></label>
-                                        <i class="fa-regular fa-envelope field-ico" aria-hidden="true"></i>
+                                        <label for="loginEmail">Email <span class="req">*</span></label>
                                     </div>
                                     <?php field_error($loginErrors, 'email'); ?>
                                 </div>
@@ -125,7 +123,6 @@ $regAccept = $accept ?? false;
                                     <div class="input-group floating">
                                         <input type="password" id="loginPassword" name="password" placeholder=" " autocomplete="current-password" required aria-required="true" <?php echo $lock ? 'disabled' : ''; ?>>
                                         <label for="loginPassword">Password <span class="req">*</span></label>
-                                        <i class="fa-solid fa-lock field-ico" aria-hidden="true"></i>
                                         <button type="button" class="pw-toggle" data-target="loginPassword" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
                                     </div>
                                     <?php field_error($loginErrors, 'password'); ?>
@@ -161,7 +158,6 @@ $regAccept = $accept ?? false;
                     <div class="auth-panel-body">
                         <div class="auth-form-head">
                             <h1 class="auth-title">Create your account</h1>
-                            <p class="auth-subtitle">Join thousands of futsal players and arena managers across Nepal.</p>
                         </div>
 
                         <?php if (!empty($regErrors['general'])): ?>
@@ -219,7 +215,7 @@ $regAccept = $accept ?? false;
                             <div class="form-group<?php echo has_error($regErrors, 'email'); ?>">
                                 <div class="input-group floating">
                                     <input type="email" id="regEmail" name="email" value="<?php echo e($regEmail); ?>" autocomplete="email" placeholder=" " required aria-required="true" data-check-email="available">
-                                    <label for="regEmail">Email address <span class="req">*</span></label>
+                                    <label for="regEmail">Email <span class="req">*</span></label>
                                 </div>
                                 <?php field_error($regErrors, 'email'); ?>
                             </div>
@@ -408,5 +404,67 @@ document.addEventListener('DOMContentLoaded', function() {
             checkPwMeter();
         }
     }
+
+
+
+    // Floating label zero-delay sync
+    function syncAuthFloatingLabels() {
+        var inputs = card.querySelectorAll('.auth-fields .input-group.floating input, .input-group.floating input');
+        for (var i = 0; i < inputs.length; i++) {
+            var el = inputs[i];
+            var isAuto = false;
+            try {
+                isAuto = el.matches(':-webkit-autofill') || el.matches(':autofill');
+            } catch (e) {}
+            var on = (el.value && el.value.trim() !== '') || el === document.activeElement || isAuto;
+            if (el.classList.contains('has-value') !== on) {
+                el.classList.toggle('has-value', on);
+            }
+        }
+        if (typeof window.autosync === 'function') {
+            window.autosync();
+        }
+    }
+
+    syncAuthFloatingLabels();
+    var authRafCount = 0;
+    function authRafLoop() {
+        syncAuthFloatingLabels();
+        if (++authRafCount < 90) {
+            requestAnimationFrame(authRafLoop);
+        }
+    }
+    requestAnimationFrame(authRafLoop);
+
+    document.addEventListener('animationstart', function(e) {
+        if (e.animationName === 'autofill') syncAuthFloatingLabels();
+    }, true);
+    document.addEventListener('input', syncAuthFloatingLabels, true);
+    document.addEventListener('change', syncAuthFloatingLabels, true);
+    window.addEventListener('pageshow', syncAuthFloatingLabels);
 });
+
+// Run immediate inline check as soon as auth markup finishes parsing
+(function() {
+    function preSyncLabels() {
+        var inputs = document.querySelectorAll('.auth-fields .input-group.floating input');
+        for (var i = 0; i < inputs.length; i++) {
+            var el = inputs[i];
+            var isAuto = false;
+            try {
+                isAuto = el.matches(':-webkit-autofill') || el.matches(':autofill');
+            } catch (e) {}
+            if ((el.value && el.value.trim() !== '') || isAuto) {
+                el.classList.add('has-value');
+            }
+        }
+    }
+    preSyncLabels();
+    var f = 0;
+    function preLoop() {
+        preSyncLabels();
+        if (++f < 60) requestAnimationFrame(preLoop);
+    }
+    requestAnimationFrame(preLoop);
+})();
 </script>

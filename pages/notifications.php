@@ -93,7 +93,7 @@ require __DIR__ . '/../includes/header.php';
         <form method="post" action="">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="delete_all" value="1">
-            <button type="submit" class="btn btn-danger btn-sm" data-confirm="Delete all notifications?"><i class="fa-solid fa-trash-can"></i> Clear all</button>
+            <button type="submit" class="btn btn-danger btn-sm" data-confirm="Delete all notifications?" data-confirm-title="Clear notifications"><i class="fa-solid fa-trash-can"></i> Clear all</button>
         </form>
     <?php endif; ?>
 </div>
@@ -137,7 +137,7 @@ require __DIR__ . '/../includes/header.php';
                         <form method="post" action="" class="d-inline">
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
-                            <button type="submit" class="btn-icon" data-confirm="Delete this notification?" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>
+                            <button type="submit" class="btn-icon" data-confirm="Delete this notification?" data-confirm-title="Delete notification" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>
                         </form>
                     </div>
                 </div>

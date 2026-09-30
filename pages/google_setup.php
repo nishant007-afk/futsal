@@ -18,13 +18,11 @@ $back = in_array($pending['back'] ?? '', ['pages/login.php', 'pages/register.php
     : 'pages/login.php';
 
 $role = in_array($pending['role'] ?? '', ['user', 'manager'], true) ? $pending['role'] : 'user';
-$email_updates = false;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $role = in_array($_POST['role'] ?? '', ['user', 'manager'], true) ? $_POST['role'] : '';
-    $email_updates = ($_POST['email_updates'] ?? '') === '1';
     $accept = ($_POST['accept'] ?? '') === '1';
 
     if ($role === '') {
@@ -44,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uid = (int)$existing['id'];
         } else {
             $dummy = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
-            $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified, email_updates) VALUES (?, ?, ?, ?, ?, 1, ?)');
+            $stmt = $conn->prepare('INSERT INTO users (name, email, phone, password, role, email_verified) VALUES (?, ?, ?, ?, ?, 1)');
             $phone = '';
-            $stmt->bind_param('sssssi', $gName, $gEmail, $phone, $dummy, $role, $email_updates);
+            $stmt->bind_param('sssss', $gName, $gEmail, $phone, $dummy, $role);
             if (!$stmt->execute()) {
                 $errors['general'] = 'Something went wrong while creating your account. Please try again.';
             } else {
@@ -121,12 +119,6 @@ require __DIR__ . '/../includes/header.php';
             </div>
             <?php field_error($errors, 'role'); ?>
         </div>
-
-        <label class="check-line mb-10">
-            <input type="checkbox" id="updatesCheck" name="email_updates" value="1" <?php echo $email_updates ? 'checked' : ''; ?>>
-            <span class="check-box"><i class="fa-solid fa-check"></i></span>
-            <span>I'd like to receive emails about new grounds, booking tips and GoalSpace updates.</span>
-        </label>
 
         <div<?php echo has_error($errors, 'terms'); ?>>
             <label class="check-line mb-18">

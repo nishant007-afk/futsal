@@ -282,7 +282,7 @@ require __DIR__ . '/../includes/header.php';
                      data-start="<?php echo e($slot['start']); ?>"
                      data-end="<?php echo e($slot['end']); ?>"
                      data-label="<?php echo e($slot['label']); ?>" <?php echo $isTaken ? 'disabled' : ''; ?>>
-                    <?php echo e($slot['label']); ?>
+                    <span class="slot-time"><?php echo e($slot['label']); ?></span>
                 </button>
             <?php endforeach; ?>
         </div>

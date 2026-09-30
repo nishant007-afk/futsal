@@ -100,7 +100,7 @@ function verify_csrf(): void
  * Replaces state-changing GET links (?delete=, ?cancel=, ...) to avoid CSRF token
  * in URL / logs / Referer. $confirm adds data-confirm modal support (core.js).
  */
-function post_action_form(string $actionUrl, string $field, string $value, string $labelHtml, string $btnClass = 'btn btn-outline btn-sm', string $confirm = '', string $ariaLabel = '', array $extra = []): string
+function post_action_form(string $actionUrl, string $field, string $value, string $labelHtml, string $btnClass = 'btn btn-outline btn-sm', string $confirm = '', string $ariaLabel = '', array $extra = [], string $confirmTitle = ''): string
 {
     $h = '<form method="post" action="' . e($actionUrl) . '" class="d-inline">';
     $h .= csrf_field();
@@ -110,6 +110,7 @@ function post_action_form(string $actionUrl, string $field, string $value, strin
     }
     $h .= '<button type="submit" class="' . e($btnClass) . '"';
     if ($confirm !== '') { $h .= ' data-confirm="' . e($confirm) . '"'; }
+    if ($confirmTitle !== '') { $h .= ' data-confirm-title="' . e($confirmTitle) . '"'; }
     if ($ariaLabel !== '') { $h .= ' aria-label="' . e($ariaLabel) . '"'; }
     $h .= '>' . $labelHtml . '</button></form>';
     return $h;

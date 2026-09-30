@@ -416,7 +416,7 @@ require __DIR__ . '/../includes/header.php';
                 $canMarkPaid = $b['status'] === 'confirmed' && in_array($b['payment_status'], ['unpaid', 'partial'], true);
                 $markPaidAction = '';
                 if ($canMarkPaid) {
-                    $markPaidAction = post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'mb-cta mb-cta-mark', 'Mark this booking as paid at court?', 'Mark paid');
+                    $markPaidAction = post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'mb-cta mb-cta-mark', 'Mark this booking as paid at court?', 'Mark paid', [], 'Mark as paid?');
                 }
                 booking_card_mini($b, 'user', $b['ground_name'] . ' ' . $b['user_name'] . ' ' . substr($b['start_time'], 0, 5) . ' ' . $b['booking_ref'] . ' ' . $b['status'] . ' ' . $b['payment_status'], $markPaidAction);
                 ?>

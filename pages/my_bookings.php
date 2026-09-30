@@ -221,7 +221,7 @@ if ($view === 'all') {
         <a href="<?php echo mb_view_url('all'); ?>" class="view-tab <?php echo $view === 'all' ? 'active' : ''; ?>">All (<?php echo count($bookings); ?>)</a>
         <a href="<?php echo mb_view_url('upcoming'); ?>" class="view-tab <?php echo $view === 'upcoming' ? 'active' : ''; ?>">Upcoming (<?php echo count($upcoming); ?>)</a>
         <a href="<?php echo mb_view_url('unpaid'); ?>" class="view-tab <?php echo $view === 'unpaid' ? 'active' : ''; ?>">Unpaid (<?php echo count($unpaid); ?>)</a>
-        <a href="<?php echo mb_view_url('past'); ?>" class="view-tab <?php echo $view === 'past' ? 'active' : ''; ?>">Past &amp; cancelled (<?php echo count($past); ?>)</a>
+        <a href="<?php echo mb_view_url('past'); ?>" class="view-tab <?php echo $view === 'past' ? 'active' : ''; ?>">Past (<?php echo count($past); ?>)</a>
     </div>
 
     <?php if (!$showRows): ?>
@@ -250,26 +250,31 @@ if ($view === 'all') {
                         <?php
                         $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
                         $netDue = max(0, (float)$b['total_price'] - (float)($b['discount'] ?? 0));
+                        $payDue = max(0, $netDue - (float)($b['amount_paid']));
                         if ($b['status'] === 'cancelled') {
                             $statusText = 'Cancelled';
                             $statusIcon = 'fa-circle-xmark';
                             $statusClass = 'status-cancelled';
-                        } elseif ($b['payment_status'] === 'paid') {
-                            $statusText = 'Confirmed · Paid';
-                            $statusIcon = 'fa-circle-check';
-                            $statusClass = 'status-confirmed';
-                        } elseif ($b['payment_status'] === 'partial') {
-                            $statusText = 'Partially paid';
-                            $statusIcon = 'fa-circle-half-stroke';
-                            $statusClass = 'status-pending';
-                        } elseif ($needsPayment || $b['status'] === 'pending') {
-                            $statusText = 'Payment pending';
+                        } elseif ($b['status'] === 'pending') {
+                            $statusText = 'Pending';
                             $statusIcon = 'fa-clock';
                             $statusClass = 'status-pending';
                         } else {
                             $statusText = 'Confirmed';
                             $statusIcon = 'fa-circle-check';
                             $statusClass = 'status-confirmed';
+                        }
+                        if ($b['payment_status'] === 'paid') {
+                            $payClass = 'badge-paid';
+                            $payText = 'Paid';
+                        } elseif ($b['payment_status'] === 'partial') {
+                            $payClass = 'badge-partial';
+                            $payText = 'Partially paid';
+                        } elseif ($b['status'] !== 'cancelled') {
+                            $payClass = 'badge-unpaid';
+                            $payText = 'Due Rs ' . number_format($payDue, 0);
+                        } else {
+                            $payClass = '';
                         }
                         ?>
                         <tr>
@@ -279,16 +284,16 @@ if ($view === 'all') {
                                     <span class="muted"><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></span>
                                 </div>
                             </td>
-                            <td data-label="Date">
-                                <?php echo e(date('D, M j', strtotime($b['booking_date']))); ?><br>
-                                <span class="muted" style="font-size:12px;"><?php echo e(date('Y', strtotime($b['booking_date']))); ?></span>
-                            </td>
+                            <td data-label="Date"><?php echo e(date('D, M j', strtotime($b['booking_date']))); ?></td>
                             <td class="mbt-time" data-label="Time"><?php echo e(substr($b['start_time'], 0, 5)); ?> &ndash; <?php echo e(substr($b['end_time'], 0, 5)); ?></td>
-                            <td data-label="Status"><span class="status-badge <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo e($statusText); ?></span></td>
+                            <td data-label="Status">
+                                <span class="status-badge <?php echo $statusClass; ?>"><i class="fa-solid <?php echo $statusIcon; ?>"></i> <?php echo e($statusText); ?></span>
+                                <?php if ($payClass !== ''): ?><span class="badge <?php echo $payClass; ?> mb-pay-pill"><?php echo e($payText); ?></span><?php endif; ?>
+                            </td>
                             <td class="num strong" data-label="Total">
                                 Rs <?php echo number_format($netDue, 0); ?>
                                 <?php if ((float)$b['discount'] > 0): ?>
-                                    <br><span class="muted" style="font-size:12px;text-decoration:line-through;">Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
+                                    <span class="muted" style="font-size:12px;text-decoration:line-through;">Rs <?php echo number_format((float)$b['total_price'], 0); ?></span>
                                 <?php endif; ?>
                             </td>
                             <td class="mbt-actions" data-label="">

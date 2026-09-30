@@ -193,7 +193,7 @@ require __DIR__ . '/../includes/header.php';
                         <td data-label="">
                             <div class="row-actions">
                                 <?php echo post_action_form(base_url('manager/promos.php'), 'toggle_promo', (string)(int)$p['id'], '<i class="fa-solid ' . ((int)$p['is_active'] === 1 ? 'fa-pause' : 'fa-play') . '"></i>', 'btn btn-outline btn-xs', '', 'Toggle active'); ?>
-                                <?php echo post_action_form(base_url('manager/promos.php'), 'delete_promo', (string)(int)$p['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-xs', 'Delete this promo code?', 'Delete promo'); ?>
+                                <?php echo post_action_form(base_url('manager/promos.php'), 'delete_promo', (string)(int)$p['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-xs', 'Delete this promo code?', 'Delete promo', [], 'Delete promo code?'); ?>
                             </div>
                         </td>
                     </tr>

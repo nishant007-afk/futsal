@@ -128,6 +128,11 @@ require __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
                 <span class="pfl-avatar-edit"><i class="fa-solid fa-camera"></i></span>
             </label>
+            <?php if (!empty($user['avatar'])): ?>
+                <button type="submit" form="removeAvatarForm" class="pfl-avatar-remove"
+                        data-confirm="Remove your profile photo?" data-confirm-title="Remove photo"
+                        data-confirm-ok="Yes, remove"><i class="fa-solid fa-trash-can"></i> Remove photo</button>
+            <?php endif; ?>
         </div>
         <h1 class="pfl-name"><?php echo e($user['name']); ?></h1>
         <p class="pfl-meta"><?php echo e($user['email']); ?></p>

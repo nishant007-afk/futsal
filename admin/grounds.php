@@ -360,7 +360,7 @@ require __DIR__ . '/../includes/header.php';
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
                                 <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                <button type="submit" class="photo-remove" data-confirm="Remove this photo?" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
+                                <button type="submit" class="photo-remove" data-confirm="Remove this photo?" data-confirm-title="Remove photo" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
                             </form>
                         </div>
                     <?php endforeach; ?>
@@ -400,7 +400,7 @@ require __DIR__ . '/../includes/header.php';
                         <form method="post" action="" style="display:inline;">
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="delete_qr" value="<?php echo (int)$editing['id']; ?>">
-                            <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
+                            <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                     </div>
                     <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
@@ -491,7 +491,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="mbooking-side">
                 <div class="actions tight">
                     <a href="<?php echo base_url('admin/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                    <?php echo post_action_form(base_url('admin/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground'); ?>
+                    <?php echo post_action_form(base_url('admin/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground', [], 'Delete ground?'); ?>
                 </div>
             </div>
         </div>

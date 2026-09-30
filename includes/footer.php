@@ -47,12 +47,6 @@ $active = basename($_SERVER['SCRIPT_NAME']);
     <div class="footer-bottom">
         <div class="container footer-bottom-inner">
             <p>&copy; <?php echo date('Y'); ?> GoalSpace. All rights reserved.</p>
-            <p>
-                <a href="<?php echo base_url('pages/page.php?slug=privacy'); ?>">Privacy</a> &middot;
-                <a href="<?php echo base_url('pages/page.php?slug=terms'); ?>">Terms</a> &middot;
-                <a href="<?php echo base_url('pages/page.php?slug=help'); ?>">Help</a> &middot;
-                <a href="<?php echo base_url('pages/faq.php'); ?>">FAQ</a>
-            </p>
         </div>
     </div>
 </footer>
@@ -73,8 +67,8 @@ $active = basename($_SERVER['SCRIPT_NAME']);
 <?php endif; ?>
 
 
-<script src="<?php echo base_url('assets/js/core.js?v=90'); ?>" defer></script>
-<script src="<?php echo base_url('assets/js/modules/ui.js?v=2'); ?>" defer></script>
+<script src="<?php echo base_url('assets/js/core.js?v=' . filemtime(__DIR__ . '/../assets/js/core.js')); ?>" defer></script>
+    <script src="<?php echo base_url('assets/js/modules/ui.js?v=' . filemtime(__DIR__ . '/../assets/js/modules/ui.js')); ?>" defer></script>
 <?php
 // Code-split bundles: only load the JS a page/role actually needs.
 $pageModules = [];
@@ -94,7 +88,7 @@ if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
     $pageModules[] = 'manager';
 }
 foreach ($pageModules as $module) {
-    echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=5') . '" defer></script>' . "\n";
+        echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=' . filemtime(__DIR__ . '/../assets/js/modules/' . $module . '.js')) . '" defer></script>' . "\n";
 }
 ?>
 </body>

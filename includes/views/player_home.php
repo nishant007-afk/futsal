@@ -34,8 +34,8 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <?php if ((int)$stats['unpaid'] > 0): ?>
     <div class="notice reveal">
         <i class="fa-solid fa-wallet"></i>
-        <span><strong><?php echo (int)$stats['unpaid']; ?> booking<?php echo $stats['unpaid'] > 1 ? 's need' : ' needs'; ?> payment</strong> to secure your slot.</span>
-        <a href="<?php echo base_url('pages/my_bookings.php'); ?>">Pay now</a>
+        <span><strong><?php echo (int)$stats['unpaid']; ?> booking<?php echo $stats['unpaid'] > 1 ? 's need' : ' needs'; ?> your payment</strong></span>
+        <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="notice-action">Pay now</a>
     </div>
 <?php endif; ?>
 

@@ -87,8 +87,9 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                         <input type="hidden" name="split_choice" id="splitChoiceInput" value="<?php echo $isPartial ? 'remaining' : 'advance'; ?>">
 
                         <div class="qr-payment-box">
+                            <?php $stepNo = 1; ?>
                             <?php if (!$isPartial): ?>
-                                <div class="split-pills-label" id="splitPillsLabel">Choose payment amount</div>
+                                <div class="pay-step" id="splitPillsLabel"><span class="pay-step-num">1</span> Choose an amount</div>
                                 <div class="split-pills" role="radiogroup" aria-labelledby="splitPillsLabel">
                                     <button type="button" class="split-pill active" id="pillAdvance" role="radio" aria-checked="true" data-split="advance" data-amount="<?php echo $advance; ?>">
                                         <div class="sp-pill-head">
@@ -105,7 +106,11 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                         <span class="sp-sub">Nothing left to pay on match day</span>
                                     </button>
                                 </div>
-                            <?php else: ?>
+                                <?php $stepNo = 2; ?>
+                            <?php endif; ?>
+
+                            <div class="pay-step"><span class="pay-step-num"><?php echo $stepNo; ?></span> Scan &amp; pay</div>
+                            <?php if ($isPartial): ?>
                                 <div class="notice notice-info mb-14">
                                     <i class="fa-solid fa-circle-info"></i>
                                     <span>Remaining balance: <strong>Rs <?php echo number_format($remaining, 0); ?></strong></span>
@@ -126,6 +131,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                 </div>
 
                                 <div class="qr-meta-side">
+                                    <div class="pay-step"><span class="pay-step-num"><?php echo $stepNo + 1; ?></span> Submit</div>
                                     <div class="tx-input-wrap">
                                         <label for="txRefInput">Transaction ID <span class="muted font-normal">(optional)</span></label>
                                         <input type="text" id="txRefInput" name="transaction_ref" placeholder="Enter after you pay" maxlength="60" autocomplete="off">
@@ -134,7 +140,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                     <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmitQr">
                                         <i class="fa-solid fa-lock"></i> <span id="btnSubmitQrLabel">I paid  -  submit Rs <?php echo number_format($isPartial ? $remaining : $advance, 0); ?></span>
                                     </button>
-                                    <p class="form-hint mt-8 mb-0"><i class="fa-solid fa-shield-halved"></i> Status stays unpaid until the court verifies your transfer.</p>
+                                    <p class="form-hint mt-8 mb-0"><i class="fa-solid fa-shield-halved"></i> Verified by the court after you pay.</p>
                                 </div>
                             </div>
                         </div>

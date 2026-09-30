@@ -12,6 +12,7 @@ $booking_id = (int)($_GET['id'] ?? 0);
         'SELECT b.id, b.user_id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
                 b.payment_status, b.payment_type, b.amount_paid, b.payment_method, b.discount, b.promo_code, b.created_at, b.repeat_weeks,
                 g.name AS ground_name, g.location, g.address, g.court_number, g.manager_id,
+                g.price_per_hour, g.discount_price, g.price_weekend,
                 u.name AS user_name, u.email AS user_email, u.phone AS user_phone,
                 m.name AS manager_name
          FROM bookings b
@@ -44,6 +45,13 @@ $policy = booking_refund_policy($b['booking_date'], $b['start_time'], (float)$b[
 $netDue = (float)$b['total_price'] - (float)$b['discount'];
 $balance = max(0, $netDue - (float)$b['amount_paid']);
 
+// Court's standing discount % (same rule as the ground page / landing cards).
+$gFull = (float)$b['price_per_hour'];
+$gDisc = $b['discount_price'] !== null ? (float)$b['discount_price'] : 0.0;
+$gWeekendRate = $b['price_weekend'] !== null && (float)$b['price_weekend'] > 0;
+$isWkndRate = $gWeekendRate && (int)date('N', strtotime($b['booking_date'])) >= 6;
+$courtOff = (!$isWkndRate && $gDisc > 0 && $gDisc < $gFull) ? (int)round((1 - $gDisc / $gFull) * 100) : 0;
+
 $page_title = 'Booking details';
 $page_description = 'Review the full details of your futsal booking on GoalSpace - court, date, time, pricing, and payment status.';
 require __DIR__ . '/../includes/header.php';
@@ -68,11 +76,7 @@ require __DIR__ . '/../includes/header.php';
                 <i class="fa-solid fa-<?php echo $b['payment_status'] === 'paid' ? 'circle-check' : ($b['payment_status'] === 'partial' ? 'coins' : 'clock'); ?>"></i>
                 <?php echo ucfirst(e($b['payment_status'])); ?>
             </span>
-            <?php if ($b['payment_method'] === 'at_court' && $b['payment_status'] === 'paid'): ?>
-                <span class="status-badge status-at-court"><i class="fa-solid fa-coins"></i> Paid at court</span>
-            <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'paid'): ?>
-                <span class="status-badge status-qr"><i class="fa-solid fa-qrcode"></i> Paid via QR</span>
-            <?php elseif ($b['payment_method'] === 'qr' && $b['payment_status'] === 'partial'): ?>
+            <?php if ($b['payment_method'] === 'qr' && $b['payment_status'] === 'partial'): ?>
                 <span class="status-badge status-qr"><i class="fa-solid fa-qrcode"></i> Partially paid via QR</span>
             <?php endif; ?>
         </div>
@@ -145,15 +149,15 @@ require __DIR__ . '/../includes/header.php';
             </section>
         <?php endif; ?>
 
-        <?php if ($b['status'] !== 'cancelled' && ($balance > 0 || $b['payment_status'] !== 'paid')): ?>
+        <?php if ($b['status'] !== 'cancelled'): ?>
         <section class="bd-section" id="paymentCard" <?php if ($b['payment_method'] === 'qr'): ?>data-payment-qr="1"<?php endif; ?>>
             <h2>Payment</h2>
             <div class="bd-price">
-                <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?></strong></div>
+                <div class="bd-price-row"><span>Subtotal</span><strong>Rs <?php echo number_format((float)$b['total_price'], 0); ?><?php if ($courtOff > 0): ?> <span class="price-off">-<?php echo $courtOff; ?>%</span><?php endif; ?></strong></div>
                 <?php if ((float)$b['discount'] > 0): ?>
                     <div class="bd-price-row discount"><span>Promo <?php echo e($b['promo_code']); ?></span><strong>&minus; Rs <?php echo number_format((float)$b['discount'], 0); ?></strong></div>
                 <?php endif; ?>
-                <div class="bd-price-row total"><span>Total due</span><strong>Rs <?php echo number_format($netDue, 0); ?></strong></div>
+                <div class="bd-price-row total"><span><?php echo $balance > 0 ? 'Total due' : 'Total'; ?></span><strong>Rs <?php echo number_format($netDue, 0); ?></strong></div>
                 <?php if ((float)$b['amount_paid'] > 0): ?>
                     <div class="bd-price-row"><span>Paid</span><strong class="ok">Rs <?php echo number_format((float)$b['amount_paid'], 0); ?></strong></div>
                 <?php endif; ?>
@@ -194,18 +198,18 @@ require __DIR__ . '/../includes/header.php';
                 <a href="<?php echo base_url('pages/reschedule.php?booking_id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-arrows-rotate"></i> Reschedule</a>
                 <a href="<?php echo base_url('pages/booking_ics.php?id=' . (int)$b['id']); ?>" class="btn btn-outline"><i class="fa-solid fa-calendar-plus"></i> Add to Calendar</a>
                 <?php if ((int)$b['repeat_weeks'] > 1): ?>
-                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-calendar-xmark"></i> Cancel series', 'btn btn-danger', 'Cancel this whole weekly series of ' . (int)$b['repeat_weeks'] . '?', 'Cancel series', ['cancel_series' => '1']); ?>
+                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-calendar-xmark"></i> Cancel series', 'btn btn-danger', 'Cancel this whole weekly series of ' . (int)$b['repeat_weeks'] . '?', 'Cancel series', ['cancel_series' => '1'], 'Cancel series?'); ?>
                 <?php else: ?>
-                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
+                    <?php echo post_action_form(base_url('pages/my_bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking', [], 'Cancel booking?'); ?>
                 <?php endif; ?>
             <?php endif; ?>
         <?php elseif ($me['role'] === 'manager' && $b['status'] !== 'cancelled'): ?>
             <?php if ($b['payment_status'] !== 'paid'): ?>
-                <?php echo post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'btn btn-outline', 'Mark this booking as paid (verified at court)?', 'Mark paid'); ?>
+                <?php echo post_action_form(base_url('manager/bookings.php'), 'mark_paid', (string)(int)$b['id'], '<i class="fa-solid fa-coins"></i> Mark paid', 'btn btn-outline', 'Mark this booking as paid (verified at court)?', 'Mark paid', [], 'Mark as paid?'); ?>
             <?php endif; ?>
-            <?php echo post_action_form(base_url('manager/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
+            <?php echo post_action_form(base_url('manager/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking', [], 'Cancel booking?'); ?>
         <?php elseif ($me['role'] === 'admin' && $b['status'] !== 'cancelled'): ?>
-            <?php echo post_action_form(base_url('admin/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking'); ?>
+            <?php echo post_action_form(base_url('admin/bookings.php'), 'cancel_booking', (string)(int)$b['id'], '<i class="fa-solid fa-xmark"></i> Cancel booking', 'btn btn-danger', 'Cancel this booking?', 'Cancel booking', [], 'Cancel booking?'); ?>
         <?php endif; ?>
     </div>
 </div>

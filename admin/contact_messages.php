@@ -134,7 +134,7 @@ require __DIR__ . '/../includes/header.php';
                         <?php if (!$m['is_resolved']): ?>
                             <?php echo post_action_form(base_url('admin/contact_messages.php'), 'resolve_msg', (string)(int)$m['id'], '<i class="fa-solid fa-check"></i>', 'btn btn-outline btn-sm', '', 'Mark as resolved'); ?>
                         <?php endif; ?>
-                        <?php echo post_action_form(base_url('admin/contact_messages.php'), 'delete_msg', (string)(int)$m['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this message?', 'Delete message'); ?>
+                        <?php echo post_action_form(base_url('admin/contact_messages.php'), 'delete_msg', (string)(int)$m['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this message?', 'Delete message', [], 'Delete message?'); ?>
                     </div>
                 </div>
             </div>

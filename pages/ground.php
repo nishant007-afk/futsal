@@ -6,10 +6,7 @@ function hm12(string $hm): string
     $parts = explode(':', $hm);
     $h = (int)$parts[0];
     $min = $parts[1] ?? '00';
-    $ampm = $h >= 12 ? 'PM' : 'AM';
-    $h12 = $h % 12;
-    if ($h12 === 0) $h12 = 12;
-    return sprintf('%02d:%s %s', $h12, $min, $ampm);
+    return sprintf('%02d:%s', $h, $min);
 }
 
 $id = (int)($_GET['id'] ?? 0);
@@ -373,11 +370,7 @@ require __DIR__ . '/../includes/header.php';
                             $isTaken = in_array($slot['start'], $taken, true);
                             $slotHour = (int)substr($slot['start'], 0, 2);
                             $period = $slotHour < 12 ? 'morning' : ($slotHour < 17 ? 'afternoon' : 'evening');
-                            $s12 = hm12($slot['start']);
-                            $e12 = hm12($slot['end']);
-                            $slotRange = (substr($s12, -2) === substr($e12, -2))
-                                ? substr($s12, 0, 5) . ' - ' . $e12
-                                : $s12 . ' - ' . $e12;
+                            $slotRange = substr($slot['start'], 0, 5) . ' - ' . substr($slot['end'], 0, 5);
                             ?>
                             <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
                                  data-start="<?php echo e($slot['start']); ?>"
@@ -436,7 +429,7 @@ require __DIR__ . '/../includes/header.php';
                             <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
                             <input type="hidden" name="selected_slot" value="<?php echo e($ts['start'] . '|' . $ts['end']); ?>">
                             <button type="submit" name="join_waitlist" value="1" class="waitlist-row <?php echo $joined ? 'joined' : ''; ?>" <?php echo $joined ? 'disabled' : ''; ?>>
-                                <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e(hm12(substr($ts['start'], 0, 5)) . ' - ' . hm12(substr($ts['end'], 0, 5))); ?></span>
+                                <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e(substr($ts['start'], 0, 5) . ' - ' . substr($ts['end'], 0, 5)); ?></span>
                                 <span class="wl-info"><?php echo $joined ? 'In line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
                                 <span class="wl-btn"><i class="fa-solid <?php echo $joined ? 'fa-check' : 'fa-plus'; ?>"></i></span>
                             </button>

@@ -40,12 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function fmtHM12(hm) {
         if (!hm) return '';
         const p = hm.split(':');
-        let h = Number(p[0]);
+        const h = String(Number(p[0])).padStart(2, '0');
         const min = p[1] || '00';
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12;
-        if (h === 0) h = 12;
-        return h + ':' + min + ' ' + ampm;
+        return h + ':' + min;
     }
 
     function updateSummary(startHM, endHM) {

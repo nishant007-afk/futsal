@@ -5994,8 +5994,6 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 
 .step-img-zoom-pass img { object-position: 50% 50%; transform: scale(1.06); }
 
-.step-card:hover .step-card-img img { transform: scale(1.22); }
-
 .step-card-body { padding: 20px 22px 24px; flex: 1; display: flex; flex-direction: column; }
 
 .step-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; background: var(--brand-soft); color: var(--brand-700); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: var(--r-pill); margin-bottom: 12px; border: 1px solid rgba(5, 150, 105, 0.2); }

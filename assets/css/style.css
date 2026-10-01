@@ -2869,17 +2869,17 @@ body.modal-open { overflow: hidden; }
 .booking-panel h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
 
 /* ============ COURT DETAILS IN-CARD EXTENSIONS ============ */
-.info-row-location .info-row-content { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; width: 100%; }
-.btn-view-location { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--brand-700); background: var(--brand-soft); border: 1px solid rgba(5, 150, 105, 0.25); border-radius: var(--r-pill); padding: 4px 11px; text-decoration: none; transition: all 0.15s ease; white-space: nowrap; margin-left: auto; }
+.ground-info .info-lbl { font-weight: 700; color: var(--ink); min-width: 82px; flex-shrink: 0; }
+.info-row-location { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.info-loc-text { display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0; }
+.btn-view-location { display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--brand-700); background: var(--brand-soft); border: 1px solid rgba(5, 150, 105, 0.25); border-radius: var(--r-pill); padding: 4px 12px; text-decoration: none; transition: all 0.15s ease; white-space: nowrap; margin-left: auto; }
 .btn-view-location:hover { background: var(--brand); color: #ffffff; border-color: var(--brand); text-decoration: none; }
-.btn-view-location i { font-size: 11px; width: auto !important; margin-top: 0 !important; }
 .court-card-divider { height: 1px; background: var(--line); margin: 18px 0 16px; }
 .court-card-heading { font-size: 16px; font-weight: 800; margin: 0 0 8px; color: var(--ink); letter-spacing: -0.015em; }
-.court-card-section .desc { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; }
-.court-card-subheading { font-size: 14.5px; font-weight: 750; margin: 0 0 10px; color: var(--ink); letter-spacing: -0.01em; }
-.court-features-bullets { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px 14px; }
-.court-features-bullets li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
-.court-features-bullets li i { color: var(--brand-700); font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+.court-card-section .desc { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 16px; }
+.court-card-subheading { font-size: 14.5px; font-weight: 750; margin: 0 0 8px; color: var(--ink); letter-spacing: -0.01em; }
+.court-features-bullets { list-style: disc !important; padding-left: 22px !important; margin: 6px 0 0 !important; display: flex; flex-direction: column; gap: 6px; }
+.court-features-bullets li { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
 
 /* ============ GROUND LOCATION MAP (embedded) ============ */ .ground-map { margin-top: 18px; border: 1px solid var(--line-2); border-radius: var(--r-md); overflow: hidden; background: var(--bg-soft); }
 

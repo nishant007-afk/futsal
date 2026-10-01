@@ -477,24 +477,25 @@ require __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <span class="rating-meta">No reviews yet – be the first to play here.</span>
             <?php endif; ?>
-        <div class="info-row info-row-location">
-            <i class="fa-solid fa-location-dot"></i>
-            <div class="info-row-content">
-                <span><?php echo e($ground['location']); ?><?php if (!empty($ground['address']) && $ground['address'] !== $ground['location']): ?> &middot; <?php echo e($ground['address']); ?><?php endif; ?></span>
-                <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
-                <?php $mapQuery = $hasCoords
-                    ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
-                    : (!empty($ground['address']) ? $ground['address'] : $ground['location']); ?>
-                <a href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener" class="btn-view-location">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Location
-                </a>
-            </div>
         </div>
-        <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
-        <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
-        <div class="info-row"><i class="fa-solid fa-layer-group"></i> <span><?php echo e($groundFeatures['surface']); ?> · <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
+        <?php
+        $courtLocation = !empty($ground['address']) ? $ground['address'] : $ground['location'];
+        $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null;
+        $mapQuery = $hasCoords
+            ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
+            : $courtLocation;
+        ?>
+        <div class="info-row info-row-location">
+            <div class="info-loc-text">
+                <span class="info-lbl">Location:</span> <span><?php echo e($courtLocation); ?></span>
+            </div>
+            <a href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener" class="btn-view-location">View Location</a>
+        </div>
+        <div class="info-row"><span class="info-lbl">Hours:</span> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> &middot; <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
+        <div class="info-row"><span class="info-lbl">Capacity:</span> <span>Up to <?php echo (int)$ground['capacity']; ?> players</span></div>
+        <div class="info-row"><span class="info-lbl">Court:</span> <span><?php echo e($groundFeatures['surface']); ?> &middot; <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
         <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
-            <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
+            <div class="info-row"><span class="info-lbl">Managed by:</span> <span><?php echo e($ownerLabel); ?></span></div>
         <?php endif; ?>
 
         <div class="court-card-divider"></div>
@@ -513,7 +514,7 @@ require __DIR__ . '/../includes/header.php';
                 <h4 class="court-card-subheading">Features</h4>
                 <ul class="court-features-bullets">
                     <?php foreach ($groundFeatures['amenities'] as $am): ?>
-                        <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
+                        <li><?php echo e($am['label']); ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>

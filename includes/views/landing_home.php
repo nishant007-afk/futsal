@@ -176,7 +176,6 @@ foreach ($gridGrounds as $g) {
         <div class="section-head section-head-between courts-header-row">
             <div class="section-head-copy">
                 <h2 class="section-title">Verified Futsal Courts</h2>
-                <p class="section-sub">Certified turf surfaces, clean amenities, and transparent hourly rates.</p>
             </div>
             <!-- Quick Location Filter Controls -->
             <div class="court-location-pills" role="tablist" aria-label="Filter courts by location">
@@ -227,7 +226,6 @@ foreach ($gridGrounds as $g) {
     <div class="container">
         <div class="section-head section-head-left">
             <h2 class="section-title">How GoalSpace Works</h2>
-            <p class="section-sub">Reserve your kickoff in 3 simple steps with guaranteed pitch availability.</p>
         </div>
         <div class="steps-visual">
             <div class="step-card">

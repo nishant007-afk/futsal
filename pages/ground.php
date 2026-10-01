@@ -489,9 +489,6 @@ require __DIR__ . '/../includes/header.php';
         <?php $mapQuery = $hasCoords
             ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
             : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
-        <?php if (!empty($ground['address'])): ?>
-            <a class="btn btn-outline btn-block" href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-map-location-dot"></i> Open in Google Maps</a>
-        <?php endif; ?>
     </div>
 
     <div class="detail-box about-box reveal">

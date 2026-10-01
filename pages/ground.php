@@ -477,57 +477,47 @@ require __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <span class="rating-meta">No reviews yet – be the first to play here.</span>
             <?php endif; ?>
+        <div class="info-row info-row-location">
+            <i class="fa-solid fa-location-dot"></i>
+            <div class="info-row-content">
+                <span><?php echo e($ground['location']); ?><?php if (!empty($ground['address']) && $ground['address'] !== $ground['location']): ?> &middot; <?php echo e($ground['address']); ?><?php endif; ?></span>
+                <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
+                <?php $mapQuery = $hasCoords
+                    ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
+                    : (!empty($ground['address']) ? $ground['address'] : $ground['location']); ?>
+                <a href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener" class="btn-view-location">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Location
+                </a>
+            </div>
         </div>
-        <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span><?php echo e($ground['location']); ?></span></div>
         <div class="info-row"><i class="fa-solid fa-clock"></i> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> · <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
         <div class="info-row"><i class="fa-solid fa-users"></i> <span>Fits up to <?php echo (int)$ground['capacity']; ?> players</span></div>
         <div class="info-row"><i class="fa-solid fa-layer-group"></i> <span><?php echo e($groundFeatures['surface']); ?> · <?php echo (int)$groundFeatures['sides']; ?>-a-side</span></div>
         <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
             <div class="info-row"><i class="fa-solid fa-store"></i> <span>Managed by <strong><?php echo e($ownerLabel); ?></strong></span></div>
         <?php endif; ?>
-        <?php $hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null; ?>
-        <?php $mapQuery = $hasCoords
-            ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
-            : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
-    </div>
-</div>
 
-<div class="court-overview-section detail-box reveal">
-    <div class="court-overview-grid">
-        <div class="court-overview-main">
-            <h3>About this court</h3>
+        <div class="court-card-divider"></div>
+
+        <div class="court-card-section">
+            <h3 class="court-card-heading">Description</h3>
             <?php if (!empty($ground['description'])): ?>
                 <p class="desc"><?php echo e($ground['description']); ?></p>
             <?php else: ?>
                 <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
             <?php endif; ?>
-            <div class="facilities">
-                <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities &amp; Amenities</div>
-                <ul class="facility-chips">
+        </div>
+
+        <?php if (!empty($groundFeatures['amenities'])): ?>
+            <div class="court-card-section">
+                <h4 class="court-card-subheading">Features</h4>
+                <ul class="court-features-bullets">
                     <?php foreach ($groundFeatures['amenities'] as $am): ?>
                         <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
-        </div>
-        <div class="court-overview-map">
-            <div class="ground-map">
-                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
-                <div class="ground-map-frame">
-                    <iframe
-                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                        allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
-                </div>
-                <div class="ground-map-foot">
-                    <a class="ground-map-link" href="https://www.google.com/maps/dir/?api=1&destination=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-route"></i> Get directions</a>
-                    <?php if (!empty($ground['address'])): ?>
-                        <span class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+        <?php endif; ?>
     </div>
 </div>
 

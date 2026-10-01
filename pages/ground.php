@@ -159,8 +159,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
 
 $page_title = $ground['name'];
 $page_description = 'Check availability, pricing, and amenities at ' . $ground['name'] . '. Pick a free slot and book your futsal game online with GoalSpace.';
+$hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null;
 require __DIR__ . '/../includes/header.php';
 ?>
+<?php if ($hasCoords): ?>
+<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
+<?php endif; ?>
 <?php echo $json_ld; // JSON-LD structured data ?>
 <div class="page-head">
     <div class="title-back-row">
@@ -185,19 +189,13 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($photos): ?>
                 <div class="gallery-main">
                     <img id="galleryMain" src="<?php echo base_url('uploads/grounds/' . rawurlencode($photos[0]['image'])); ?>" alt="<?php echo e($ground['name']); ?>" decoding="async">
-                    <?php if (count($photos) > 1): ?>
-                        <div class="gallery-dots">
-                            <?php foreach ($photos as $pi => $ph): ?>
-                                <button type="button" class="gallery-dot<?php echo $pi === 0 ? ' active' : ''; ?>" aria-label="View photo <?php echo $pi + 1; ?> of <?php echo count($photos); ?>"<?php echo $pi === 0 ? ' aria-current="true"' : ''; ?>></button>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
+                    <span class="gallery-counter" aria-live="polite" aria-atomic="true"><span class="gallery-counter-current">1</span>&nbsp;/&nbsp;<span class="gallery-counter-total"><?php echo count($photos); ?></span></span>
                 </div>
                 <?php if (count($photos) > 1): ?>
                     <button type="button" class="gallery-nav gallery-prev" aria-label="Previous photo" hidden><i class="fa-solid fa-chevron-left"></i></button>
                     <button type="button" class="gallery-nav gallery-next" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
                 <?php endif; ?>
-                <button type="button" class="gallery-zoom" aria-label="Zoom photo"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button type="button" class="gallery-zoom" aria-label="View fullscreen" title="View fullscreen"><i class="fa-solid fa-expand"></i></button>
             <?php else: ?>
                 <div class="gallery pitch"></div>
             <?php endif; ?>
@@ -379,16 +377,21 @@ require __DIR__ . '/../includes/header.php';
                             $isTaken = in_array($slot['start'], $taken, true);
                             $slotHour = (int)substr($slot['start'], 0, 2);
                             $period = $slotHour < 12 ? 'morning' : ($slotHour < 17 ? 'afternoon' : 'evening');
+                            $s12 = hm12($slot['start']);
+                            $e12 = hm12($slot['end']);
+                            $slotRange = (substr($s12, -2) === substr($e12, -2))
+                                ? substr($s12, 0, 5) . ' - ' . $e12
+                                : $s12 . ' - ' . $e12;
                             ?>
                             <button type="button" class="slot <?php echo $isTaken ? 'taken' : ''; ?>"
                                  data-start="<?php echo e($slot['start']); ?>"
                                  data-end="<?php echo e($slot['end']); ?>"
-                                 data-label="<?php echo e($slot['label']); ?>"
+                                 data-label="<?php echo e($slotRange); ?>"
                                  data-price="Rs <?php echo number_format($price, 0); ?>"
                                  data-period="<?php echo $period; ?>"
-                                 aria-label="<?php echo e($slot['label']); ?>, <?php echo $isTaken ? 'booked' : 'available'; ?>"
+                                 aria-label="<?php echo e($slotRange); ?>, <?php echo $isTaken ? 'booked' : 'available'; ?>"
                                  <?php echo $isTaken ? 'disabled aria-disabled="true"' : 'aria-pressed="false"'; ?>>
-                                <span class="slot-time"><?php echo e(hm12($slot['start'])); ?></span>
+                                <span class="slot-time"><?php echo e($slotRange); ?></span>
                                 <?php if ($isTaken): ?><span class="slot-note">Booked</span><?php endif; ?>
                             </button>
                         <?php endforeach; ?>
@@ -423,6 +426,12 @@ require __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </form>
 
+            <div class="bp-trust">
+                <span class="bp-trust-item"><i class="fa-solid fa-bolt"></i> Instant confirmation</span>
+                <span class="bp-trust-item"><i class="fa-solid fa-calendar-check"></i> Free cancellation up to 2 hours before kickoff</span>
+                <span class="bp-trust-item"><i class="fa-solid fa-wallet"></i> eSewa &bull; Khalti &bull; Pay at Venue</span>
+            </div>
+
             <?php
             $takenSlots = array_values(array_filter($slots, fn($s) => in_array($s['start'], $taken, true)));
             if ($takenSlots && (is_logged_in())) :
@@ -437,7 +446,7 @@ require __DIR__ . '/../includes/header.php';
                             <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
                             <input type="hidden" name="selected_slot" value="<?php echo e($ts['start'] . '|' . $ts['end']); ?>">
                             <button type="submit" name="join_waitlist" value="1" class="waitlist-row <?php echo $joined ? 'joined' : ''; ?>" <?php echo $joined ? 'disabled' : ''; ?>>
-                                <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e($ts['label']); ?></span>
+                                <span class="wl-slot"><i class="fa-regular fa-clock"></i> <?php echo e(hm12(substr($ts['start'], 0, 5)) . ' - ' . hm12(substr($ts['end'], 0, 5))); ?></span>
                                 <span class="wl-info"><?php echo $joined ? 'In line' : ($wcount > 0 ? $wcount . ' waiting' : 'Be first'); ?></span>
                                 <span class="wl-btn"><i class="fa-solid <?php echo $joined ? 'fa-check' : 'fa-plus'; ?>"></i></span>
                             </button>
@@ -520,11 +529,19 @@ require __DIR__ . '/../includes/header.php';
         <div class="ground-map">
             <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
             <div class="ground-map-frame">
-                <iframe
-                    src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                    width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+                <?php if ($hasCoords): ?>
+                    <div id="groundMap" class="ground-map-canvas"
+                         data-lat="<?php echo (float)$ground['latitude']; ?>"
+                         data-lng="<?php echo (float)$ground['longitude']; ?>"
+                         role="img"
+                         aria-label="Map showing <?php echo e($ground['name']); ?>"></div>
+                <?php else: ?>
+                    <iframe
+                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                        width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+                <?php endif; ?>
             </div>
         </div>
         <?php if (!empty($ground['address'])): ?>
@@ -643,7 +660,8 @@ require __DIR__ . '/../includes/header.php';
     <?php else: ?>
         <div class="reviews-empty-state">
             <i class="fa-regular fa-star"></i>
-            <p>No player reviews for this venue yet. Book your match and be the first to share your experience!</p>
+            <p class="res-title">No reviews yet</p>
+            <p class="res-sub">Be the first to review <?php echo e($ground['name']); ?> — book your match, then share how the pitch, lights and atmosphere felt.</p>
             <?php if (is_logged_in() && is_player()): ?>
                 <button type="button" class="btn btn-outline btn-sm" onclick="toggleReviewForm()">
                     <i class="fa-solid fa-pen-to-square"></i> Be the first to review
@@ -679,7 +697,10 @@ function toggleReviewForm() {
 
 <div class="bp-sticky-bar" id="bpStickyBar">
     <div class="bsb-info">
-        <span class="bsb-price">Rs <?php echo number_format($price, 0); ?><small>/hr</small></span>
+        <span class="bsb-price">
+            <?php if ($showDiscount): ?><s class="bsb-price-orig">Rs <?php echo number_format((float)$ground['price_per_hour'], 0); ?></s><?php endif; ?>
+            Rs <?php echo number_format($price, 0); ?><small>/hr</small><?php if ($showOff > 0): ?><span class="price-off">-<?php echo $showOff; ?>%</span><?php endif; ?>
+        </span>
         <span class="bsb-slot" id="bsbSlot">Select a time</span>
     </div>
     <?php if (!is_logged_in()): ?>
@@ -691,3 +712,23 @@ function toggleReviewForm() {
 <div class="bp-bar-spacer"></div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php if ($hasCoords): ?>
+<script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
+<script>
+(function () {
+    var el = document.getElementById('groundMap');
+    if (!el || typeof L === 'undefined') return;
+    var lat = parseFloat(el.dataset.lat);
+    var lng = parseFloat(el.dataset.lng);
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    var map = L.map(el, { scrollWheelZoom: false, attributionControl: true }).setView([lat, lng], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+    L.marker([lat, lng], {
+        icon: L.divIcon({ className: 'gs-map-pin', html: '<i></i>', iconSize: [18, 18], iconAnchor: [9, 17] })
+    }).addTo(map);
+})();
+</script>
+<?php endif; ?>

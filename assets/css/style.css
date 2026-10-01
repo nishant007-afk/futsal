@@ -2676,42 +2676,6 @@ label .muted { font-weight: 400; }
 .gallery-main { position: absolute; inset: 0; }
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.gallery-dots {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 12px;
-    z-index: 3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    pointer-events: none;
-}
-
-.gallery-dot {
-    width: 8px;
-    height: 8px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.55);
-    cursor: pointer;
-    pointer-events: auto;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    transition: transform 0.18s ease, background 0.18s ease;
-}
-
-.gallery-dot.active {
-    background: #ffffff;
-    transform: scale(1.55);
-}
-
-.gallery-dot:focus-visible {
-    outline: 2px solid #10b981;
-    outline-offset: 2px;
-}
-
 .gallery-wrap::after {
     content: '';
     position: absolute;
@@ -2873,8 +2837,11 @@ body.modal-open { overflow: hidden; }
 /* Mobile sticky booking bar (bottom nav steps aside - the bar owns the bottom edge) */
 .bp-sticky-bar { display: none; }
 .bp-bar-spacer { display: none; }
-@media (max-width: 767px) {
+.bsb-price-orig { font-size: 10.5px; font-weight: 600; color: var(--ink-3); text-decoration: line-through; margin-right: 5px; }
+.bsb-price .price-off { font-size: 10px; padding: 1px 5px; margin-left: 5px; }
+@media (max-width: 991px) {
     body:has(.bp-sticky-bar) .bottom-nav { display: none; }
+    body:has(.bp-sticky-bar) { padding-bottom: 0; }
     .bp-sticky-bar {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050;
         display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -2888,6 +2855,9 @@ body.modal-open { overflow: hidden; }
     .bsb-slot { font-size: 11.5px; font-weight: 600; color: var(--brand-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .bsb-cta { flex: none; padding: 10px 18px; font-size: 13.5px; }
     .bp-bar-spacer { display: block; height: 84px; }
+    /* The sticky bar owns price + CTA on small screens - drop the in-panel duplicates */
+    .booking-panel .price-line { display: none; }
+    .bp-cta-form > a.btn-block { display: none; }
 }
 
 /* Flash the slot grid when the sticky CTA scrolls to it */
@@ -8332,3 +8302,21 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
 
 /* ...and the control that was pressed is the only thing that visually reacts */
 .fav-toggle.card-fav:active, .fav-toggle.ground-fav:active { transform: scale(.88); transition: transform .1s ease; }
+
+/* ============ COURT PAGE POLISH ============ */
+.gallery-counter { position: absolute; bottom: 12px; right: 12px; z-index: 4; background: rgba(15, 20, 15, .85); color: #fff; font-size: 12px; font-weight: 700; line-height: 1; padding: 6px 10px; border-radius: 999px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: none; }
+.gallery-counter-current { font-variant-numeric: tabular-nums; }
+.gallery-counter-total { font-weight: 600; opacity: .75; }
+.slot .slot-time { font-size: 12.5px; letter-spacing: -.01em; }
+.slot:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.bp-trust { display: none; flex-wrap: wrap; gap: 8px 16px; margin: 14px 0 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+.bp-trust-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-3); }
+.bp-trust-item i { color: var(--brand); font-size: 12px; width: 14px; text-align: center; flex: none; }
+.reviews-empty-state .res-title { margin: 0 0 5px; font-size: 15.5px; font-weight: 800; color: var(--ink); }
+.reviews-empty-state .res-sub { margin: 0 0 2px; }
+.ground-map-canvas { width: 100%; height: 100%; }
+.date-chips { scroll-snap-type: x proximity; }
+.date-chips .date-chip { scroll-snap-align: start; }
+.gs-map-pin { background: none; border: none; }
+.gs-map-pin i { display: block; width: 16px; height: 16px; border-radius: 50% 50% 50% 0; background: var(--brand); border: 2.5px solid #ffffff; transform: rotate(-45deg); box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+@media (min-width: 992px) { .bp-trust { display: flex; } }

@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
             bpSummary.hidden = true;
             return;
         }
+        // Remember the pick so a login round-trip can hand the player back to this exact slot.
+        try { sessionStorage.setItem('gs_slot_time', startHM + '-' + endHM); } catch (err) {}
         const gridDate = slotGrid && slotGrid.dataset.date ? slotGrid.dataset.date : '';
         const hrs = (minutesOf(endHM) - minutesOf(startHM)) / 60;
         bpSummary.hidden = false;
@@ -192,6 +194,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* Returning from login (or landing on a ?time= deep link): re-select that exact slot. */
+    try {
+        const restoreTime = new URLSearchParams(window.location.search).get('time') || sessionStorage.getItem('gs_slot_time');
+        if (restoreTime && slotGrid) {
+            const rtParts = restoreTime.split('-');
+            if (rtParts.length === 2 && rtParts[0] && rtParts[1]) {
+                const restoreTarget = slotGrid.querySelector('.slot[data-start^="' + rtParts[0] + '"][data-end^="' + rtParts[1] + '"]:not(.taken)');
+                if (restoreTarget) restoreTarget.click();
+            }
+        }
+        sessionStorage.removeItem('gs_slot_time');
+    } catch (err) {}
+
     /* Compact calendar: chips first, native date picker behind the icon */
     const calToggle = document.getElementById('calToggle');
     const bpDateField = document.getElementById('bpDateField');
@@ -319,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const galleryMain = document.getElementById('galleryMain');
     const galleryWrap = document.getElementById('galleryWrap');
-    const galleryDots = document.querySelectorAll('.gallery-dot');
     if (galleryMain) {
         let srcs = [];
         try { srcs = JSON.parse((galleryWrap && galleryWrap.getAttribute('data-images')) || '[]'); } catch (err) { srcs = []; }
@@ -328,16 +342,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const prevBtn = document.querySelector('.gallery-prev');
         const nextBtn = document.querySelector('.gallery-next');
         const zoomBtn = document.querySelector('.gallery-zoom');
+        const counterCurrent = document.querySelector('.gallery-counter-current');
         function updateNav() {
             const showPrev = current > 0;
             const showNext = current < srcs.length - 1;
             if (prevBtn) prevBtn.hidden = !showPrev;
             if (nextBtn) nextBtn.hidden = !showNext;
-            galleryDots.forEach(function (d, i) {
-                const on = i === current;
-                d.classList.toggle('active', on);
-                if (on) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
-            });
+            if (counterCurrent) counterCurrent.textContent = String(current + 1);
         }
         let galleryAnim = false;
         let activeGhost = null;
@@ -402,20 +413,21 @@ document.addEventListener('DOMContentLoaded', function () {
             if (i > srcs.length - 1) i = 0;
             if (dir) { slideShow(i, dir); } else { current = i; show(srcs[i]); }
         }
-        galleryDots.forEach(function (dot, i) {
-            dot.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                current = i;
-                show(srcs[i]);
-            });
-        });
         if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1, -1); });
         if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1, 1); });
         if (zoomBtn) zoomBtn.addEventListener('click', function () {
             openImageZoom(current);
         });
         if (zoomBtn) zoomBtn.dataset.src = srcs[0];
+        // Tapping the photo itself opens the fullscreen lightbox (small guard so a swipe never counts as a tap).
+        let imgDownX = 0;
+        let imgDownY = 0;
+        galleryMain.addEventListener('pointerdown', function (e) { imgDownX = e.clientX; imgDownY = e.clientY; });
+        galleryMain.addEventListener('click', function (e) {
+            if (Math.abs(e.clientX - imgDownX) > 8 || Math.abs(e.clientY - imgDownY) > 8) return;
+            e.preventDefault();
+            openImageZoom(current);
+        });
         updateNav();
         // warm the full set so a swipe never waits on an image decode
         srcs.forEach(function (s) { const pre = new Image(); pre.src = s; });

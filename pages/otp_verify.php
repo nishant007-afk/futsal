@@ -85,6 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['pending_2fa_login'], $_SESSION['pending_login']);
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$user['id'];
+            // Same rule as the password login: return to the court/date/time
+            // the player picked before the 2FA detour, not the homepage.
+            consume_return_path();
             if ($user['role'] === 'admin') {
                 redirect('admin/dashboard.php');
             } elseif ($user['role'] === 'manager') {

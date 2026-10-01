@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../config/db.php';
 
 if (is_logged_in()) {
+    // e.g. Google sign-in popup: the opener (this page) reloads after the
+    // session is created - hand the player back to their saved state.
+    consume_return_path();
     redirect('index.php');
 }
 
@@ -102,20 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
-                $returnPath = $_SESSION['return_path'] ?? '';
-                unset($_SESSION['return_path']);
-                // Normalize + only honor same-site app paths (blocks open redirects).
-                if (is_string($returnPath) && $returnPath !== '' && $returnPath[0] !== '/') {
-                    $returnPath = '/' . ltrim($returnPath, '/');
-                }
-                if (is_string($returnPath) && $returnPath !== ''
-                    && $returnPath[0] === '/'
-                    && (!isset($returnPath[1]) || $returnPath[1] !== '/')
-                    && !preg_match('#^//[^/]#', $returnPath)
-                    && preg_match('#^/(pages|admin|manager|ajax|auth|index\.php)#', $returnPath)
-                ) {
-                    redirect(ltrim($returnPath, '/'));
-                }
+                // Back to the court/date/time the player picked before logging in.
+                consume_return_path();
                 if ($user['role'] === 'admin') {
                     redirect('admin/dashboard.php');
                 } elseif ($user['role'] === 'manager') {

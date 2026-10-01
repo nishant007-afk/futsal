@@ -69,6 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $uid;
             unset($_SESSION['google_pending']);
             set_flash('success', 'Welcome to GoalSpace, ' . $gName . '! Your account is ready.');
+            // Keep the player's saved court/date/time if they started there.
+            consume_return_path();
             redirect('index.php');
         }
     }

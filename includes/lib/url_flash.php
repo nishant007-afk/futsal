@@ -42,6 +42,31 @@ function redirect(string $path): void
     exit;
 }
 
+/**
+ * Consume the post-login destination saved in $_SESSION['return_path']
+ * (set by pages/ground.php while a logged-out player picks court/date/time).
+ * Redirects there when it is a safe same-site app path; falls through
+ * silently otherwise so the caller can apply its own fallback.
+ */
+function consume_return_path(): void
+{
+    $returnPath = $_SESSION['return_path'] ?? '';
+    unset($_SESSION['return_path']);
+    if (!is_string($returnPath) || $returnPath === '') {
+        return;
+    }
+    if ($returnPath[0] !== '/') {
+        $returnPath = '/' . ltrim($returnPath, '/');
+    }
+    if ($returnPath[0] === '/'
+        && (!isset($returnPath[1]) || $returnPath[1] !== '/')
+        && !preg_match('#^//[^/]#', $returnPath)
+        && preg_match('#^/(pages|admin|manager|ajax|auth|index\.php)#', $returnPath)
+    ) {
+        redirect(ltrim($returnPath, '/'));
+    }
+}
+
 function http_error_page(int $code, string $title, string $message, ?string $cta_label = null, ?string $cta_url = null): void
 {
     global $conn;

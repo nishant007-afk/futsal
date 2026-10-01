@@ -144,19 +144,10 @@ if ($existing) {
     $_SESSION['user_id'] = $uid;
     unset($_SESSION['google_oauth']);
 
-    $returnPath = $_SESSION['return_path'] ?? '';
-    unset($_SESSION['return_path']);
-    if (is_string($returnPath) && $returnPath !== '' && $returnPath !== 'index.php') {
-        if ($returnPath[0] !== '/') {
-            $returnPath = '/' . ltrim($returnPath, '/');
-        }
-        if ($returnPath[0] === '/'
-            && (!isset($returnPath[1]) || $returnPath[1] !== '/')
-            && !preg_match('#^//[^/]#', $returnPath)
-            && preg_match('#^/(pages|admin|manager|ajax|auth|index\.php)#', $returnPath)
-        ) {
-            $finish(ltrim($returnPath, '/'));
-        }
+    // Back to the court/date/time the player picked before signing in.
+    // Popup mode: skip here - the opener (login page) reloads and consumes it.
+    if (!$popup) {
+        consume_return_path();
     }
 
     $finish('index.php');

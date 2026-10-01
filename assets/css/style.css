@@ -7785,11 +7785,11 @@ html[data-theme="dark"] .faq-cat.active { background: #10b981; border-color: #10
 }
 
 .tubik-backdrop::after {
-    background: linear-gradient(to top right, rgba(2, 10, 6, 0.78) 0%, rgba(3, 16, 10, 0.62) 50%, rgba(3, 16, 10, 0.68) 100%) !important;
+    background: linear-gradient(90deg, rgba(3, 12, 8, 0.88) 0%, rgba(3, 12, 8, 0.68) 45%, rgba(3, 12, 8, 0.32) 75%, rgba(3, 12, 8, 0.45) 100%), linear-gradient(180deg, rgba(3, 12, 8, 0.35) 0%, rgba(3, 12, 8, 0.08) 35%, rgba(3, 12, 8, 0.72) 100%) !important;
 }
 
 .tubik-backdrop-img {
-    object-position: center 45% !important;
+    object-position: center 42% !important;
 }
 
 .hero-tubik-left {

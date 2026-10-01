@@ -111,7 +111,10 @@ foreach ($gridGrounds as $g) {
 
 <section class="hero hero--tubik">
     <div class="tubik-backdrop">
-        <img src="<?php echo base_url('assets/img/hero-futsal-floodlights.jpg'); ?>" alt="Futsal court at night under floodlights" class="tubik-backdrop-img" width="1920" height="1280" fetchpriority="high">
+        <picture>
+            <source type="image/webp" srcset="<?php echo base_url('assets/img/hero-futsal-play.webp'); ?>">
+            <img src="<?php echo base_url('assets/img/hero-futsal-play.jpg'); ?>" alt="Players playing futsal on indoor artificial turf court" class="tubik-backdrop-img" width="1280" height="848" fetchpriority="high">
+        </picture>
     </div>
     <div class="container hero-tubik-grid">
         <div class="hero-left hero-tubik-left">

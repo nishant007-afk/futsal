@@ -490,36 +490,44 @@ require __DIR__ . '/../includes/header.php';
             ? (float)$ground['latitude'] . ',' . (float)$ground['longitude']
             : ($ground['address'] !== '' ? $ground['address'] : $ground['location']); ?>
     </div>
+</div>
 
-    <div class="detail-box about-box reveal">
-        <h3>About this court</h3>
-        <?php if (!empty($ground['description'])): ?>
-            <p class="desc"><?php echo e($ground['description']); ?></p>
-        <?php else: ?>
-            <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
-        <?php endif; ?>
-        <div class="facilities">
-            <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities</div>
-            <ul class="facility-chips">
-                <?php foreach ($groundFeatures['amenities'] as $am): ?>
-                    <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-        <div class="ground-map">
-            <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
-            <div class="ground-map-frame">
-                <iframe
-                    src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                    allowfullscreen loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+<div class="court-overview-section detail-box reveal">
+    <div class="court-overview-grid">
+        <div class="court-overview-main">
+            <h3>About this court</h3>
+            <?php if (!empty($ground['description'])): ?>
+                <p class="desc"><?php echo e($ground['description']); ?></p>
+            <?php else: ?>
+                <p class="desc muted">No description yet – check the photos, hours and reviews to get a feel for this court.</p>
+            <?php endif; ?>
+            <div class="facilities">
+                <div class="facilities-head"><i class="fa-solid fa-circle-check"></i> Facilities &amp; Amenities</div>
+                <ul class="facility-chips">
+                    <?php foreach ($groundFeatures['amenities'] as $am): ?>
+                        <li><i class="<?php echo e($am['icon']); ?>"></i> <?php echo e($am['label']); ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-            <a class="ground-map-link" href="https://www.google.com/maps/dir/?api=1&destination=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-route"></i> Get directions</a>
         </div>
-        <?php if (!empty($ground['address'])): ?>
-            <p class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></p>
-        <?php endif; ?>
+        <div class="court-overview-map">
+            <div class="ground-map">
+                <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
+                <div class="ground-map-frame">
+                    <iframe
+                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                        allowfullscreen loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
+                </div>
+                <div class="ground-map-foot">
+                    <a class="ground-map-link" href="https://www.google.com/maps/dir/?api=1&destination=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-route"></i> Get directions</a>
+                    <?php if (!empty($ground['address'])): ?>
+                        <span class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

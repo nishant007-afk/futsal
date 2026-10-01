@@ -159,12 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_submit'])) {
 
 $page_title = $ground['name'];
 $page_description = 'Check availability, pricing, and amenities at ' . $ground['name'] . '. Pick a free slot and book your futsal game online with GoalSpace.';
-$hasCoords = $ground['latitude'] !== null && $ground['longitude'] !== null;
 require __DIR__ . '/../includes/header.php';
 ?>
-<?php if ($hasCoords): ?>
-<link rel="stylesheet" href="<?php echo base_url('assets/css/leaflet/leaflet.css'); ?>">
-<?php endif; ?>
 <?php echo $json_ld; // JSON-LD structured data ?>
 <div class="page-head">
     <div class="title-back-row">
@@ -362,7 +358,7 @@ require __DIR__ . '/../includes/header.php';
                     <?php if (!$freeSlots): ?>
                         <div class="slot-empty">
                             <i class="fa-solid fa-calendar-xmark"></i>
-                            <span>No free slots this day<?php if ($nextOpenDate !== ''): ?> &mdash; <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($nextOpenDate); ?>">next open day: <strong><?php echo e(date('D, M j', strtotime($nextOpenDate))); ?></strong></a><?php endif; ?></span>
+                            <span>No free slots this day<?php if ($nextOpenDate !== ''): ?> &middot; <a href="?id=<?php echo (int)$ground['id']; ?>&amp;date=<?php echo e($nextOpenDate); ?>">next open day: <strong><?php echo e(date('D, M j', strtotime($nextOpenDate))); ?></strong></a><?php endif; ?></span>
                         </div>
                     <?php endif; ?>
                     <div class="slot-tabs" role="tablist" aria-label="Filter slots by time of day">
@@ -426,12 +422,6 @@ require __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </form>
 
-            <div class="bp-trust">
-                <span class="bp-trust-item"><i class="fa-solid fa-bolt"></i> Instant confirmation</span>
-                <span class="bp-trust-item"><i class="fa-solid fa-calendar-check"></i> Free cancellation up to 2 hours before kickoff</span>
-                <span class="bp-trust-item"><i class="fa-solid fa-wallet"></i> eSewa &bull; Khalti &bull; Pay at Venue</span>
-            </div>
-
             <?php
             $takenSlots = array_values(array_filter($slots, fn($s) => in_array($s['start'], $taken, true)));
             if ($takenSlots && (is_logged_in())) :
@@ -457,11 +447,11 @@ require __DIR__ . '/../includes/header.php';
                 <div class="waitlist-box">
                     <?php if (count($takenSlots) > 3): ?>
                         <details class="waitlist-details">
-                            <summary class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times — join a waitlist</summary>
+                            <summary class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times &middot; join a waitlist</summary>
                             <?php echo $wlList; ?>
                         </details>
                     <?php else: ?>
-                        <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times — join a waitlist</div>
+                        <div class="waitlist-head"><i class="fa-solid fa-bell"></i> Full times &middot; join a waitlist</div>
                         <?php echo $wlList; ?>
                     <?php endif; ?>
                 </div>
@@ -529,20 +519,13 @@ require __DIR__ . '/../includes/header.php';
         <div class="ground-map">
             <div class="ground-map-head"><i class="fa-solid fa-map-location-dot"></i> Where you'll play</div>
             <div class="ground-map-frame">
-                <?php if ($hasCoords): ?>
-                    <div id="groundMap" class="ground-map-canvas"
-                         data-lat="<?php echo (float)$ground['latitude']; ?>"
-                         data-lng="<?php echo (float)$ground['longitude']; ?>"
-                         role="img"
-                         aria-label="Map showing <?php echo e($ground['name']); ?>"></div>
-                <?php else: ?>
-                    <iframe
-                        src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
-                        width="100%" height="260" class="map-frame" allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"
-                        title="Map showing <?php echo e($ground['name']); ?>"></iframe>
-                <?php endif; ?>
+                <iframe
+                    src="<?php echo e('https://maps.google.com/maps?q=' . rawurlencode($mapQuery) . '&z=16&output=embed'); ?>"
+                    allowfullscreen loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Map showing <?php echo e($ground['name']); ?>"></iframe>
             </div>
+            <a class="ground-map-link" href="https://www.google.com/maps/dir/?api=1&destination=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener"><i class="fa-solid fa-route"></i> Get directions</a>
         </div>
         <?php if (!empty($ground['address'])): ?>
             <p class="about-address"><i class="fa-solid fa-location-dot"></i> <?php echo e($ground['address']); ?></p>
@@ -553,7 +536,6 @@ require __DIR__ . '/../includes/header.php';
 <div class="reviews-wrap reveal" id="reviews">
     <div class="reviews-horizon-head">
         <div class="rh-left">
-            <span class="rh-kicker">PLAYER FEEDBACK</span>
             <div class="rh-title-row">
                 <h2 class="rh-title">Reviews &amp; Ratings</h2>
                 <?php if ($rating['count'] > 0): ?>
@@ -661,7 +643,7 @@ require __DIR__ . '/../includes/header.php';
         <div class="reviews-empty-state">
             <i class="fa-regular fa-star"></i>
             <p class="res-title">No reviews yet</p>
-            <p class="res-sub">Be the first to review <?php echo e($ground['name']); ?> — book your match, then share how the pitch, lights and atmosphere felt.</p>
+            <p class="res-sub">Be the first to review <?php echo e($ground['name']); ?> &middot; book your match, then share how the pitch, lights and atmosphere felt.</p>
             <?php if (is_logged_in() && is_player()): ?>
                 <button type="button" class="btn btn-outline btn-sm" onclick="toggleReviewForm()">
                     <i class="fa-solid fa-pen-to-square"></i> Be the first to review
@@ -692,6 +674,9 @@ function toggleReviewForm() {
         <div class="grid grid-3 similar-grid">
             <?php foreach ($similar as $sg) { ground_card_html($sg); } ?>
         </div>
+        <div class="similar-all">
+            <a href="<?php echo grounds_list_url(); ?>" class="btn btn-outline">View all courts <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
     </section>
 <?php endif; ?>
 
@@ -712,23 +697,3 @@ function toggleReviewForm() {
 <div class="bp-bar-spacer"></div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
-<?php if ($hasCoords): ?>
-<script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
-<script>
-(function () {
-    var el = document.getElementById('groundMap');
-    if (!el || typeof L === 'undefined') return;
-    var lat = parseFloat(el.dataset.lat);
-    var lng = parseFloat(el.dataset.lng);
-    if (!isFinite(lat) || !isFinite(lng)) return;
-    var map = L.map(el, { scrollWheelZoom: false, attributionControl: true }).setView([lat, lng], 16);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-    }).addTo(map);
-    L.marker([lat, lng], {
-        icon: L.divIcon({ className: 'gs-map-pin', html: '<i></i>', iconSize: [18, 18], iconAnchor: [9, 17] })
-    }).addTo(map);
-})();
-</script>
-<?php endif; ?>

@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ---- Court card gallery: cover carousel with arrows, dots & swipe ---- */
+    /* ---- Court card gallery: cover carousel with arrows & swipe ---- */
     function getCardGallery(card) {
         const gal = card.querySelector('.card-gallery');
         if (!gal) return null;
@@ -309,22 +309,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const gal = getCardGallery(card);
         if (!gal) return;
         const imgs = gal._imgs;
-        const idx = ((i % imgs.length) + imgs.length) % imgs.length;
+        const idx = Math.min(Math.max(i, 0), imgs.length - 1);
         const cover = card.querySelector('.card-cover');
         if (cover && imgs[idx]) {
             cover.loading = 'eager';
             cover.src = imgs[idx];
         }
         gal._idx = idx;
-        gal.querySelectorAll('.card-dot').forEach(function (d, di) {
-            const on = di === idx;
-            d.classList.toggle('is-active', on);
-            if (on) {
-                d.setAttribute('aria-current', 'true');
-            } else {
-                d.removeAttribute('aria-current');
-            }
-        });
+        const cur = gal.querySelector('.gallery-counter-current');
+        if (cur) cur.textContent = String(idx + 1);
+        const prev = gal.querySelector('.card-gprev');
+        const next = gal.querySelector('.card-gnext');
+        if (prev) prev.hidden = idx <= 0;
+        if (next) next.hidden = idx >= imgs.length - 1;
     }
 
     function stepCardPhoto(card, dir) {
@@ -407,11 +404,11 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = card.getAttribute('data-href');
     });
 
-    /* Arrows & dots: step the card cover. */
+    /* Arrows: step the card cover. */
     document.addEventListener('click', function (e) {
         const t = e.target;
         if (!(t instanceof Element)) return;
-        const btn = t.closest('.card-gprev, .card-gnext, .card-dot');
+        const btn = t.closest('.card-gprev, .card-gnext');
         if (!btn) return;
         const card = btn.closest('.card[data-href]');
         if (!card) return;
@@ -419,17 +416,10 @@ document.addEventListener('DOMContentLoaded', function () {
         e.stopPropagation();
         const gal = getCardGallery(card);
         if (!gal) return;
-        if (btn.classList.contains('card-dot')) {
-            const dots = Array.prototype.slice.call(gal.querySelectorAll('.card-dot'));
-            const i = dots.indexOf(btn);
-            if (i > -1 && i !== gal._idx) {
-                if (gal._anim) finishCardSlide(card);
-                setCardPhoto(card, i);
-            }
-        } else if (btn.classList.contains('card-gprev')) {
-            cardSlideSwap(card, -1, 0);
+        if (btn.classList.contains('card-gprev')) {
+            if (gal._idx > 0) cardSlideSwap(card, -1, 0);
         } else {
-            cardSlideSwap(card, 1, 0);
+            if (gal._idx < gal._imgs.length - 1) cardSlideSwap(card, 1, 0);
         }
     });
 
@@ -475,7 +465,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(function () { cover.style.transition = ''; cover.style.transform = ''; }, 230);
                 return;
             }
-            cardSlideSwap(d.card, d.dx < 0 ? 1 : -1, d.dx);
+            const gal = getCardGallery(d.card);
+            const dir = d.dx < 0 ? 1 : -1;
+            const atEdge = !gal || (dir > 0 && gal._idx >= gal._imgs.length - 1) || (dir < 0 && gal._idx <= 0);
+            if (atEdge) {
+                cover.style.transition = 'transform .2s ease-out';
+                cover.style.transform = cardCoverTx(0);
+                setTimeout(function () { cover.style.transition = ''; cover.style.transform = ''; }, 230);
+                return;
+            }
+            cardSlideSwap(d.card, dir, d.dx);
         }
         document.addEventListener('pointerup', endDrag);
         document.addEventListener('pointercancel', endDrag);

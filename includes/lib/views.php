@@ -127,16 +127,9 @@ function ground_card_html(array $ground, array|string|null $availability = null,
             <?php if (count($gallery) > 1): ?>
                 <?php $galUrls = []; foreach ($gallery as $gimg) { $galUrls[] = base_url('uploads/grounds/' . rawurlencode($gimg)); } ?>
                 <div class="card-gallery" role="group" aria-label="Photos of <?php echo e($ground['name']); ?>" data-images="<?php echo e(json_encode($galUrls)); ?>">
-                    <button type="button" class="card-gnav card-gprev" aria-label="Previous photo" title="Previous photo"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                    <button type="button" class="card-gnav card-gprev" aria-label="Previous photo" title="Previous photo" hidden><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
                     <button type="button" class="card-gnav card-gnext" aria-label="Next photo" title="Next photo"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
-                    <div class="card-dots">
-                        <?php foreach ($galUrls as $gi => $gurl): ?>
-                            <button type="button"
-                                    class="card-dot<?php echo $gi === 0 ? ' is-active' : ''; ?>"
-                                    aria-label="Show photo <?php echo $gi + 1; ?> of <?php echo e($ground['name']); ?>"
-                                    <?php echo $gi === 0 ? 'aria-current="true"' : ''; ?>></button>
-                        <?php endforeach; ?>
-                    </div>
+                    <span class="gallery-counter"><span class="gallery-counter-current">1</span>&nbsp;/&nbsp;<span class="gallery-counter-total"><?php echo count($galUrls); ?></span></span>
                 </div>
             <?php endif; ?>
         </div>

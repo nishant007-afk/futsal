@@ -120,21 +120,15 @@ $pageBackUrl = base_url('index.php');
     <meta name="twitter:image" content="<?php echo $og_image; ?>">
     <link rel="canonical" href="<?php echo $og_url; ?>">
     <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
-    <link rel="manifest" href="<?php echo base_url('manifest.json'); ?>">
     <meta name="theme-color" content="#0a120e">
     <meta name="color-scheme" content="light dark">
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('<?php echo base_url('sw.js'); ?>').catch(() => {});
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          for (var r of regs) { r.unregister(); }
         });
       }
     </script>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GoalSpace">
-    <link rel="apple-touch-icon" href="<?php echo base_url('assets/img/icon-192.png'); ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" crossorigin="anonymous">

@@ -111,10 +111,7 @@ foreach ($gridGrounds as $g) {
 
 <section class="hero hero--tubik">
     <div class="tubik-backdrop">
-        <picture>
-            <source type="image/webp" srcset="<?php echo base_url('assets/img/hero-futsal-arena-640.webp'); ?> 640w, <?php echo base_url('assets/img/hero-futsal-arena-960.webp'); ?> 960w, <?php echo base_url('assets/img/hero-futsal-arena-1376.webp'); ?> 1376w" sizes="100vw">
-            <img src="<?php echo base_url('assets/img/hero-futsal-arena.jpg'); ?>" alt="Floodlit futsal arena with players mid-match" class="tubik-backdrop-img" width="1376" height="768" fetchpriority="high">
-        </picture>
+        <img src="<?php echo base_url('assets/img/hero-futsal-floodlights.jpg'); ?>" alt="Futsal court at night under floodlights" class="tubik-backdrop-img" width="1920" height="1280" fetchpriority="high">
     </div>
     <div class="container hero-tubik-grid">
         <div class="hero-left hero-tubik-left">

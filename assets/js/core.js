@@ -1805,9 +1805,4 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     });
-
-    if ('serviceWorker' in navigator) {
-        var swBase = document.body.getAttribute('data-base') || '';
-        navigator.serviceWorker.register(swBase + '/sw.js').catch(function () {});
-    }
 });

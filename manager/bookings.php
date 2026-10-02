@@ -334,52 +334,54 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="courts-toolbar reveal" style="margin-bottom:18px;">
+<div class="courts-toolbar reveal">
     <form method="get" action="<?php echo base_url('manager/bookings.php'); ?>" class="courts-search">
-        <input type="hidden" name="view" value="<?php echo e($view); ?>">
-        <div class="search-field" style="flex: 1.5; min-width: 180px;">
-            <label for="managerSearch">Search</label>
-            <input type="text" id="managerSearch" name="search" placeholder="Player, court, or ref..." value="<?php echo e($f_search); ?>" autocomplete="off">
-        </div>
-        <div class="search-field">
-            <label for="fGround">Ground</label>
-            <select id="fGround" name="ground">
-                <option value="0">All grounds</option>
-                <?php foreach ($myGrounds as $mg): ?>
-                    <option value="<?php echo (int)$mg['id']; ?>" <?php echo $f_ground === (int)$mg['id'] ? 'selected' : ''; ?>><?php echo e($mg['name']); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="search-field">
-            <label for="fDateFrom">From</label>
-            <input type="date" id="fDateFrom" name="date_from" value="<?php echo e($f_date_from); ?>">
-        </div>
-        <div class="search-field">
-            <label for="fDateTo">To</label>
-            <input type="date" id="fDateTo" name="date_to" value="<?php echo e($f_date_to); ?>">
-        </div>
-        <div class="search-field">
-            <label for="fStatus">Status</label>
-            <select id="fStatus" name="status">
-                <option value="">All statuses</option>
-                <option value="confirmed" <?php echo $f_status === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                <option value="cancelled" <?php echo $f_status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-            </select>
-        </div>
-        <div class="search-field">
-            <label for="fPayment">Payment</label>
-            <select id="fPayment" name="payment">
-                <option value="">Any payment</option>
-                <option value="unpaid" <?php echo $f_payment === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
-                <option value="partial" <?php echo $f_payment === 'partial' ? 'selected' : ''; ?>>Partial</option>
-                <option value="paid" <?php echo $f_payment === 'paid' ? 'selected' : ''; ?>>Paid</option>
-            </select>
-        </div>
-        <div class="toolbar-actions">
-            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-            <?php if ($hasFilters): ?>
-                <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline btn-sm">Clear</a>
-            <?php endif; ?>
+        <div class="toolbar-flex-main">
+            <input type="hidden" name="view" value="<?php echo e($view); ?>">
+            <div class="search-field sf-grow">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="managerSearch" name="search" placeholder="Player, court, or ref..." value="<?php echo e($f_search); ?>" autocomplete="off" aria-label="Search bookings">
+            </div>
+            <div class="search-field">
+                <i class="fa-solid fa-store" aria-hidden="true"></i>
+                <select id="fGround" name="ground" aria-label="Filter by ground">
+                    <option value="0">All grounds</option>
+                    <?php foreach ($myGrounds as $mg): ?>
+                        <option value="<?php echo (int)$mg['id']; ?>" <?php echo $f_ground === (int)$mg['id'] ? 'selected' : ''; ?>><?php echo e($mg['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="search-field">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                <input type="date" id="fDateFrom" name="date_from" value="<?php echo e($f_date_from); ?>" aria-label="From date" title="From date">
+            </div>
+            <div class="search-field">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                <input type="date" id="fDateTo" name="date_to" value="<?php echo e($f_date_to); ?>" aria-label="To date" title="To date">
+            </div>
+            <div class="search-field">
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <select id="fStatus" name="status" aria-label="Filter by status">
+                    <option value="">All statuses</option>
+                    <option value="confirmed" <?php echo $f_status === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                    <option value="cancelled" <?php echo $f_status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                </select>
+            </div>
+            <div class="search-field">
+                <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                <select id="fPayment" name="payment" aria-label="Filter by payment">
+                    <option value="">Any payment</option>
+                    <option value="unpaid" <?php echo $f_payment === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
+                    <option value="partial" <?php echo $f_payment === 'partial' ? 'selected' : ''; ?>>Partial</option>
+                    <option value="paid" <?php echo $f_payment === 'paid' ? 'selected' : ''; ?>>Paid</option>
+                </select>
+            </div>
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <?php if ($hasFilters): ?>
+                    <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline btn-sm">Clear</a>
+                <?php endif; ?>
+            </div>
         </div>
     </form>
 </div>

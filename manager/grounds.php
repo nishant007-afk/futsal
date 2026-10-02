@@ -460,7 +460,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="managed-courts-section">
     <div class="courts-section-header">
         <div>
-            <h3>Your Managed Grounds (<?php echo count($grounds); ?>)</h3>
+            <h3 class="dash-section" style="margin:0;">Your Managed Grounds (<?php echo count($grounds); ?>)</h3>
         </div>
     </div>
 
@@ -704,19 +704,19 @@ require __DIR__ . '/../includes/header.php';
     margin-top: 1px;
 }
 .managed-courts-section {
-    margin-top: 48px;
-    border-top: 2px solid var(--line);
-    padding-top: 28px;
+    margin-top: 36px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
 }
 .courts-section-header {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 .mbooking.is-current-editing {
     border-color: var(--brand);
     background: var(--brand-soft);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1080px) {
     .court-editor-container {
         grid-template-columns: minmax(0, 1fr);
     }

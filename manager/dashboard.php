@@ -226,7 +226,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <h3 class="reveal dash-section" id="todaySlots">Today's Court Capacity</h3>
-<div class="chart-wrap reveal" style="margin-bottom:28px;">
+<div class="chart-wrap reveal">
     <div class="chart-legend">
         <span>Slot Utilization</span>
         <span class="strong"><?php echo $todaySlotBooked; ?> of <?php echo $todaySlotTotal; ?> hours booked</span>
@@ -250,7 +250,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <h3 class="reveal dash-section">Booking Activity &amp; Revenue</h3>
-<div class="chart-wrap reveal" style="margin-bottom:28px;">
+<div class="chart-wrap reveal">
     <div class="chart-legend">
         <span>Last <?php echo $days; ?> days</span>
         <span class="strong"><?php echo format_price($weekRevenue); ?> gross &middot; <?php echo (int)array_sum(array_column($weekDays, 'count')); ?> bookings</span>
@@ -273,7 +273,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <h3 class="reveal dash-section">Financial Summary</h3>
-<div class="table-wrap reveal" style="margin-bottom:28px;">
+<div class="table-wrap reveal">
     <table class="data-table">
         <thead>
             <tr>
@@ -315,7 +315,7 @@ require __DIR__ . '/../includes/header.php';
     </table>
 </div>
 
-<h3 class="reveal block-title">Payout History</h3>
+<h3 class="reveal dash-section">Payout History</h3>
 <div class="table-wrap reveal">
     <table class="data-table">
         <thead>
@@ -351,18 +351,18 @@ require __DIR__ . '/../includes/header.php';
     </table>
 </div>
 
-<h3 class="reveal block-title">Today's Bookings</h3>
+<h3 class="reveal dash-section">Today's Bookings</h3>
 <?php if (!$todayList): ?>
     <?php empty_state('fa-regular fa-calendar-check', 'Nothing booked today', "Today's bookings on your grounds will appear here."); ?>
 <?php else: ?>
-    <div class="mbookings reveal" style="margin-bottom:30px;">
+    <div class="mbookings reveal">
         <?php foreach ($todayList as $b): ?>
             <?php booking_card_mini($b, 'user'); ?>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
 
-<h3 class="reveal block-title">Recent Bookings on My Grounds</h3>
+<h3 class="reveal dash-section">Recent Bookings on My Grounds</h3>
 <?php if (!$recent): ?>
     <?php empty_state('fa-regular fa-calendar-xmark', 'No bookings yet', 'New bookings on your grounds will appear here.'); ?>
 <?php else: ?>

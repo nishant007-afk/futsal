@@ -146,26 +146,28 @@ require __DIR__ . '/../includes/header.php';
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-<div class="table-toolbar reveal" style="margin-bottom:18px;">
-    <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search" style="max-width:640px;">
-        <div class="search-field" style="flex:1.5;">
-            <label for="uSearch">Search</label>
-            <input type="text" id="uSearch" name="search" placeholder="Name or email..." value="<?php echo e($search); ?>">
-        </div>
-        <div class="search-field">
-            <label for="uRole">Role</label>
-            <select id="uRole" name="role">
-                <option value="">All roles</option>
-                <option value="user" <?php echo $roleFilter === 'user' ? 'selected' : ''; ?>>Player</option>
-                <option value="manager" <?php echo $roleFilter === 'manager' ? 'selected' : ''; ?>>Manager</option>
-                <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>>Admin</option>
-            </select>
-        </div>
-        <div class="toolbar-actions">
-            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-            <?php if ($search !== '' || $roleFilter !== ''): ?>
-                <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline btn-sm">Clear</a>
-            <?php endif; ?>
+<div class="courts-toolbar reveal">
+    <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search">
+        <div class="toolbar-flex-main">
+            <div class="search-field sf-grow">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="uSearch" name="search" placeholder="Search name or email..." value="<?php echo e($search); ?>" autocomplete="off" aria-label="Search name or email">
+            </div>
+            <div class="search-field">
+                <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
+                <select id="uRole" name="role" aria-label="Filter by role">
+                    <option value="">All roles</option>
+                    <option value="user" <?php echo $roleFilter === 'user' ? 'selected' : ''; ?>>Player</option>
+                    <option value="manager" <?php echo $roleFilter === 'manager' ? 'selected' : ''; ?>>Manager</option>
+                    <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                </select>
+            </div>
+            <div class="toolbar-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <?php if ($search !== '' || $roleFilter !== ''): ?>
+                    <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline btn-sm">Clear</a>
+                <?php endif; ?>
+            </div>
         </div>
     </form>
 </div>

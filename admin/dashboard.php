@@ -112,9 +112,6 @@ require __DIR__ . '/../includes/header.php';
         <p class="stat-amount"><?php echo format_price($managerPayout); ?></p>
         <span class="muted">Payable to court owners</span>
     </div>
-</div>
-
-<div class="stat-grid" style="margin-top: -12px;">
     <div class="stat reveal">
         <h3>Total Courts</h3>
         <p><?php echo $totalGrounds; ?></p>

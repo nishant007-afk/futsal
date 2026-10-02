@@ -461,6 +461,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<h3 class="reveal dash-section">All Listed Courts (<?php echo count($grounds); ?>)</h3>
 <div class="mbookings reveal">
     <?php foreach ($grounds as $g): ?>
         <div class="mbooking">

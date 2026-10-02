@@ -123,23 +123,23 @@ require __DIR__ . '/../includes/header.php';
                         <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" placeholder="e.g. KickOff Arena Court 1" required>
                         <?php field_error($errors, 'name'); ?>
                     </div>
+                    <div class="form-group">
+                        <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
+                        <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Pitch A">
+                    </div>
                     <div class="form-group<?php echo has_error($errors, 'location'); ?>">
                         <label for="location">Neighborhood / Area <span class="req">*</span></label>
                         <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" placeholder="e.g. Baneshwor, Kathmandu" required>
                         <?php field_error($errors, 'location'); ?>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">Full Street Address</label>
-                        <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. Madan Bhandari Path, New Baneshwor">
                     </div>
                     <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
                         <label for="capacity">Player Capacity <span class="req">*</span></label>
                         <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder="10 (for 5v5)" required>
                         <?php field_error($errors, 'capacity'); ?>
                     </div>
-                    <div class="form-group">
-                        <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
-                        <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Pitch A">
+                    <div class="form-group span-full">
+                        <label for="address">Full Street Address</label>
+                        <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. Madan Bhandari Path, New Baneshwor">
                     </div>
                 </div>
                 <div class="form-group">
@@ -510,8 +510,8 @@ require __DIR__ . '/../includes/header.php';
 <style>
 .court-editor-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 26px;
     align-items: start;
     margin-top: 14px;
     margin-bottom: 40px;
@@ -578,8 +578,66 @@ require __DIR__ . '/../includes/header.php';
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: var(--r-lg);
-    padding: 24px;
+    padding: 28px 28px;
     animation: fadeInTab 0.18s ease;
+    box-sizing: border-box;
+}
+.editor-panel-card .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+}
+.editor-panel-card .form-group {
+    margin-bottom: 18px;
+    min-width: 0;
+}
+.editor-panel-card .span-full {
+    grid-column: 1 / -1;
+}
+.editor-panel-card .form-group label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+}
+.editor-panel-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.editor-panel-card select,
+.editor-panel-card textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 46px;
+    padding: 11px 15px !important;
+    font-size: 15px !important;
+    font-family: inherit;
+    color: var(--ink) !important;
+    background: var(--bg) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.editor-panel-card input:focus,
+.editor-panel-card select:focus,
+.editor-panel-card textarea:focus {
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px var(--brand-soft) !important;
+    background: #ffffff !important;
+    outline: none !important;
+}
+.editor-panel-card textarea {
+    min-height: 100px;
+    line-height: 1.5;
+}
+@media (max-width: 768px) {
+    .editor-panel-card .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .editor-panel-card {
+        padding: 20px 16px;
+    }
 }
 @keyframes fadeInTab {
     from { opacity: 0; transform: translateY(3px); }

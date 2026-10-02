@@ -22,7 +22,7 @@ if (in_array($active, ['ground.php', 'courts.php', 'book.php', 'payment.php', 'r
 }
 
 $scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
-$has_sidebar = $site_user && in_array($site_user['role'], ['manager', 'admin'], true) && in_array($scriptDir, ['manager', 'admin'], true);
+$has_sidebar = $site_user && $site_user['role'] === 'admin' && in_array($scriptDir, ['admin'], true);
 
 $role_label = $site_user ? ucfirst($site_user['role']) : '';
 $body_role = $site_user ? $site_user['role'] : 'guest';
@@ -301,12 +301,7 @@ $pageBackUrl = base_url('index.php');
             <i class="fa-solid fa-angles-left"></i>
         </button>
     </div>
-    <?php if ($site_user && $site_user['role'] === 'manager'): ?>
-        <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> <span class="nav-label">My Grounds</span></a>
-        <a href="<?php echo base_url('manager/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> <span class="nav-label">Bookings</span></a>
-        <a href="<?php echo base_url('manager/subscription.php'); ?>" class="<?php echo $active === 'subscription.php' ? 'active' : ''; ?>"><i class="fa-solid fa-receipt"></i> <span class="nav-label">Subscription</span></a>
-    <?php elseif ($site_user && $site_user['role'] === 'admin'): ?>
+    <?php if ($site_user && $site_user['role'] === 'admin'): ?>
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
         <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>"><i class="fa-solid fa-users"></i> <span class="nav-label">Users</span></a>
         <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> <span class="nav-label">Grounds</span></a>

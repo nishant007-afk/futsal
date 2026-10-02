@@ -103,6 +103,8 @@ $f_date_to = trim($_GET['date_to'] ?? '');
 $f_status = trim($_GET['status'] ?? '');
 $f_payment = trim($_GET['payment'] ?? '');
 $f_ground = (int)($_GET['ground'] ?? 0);
+$f_search = trim($_GET['search'] ?? '');
+if (mb_strlen($f_search) > 60) { $f_search = mb_substr($f_search, 0, 60); }
 $view = trim($_GET['view'] ?? 'bookings'); // 'bookings' or 'waitlist'
 $quick = trim($_GET['quick'] ?? ''); // 'today' | 'upcoming' | 'unpaid'
 if (!in_array($quick, ['', 'today', 'upcoming', 'unpaid'], true)) {
@@ -140,6 +142,14 @@ if (!in_array($view, ['bookings', 'waitlist'], true)) {
 $where = ['g.manager_id = ' . (int)$_SESSION['user_id']];
 $params = [];
 $types = '';
+if ($f_search !== '') {
+    $where[] = '(u.name LIKE ? OR g.name LIKE ? OR b.booking_ref LIKE ?)';
+    $sLike = '%' . $f_search . '%';
+    $params[] = $sLike;
+    $params[] = $sLike;
+    $params[] = $sLike;
+    $types .= 'sss';
+}
 if ($f_date_from !== '') {
     $where[] = 'b.booking_date >= ?';
     $params[] = $f_date_from;
@@ -299,9 +309,10 @@ if (isset($_GET['export'])) {
     export_csv($csvData, 'bookings.csv');
 }
 
-$hasFilters = $f_date_from !== '' || $f_date_to !== '' || $f_status !== '' || $f_payment !== '' || $f_ground > 0;
+$hasFilters = $f_search !== '' || $f_date_from !== '' || $f_date_to !== '' || $f_status !== '' || $f_payment !== '' || $f_ground > 0;
 
 $baseFilters = [];
+if ($f_search !== '') { $baseFilters['search'] = $f_search; }
 if ($f_date_from !== '') { $baseFilters['date_from'] = $f_date_from; }
 if ($f_date_to !== '') { $baseFilters['date_to'] = $f_date_to; }
 if ($f_status !== '') { $baseFilters['status'] = $f_status; }
@@ -318,21 +329,18 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <h1 class="page-title">Bookings on My Grounds</h1>
         <div class="actions">
-            <a href="<?php echo base_url('manager/bookings.php?export=1' . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : '')); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="<?php echo base_url('manager/bookings.php?export=1' . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : '')); ?>" class="btn btn-outline btn-sm">Export CSV</a>
         </div>
     </div>
 </div>
 
-<div class="table-toolbar reveal">
-    <div class="search-pill">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="managerSearch" aria-label="Search bookings by ground, player, or reference" placeholder="Search bookings by ground, player, ref..." autocomplete="off">
-        <i class="fa-regular fa-circle-xmark" id="managerClear" role="button" aria-label="Clear search"></i>
-    </div>
-</div>
-
-<div class="courts-toolbar reveal">
+<div class="courts-toolbar reveal" style="margin-bottom:18px;">
     <form method="get" action="<?php echo base_url('manager/bookings.php'); ?>" class="courts-search">
+        <input type="hidden" name="view" value="<?php echo e($view); ?>">
+        <div class="search-field" style="flex: 1.5; min-width: 180px;">
+            <label for="managerSearch">Search</label>
+            <input type="text" id="managerSearch" name="search" placeholder="Player, court, or ref..." value="<?php echo e($f_search); ?>" autocomplete="off">
+        </div>
         <div class="search-field">
             <label for="fGround">Ground</label>
             <select id="fGround" name="ground">
@@ -367,10 +375,12 @@ require __DIR__ . '/../includes/header.php';
                 <option value="paid" <?php echo $f_payment === 'paid' ? 'selected' : ''; ?>>Paid</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
-        <?php if ($hasFilters): ?>
-            <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
-        <?php endif; ?>
+        <div class="toolbar-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <?php if ($hasFilters): ?>
+                <a href="<?php echo base_url('manager/bookings.php?view=' . $view); ?>" class="btn btn-outline btn-sm">Clear</a>
+            <?php endif; ?>
+        </div>
     </form>
 </div>
 

@@ -138,19 +138,19 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <h1 class="page-title">Manage Users</h1>
         <div class="actions">
-            <a href="<?php echo base_url('admin/users.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
-            <a href="<?php echo base_url('admin/users.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="<?php echo base_url('admin/users.php?export_excel=1'); ?>" class="btn btn-outline btn-sm">Export Excel</a>
+            <a href="<?php echo base_url('admin/users.php?export=1'); ?>" class="btn btn-outline btn-sm">Export CSV</a>
         </div>
     </div>
 </div>
 
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-<div class="table-toolbar reveal" style="margin-bottom:14px;">
+<div class="table-toolbar reveal" style="margin-bottom:18px;">
     <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search" style="max-width:640px;">
-        <div class="search-field">
+        <div class="search-field" style="flex:1.5;">
             <label for="uSearch">Search</label>
-            <input type="text" id="uSearch" name="search" placeholder="Name or email" value="<?php echo e($search); ?>">
+            <input type="text" id="uSearch" name="search" placeholder="Name or email..." value="<?php echo e($search); ?>">
         </div>
         <div class="search-field">
             <label for="uRole">Role</label>
@@ -162,9 +162,9 @@ require __DIR__ . '/../includes/header.php';
             </select>
         </div>
         <div class="toolbar-actions">
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
             <?php if ($search !== '' || $roleFilter !== ''): ?>
-                <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+                <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline btn-sm">Clear</a>
             <?php endif; ?>
         </div>
     </form>
@@ -187,16 +187,15 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
             <?php foreach ($users as $u): ?>
                 <tr>
-                    <td data-label="Name"><?php echo e($u['name']); ?></td>
+                    <td data-label="Name" class="strong"><?php echo e($u['name']); ?></td>
                     <td data-label="Email"><?php echo e($u['email']); ?></td>
-                    <td data-label="Role"><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo e($u['role']); ?></span></td>
+                    <td data-label="Role"><span class="badge badge-<?php echo e($u['role']); ?>"><?php echo ucfirst(e($u['role'])); ?></span></td>
                     <td class="num" data-label="Grounds Owned"><?php echo (int)$u['grounds_owned']; ?></td>
                     <td data-label="">
                         <div class="actions">
                             <form method="post" action="" class="role-switch<?php echo (int)$u['id'] === $affectedId ? ' has-error' : ''; ?>" data-role="<?php echo e($u['role']); ?>">
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
-                                <span class="role-icon"><i class="fa-solid fa-user-tag"></i></span>
                                 <select name="role" data-role-select aria-label="Change role for <?php echo e($u['name']); ?>">
                                     <?php $selRole = ((int)$u['id'] === $affectedId && !empty($old['role'])) ? (string)$old['role'] : $u['role']; ?>
                                     <?php foreach (['user' => 'Player', 'manager' => 'Manager', 'admin' => 'Admin'] as $val => $label): ?>
@@ -212,7 +211,7 @@ require __DIR__ . '/../includes/header.php';
                                 <form method="post" action="" style="display:inline;" data-confirm="Are you sure you want to delete this user? All their data will be removed." data-confirm-title="Delete user" data-confirm-ok="Yes, delete" data-confirm-cancel="No">
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="delete_user" value="<?php echo (int)$u['id']; ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete user"><i class="fa-solid fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-outline btn-sm" title="Delete user" aria-label="Delete user" style="color:var(--danger); border-color:var(--line);"><i class="fa-solid fa-trash"></i></button>
                                 </form>
                             <?php endif; ?>
                         </div>

@@ -79,38 +79,69 @@ $page_title = 'Admin Dashboard';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <h1 class="page-title">Admin Dashboard</h1>
+<div class="page-head dash-page-head">
+    <div>
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="muted" style="margin-top:4px; font-size:14px;">Platform financials, active courts, and system overview</p>
+    </div>
+    <div class="actions">
+        <a href="<?php echo base_url('admin/grounds.php'); ?>" class="btn btn-outline btn-sm">Courts</a>
+        <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline btn-sm">Users</a>
+        <a href="<?php echo base_url('admin/bookings.php'); ?>" class="btn btn-primary btn-sm">All Bookings</a>
+    </div>
 </div>
 
 <div class="stat-grid">
     <div class="stat reveal">
-        <h3>Bookings Revenue</h3><p class="stat-amount"><?php echo format_price($revenue); ?></p>
+        <h3>Bookings Revenue</h3>
+        <p class="stat-amount"><?php echo format_price($revenue); ?></p>
+        <span class="muted"><?php echo $totalBookings; ?> total confirmed bookings</span>
     </div>
     <div class="stat reveal">
-        <h3>Subscription Revenue</h3><p class="stat-amount"><?php echo format_price($subRevenue); ?></p>
+        <h3>Platform Take</h3>
+        <p class="stat-amount"><?php echo format_price($platformTake); ?></p>
+        <span class="muted"><?php echo (int)platform_fee_percent(); ?>% fee on bookings</span>
     </div>
     <div class="stat reveal">
-        <h3>Platform Fees</h3><p class="stat-amount"><?php echo format_price($platformTake); ?></p>
-        <span class="muted" style="font-size:12px;"><?php echo (int)platform_fee_percent(); ?>% of gross bookings</span>
+        <h3>Subscription Revenue</h3>
+        <p class="stat-amount"><?php echo format_price($subRevenue); ?></p>
+        <span class="muted"><?php echo $setupCollected; ?> setup fees collected</span>
     </div>
     <div class="stat reveal">
-        <h3>Manager Payouts</h3><p class="stat-amount"><?php echo format_price($managerPayout); ?></p>
-        <span class="muted" style="font-size:12px;">to be paid out to court owners</span>
+        <h3>Manager Payouts</h3>
+        <p class="stat-amount"><?php echo format_price($managerPayout); ?></p>
+        <span class="muted">Payable to court owners</span>
     </div>
 </div>
 
-<div class="grid grid-3 reveal mt-20">
-    <div class="card-mini"><div class="mini-icon admin"><i class="fa-solid fa-file-invoice-dollar"></i></div><span>Setup paid</span><strong><?php echo $setupCollected; ?> / <?php echo $managerCount; ?></strong></div>
-    <div class="card-mini"><div class="mini-icon manager"><i class="fa-solid fa-circle-check"></i></div><span>Active subs</span><strong><?php echo $activeSubs; ?></strong></div>
-    <div class="card-mini"><div class="mini-icon user"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Overdue</span><strong><?php echo $overdueSubs; ?></strong></div>
+<div class="stat-grid" style="margin-top: -12px;">
+    <div class="stat reveal">
+        <h3>Total Courts</h3>
+        <p><?php echo $totalGrounds; ?></p>
+        <span class="muted">Across <?php echo $managerCount; ?> manager<?php echo $managerCount === 1 ? '' : 's'; ?></span>
+    </div>
+    <div class="stat reveal">
+        <h3>Platform Players</h3>
+        <p><?php echo $roleMap['user'] ?? $totalUsers; ?></p>
+        <span class="muted"><?php echo $totalUsers; ?> total registered accounts</span>
+    </div>
+    <div class="stat reveal">
+        <h3>Active Subscriptions</h3>
+        <p><?php echo $activeSubs; ?></p>
+        <span class="muted"><?php echo $setupCollected; ?> / <?php echo $managerCount; ?> managers setup</span>
+    </div>
+    <div class="stat reveal">
+        <h3>Overdue Accounts</h3>
+        <p style="color: <?php echo $overdueSubs > 0 ? 'var(--warn)' : 'var(--ink)'; ?>;"><?php echo $overdueSubs; ?></p>
+        <span class="muted"><?php echo $overdueSubs > 0 ? 'Requires subscription renewal' : 'All accounts current'; ?></span>
+    </div>
 </div>
 
 <?php if ($setupPending): ?>
     <div class="attention-strip reveal">
         <a href="<?php echo base_url('admin/settlements.php'); ?>" class="attention-item">
             <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span><strong><?php echo count($setupPending); ?> manager<?php echo count($setupPending) > 1 ? "s haven't" : " hasn't"; ?> paid the setup fee</strong> <em><?php echo e(implode(', ', array_map(fn($m) => $m['name'], array_slice($setupPending, 0, 3)))); ?><?php echo count($setupPending) > 3 ? ' +' . (count($setupPending) - 3) . ' more' : ''; ?></em></span>
+            <span><strong><?php echo count($setupPending); ?> manager<?php echo count($setupPending) > 1 ? "s haven't" : " hasn't"; ?> paid the setup fee:</strong> <em><?php echo e(implode(', ', array_map(fn($m) => $m['name'], array_slice($setupPending, 0, 3)))); ?><?php echo count($setupPending) > 3 ? ' +' . (count($setupPending) - 3) . ' more' : ''; ?></em></span>
             <i class="fa-solid fa-arrow-right attention-go"></i>
         </a>
     </div>
@@ -118,20 +149,28 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="dash-grid reveal">
     <div class="chart-card">
-        <h3 class="chart-title">Revenue, last 6 months</h3>
-        <div class="bar-chart">
+        <div class="chart-title">
+            <span>Revenue (Last 6 Months)</span>
+            <span class="muted" style="font-weight: 500; font-size: 13px;">Monthly gross</span>
+        </div>
+        <div class="bar-chart" role="img" aria-label="Monthly revenue">
             <?php foreach ($months as $ym => $m): ?>
-                <div class="bar-col" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['gross'], 0); ?> (<?php echo $m['count']; ?> bookings)">
-                    <div class="bar" style="height: <?php echo round($m['gross'] / $maxGross * 100, 1); ?>%;"></div>
-                    <span class="bar-label"><?php echo e($m['label']); ?></span>
+                <?php $pct = $maxGross > 0 ? round(($m['gross'] / $maxGross) * 100, 1) : 0; ?>
+                <div class="bar-group" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['gross'], 0); ?> (<?php echo $m['count']; ?> bookings)">
+                    <div class="bar-track"><div class="bar-fill" style="height:<?php echo max((int)$pct, 6); ?>%;"></div></div>
+                    <div class="bar-value"><?php echo $m['gross'] > 0 ? 'Rs ' . number_format($m['gross'] / 1000, 0) . 'k' : '-'; ?></div>
+                    <div class="bar-label"><?php echo e($m['label']); ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
     <div class="chart-card">
-        <h3 class="chart-title">Top grounds by revenue</h3>
+        <div class="chart-title">
+            <span>Top Courts by Revenue</span>
+            <span class="muted" style="font-weight: 500; font-size: 13px;">Confirmed total</span>
+        </div>
         <?php if (!$topGrounds): ?>
-            <p class="muted" style="padding:10px 0;">No revenue yet.</p>
+            <p class="muted" style="padding:10px 0;">No revenue recorded yet.</p>
         <?php else: ?>
             <div class="top-grounds">
                 <?php foreach ($topGrounds as $i => $tg): ?>

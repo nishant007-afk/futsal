@@ -20,7 +20,7 @@ $paidCount = $conn->query("SELECT COUNT(*) c FROM bookings WHERE ground_id IN ($
 $revenue = $conn->query("SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE ground_id IN ($idList) AND status != 'cancelled'")->fetch_assoc()['s'];
 $startDate = date('Y-m-d', strtotime('-' . ($days - 1) . ' days'));
 $countsQuery = $conn->query("
-    SELECT booking_date, COUNT(*) c
+    SELECT booking_date, COUNT(*) c, COALESCE(SUM(total_price), 0) rev
     FROM bookings
     WHERE ground_id IN ($idList)
       AND booking_date >= '$startDate'
@@ -29,9 +29,11 @@ $countsQuery = $conn->query("
     GROUP BY booking_date
 ");
 $dateCounts = [];
+$dateRevs = [];
 if ($countsQuery) {
     while ($row = $countsQuery->fetch_assoc()) {
         $dateCounts[$row['booking_date']] = (int)$row['c'];
+        $dateRevs[$row['booking_date']] = (float)$row['rev'];
     }
 }
 
@@ -40,7 +42,8 @@ $weekMax = 1;
 for ($d = $days - 1; $d >= 0; $d--) {
     $day = date('Y-m-d', strtotime("-$d days"));
     $c = $dateCounts[$day] ?? 0;
-    $weekDays[] = ['day' => date('D', strtotime($day)), 'short' => date('M j', strtotime($day)), 'count' => $c];
+    $r = $dateRevs[$day] ?? 0.0;
+    $weekDays[] = ['day' => date('D', strtotime($day)), 'short' => date('M j', strtotime($day)), 'count' => $c, 'rev' => $r];
     if ($c > $weekMax) { $weekMax = $c; }
 }
 $weekRevenue = (float)$conn->query("SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE ground_id IN ($idList) AND booking_date >= CURDATE() - INTERVAL " . ($days - 1) . " DAY AND status != 'cancelled'")->fetch_assoc()['s'];
@@ -150,19 +153,21 @@ $page_title = 'Manager Dashboard';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="page-head">
-    <h1 class="page-title">Manager Dashboard</h1>
+<div class="page-head dash-page-head">
+    <div>
+        <h1 class="page-title">Manager Dashboard</h1>
+        <p class="muted" style="margin-top:4px; font-size:14px;">Court availability, booking activity, and earnings overview</p>
+    </div>
     <div class="actions">
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Ground</a>
-        <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> All Bookings</a>
+        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm">+ Add Ground</a>
+        <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm">All Bookings</a>
     </div>
 </div>
 
 <?php if (!$subStatus['active']): ?>
     <div class="toast toast-warning toast-inline reveal" role="status">
-        <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
         <div class="toast-content">
-            <div class="toast-msg"><?php echo e($subStatus['label']); ?> - your courts are hidden from players. Pay the setup fee or renew your monthly service charge to go live again. Contact the platform admin.</div>
+            <div class="toast-msg"><strong>Subscription Alert:</strong> <?php echo e($subStatus['label']); ?> &ndash; your courts are hidden from players. Pay the setup fee or renew your monthly service charge to go live again.</div>
         </div>
     </div>
 <?php endif; ?>
@@ -172,13 +177,13 @@ require __DIR__ . '/../includes/header.php';
         <?php if ($attentionUnpaid): ?>
             <a href="<?php echo base_url('manager/bookings.php?payment=unpaid&status=confirmed'); ?>" class="attention-item">
                 <i class="fa-solid fa-wallet"></i>
-                <span><strong><?php echo count($attentionUnpaid); ?> booking<?php echo count($attentionUnpaid) > 1 ? 's need' : ' needs'; ?> payment</strong> <em>Latest: <?php echo e($attentionUnpaid[0]['user_name']); ?> (<?php echo e($attentionUnpaid[0]['ground_name']); ?>)</em></span>
+                <span><strong><?php echo count($attentionUnpaid); ?> booking<?php echo count($attentionUnpaid) > 1 ? 's need' : ' needs'; ?> payment:</strong> <em>Latest: <?php echo e($attentionUnpaid[0]['user_name']); ?> &middot; <?php echo e($attentionUnpaid[0]['ground_name']); ?></em></span>
                 <i class="fa-solid fa-arrow-right attention-go"></i>
             </a>
         <?php endif; ?>
         <?php if ($attentionFull): ?>
             <a href="<?php echo base_url('manager/dashboard.php#todaySlots'); ?>" class="attention-item">
-                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-chart-simple"></i>
                 <span><strong>Fully booked today:</strong> <em><?php echo e(implode(', ', array_slice($attentionFull, 0, 3))); ?><?php echo count($attentionFull) > 3 ? ' +' . (count($attentionFull) - 3) . ' more' : ''; ?></em></span>
                 <i class="fa-solid fa-arrow-right attention-go"></i>
             </a>
@@ -190,25 +195,29 @@ require __DIR__ . '/../includes/header.php';
     <div class="stat reveal">
         <h3>My Grounds</h3>
         <p><?php echo $totalGrounds; ?></p>
+        <span class="muted"><?php echo $totalGrounds === 1 ? '1 court listed' : $totalGrounds . ' courts listed'; ?></span>
     </div>
     <div class="stat reveal">
         <h3>Bookings Today</h3>
         <p><?php echo $todayBookings; ?></p>
+        <span class="muted"><?php echo $paidCount; ?> paid across all time</span>
     </div>
     <div class="stat reveal">
-        <h3>Fully Paid</h3>
-        <p><?php echo $paidCount; ?></p>
-    </div>
-    <div class="stat reveal">
-        <h3>Revenue</h3>
+        <h3>Gross Revenue</h3>
         <p class="stat-amount"><?php echo format_price($revenue); ?></p>
+        <span class="muted">All-time confirmed</span>
+    </div>
+    <div class="stat reveal">
+        <h3>Your Payout</h3>
+        <p class="stat-amount"><?php echo format_price(manager_payout((float)$revenue)); ?></p>
+        <span class="muted">Net after <?php echo (int)platform_fee_percent(); ?>% fee</span>
     </div>
     <div class="stat reveal">
         <h3>Subscription</h3>
-        <p class="stat-amount"><?php echo e($subStatus['label']); ?></p>
+        <p class="stat-amount" style="font-size:20px;"><?php echo e($subStatus['label']); ?></p>
         <span class="muted">
             <?php if ($subStatus['sub'] && $subStatus['sub']['period_end']): ?>
-                Next renewal: <?php echo e(date('M j', strtotime($subStatus['sub']['period_end']))); ?>
+                Renewal: <?php echo e(date('M j, Y', strtotime($subStatus['sub']['period_end']))); ?>
             <?php else: ?>
                 Rs <?php echo number_format($setupFee, 0); ?> setup &middot; Rs <?php echo number_format($monthlyFee, 0); ?>/mo
             <?php endif; ?>
@@ -216,9 +225,12 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<h3 class="reveal dash-section" id="todaySlots">Today's slots</h3>
-<div class="chart-wrap reveal" style="margin-bottom:30px;">
-    <div class="chart-legend"><span>Capacity today</span><span class="strong"><?php echo $todaySlotBooked; ?> of <?php echo $todaySlotTotal; ?> hours booked</span></div>
+<h3 class="reveal dash-section" id="todaySlots">Today's Court Capacity</h3>
+<div class="chart-wrap reveal" style="margin-bottom:28px;">
+    <div class="chart-legend">
+        <span>Slot Utilization</span>
+        <span class="strong"><?php echo $todaySlotBooked; ?> of <?php echo $todaySlotTotal; ?> hours booked</span>
+    </div>
     <?php if (!$todaySlotData): ?>
         <p class="muted table-empty">Add a ground to see today's slot availability.</p>
     <?php else: ?>
@@ -228,7 +240,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="slot-strip-card">
                 <div class="slot-strip-head">
                     <span class="slot-strip-name" title="<?php echo e($ts['name']); ?>"><?php echo e($ts['name']); ?></span>
-                    <span class="slot-strip-count <?php echo $ts['booked'] > 0 ? 'active' : ''; ?>"><?php echo $ts['booked']; ?> / <?php echo $ts['total']; ?></span>
+                    <span class="slot-strip-count <?php echo $ts['booked'] > 0 ? 'active' : ''; ?>"><?php echo $ts['booked']; ?> / <?php echo $ts['total']; ?> hrs</span>
                 </div>
                 <div class="slot-strip-track"><div class="slot-strip-fill" style="width:<?php echo $pct; ?>%;"></div></div>
             </div>
@@ -237,9 +249,12 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 </div>
 
-<h3 class="reveal dash-section">Bookings</h3>
-<div class="chart-wrap reveal" style="margin-bottom:30px;">
-    <div class="chart-legend"><span>Last <?php echo $days; ?> days</span><span class="strong"><?php echo format_price($weekRevenue); ?> gross &middot; <?php echo (int)array_sum(array_column($weekDays, 'count')); ?> bookings</span></div>
+<h3 class="reveal dash-section">Booking Activity &amp; Revenue</h3>
+<div class="chart-wrap reveal" style="margin-bottom:28px;">
+    <div class="chart-legend">
+        <span>Last <?php echo $days; ?> days</span>
+        <span class="strong"><?php echo format_price($weekRevenue); ?> gross &middot; <?php echo (int)array_sum(array_column($weekDays, 'count')); ?> bookings</span>
+    </div>
     <div class="chart-range" role="group" aria-label="Chart date range">
         <?php foreach ([7 => '7 days', 14 => '14 days', 30 => '30 days'] as $rangeDays => $rangeLabel): ?>
             <a href="<?php echo base_url('manager/dashboard.php?days=' . $rangeDays); ?>" class="cr-link<?php echo $days === $rangeDays ? ' active' : ''; ?>"><?php echo $rangeLabel; ?></a>
@@ -248,7 +263,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="bar-chart" role="img" aria-label="Bookings per day for the last <?php echo $days; ?> days">
         <?php foreach ($weekDays as $wd): ?>
             <?php $pct = $weekMax > 0 ? (int)round(($wd['count'] / $weekMax) * 100) : 0; ?>
-            <div class="bar-group">
+            <div class="bar-group" title="<?php echo (int)$wd['count']; ?> bookings &middot; <?php echo format_price($wd['rev']); ?>">
                 <div class="bar-track"><div class="bar-fill" style="height:<?php echo max($pct, 6); ?>%;"></div></div>
                 <div class="bar-value"><?php echo (int)$wd['count']; ?></div>
                 <div class="bar-label"><?php echo e($wd['short']); ?></div>
@@ -258,7 +273,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <h3 class="reveal dash-section">Financial Summary</h3>
-<div class="table-wrap reveal" style="margin-bottom:30px;">
+<div class="table-wrap reveal" style="margin-bottom:28px;">
     <table class="data-table">
         <thead>
             <tr>
@@ -298,39 +313,6 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </tbody>
     </table>
-</div>
-
-<div class="dash-chart reveal">
-    <h3>Revenue (Last 7 Days)</h3>
-    <div class="rev-chart">
-        <?php
-        $chartDays = 7;
-        $chartData = [];
-        $maxRev = 1;
-        for ($d = $chartDays - 1; $d >= 0; $d--) {
-            $day = date('Y-m-d', strtotime("-{$d} days"));
-            $dayLabel = date('D', strtotime($day));
-            $dayStmt = $conn->prepare('SELECT COALESCE(SUM(b.amount_paid), 0) AS rev FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE g.manager_id = ? AND b.booking_date = ? AND b.payment_status IN ("paid", "partial")');
-            $dayStmt->bind_param('is', $_SESSION['user_id'], $day);
-            $dayStmt->execute();
-            $rev = (float)$dayStmt->get_result()->fetch_assoc()['rev'];
-            $dayStmt->close();
-            $chartData[] = ['label' => $dayLabel, 'value' => $rev, 'date' => date('M j', strtotime($day))];
-            if ($rev > $maxRev) $maxRev = $rev;
-        }
-        ?>
-        <div class="rev-bars">
-            <?php foreach ($chartData as $cd): ?>
-                <div class="rev-bar-col">
-                    <div class="rev-bar-wrap">
-                        <div class="rev-bar" style="height: <?php echo $maxRev > 0 ? round(($cd['value'] / $maxRev) * 100) : 0; ?>%;" title="Rs <?php echo number_format($cd['value'], 0); ?>"></div>
-                    </div>
-                    <span class="rev-label"><?php echo e($cd['label']); ?></span>
-                    <span class="rev-date"><?php echo e($cd['date']); ?></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
 </div>
 
 <h3 class="reveal block-title">Payout History</h3>

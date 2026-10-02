@@ -477,9 +477,9 @@ require __DIR__ . '/../includes/header.php';
                     <h3><?php echo e($g['name']); ?></h3>
                     <span class="mbooking-status">
                         <?php if ($g['is_active']): ?>
-                            <span class="badge badge-confirmed"><i class="fa-solid fa-circle-check"></i> Active</span>
+                            <span class="badge badge-confirmed">Active</span>
                         <?php else: ?>
-                            <span class="badge badge-cancelled"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>
+                            <span class="badge badge-cancelled">Inactive</span>
                         <?php endif; ?>
                     </span>
                 </div>

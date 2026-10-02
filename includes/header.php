@@ -154,19 +154,31 @@ $pageBackUrl = base_url('index.php');
             <span class="brand-name">GoalSpace</span>
         </a>
 
-        <?php if (!$has_sidebar): ?>
         <nav class="desktop-main-nav" aria-label="Main navigation">
-            <a href="<?php echo base_url('index.php'); ?>" class="dmn-link <?php echo $active === 'index.php' ? 'active' : ''; ?>">Home</a>
-            <a href="<?php echo grounds_list_url(); ?>" class="dmn-link <?php echo $activeSection === 'grounds' ? 'active' : ''; ?>">Courts</a>
-            <?php if ($site_user && $site_user['role'] === 'user'): ?>
-                <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="dmn-link <?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>">My Bookings</a>
-                <a href="<?php echo base_url('pages/favorites.php'); ?>" class="dmn-link <?php echo $active === 'favorites.php' ? 'active' : ''; ?>">Saved</a>
+            <?php if ($site_user && $site_user['role'] === 'manager'): ?>
+                <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="dmn-link <?php echo $active === 'dashboard.php' ? 'active' : ''; ?>">Home</a>
+                <a href="<?php echo base_url('manager/grounds.php'); ?>" class="dmn-link <?php echo $active === 'grounds.php' ? 'active' : ''; ?>">My Courts</a>
+                <a href="<?php echo base_url('manager/bookings.php'); ?>" class="dmn-link <?php echo $active === 'bookings.php' ? 'active' : ''; ?>">Bookings</a>
+                <a href="<?php echo base_url('manager/subscription.php'); ?>" class="dmn-link <?php echo $active === 'subscription.php' ? 'active' : ''; ?>">Subscription</a>
+                <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
+            <?php elseif ($site_user && $site_user['role'] === 'admin'): ?>
+                <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="dmn-link <?php echo $active === 'dashboard.php' ? 'active' : ''; ?>">Home</a>
+                <a href="<?php echo base_url('admin/users.php'); ?>" class="dmn-link <?php echo $active === 'users.php' ? 'active' : ''; ?>">Users</a>
+                <a href="<?php echo base_url('admin/grounds.php'); ?>" class="dmn-link <?php echo $active === 'grounds.php' ? 'active' : ''; ?>">Grounds</a>
+                <a href="<?php echo base_url('admin/bookings.php'); ?>" class="dmn-link <?php echo $active === 'bookings.php' ? 'active' : ''; ?>">Bookings</a>
+                <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
             <?php else: ?>
-                <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="dmn-link">Become a Manager</a>
+                <a href="<?php echo base_url('index.php'); ?>" class="dmn-link <?php echo $active === 'index.php' ? 'active' : ''; ?>">Home</a>
+                <a href="<?php echo grounds_list_url(); ?>" class="dmn-link <?php echo $activeSection === 'grounds' ? 'active' : ''; ?>">Courts</a>
+                <?php if ($site_user && $site_user['role'] === 'user'): ?>
+                    <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="dmn-link <?php echo $activeSection === 'my_bookings' || $active === 'my_bookings.php' ? 'active' : ''; ?>">My Bookings</a>
+                    <a href="<?php echo base_url('pages/favorites.php'); ?>" class="dmn-link <?php echo $active === 'favorites.php' ? 'active' : ''; ?>">Saved</a>
+                <?php else: ?>
+                    <a href="<?php echo base_url('pages/register.php?role=manager'); ?>" class="dmn-link">Become a Manager</a>
+                <?php endif; ?>
+                <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
             <?php endif; ?>
-            <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
         </nav>
-        <?php endif; ?>
 
         <div class="header-search-wrap">
             <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="header-search" role="search">
@@ -235,6 +247,9 @@ $pageBackUrl = base_url('index.php');
                             </span>
                         </div>
                         <a href="<?php echo base_url('pages/profile.php'); ?>" role="menuitem"><i class="fa-solid fa-user"></i> My Profile</a>
+                        <?php if ($site_user && $site_user['role'] === 'manager'): ?>
+                            <a href="<?php echo base_url('manager/promos.php'); ?>" role="menuitem"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+                        <?php endif; ?>
                         <a href="<?php echo base_url('pages/settings.php'); ?>" role="menuitem"><i class="fa-solid fa-gear"></i> Settings</a>
                         <button type="button" class="pm-theme" id="themeToggle" role="menuitem" aria-label="Toggle dark mode" aria-pressed="false">
                             <i class="fa-solid fa-moon" id="themeIcon"></i>
@@ -290,7 +305,6 @@ $pageBackUrl = base_url('index.php');
         <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> <span class="nav-label">My Grounds</span></a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> <span class="nav-label">Bookings</span></a>
-        <a href="<?php echo base_url('manager/promos.php'); ?>" class="<?php echo $active === 'promos.php' ? 'active' : ''; ?>"><i class="fa-solid fa-tags"></i> <span class="nav-label">Promos</span></a>
         <a href="<?php echo base_url('manager/subscription.php'); ?>" class="<?php echo $active === 'subscription.php' ? 'active' : ''; ?>"><i class="fa-solid fa-receipt"></i> <span class="nav-label">Subscription</span></a>
     <?php elseif ($site_user && $site_user['role'] === 'admin'): ?>
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
@@ -324,15 +338,15 @@ $pageBackUrl = base_url('index.php');
         <a href="<?php echo base_url('pages/profile.php'); ?>" class="<?php echo $activeSection === 'profile' || $active === 'profile.php' ? 'active' : ''; ?>" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i><span class="bn-label" hidden>Profile</span></a>
     <?php elseif ($site_user && $site_user['role'] === 'manager'): ?>
         <?php
-        $mgrMorePages = ['subscription.php'];
+        $mgrMorePages = ['subscription.php', 'promos.php'];
         $mgrMoreActive = in_array($active, $mgrMorePages, true) || $active === 'faq.php';
         ?>
         <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i><span class="bn-label" hidden>Home</span></a>
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>" title="My Courts" aria-label="My Courts"><i class="fa-solid fa-store"></i><span class="bn-label" hidden>Courts</span></a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i><span class="bn-label" hidden>Bookings</span></a>
-        <a href="<?php echo base_url('manager/promos.php'); ?>" class="<?php echo $active === 'promos.php' ? 'active' : ''; ?>" title="Promos" aria-label="Promos"><i class="fa-solid fa-tags"></i><span class="bn-label" hidden>Promos</span></a>
         <button type="button" class="bn-more <?php echo $mgrMoreActive ? 'active' : ''; ?>" id="bnMoreBtn" aria-expanded="false" aria-haspopup="true" title="More" aria-label="More"><i class="fa-solid fa-ellipsis"></i><span class="bn-label" hidden>More</span></button>
         <div class="bn-more-panel" id="bnMorePanel" hidden>
+            <a href="<?php echo base_url('manager/promos.php'); ?>" class="<?php echo $active === 'promos.php' ? 'active' : ''; ?>"><i class="fa-solid fa-tags"></i> Promos</a>
             <a href="<?php echo base_url('manager/subscription.php'); ?>" class="<?php echo $active === 'subscription.php' ? 'active' : ''; ?>"><i class="fa-solid fa-credit-card"></i> Subscription</a>
             <a href="<?php echo base_url('pages/faq.php'); ?>" class="<?php echo $active === 'faq.php' ? 'active' : ''; ?>"><i class="fa-solid fa-circle-question"></i> FAQ</a>
         </div>

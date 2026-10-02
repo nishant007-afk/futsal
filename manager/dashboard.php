@@ -161,6 +161,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="actions">
         <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm">+ Add Ground</a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm">All Bookings</a>
+        <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
     </div>
 </div>
 

@@ -61,6 +61,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($editing): ?>
                 <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
             <?php endif; ?>
+            <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
         </div>
     </div>
 </div>
@@ -515,6 +516,7 @@ require __DIR__ . '/../includes/header.php';
     margin-top: 14px;
     margin-bottom: 40px;
     min-width: 0;
+    max-width: 100%;
 }
 .editor-main-pane {
     min-width: 0;
@@ -522,23 +524,22 @@ require __DIR__ . '/../includes/header.php';
 }
 .editor-tabs-bar {
     display: flex;
-    gap: 6px;
-    border-bottom: 2px solid var(--line);
-    padding-bottom: 4px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+    margin-bottom: 22px;
     max-width: 100%;
+    overflow-x: visible;
 }
 .editor-tab-btn {
-    background: transparent;
-    border: none;
-    padding: 10px 16px;
-    border-radius: var(--r-md) var(--r-md) 0 0;
-    font-size: 0.92rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    padding: 8px 16px;
+    border-radius: var(--r-md);
+    font-size: 0.88rem;
     font-weight: 600;
-    color: var(--ink-3);
+    color: var(--ink-2);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -549,21 +550,17 @@ require __DIR__ . '/../includes/header.php';
 }
 .editor-tab-btn:hover {
     color: var(--ink);
-    background: var(--bg-soft);
+    background: var(--bg);
+    border-color: var(--line-2);
 }
 .editor-tab-btn.active {
-    color: var(--brand);
-    background: var(--bg);
+    color: var(--brand-700);
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    font-weight: 700;
 }
 .editor-tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--brand);
-    border-radius: 3px 3px 0 0;
+    display: none;
 }
 .tab-chip {
     font-size: 0.72rem;
@@ -605,6 +602,8 @@ require __DIR__ . '/../includes/header.php';
 }
 .editor-action-footer {
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     justify-content: space-between;
     align-items: center;
     background: var(--bg);
@@ -613,15 +612,19 @@ require __DIR__ . '/../includes/header.php';
     padding: 16px 20px;
     margin-top: 20px;
     box-shadow: var(--s1);
+    box-sizing: border-box;
+    max-width: 100%;
 }
 .action-footer-nav {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 .action-footer-save {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 .editor-side-pane {
     position: sticky;
@@ -716,7 +719,7 @@ require __DIR__ . '/../includes/header.php';
     background: var(--brand-soft);
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1180px) {
     .court-editor-container {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -728,6 +731,19 @@ require __DIR__ . '/../includes/header.php';
         position: static;
         order: 2;
         min-width: 0;
+        max-width: 100%;
+    }
+}
+@media (max-width: 600px) {
+    .action-footer-nav, .action-footer-save {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    .action-footer-nav .btn, .action-footer-save .btn {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
     }
 }
 </style>

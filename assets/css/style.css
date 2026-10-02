@@ -1421,7 +1421,7 @@ body.landing .site-footer, main:has(.section-courts) + .site-footer { margin-top
 
 .grid-3 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; min-width: 0; }
 
-.grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); min-width: 0; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); min-width: 0; }
 
 @media (max-width: 600px) {
 
@@ -4181,6 +4181,7 @@ html.sidebar-collapsed #mainNav .nav-sidebar-foot { border-top: none; justify-co
 body.auth-page .header-search-wrap { display: none; }
 /* top header card: Horizon clean white, no shadow */ .site-header { will-change: auto; transform: none; }
 body.has-sidebar .site-header .header-inner > .brand { display: none; }
+body.has-sidebar .desktop-main-nav { margin-left: 0; }
 .site-header .header-inner > .brand { display: flex; }
 .site-header .header-search-wrap { display: block; }
 .site-header .nav-auth { margin-left: auto; }

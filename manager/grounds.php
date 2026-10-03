@@ -566,7 +566,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                 </div>
                 <div class="action-footer-right">
                     <button type="button" class="btn btn-outline btn-sm" id="nextTabBtn">Next: Pricing & Hours <i class="fa-solid fa-arrow-right"></i></button>
-                    <button type="submit" form="groundForm" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
+                    <button type="submit" form="groundForm" class="btn btn-primary" id="saveGroundBtn"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
                 </div>
             </div>
         </div><!-- /.editor-card-unified -->
@@ -690,10 +690,9 @@ $inactiveCourts = $totalCourts - $activeCourts;
     height: 100%;
     object-fit: cover;
     display: block;
-    transform: none !important;
 }
 .mc-card:hover .mc-card-cover {
-    transform: none !important;
+    transform: none;
 }
 .mc-card-badges {
     position: absolute;
@@ -1035,8 +1034,8 @@ $inactiveCourts = $totalCourts - $activeCourts;
     overflow: hidden;
 }
 .ground-preview-card:hover {
-    transform: none !important;
-    box-shadow: var(--s2) !important;
+    transform: none;
+    box-shadow: var(--s2);
 }
 .ground-preview-card .card-img {
     position: relative;
@@ -1045,16 +1044,14 @@ $inactiveCourts = $totalCourts - $activeCourts;
     background: var(--dark-2, #18221c);
     overflow: hidden;
 }
-.ground-preview-card .card-cover,
-.ground-preview-card:hover .card-cover,
-.card:hover .card-cover {
-    transform: none !important;
-}
 .ground-preview-card .card-cover {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+}
+.ground-preview-card:hover .card-cover {
+    transform: none;
 }
 
 .media-section-head {
@@ -1152,6 +1149,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var panels = Array.prototype.slice.call(document.querySelectorAll('.editor-panel-card'));
     var prevBtn = document.getElementById('prevTabBtn');
     var nextBtn = document.getElementById('nextTabBtn');
+    var saveBtn = document.getElementById('saveGroundBtn');
+    var isEditing = <?php echo $editing ? 'true' : 'false'; ?>;
 
     var tabKeys = tabs.map(function (b) { return b.getAttribute('data-tab'); });
     var tabLabels = {
@@ -1208,6 +1207,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 var nextKey = tabKeys[idx + 1];
                 nextBtn.innerHTML = (tabLabels[nextKey] || 'Next') + ' <i class="fa-solid fa-arrow-right"></i>';
                 nextBtn.setAttribute('data-target', nextKey);
+            }
+        }
+
+        // Create Ground button visibility: do not show until user reaches the last part
+        if (saveBtn) {
+            if (!isEditing) {
+                saveBtn.style.display = (idx === tabKeys.length - 1) ? 'inline-flex' : 'none';
+            } else {
+                saveBtn.style.display = 'inline-flex';
             }
         }
 

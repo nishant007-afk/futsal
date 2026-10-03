@@ -364,15 +364,15 @@ document.addEventListener('DOMContentLoaded', function () {
         ghost.style.transition = '';
         host.insertBefore(ghost, cover.nextSibling);
         stepCardPhoto(card, dir);
-        cover.style.transition = 'none';
-        cover.style.transform = cardCoverTx(enterX);
-        cover.style.zIndex = '2';
+        cover.style.setProperty('transition', 'none', 'important');
+        cover.style.setProperty('transform', cardCoverTx(enterX), 'important');
+        cover.style.setProperty('z-index', '2', 'important');
         void cover.offsetWidth;
         const ease = 'transform .34s cubic-bezier(.2,.7,.3,1)';
-        cover.style.transition = ease;
-        cover.style.transform = cardCoverTx(0);
-        ghost.style.transition = ease;
-        ghost.style.transform = cardCoverTx(exitX);
+        cover.style.setProperty('transition', ease, 'important');
+        cover.style.setProperty('transform', cardCoverTx(0), 'important');
+        ghost.style.setProperty('transition', ease, 'important');
+        ghost.style.setProperty('transform', cardCoverTx(exitX), 'important');
         gal._ghost = ghost;
         setTimeout(function () { finishCardSlide(card); }, 360);
     }
@@ -385,9 +385,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const cover = card.querySelector('.card-cover');
         if (cover) {
-            cover.style.transition = '';
-            cover.style.transform = '';
-            cover.style.zIndex = '';
+            cover.style.removeProperty('transition');
+            cover.style.removeProperty('transform');
+            cover.style.removeProperty('z-index');
         }
         if (gal) gal._anim = false;
     }
@@ -401,7 +401,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!card) return;
         if (card._swiped && Date.now() - card._swiped < 500) return;
         if (t.closest('a, button, input, textarea, select, label, [data-confirm], .fav-toggle, .card-gallery')) return;
-        window.location.href = card.getAttribute('data-href');
+        const href = card.getAttribute('data-href');
+        if (!href || href === '#' || href === 'javascript:void(0)') return;
+        window.location.href = href;
     });
 
     /* Arrows: step the card cover. */
@@ -410,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!(t instanceof Element)) return;
         const btn = t.closest('.card-gprev, .card-gnext');
         if (!btn) return;
-        const card = btn.closest('.card[data-href]');
+        const card = btn.closest('.card');
         if (!card) return;
         e.preventDefault();
         e.stopPropagation();
@@ -429,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let drag = null;
         document.addEventListener('pointerdown', function (e) {
             if (!(e.target instanceof Element)) return;
-            const card = e.target.closest('.card[data-href]');
+            const card = e.target.closest('.card');
             if (!card || !getCardGallery(card)) return;
             if (e.target.closest('button, a, input, label, select, textarea, .fav-toggle')) return;
             if (e.button > 0) return;
@@ -444,11 +446,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (Math.abs(dx) <= 10) return;
                 drag.on = true;
                 const c0 = drag.card.querySelector('.card-cover');
-                if (c0) c0.style.transition = 'none';
+                if (c0) c0.style.setProperty('transition', 'none', 'important');
             }
             drag.dx = dx;
             const cover = drag.card.querySelector('.card-cover');
-            if (cover) cover.style.transform = cardCoverTx(dx);
+            if (cover) cover.style.setProperty('transform', cardCoverTx(dx), 'important');
         });
         function endDrag(e) {
             if (!drag) return;
@@ -460,9 +462,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const cover = d.card.querySelector('.card-cover');
             if (!cover) return;
             if (Math.abs(d.dx) < 45 || Date.now() - d.t > 900) {
-                cover.style.transition = 'transform .2s ease-out';
-                cover.style.transform = cardCoverTx(0);
-                setTimeout(function () { cover.style.transition = ''; cover.style.transform = ''; }, 230);
+                cover.style.setProperty('transition', 'transform .2s ease-out', 'important');
+                cover.style.setProperty('transform', cardCoverTx(0), 'important');
+                setTimeout(function () { cover.style.removeProperty('transition'); cover.style.removeProperty('transform'); }, 230);
                 return;
             }
             const gal = getCardGallery(d.card);

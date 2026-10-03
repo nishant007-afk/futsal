@@ -7239,7 +7239,7 @@ html[data-theme="dark"] .step-card-body h3 { color: #ffffff !important; }
 
 html[data-theme="dark"] .step-card-body p { color: #cbd5e1 !important; }
 
-/* ========================================================= TOAST / NOTIFICATION SYSTEM (v2 - single source of truth) --------------------------------------------------------- Anatomy: .toast.toast-success | .toast-error | .toast-warning | .toast-info .toast-icon semantic chip (left) .toast-content .toast-title optional bold heading .toast-msg message (+ optional .toast-why / .toast-how details) .toast-actions optional row: .toast-action (button) | .toast-fix (link) .toast-close accessible dismiss button .toast-progress auto-dismiss timer bar (bottom edge) Containers (stack, gap 10px, max 4): .toast-wrap / .top-flash-wrap data-pos = "top-right" (default) | "top-center" | "bottom-right" | "bottom-center" Static variant: .toast-inline (bottom-center, no container needed) JS API: showToast({ type, title, message, duration, actionText, onAction, position }) ========================================================= */ /* ---- stacking containers -------------------------------------- */ .toast-wrap, .top-flash-wrap { position: fixed; z-index: 1260; top: calc(var(--header-h, 64px) + 12px + env(safe-area-inset-top, 0px)); right: 16px; bottom: auto; left: auto; width: min(420px, calc(100vw - 24px)); display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin: 0; padding: 0; pointer-events: none; }
+/* ========================================================= TOAST / NOTIFICATION SYSTEM (v2 - single source of truth) --------------------------------------------------------- Anatomy: .toast.toast-success | .toast-error | .toast-warning | .toast-info .toast-icon semantic chip (left) .toast-content .toast-title optional bold heading .toast-msg message (+ optional .toast-why / .toast-how details) .toast-actions optional row: .toast-action (button) | .toast-fix (link) .toast-close accessible dismiss button .toast-progress auto-dismiss timer bar (bottom edge) Containers (stack, gap 10px, max 4): .toast-wrap / .top-flash-wrap data-pos = "top-right" (default) | "top-center" | "bottom-right" | "bottom-center" Static variant: .toast-inline (bottom-center, no container needed) JS API: showToast({ type, title, message, duration, actionText, onAction, position }) ========================================================= */ /* ---- stacking containers -------------------------------------- */ .toast-wrap, .top-flash-wrap { position: fixed; z-index: 1260; top: calc(var(--header-h, 64px) + 12px + env(safe-area-inset-top, 0px)); right: 16px; bottom: auto; left: auto; width: min(372px, calc(100vw - 24px)); display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin: 0; padding: 0; pointer-events: none; }
 
 .toast-wrap[data-pos="top-center"], .top-flash-wrap[data-pos="top-center"] { right: 0; left: 0; margin-inline: auto; align-items: center; }
 
@@ -7247,60 +7247,57 @@ html[data-theme="dark"] .step-card-body p { color: #cbd5e1 !important; }
 
 .toast-wrap[data-pos="bottom-center"], .top-flash-wrap[data-pos="bottom-center"] { top: auto; right: 0; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 0; margin-inline: auto; align-items: center; }
 
-/* ---- toast card (floating frosted pill) ------------------------- */ .toast { position: relative; display: flex; align-items: flex-start; gap: 12px; box-sizing: border-box; width: 100%; padding: 13px 14px 14px 13px; background: color-mix(in srgb, var(--t-tint, var(--bg-soft)) 40%, var(--bg) 60%); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); color: var(--ink); border: 1px solid color-mix(in srgb, var(--t-color, var(--brand)) 25%, var(--line)); border-radius: 16px; box-shadow: 0 16px 36px -12px rgba(10, 20, 15, 0.22), 0 4px 16px -2px var(--t-glow, rgba(0, 0, 0, 0.06)), inset 0 1px 0 rgba(255, 255, 255, 0.7); font-size: 14px; line-height: 1.45; overflow: hidden; pointer-events: auto; animation: toastInUp .34s cubic-bezier(0.16, 1, 0.3, 1) both; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+/* ---- toast card ------------------------------------------------ */ .toast { position: relative; display: flex; align-items: flex-start; gap: 11px; box-sizing: border-box; width: 100%; padding: 12px 12px 13px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--s3), 0 18px 44px -22px rgba(10, 20, 15, 0.45); font-size: 14px; line-height: 1.45; overflow: hidden; pointer-events: auto; animation: toastInUp .34s cubic-bezier(0.16, 1, 0.3, 1) both; transition: box-shadow .2s ease; }
 
-.toast:hover { transform: translateY(-2px); box-shadow: 0 20px 42px -10px rgba(10, 20, 15, 0.26), 0 6px 20px -2px var(--t-glow, rgba(0, 0, 0, 0.09)), inset 0 1px 0 rgba(255, 255, 255, 0.85); }
+.toast:hover { box-shadow: var(--s3), 0 22px 50px -20px rgba(10, 20, 15, 0.5); }
 
-.toast-icon { flex: none; width: 32px; height: 32px; margin-top: 1px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13.5px; background: color-mix(in srgb, var(--t-color, var(--brand)) 14%, transparent); color: var(--t-color, var(--brand)); border: 1px solid color-mix(in srgb, var(--t-color, var(--brand)) 28%, transparent); box-shadow: 0 2px 8px -2px var(--t-glow, rgba(0, 0, 0, 0.1)); }
+.toast-icon { flex: none; width: 30px; height: 30px; margin-top: 1px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; background: var(--t-tint, var(--brand-soft)); color: var(--t-color, var(--brand)); }
 
-.toast-content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; word-break: break-word; }
+.toast-content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; word-break: break-word; }
 
-.toast-title { margin: 0; font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1.35; }
+.toast-title { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
 
-.toast-msg { display: flex; flex-direction: column; gap: 2px; margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
+.toast-msg { display: flex; flex-direction: column; gap: 2px; margin: 0; font-size: 13.5px; color: var(--ink-2); }
 
-/* message is the primary line when no title is present */ .toast:not(:has(.toast-title)) .toast-msg { font-weight: 600; color: var(--ink); font-size: 13.5px; }
+/* message is the primary line when no title is present */ .toast:not(:has(.toast-title)) .toast-msg { font-weight: 600; color: var(--ink); }
 
 .toast-detail { display: flex; align-items: flex-start; gap: 7px; margin-top: 8px; font-size: 13px; line-height: 1.5; color: var(--ink-2); text-decoration: none; }
 
 .toast-detail i { margin-top: 2px; flex-shrink: 0; }
 
-.toast-why { display: block; font-weight: 600; font-size: 12.5px; color: var(--ink); margin-top: 4px; }
+.toast-why { display: block; font-weight: 600; font-size: 13px; color: var(--ink); margin-top: 6px; }
 
-.toast-how { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.toast-how { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
 
-/* ---- actions --------------------------------------------------- */ .toast-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+/* ---- actions --------------------------------------------------- */ .toast-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
 
-.toast-action, .toast-fix { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 5px 11px; font-family: inherit; font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); text-decoration: none; cursor: pointer; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .15s ease; }
+.toast-action, .toast-fix { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 32px; padding: 6px 11px; font-family: inherit; font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink); background: var(--bg-soft); border: 1px solid var(--line-2); border-radius: var(--r-sm); text-decoration: none; cursor: pointer; transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
 
-.toast-action:hover, .toast-fix:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); transform: translateY(-1px); }
+.toast-action:hover, .toast-fix:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
 .toast-action:focus-visible, .toast-fix:focus-visible { outline: none; box-shadow: var(--ring); }
 
-/* ---- dismiss --------------------------------------------------- */ .toast-close { flex: none; align-self: flex-start; width: 26px; height: 26px; margin: -2px -2px 0 2px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; background: rgba(0, 0, 0, 0.04); border-radius: 50%; color: var(--ink-3); font-size: 12px; cursor: pointer; transition: background-color .15s ease, color .15s ease, transform .15s ease; }
+/* ---- dismiss --------------------------------------------------- */ .toast-close { flex: none; align-self: flex-start; width: 32px; height: 32px; margin: -4px -4px 0 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; border-radius: var(--r-sm); color: var(--ink-3); font-size: 15px; cursor: pointer; transition: background-color .15s ease, color .15s ease; }
 
-.toast-close:hover { background: rgba(0, 0, 0, 0.09); color: var(--ink); transform: scale(1.08); }
+.toast-close:hover { background: var(--bg-tint); color: var(--ink); }
 
 .toast-close:focus-visible { outline: none; box-shadow: var(--ring); }
 
-/* ---- auto-dismiss timer ---------------------------------------- */ .toast-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2.5px; background: var(--t-color, var(--brand)); opacity: 0.85; transform-origin: left center; animation: toastCountdown var(--toast-duration, 4500ms) linear forwards; }
+/* ---- auto-dismiss timer ---------------------------------------- */ .toast-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--t-color, var(--brand)); opacity: 0.9; transform-origin: left center; animation: toastCountdown var(--toast-duration, 4500ms) linear forwards; }
 
 .toast.is-paused .toast-progress { animation-play-state: paused; }
 
-/* ---- semantic variants ----------------------------------------- */ .toast-success { --t-color: #059669; --t-tint: rgba(16, 185, 129, 0.09); --t-glow: rgba(16, 185, 129, 0.18); }
-.toast-error { --t-color: #dc2626; --t-tint: rgba(239, 68, 68, 0.09); --t-glow: rgba(239, 68, 68, 0.18); }
-.toast-warning { --t-color: #d97706; --t-tint: rgba(245, 158, 11, 0.09); --t-glow: rgba(245, 158, 11, 0.18); }
-.toast-info { --t-color: #2563eb; --t-tint: rgba(37, 99, 235, 0.09); --t-glow: rgba(37, 99, 235, 0.18); }
+/* ---- semantic variants ----------------------------------------- */ .toast-success { --t-color: var(--ok); --t-tint: var(--ok-soft); }
+.toast-error { --t-color: var(--danger); --t-tint: var(--danger-soft); }
+.toast-warning { --t-color: var(--warn); --t-tint: var(--warn-soft); }
+.toast-info { --t-color: #2563eb; --t-tint: #eff6ff; }
 
-html[data-theme="dark"] .toast { background: color-mix(in srgb, var(--t-tint, var(--bg-soft)) 45%, #0f1813 55%); box-shadow: 0 20px 42px -12px rgba(0, 0, 0, 0.7), 0 4px 18px -2px var(--t-glow, rgba(0, 0, 0, 0.35)), inset 0 1px 0 rgba(255, 255, 255, 0.09); }
-html[data-theme="dark"] .toast-close { background: rgba(255, 255, 255, 0.06); }
-html[data-theme="dark"] .toast-close:hover { background: rgba(255, 255, 255, 0.14); }
-html[data-theme="dark"] .toast-action, html[data-theme="dark"] .toast-fix { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); }
-html[data-theme="dark"] .toast-action:hover, html[data-theme="dark"] .toast-fix:hover { background: #ffffff; border-color: #ffffff; color: #0f1813; }
-html[data-theme="dark"] .toast-success { --t-color: #34d399; --t-tint: rgba(52, 211, 153, 0.14); --t-glow: rgba(52, 211, 153, 0.25); }
-html[data-theme="dark"] .toast-error { --t-color: #f87171; --t-tint: rgba(248, 113, 113, 0.14); --t-glow: rgba(248, 113, 113, 0.25); }
-html[data-theme="dark"] .toast-warning { --t-color: #fbbf24; --t-tint: rgba(251, 191, 36, 0.14); --t-glow: rgba(251, 191, 36, 0.25); }
-html[data-theme="dark"] .toast-info { --t-color: #60a5fa; --t-tint: rgba(96, 165, 250, 0.14); --t-glow: rgba(96, 165, 250, 0.25); }
+html[data-theme="dark"] .toast-success { --t-color: #34d399; }
+html[data-theme="dark"] .toast-error { --t-color: #f87171; }
+html[data-theme="dark"] .toast-warning { --t-color: #fbbf24; }
+html[data-theme="dark"] .toast-info { --t-color: #60a5fa; }
+
+html[data-theme="dark"] .toast-success, html[data-theme="dark"] .toast-error, html[data-theme="dark"] .toast-warning, html[data-theme="dark"] .toast-info { --t-tint: rgba(255, 255, 255, 0.08); }
 
 /* ---- entrance / exit (per anchor) ------------------------------ */ .toast-wrap[data-pos="top-right"] .toast, .top-flash-wrap .toast, .toast-wrap[data-pos="bottom-right"] .toast { animation-name: toastInRight; }
 

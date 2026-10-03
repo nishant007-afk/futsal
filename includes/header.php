@@ -258,7 +258,17 @@ $pageBackUrl = base_url('index.php');
                         </button>
                         <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" role="menuitem" class="pm-danger" data-confirm="Log out of your account?" data-confirm-title="Log out" data-confirm-ok="Yes, log out" data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                            <button type="submit" role="menuitem" class="pm-danger"
+                                data-confirm="Are you sure you want to end your active session on this device?"
+                                data-confirm-title="Log out of GoalSpace?"
+                                data-confirm-type="logout"
+                                data-user-name="<?php echo e($site_user['name']); ?>"
+                                data-user-email="<?php echo e($site_user['email']); ?>"
+                                data-user-role="<?php echo e($site_user['role'] === 'manager' ? 'Pitch Manager' : ($site_user['role'] === 'admin' ? 'Administrator' : 'Player')); ?>"
+                                data-user-avatar="<?php echo !empty($site_user['avatar']) ? e(base_url('uploads/avatars/' . rawurlencode($site_user['avatar']))) : ''; ?>"
+                                data-user-initial="<?php echo e(strtoupper(substr($site_user['name'], 0, 1))); ?>"
+                                data-confirm-ok="Log out"
+                                data-confirm-cancel="Stay signed in"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                         </form>
                     </div>
                 </div>

@@ -529,7 +529,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }, {
                 okText: el.dataset.confirmOk || confirmOkLabel(el.dataset.confirm),
                 cancelText: el.dataset.confirmCancel || 'Cancel',
-                title: el.dataset.confirmTitle || ''
+                title: el.dataset.confirmTitle || '',
+                type: el.dataset.confirmType || '',
+                userName: el.dataset.userName || '',
+                userEmail: el.dataset.userEmail || '',
+                userRole: el.dataset.userRole || '',
+                userAvatar: el.dataset.userAvatar || '',
+                userInitial: el.dataset.userInitial || ''
             });
         });
     });
@@ -1044,23 +1050,89 @@ document.addEventListener('DOMContentLoaded', function () {
         const esc = function (s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
+        const isLogout = labels.type === 'logout' ||
+            (labels.title && labels.title.toLowerCase().indexOf('log out') !== -1) ||
+            (message && (message.toLowerCase().indexOf('log out') !== -1 || message.toLowerCase().indexOf('logout') !== -1));
+
         const modal = document.createElement('div');
-        modal.className = 'modal open';
+        modal.className = 'modal' + (isLogout ? ' modal-logout' : '') + ' open';
         modal.setAttribute('role', 'alertdialog');
         modal.setAttribute('aria-modal', 'true');
         modal.setAttribute('aria-labelledby', 'confirmModalTitle');
         modal.setAttribute('aria-describedby', 'confirmModalMsg');
-        modal.innerHTML =
-            '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-            '<div class="modal-head">' +
-                '<span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>' +
-                '<h3 id="confirmModalTitle">' + esc(labels.title || 'Are you sure?') + '</h3>' +
-            '</div>' +
-            '<p class="modal-msg" id="confirmModalMsg">' + esc(message) + '</p>' +
-            '<div class="modal-actions">' +
-                '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Cancel') + '</button>' +
-                '<button type="button" class="btn btn-danger" data-modal-ok>' + esc(labels.okText || 'Yes, continue') + '</button>' +
-            '</div>';
+
+        if (isLogout) {
+            let userName = labels.userName || '';
+            let userEmail = labels.userEmail || '';
+            let userRole = labels.userRole || '';
+            let userAvatar = labels.userAvatar || '';
+            let userInitial = labels.userInitial || '';
+
+            if (!userName) {
+                const pmHead = document.querySelector('.profile-menu-head');
+                const stgHead = document.querySelector('.stg-sidebar-user');
+                if (pmHead) {
+                    const nEl = pmHead.querySelector('.chip-name span');
+                    const eEl = pmHead.querySelector('.chip-name em');
+                    const imgEl = pmHead.querySelector('.avatar img');
+                    if (nEl) userName = nEl.textContent.trim();
+                    if (eEl) userEmail = eEl.textContent.trim();
+                    if (imgEl) userAvatar = imgEl.src;
+                    if (!userAvatar && userName) userInitial = userName.charAt(0).toUpperCase();
+                } else if (stgHead) {
+                    const nEl = stgHead.querySelector('.stg-sidebar-user-info strong');
+                    const eEl = stgHead.querySelector('.stg-sidebar-user-info span');
+                    const imgEl = stgHead.querySelector('.stg-sidebar-avatar img');
+                    if (nEl) userName = nEl.textContent.trim();
+                    if (eEl) userEmail = eEl.textContent.trim();
+                    if (imgEl) userAvatar = imgEl.src;
+                    if (!userAvatar && userName) userInitial = userName.charAt(0).toUpperCase();
+                }
+            }
+
+            let userCardHtml = '';
+            if (userName) {
+                const avatarInner = userAvatar
+                    ? '<img src="' + esc(userAvatar) + '" alt="' + esc(userName) + '">'
+                    : esc(userInitial || userName.charAt(0).toUpperCase());
+                userCardHtml =
+                    '<div class="modal-user-card">' +
+                        '<span class="muc-avatar">' + avatarInner + '</span>' +
+                        '<div class="muc-info">' +
+                            '<span class="muc-name">' + esc(userName) + '</span>' +
+                            (userEmail ? '<span class="muc-email">' + esc(userEmail) + '</span>' : '') +
+                        '</div>' +
+                        (userRole ? '<span class="muc-role">' + esc(userRole) + '</span>' : '') +
+                    '</div>';
+            }
+
+            modal.innerHTML =
+                '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+                '<div class="modal-logout-head">' +
+                    '<span class="modal-logout-icon"><i class="fa-solid fa-right-from-bracket"></i></span>' +
+                    '<div class="modal-logout-meta">' +
+                        '<h3 id="confirmModalTitle">' + esc(labels.title || 'Log out of GoalSpace?') + '</h3>' +
+                        '<p class="modal-logout-sub" id="confirmModalMsg">' + esc(message || 'Are you sure you want to end your active session on this device?') + '</p>' +
+                    '</div>' +
+                '</div>' +
+                userCardHtml +
+                '<div class="modal-actions">' +
+                    '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Stay signed in') + '</button>' +
+                    '<button type="button" class="btn btn-danger" data-modal-ok><i class="fa-solid fa-right-from-bracket"></i> ' + esc(labels.okText || 'Log out') + '</button>' +
+                '</div>';
+        } else {
+            modal.innerHTML =
+                '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
+                '<div class="modal-head">' +
+                    '<span class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>' +
+                    '<h3 id="confirmModalTitle">' + esc(labels.title || 'Are you sure?') + '</h3>' +
+                '</div>' +
+                '<p class="modal-msg" id="confirmModalMsg">' + esc(message) + '</p>' +
+                '<div class="modal-actions">' +
+                    '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Cancel') + '</button>' +
+                    '<button type="button" class="btn btn-danger" data-modal-ok>' + esc(labels.okText || 'Yes, continue') + '</button>' +
+                '</div>';
+        }
         document.body.appendChild(modal);
 
         const onEsc = function (e) {

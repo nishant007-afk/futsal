@@ -1873,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const arrowSpan = document.createElement('span');
         arrowSpan.className = 'gs-select-arrow';
         arrowSpan.setAttribute('aria-hidden', 'true');
-        arrowSpan.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        arrowSpan.innerHTML = '<svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
         trigger.appendChild(labelSpan);
         trigger.appendChild(arrowSpan);
@@ -1928,7 +1928,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const checkEl = document.createElement('span');
             checkEl.className = 'gs-select-check';
             checkEl.setAttribute('aria-hidden', 'true');
-            checkEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+            checkEl.innerHTML = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.75 7.25L5.5 10L11.25 4.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
             optEl.appendChild(textEl);
             optEl.appendChild(checkEl);
@@ -2015,14 +2015,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const rect = wrapper.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             const spaceAbove = rect.top;
-            if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+            if (spaceBelow < 280 && spaceAbove > spaceBelow) {
                 wrapper.classList.add('is-dropup');
             } else {
                 wrapper.classList.remove('is-dropup');
             }
 
             // Right boundary check
-            if (rect.left + 260 > window.innerWidth) {
+            const menuWidth = Math.min(Math.max(rect.width, 220), 320);
+            if (rect.left + menuWidth > window.innerWidth - 16) {
                 wrapper.classList.add('is-align-right');
             } else {
                 wrapper.classList.remove('is-align-right');

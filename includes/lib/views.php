@@ -323,16 +323,11 @@ function settings_sidebar(string $active): void
             <form method="post" action="<?php echo base_url('pages/logout.php'); ?>" class="m-0">
                 <?php echo csrf_field(); ?>
                 <button type="submit" class="stg-sidebar-link stg-sidebar-danger"
-                    data-confirm="Are you sure you want to end your active session on this device?"
-                    data-confirm-title="Log out of GoalSpace?"
+                    data-confirm="Are you sure you want to log out of your account?"
+                    data-confirm-title="Log out?"
                     data-confirm-type="logout"
-                    data-user-name="<?php echo e($user['name']); ?>"
-                    data-user-email="<?php echo e($user['email']); ?>"
-                    data-user-role="<?php echo e(($user['role'] ?? '') === 'manager' ? 'Pitch Manager' : (($user['role'] ?? '') === 'admin' ? 'Administrator' : 'Player')); ?>"
-                    data-user-avatar="<?php echo !empty($user['avatar']) ? e(base_url('uploads/avatars/' . rawurlencode($user['avatar']))) : ''; ?>"
-                    data-user-initial="<?php echo e(strtoupper(substr($user['name'], 0, 1))); ?>"
                     data-confirm-ok="Log out"
-                    data-confirm-cancel="Stay signed in"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
+                    data-confirm-cancel="Cancel"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
             </form>
         </div>
     </nav>

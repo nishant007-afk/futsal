@@ -1062,62 +1062,15 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.setAttribute('aria-describedby', 'confirmModalMsg');
 
         if (isLogout) {
-            let userName = labels.userName || '';
-            let userEmail = labels.userEmail || '';
-            let userRole = labels.userRole || '';
-            let userAvatar = labels.userAvatar || '';
-            let userInitial = labels.userInitial || '';
-
-            if (!userName) {
-                const pmHead = document.querySelector('.profile-menu-head');
-                const stgHead = document.querySelector('.stg-sidebar-user');
-                if (pmHead) {
-                    const nEl = pmHead.querySelector('.chip-name span');
-                    const eEl = pmHead.querySelector('.chip-name em');
-                    const imgEl = pmHead.querySelector('.avatar img');
-                    if (nEl) userName = nEl.textContent.trim();
-                    if (eEl) userEmail = eEl.textContent.trim();
-                    if (imgEl) userAvatar = imgEl.src;
-                    if (!userAvatar && userName) userInitial = userName.charAt(0).toUpperCase();
-                } else if (stgHead) {
-                    const nEl = stgHead.querySelector('.stg-sidebar-user-info strong');
-                    const eEl = stgHead.querySelector('.stg-sidebar-user-info span');
-                    const imgEl = stgHead.querySelector('.stg-sidebar-avatar img');
-                    if (nEl) userName = nEl.textContent.trim();
-                    if (eEl) userEmail = eEl.textContent.trim();
-                    if (imgEl) userAvatar = imgEl.src;
-                    if (!userAvatar && userName) userInitial = userName.charAt(0).toUpperCase();
-                }
-            }
-
-            let userCardHtml = '';
-            if (userName) {
-                const avatarInner = userAvatar
-                    ? '<img src="' + esc(userAvatar) + '" alt="' + esc(userName) + '">'
-                    : esc(userInitial || userName.charAt(0).toUpperCase());
-                userCardHtml =
-                    '<div class="modal-user-card">' +
-                        '<span class="muc-avatar">' + avatarInner + '</span>' +
-                        '<div class="muc-info">' +
-                            '<span class="muc-name">' + esc(userName) + '</span>' +
-                            (userEmail ? '<span class="muc-email">' + esc(userEmail) + '</span>' : '') +
-                        '</div>' +
-                        (userRole ? '<span class="muc-role">' + esc(userRole) + '</span>' : '') +
-                    '</div>';
-            }
-
             modal.innerHTML =
                 '<button type="button" class="modal-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>' +
-                '<div class="modal-logout-head">' +
-                    '<span class="modal-logout-icon"><i class="fa-solid fa-right-from-bracket"></i></span>' +
-                    '<div class="modal-logout-meta">' +
-                        '<h3 id="confirmModalTitle">' + esc(labels.title || 'Log out of GoalSpace?') + '</h3>' +
-                        '<p class="modal-logout-sub" id="confirmModalMsg">' + esc(message || 'Are you sure you want to end your active session on this device?') + '</p>' +
-                    '</div>' +
+                '<div class="modal-head">' +
+                    '<span class="modal-icon modal-icon-logout"><i class="fa-solid fa-right-from-bracket"></i></span>' +
+                    '<h3 id="confirmModalTitle">' + esc(labels.title || 'Log out?') + '</h3>' +
                 '</div>' +
-                userCardHtml +
+                '<p class="modal-msg" id="confirmModalMsg">' + esc(message || 'Are you sure you want to log out of your account?') + '</p>' +
                 '<div class="modal-actions">' +
-                    '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Stay signed in') + '</button>' +
+                    '<button type="button" class="btn btn-ghost" data-modal-cancel>' + esc(labels.cancelText || 'Cancel') + '</button>' +
                     '<button type="button" class="btn btn-danger" data-modal-ok><i class="fa-solid fa-right-from-bracket"></i> ' + esc(labels.okText || 'Log out') + '</button>' +
                 '</div>';
         } else {

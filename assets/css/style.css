@@ -984,13 +984,13 @@ to { opacity: 1; }
 
 }
 
-/* ============ CONFIRM MODAL ============ */ .modal { position: fixed !important; inset: 0 !important; margin: auto !important; z-index: 1260 !important; width: min(385px, 92vw) !important; height: fit-content !important; max-height: min(620px, 85vh) !important; overflow-y: auto !important; align-self: center !important; justify-self: center !important; background: var(--bg, #ffffff) !important; border: 1px solid var(--line, rgba(15, 23, 18, .12)) !important; border-radius: 18px !important; box-shadow: 0 25px 60px -20px rgba(6, 15, 10, .45), 0 10px 25px rgba(0, 0, 0, .14) !important; padding: 22px 22px 20px !important; text-align: left !important; animation: modalIn .28s cubic-bezier(.16, 1, .3, 1) forwards !important; display: flex !important; flex-direction: column !important; }
+/* ============ CONFIRM MODAL ============ */ .modal { position: fixed !important; inset: 0 !important; margin: auto !important; z-index: 1260 !important; width: min(350px, 92vw) !important; height: fit-content !important; max-height: min(620px, 85vh) !important; overflow-y: auto !important; align-self: center !important; justify-self: center !important; background: var(--bg, #ffffff) !important; border: 1px solid var(--line, rgba(15, 23, 18, .12)) !important; border-radius: 16px !important; box-shadow: 0 25px 60px -20px rgba(6, 15, 10, .45), 0 10px 25px rgba(0, 0, 0, .14) !important; padding: 22px 20px 20px !important; text-align: left !important; animation: modalIn .28s cubic-bezier(.16, 1, .3, 1) forwards !important; display: flex !important; flex-direction: column !important; }
 
-.modal::before { content: ''; position: absolute; left: 22px; right: 22px; top: 0; height: 3px; background: var(--brand-soft); border-radius: 0 0 2px 2px; }
+.modal::before { content: ''; position: absolute; left: 20px; right: 20px; top: 0; height: 3px; background: var(--brand-soft); border-radius: 0 0 2px 2px; }
 
 .modal-error::before { background: var(--danger-soft); }
 
-.modal-close, .modal-x { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%; background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; transition: background-color .15s ease, color .15s ease; }
+.modal-close, .modal-x { position: absolute; top: 14px; right: 14px; width: 28px; height: 28px; border-radius: 50%; background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; transition: background-color .15s ease, color .15s ease; }
 
 .modal-close:hover, .modal-x:hover { background: var(--bg-soft); color: var(--ink); }
 
@@ -1000,7 +1000,9 @@ to { opacity: 1; }
 
 .modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 
-.modal-icon { width: 44px; height: 44px; border-radius: 12px; flex: none; background: #fdeceb; color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 4px 12px -4px rgba(214, 69, 61, .4); }
+.modal-icon { width: 42px; height: 42px; border-radius: 12px; flex: none; background: #fdeceb; color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 4px 12px -4px rgba(214, 69, 61, .4); }
+
+.modal-icon.modal-icon-logout { background: color-mix(in srgb, var(--danger) 10%, var(--bg-soft)); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent); box-shadow: none; }
 
 .modal-error .modal-icon { background: #fdeceb; }
 
@@ -1008,35 +1010,15 @@ to { opacity: 1; }
 
 .modal-msg { color: var(--ink-2); font-size: 13.5px; line-height: 1.5; margin: 0; }
 
-.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 
-.modal-actions .btn { flex: 1; border-radius: var(--r-sm); min-height: 38px; font-size: 13.5px; }
+.modal-actions .btn { flex: 1; border-radius: var(--r-sm); min-height: 38px; padding: 8px 14px; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 
 .modal-actions .btn-ghost { background: var(--bg-soft); border: 1px solid var(--line-2); color: var(--ink); border-radius: var(--r-sm); }
 
 .modal-actions .btn-ghost:hover { background: var(--line); color: var(--ink); }
 
-/* ============ USER SESSION LOGOUT MODAL ============ */
-.modal.modal-logout { width: min(390px, 92vw) !important; padding: 22px 22px 20px !important; border-radius: 18px !important; }
-.modal.modal-logout::before { background: var(--danger-soft, #fee2e2); }
-.modal-logout-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-.modal-logout-icon { width: 42px; height: 42px; border-radius: 12px; flex: none; background: color-mix(in srgb, var(--danger) 10%, var(--bg-soft)); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; margin-top: 2px; }
-.modal-logout-meta { flex: 1; min-width: 0; }
-.modal-logout-meta h3 { margin: 0 0 3px; font-size: 16.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.015em; line-height: 1.3; }
-.modal-logout-sub { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.45; }
-.modal-user-card { display: flex; align-items: center; gap: 11px; padding: 10px 12px; margin-bottom: 16px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; }
-.muc-avatar { width: 36px; height: 36px; border-radius: 50%; flex: none; overflow: hidden; background: var(--brand-soft); color: var(--brand); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; }
-.muc-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.muc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.muc-name { font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-.muc-email { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-.muc-role { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); color: var(--ink-2); flex: none; }
-.modal.modal-logout .modal-actions { margin-top: 0; }
-.modal.modal-logout .modal-actions .btn { min-height: 40px; padding: 9px 14px; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-
-html[data-theme="dark"] .modal.modal-logout .modal-user-card { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.08); }
-html[data-theme="dark"] .modal.modal-logout .modal-logout-icon { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.25); color: #f87171; }
-html[data-theme="dark"] .modal.modal-logout .muc-role { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+html[data-theme="dark"] .modal-icon.modal-icon-logout { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.25); color: #f87171; }
 
 .modal.hide { animation: modalOut .22s ease forwards; }
 
@@ -4636,7 +4618,7 @@ html[data-theme="dark"] .notice.notice-info { background: color-mix(in srgb, var
 
 /* Header card */ .pfl-header { text-align: center; padding: 28px 24px 20px; }
 
-.pfl-avatar-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+.pfl-avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 14px; }
 
 .pfl-avatar { display: block; width: 88px; height: 88px; border-radius: 50%; overflow: hidden; cursor: pointer; position: relative; border: 2.5px solid var(--line-2); background: var(--bg-soft); transition: border-color .15s; }
 
@@ -4648,9 +4630,11 @@ html[data-theme="dark"] .notice.notice-info { background: color-mix(in srgb, var
 
 .pfl-avatar-edit { position: absolute; bottom: 2px; right: 2px; width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 2px solid var(--bg); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
 
-.pfl-avatar-remove { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; margin-top: 10px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--danger); background: var(--bg-soft); border: 1px solid var(--line-2); border-radius: 8px; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
+.pfl-avatar-remove { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 24px; margin: 0; padding: 3px 8px; font-family: inherit; font-size: 11.5px; font-weight: 600; color: var(--danger); background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background-color .15s ease, color .15s ease; }
 
-.pfl-avatar-remove:hover { background: var(--danger-soft); border-color: var(--danger); }
+.pfl-avatar-remove:hover { background: var(--danger-soft); color: var(--danger); }
+
+.pfl-avatar-remove i { font-size: 10.5px; }
 
 .pfl-avatar-remove:focus-visible { outline: none; box-shadow: var(--ring); }
 
@@ -7255,7 +7239,7 @@ html[data-theme="dark"] .step-card-body h3 { color: #ffffff !important; }
 
 html[data-theme="dark"] .step-card-body p { color: #cbd5e1 !important; }
 
-/* ========================================================= TOAST / NOTIFICATION SYSTEM (v2 - single source of truth) --------------------------------------------------------- Anatomy: .toast.toast-success | .toast-error | .toast-warning | .toast-info .toast-icon semantic chip (left) .toast-content .toast-title optional bold heading .toast-msg message (+ optional .toast-why / .toast-how details) .toast-actions optional row: .toast-action (button) | .toast-fix (link) .toast-close accessible dismiss button .toast-progress auto-dismiss timer bar (bottom edge) Containers (stack, gap 10px, max 4): .toast-wrap / .top-flash-wrap data-pos = "top-right" (default) | "top-center" | "bottom-right" | "bottom-center" Static variant: .toast-inline (bottom-center, no container needed) JS API: showToast({ type, title, message, duration, actionText, onAction, position }) ========================================================= */ /* ---- stacking containers -------------------------------------- */ .toast-wrap, .top-flash-wrap { position: fixed; z-index: 1260; top: calc(var(--header-h, 64px) + 12px + env(safe-area-inset-top, 0px)); right: 16px; bottom: auto; left: auto; width: min(372px, calc(100vw - 24px)); display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin: 0; padding: 0; pointer-events: none; }
+/* ========================================================= TOAST / NOTIFICATION SYSTEM (v2 - single source of truth) --------------------------------------------------------- Anatomy: .toast.toast-success | .toast-error | .toast-warning | .toast-info .toast-icon semantic chip (left) .toast-content .toast-title optional bold heading .toast-msg message (+ optional .toast-why / .toast-how details) .toast-actions optional row: .toast-action (button) | .toast-fix (link) .toast-close accessible dismiss button .toast-progress auto-dismiss timer bar (bottom edge) Containers (stack, gap 10px, max 4): .toast-wrap / .top-flash-wrap data-pos = "top-right" (default) | "top-center" | "bottom-right" | "bottom-center" Static variant: .toast-inline (bottom-center, no container needed) JS API: showToast({ type, title, message, duration, actionText, onAction, position }) ========================================================= */ /* ---- stacking containers -------------------------------------- */ .toast-wrap, .top-flash-wrap { position: fixed; z-index: 1260; top: calc(var(--header-h, 64px) + 12px + env(safe-area-inset-top, 0px)); right: 16px; bottom: auto; left: auto; width: min(420px, calc(100vw - 24px)); display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin: 0; padding: 0; pointer-events: none; }
 
 .toast-wrap[data-pos="top-center"], .top-flash-wrap[data-pos="top-center"] { right: 0; left: 0; margin-inline: auto; align-items: center; }
 

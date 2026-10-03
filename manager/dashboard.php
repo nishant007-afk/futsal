@@ -159,7 +159,7 @@ require __DIR__ . '/../includes/header.php';
         <p class="muted" style="margin-top:4px; font-size:14px;">Court availability, booking activity, and earnings overview</p>
     </div>
     <div class="actions">
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm">+ Add Ground</a>
+        <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-primary btn-sm">+ Add Ground</a>
         <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm">All Bookings</a>
         <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
     </div>

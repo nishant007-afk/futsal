@@ -29,6 +29,10 @@ $grounds = $conn->query(
     'SELECT * FROM grounds WHERE manager_id = ' . (int)$_SESSION['user_id'] . ' ORDER BY id'
 )->fetch_all(MYSQLI_ASSOC);
 
+$isAdding = isset($_GET['add']) || (isset($_GET['action']) && $_GET['action'] === 'add');
+$isEditing = $editing !== null;
+$showEditor = $isAdding || $isEditing || !empty($errors);
+
 $blockedDates = [];
 $photos = [];
 if ($editing) {
@@ -63,24 +67,156 @@ if (!empty($errors['price_per_hour']) || !empty($errors['discount_price']) || !e
     $defaultTab = 'location';
 }
 
-$page_title = $editing ? 'Edit Court: ' . $editing['name'] : 'Manage Courts';
+$page_title = $showEditor ? ($editing ? 'Edit Court: ' . $editing['name'] : 'Add New Court') : 'My Courts';
 require __DIR__ . '/../includes/header.php';
 ?>
 
+<?php if (!$showEditor): ?>
+<!-- ======================= DEFAULT VIEW: MY COURTS ======================= -->
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <div>
-            <h1 class="page-title">Manage Courts</h1>
+            <h1 class="page-title">My Courts</h1>
+            <p class="page-sub">Manage your futsal venues, live availability, pricing, and court details</p>
+        </div>
+        <div class="actions">
+            <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+            <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Court</a>
         </div>
     </div>
 </div>
 
 <?php if (!$subStatus['active']): ?>
-    <div class="toast toast-warning toast-inline reveal" role="status">
+    <div class="toast toast-warning toast-inline reveal" role="status" style="margin-bottom: 24px;">
         <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
         <div class="toast-content">
-            <div class="toast-msg"><?php echo e($subStatus['label']); ?>: your courts are currently hidden from players. Renew your subscription to go live again.</div>
+            <div class="toast-msg"><strong><?php echo e($subStatus['label']); ?>:</strong> Your courts are currently hidden from players. Renew your subscription in <a href="<?php echo base_url('manager/subscription.php'); ?>" style="text-decoration: underline; font-weight: 700;">Subscription & Billing</a> to go live again.</div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php
+$totalCourts = count($grounds);
+$activeCourts = 0;
+foreach ($grounds as $g) {
+    if (!empty($g['is_active'])) $activeCourts++;
+}
+$inactiveCourts = $totalCourts - $activeCourts;
+?>
+
+<!-- Quick Overview Stats Bar -->
+<div class="courts-stat-strip reveal">
+    <div class="cs-stat-item">
+        <span class="cs-stat-val"><?php echo $totalCourts; ?></span>
+        <span class="cs-stat-lbl"><i class="fa-solid fa-store"></i> Total Courts</span>
+    </div>
+    <div class="cs-stat-item">
+        <span class="cs-stat-val cs-stat-active"><?php echo $activeCourts; ?></span>
+        <span class="cs-stat-lbl"><i class="fa-solid fa-circle-check"></i> Active & Live</span>
+    </div>
+    <div class="cs-stat-item">
+        <span class="cs-stat-val"><?php echo $inactiveCourts; ?></span>
+        <span class="cs-stat-lbl"><i class="fa-solid fa-circle-pause"></i> Inactive</span>
+    </div>
+</div>
+
+<!-- Manager Courts Cards Grid -->
+<?php if ($grounds): ?>
+    <div class="mc-grid reveal">
+        <?php foreach ($grounds as $g): ?>
+            <?php
+            $gcover = ground_cover((int)$g['id']);
+            $coverUrl = $gcover ? base_url('uploads/grounds/' . rawurlencode($gcover)) : base_url('uploads/grounds/court_brastad_arena.jpg');
+            $galleryCount = count(ground_images((int)$g['id']));
+            ?>
+            <div class="mc-card">
+                <div class="mc-card-media">
+                    <img src="<?php echo $coverUrl; ?>" alt="<?php echo e($g['name']); ?> cover" class="mc-card-cover" loading="lazy" decoding="async">
+                    <div class="mc-card-badges">
+                        <?php if ($g['is_active']): ?>
+                            <span class="badge badge-confirmed"><i class="fa-solid fa-circle-check"></i> Active</span>
+                        <?php else: ?>
+                            <span class="badge badge-cancelled"><i class="fa-solid fa-circle-pause"></i> Inactive</span>
+                        <?php endif; ?>
+
+                        <?php if (!empty($g['court_number'])): ?>
+                            <span class="mc-badge-pill"><?php echo e($g['court_number']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($galleryCount > 0): ?>
+                        <div class="mc-photo-pill"><i class="fa-solid fa-camera"></i> <?php echo $galleryCount; ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="mc-card-content">
+                    <div class="mc-card-head-row">
+                        <h3 class="mc-card-title">
+                            <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>"><?php echo e($g['name']); ?></a>
+                        </h3>
+                    </div>
+
+                    <div class="mc-card-loc">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span><?php echo e($g['location']); ?></span>
+                    </div>
+
+                    <div class="mc-card-features">
+                        <span class="mc-feat-item"><i class="fa-solid fa-users"></i> <?php echo (int)$g['capacity'] === 10 ? '5A-Side' : ((int)$g['capacity'] . ' Players'); ?></span>
+                        <span class="mc-feat-item"><i class="fa-solid fa-clock"></i> <?php echo e(substr($g['open_time'], 0, 5)); ?> – <?php echo e(substr($g['close_time'], 0, 5)); ?></span>
+                        <span class="mc-feat-item"><i class="fa-solid fa-stopwatch"></i> <?php echo (int)$g['slot_interval']; ?>m slots</span>
+                    </div>
+
+                    <div class="mc-card-price-row">
+                        <div class="mc-price-group">
+                            <strong class="mc-price-val"><?php echo format_price((float)$g['price_per_hour']); ?></strong>
+                            <span class="mc-price-unit">/ hour</span>
+                        </div>
+                        <?php if ($g['discount_price']): ?>
+                            <span class="badge badge-confirmed">Promo: <?php echo format_price((float)$g['discount_price']); ?>/hr</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="mc-card-actions">
+                        <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+                        <a href="<?php echo base_url('pages/ground.php?id=' . (int)$g['id']); ?>" target="_blank" rel="noopener" class="btn btn-outline btn-sm" title="View Public Listing"><i class="fa-solid fa-arrow-up-right-from-square"></i> View</a>
+                        <?php echo post_action_form(base_url('manager/grounds.php'), 'duplicate_ground', (string)(int)$g['id'], '<i class="fa-solid fa-copy"></i>', 'btn btn-outline btn-sm', 'Duplicate this ground?', 'Duplicate ground', ['title' => 'Duplicate court'], 'Duplicate ground?'); ?>
+                        <?php echo post_action_form(base_url('manager/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground permanently?', 'Delete ground', ['title' => 'Delete court'], 'Delete court?'); ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php else: ?>
+    <div class="empty reveal" style="padding: 56px 24px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-lg); text-align: center; margin-top: 14px;">
+        <span class="big" style="font-size: 3.2rem; color: var(--ink-4); margin-bottom: 14px; display: inline-block;"><i class="fa-solid fa-store"></i></span>
+        <h3 style="margin: 0 0 8px 0; font-size: 1.3rem;">No courts added yet</h3>
+        <p class="muted" style="max-width: 460px; margin: 0 auto 24px; font-size: 0.95rem;">You haven't listed any futsal courts yet. Add your court details, set prices, and upload photos to start receiving player bookings.</p>
+        <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Your First Court</a>
+    </div>
+<?php endif; ?>
+
+<?php else: ?>
+<!-- ======================= COURT EDITOR VIEW (ADD / EDIT) ======================= -->
+<div class="page-head dash-page-head">
+    <a href="<?php echo base_url('manager/grounds.php'); ?>" class="page-back-arrow" aria-label="Back to courts"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="dash-head-main">
+        <div>
+            <h1 class="page-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h1>
+            <p class="page-sub">Configure your futsal pitch specifications, pricing, and live availability</p>
+        </div>
+        <div class="actions">
+            <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to My Courts</a>
+            <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+        </div>
+    </div>
+</div>
+
+<?php if (!$subStatus['active']): ?>
+    <div class="toast toast-warning toast-inline reveal" role="status" style="margin-bottom: 20px;">
+        <div class="toast-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="toast-content">
+            <div class="toast-msg"><strong><?php echo e($subStatus['label']); ?>:</strong> Your courts are currently hidden from players. Renew your subscription to go live again.</div>
         </div>
     </div>
 <?php endif; ?>
@@ -88,7 +224,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="court-editor-container">
     <div class="editor-main-pane">
         <div class="editor-card-unified">
-            <!-- Card Header: Title + Action Links In Same Card -->
+            <!-- Card Header: Title + Action Links In Same Card (TOP CREATE GROUND BUTTON REMOVED) -->
             <div class="editor-card-head">
                 <div class="ech-title-wrap">
                     <h2 class="ech-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h2>
@@ -96,10 +232,9 @@ require __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="ech-actions">
                     <?php if ($editing): ?>
-                        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
+                        <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
                     <?php endif; ?>
                     <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
-                    <button type="submit" form="groundForm" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
                 </div>
             </div>
 
@@ -126,313 +261,311 @@ require __DIR__ . '/../includes/header.php';
 
             <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
-        <!-- Primary Form for Ground Core Data -->
-        <form method="post" action="" id="groundForm" enctype="multipart/form-data" novalidate>
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="save_ground_core" value="1">
-            <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
+            <!-- Primary Form for Ground Core Data -->
+            <form method="post" action="" id="groundForm" enctype="multipart/form-data" novalidate>
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="save_ground_core" value="1">
+                <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
 
-            <!-- TAB 1: BASIC DETAILS -->
-            <div class="editor-panel-card" id="panel-details" role="tabpanel">
-                <div class="panel-intro">
-                    <h3>Basic Court Information</h3>
-                </div>
-                <div class="grid grid-2">
-                    <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                        <label for="name">Ground Name <span class="req">*</span></label>
-                        <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" placeholder="e.g. KickOff Arena Court 1" required>
-                        <?php field_error($errors, 'name'); ?>
-                    </div>
-                    <div class="form-group">
-                        <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
-                        <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Pitch A">
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'location'); ?>">
-                        <label for="location">Neighborhood / Area <span class="req">*</span></label>
-                        <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" placeholder="e.g. Baneshwor, Kathmandu" required>
-                        <?php field_error($errors, 'location'); ?>
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
-                        <label for="capacity">Player Capacity <span class="req">*</span></label>
-                        <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder="10 (for 5v5)" required>
-                        <?php field_error($errors, 'capacity'); ?>
-                    </div>
-                    <div class="form-group span-full">
-                        <label for="address">Full Street Address</label>
-                        <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. Madan Bhandari Path, New Baneshwor">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="description">Court Overview & Highlights</label>
-                    <textarea id="description" name="description" rows="3" placeholder="Describe your turf quality, lighting, parking, changing rooms, and amenities..."><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
-                </div>
-                <div class="form-group" style="margin-top: 14px;">
-                    <label class="check-line" for="is_active">
-                        <input type="checkbox" id="is_active" name="is_active" aria-label="Make this court visible and bookable for players" <?php echo !isset($editing) || $editing['is_active'] ? 'checked' : ''; ?>>
-                        <span class="check-box"><i class="fa-solid fa-check"></i></span>
-                        <span><strong>Active status:</strong> Make this court visible and bookable for players</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- TAB 2: PRICING & OPERATING HOURS -->
-            <div class="editor-panel-card" id="panel-pricing" role="tabpanel" hidden>
-                <div class="panel-intro">
-                    <h3>Pricing & Operating Hours</h3>
-                </div>
-                <div class="grid grid-2">
-                    <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
-                        <label for="price_per_hour">Regular Price / Hour (Rs.) <span class="req">*</span></label>
-                        <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder="e.g. 1500" required>
-                        <?php field_error($errors, 'price_per_hour'); ?>
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
-                        <label for="discount_price">Special Promotional Rate (Rs.) <span class="muted">(optional)</span></label>
-                        <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Discounted price per hour">
-                        <?php field_error($errors, 'discount_price'); ?>
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
-                        <label for="price_weekend">Weekend Rate / Hour (Rs.) <span class="muted">(optional)</span></label>
-                        <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Defaults to regular price if empty">
-                        <?php field_error($errors, 'price_weekend'); ?>
-                    </div>
-                    <div class="form-group">
-                        <label for="slot_interval">Booking Slot Duration</label>
-                        <select id="slot_interval" name="slot_interval">
-                            <option value="60" <?php echo (int)($editing['slot_interval'] ?? 60) === 60 ? 'selected' : ''; ?>>60 minutes (Standard)</option>
-                            <option value="30" <?php echo (int)($editing['slot_interval'] ?? 60) === 30 ? 'selected' : ''; ?>>30 minutes (Fast match)</option>
-                        </select>
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
-                        <label for="open_time">Opening Time</label>
-                        <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
-                        <?php field_error($errors, 'open_time'); ?>
-                    </div>
-                    <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
-                        <label for="close_time">Closing Time</label>
-                        <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
-                        <?php field_error($errors, 'close_time'); ?>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: LOCATION & PIN -->
-            <div class="editor-panel-card" id="panel-location" role="tabpanel" hidden>
-                <div class="panel-intro">
-                    <h3>Location & Pin</h3>
-                </div>
-                <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
-            </div>
-
-            <?php if (!$editing): ?>
-                <!-- NEW GROUND: MEDIA TAB DIRECTLY IN FORM -->
-                <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
+                <!-- TAB 1: BASIC DETAILS -->
+                <div class="editor-panel-card" id="panel-details" role="tabpanel">
                     <div class="panel-intro">
-                        <h3>Photos & Payment QR</h3>
+                        <h3>Basic Court Information</h3>
                     </div>
-                    <div class="form-card sub" style="margin-bottom: 20px;">
-                        <h4><i class="fa-solid fa-camera"></i> Court Photos</h4>
-                        <div class="form-group file-pick">
-                            <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
-                            <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
-                            <span class="file-name" id="fileNames">No files selected</span>
+                    <div class="grid grid-2">
+                        <div class="form-group<?php echo has_error($errors, 'name'); ?>">
+                            <label for="name">Ground Name <span class="req">*</span></label>
+                            <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" placeholder="e.g. KickOff Arena Court 1" required>
+                            <?php field_error($errors, 'name'); ?>
                         </div>
-                        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+                        <div class="form-group">
+                            <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
+                            <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Pitch A">
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'location'); ?>">
+                            <label for="location">Neighborhood / Area <span class="req">*</span></label>
+                            <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" placeholder="e.g. Baneshwor, Kathmandu" required>
+                            <?php field_error($errors, 'location'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
+                            <label for="capacity">Player Capacity <span class="req">*</span></label>
+                            <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder="10 (for 5v5)" required>
+                            <?php field_error($errors, 'capacity'); ?>
+                        </div>
+                        <div class="form-group span-full">
+                            <label for="address">Full Street Address</label>
+                            <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. Madan Bhandari Path, New Baneshwor">
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label for="description">Court Overview & Highlights</label>
+                        <textarea id="description" name="description" rows="3" placeholder="Describe your turf quality, lighting, parking, changing rooms, and amenities..."><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label class="check-line" for="is_active">
+                            <input type="checkbox" id="is_active" name="is_active" aria-label="Make this court visible and bookable for players" <?php echo !isset($editing) || $editing['is_active'] ? 'checked' : ''; ?>>
+                            <span class="check-box"><i class="fa-solid fa-check"></i></span>
+                            <span><strong>Active status:</strong> Make this court visible and bookable for players</span>
+                        </label>
+                    </div>
+                </div>
 
-                    <div class="form-card sub">
-                        <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
-                        <div class="form-group file-pick">
-                            <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
-                            <input type="file" id="qrInput" name="payment_qr" accept="image/*">
-                            <span class="file-name" id="qrFileName">No file selected</span>
+                <!-- TAB 2: PRICING & OPERATING HOURS -->
+                <div class="editor-panel-card" id="panel-pricing" role="tabpanel" hidden>
+                    <div class="panel-intro">
+                        <h3>Pricing & Operating Hours</h3>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
+                            <label for="price_per_hour">Regular Price / Hour (Rs.) <span class="req">*</span></label>
+                            <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder="e.g. 1500" required>
+                            <?php field_error($errors, 'price_per_hour'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
+                            <label for="discount_price">Special Promotional Rate (Rs.) <span class="muted">(optional)</span></label>
+                            <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Discounted price per hour">
+                            <?php field_error($errors, 'discount_price'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
+                            <label for="price_weekend">Weekend Rate / Hour (Rs.) <span class="muted">(optional)</span></label>
+                            <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Defaults to regular price if empty">
+                            <?php field_error($errors, 'price_weekend'); ?>
+                        </div>
+                        <div class="form-group">
+                            <label for="slot_interval">Booking Slot Duration</label>
+                            <select id="slot_interval" name="slot_interval">
+                                <option value="60" <?php echo (int)($editing['slot_interval'] ?? 60) === 60 ? 'selected' : ''; ?>>60 minutes (Standard)</option>
+                                <option value="30" <?php echo (int)($editing['slot_interval'] ?? 60) === 30 ? 'selected' : ''; ?>>30 minutes (Fast match)</option>
+                            </select>
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
+                            <label for="open_time">Opening Time</label>
+                            <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
+                            <?php field_error($errors, 'open_time'); ?>
+                        </div>
+                        <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
+                            <label for="close_time">Closing Time</label>
+                            <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
+                            <?php field_error($errors, 'close_time'); ?>
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
-        </form>
 
-        <?php if ($editing): ?>
-            <!-- TAB 4: MEDIA & QR FOR EXISTING GROUND -->
-            <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
-                <div class="panel-intro">
-                    <h3>Photos & Payment QR</h3>
+                <!-- TAB 3: LOCATION & PIN -->
+                <div class="editor-panel-card" id="panel-location" role="tabpanel" hidden>
+                    <div class="panel-intro">
+                        <h3>Location & Pin</h3>
+                    </div>
+                    <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
                 </div>
 
-                <div class="form-card sub" style="margin-bottom: 24px;">
-                    <div class="media-section-head">
-                        <div>
-                            <h4><i class="fa-solid fa-camera"></i> Photo Gallery</h4>
+                <?php if (!$editing): ?>
+                    <!-- NEW GROUND: MEDIA TAB DIRECTLY IN FORM -->
+                    <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
+                        <div class="panel-intro">
+                            <h3>Photos & Payment QR</h3>
                         </div>
-                        <span class="media-count-tag"><?php echo count($photos); ?> photos</span>
-                    </div>
-
-                    <div class="photo-grid mb">
-                        <?php foreach ($photos as $ph): ?>
-                            <div class="photo-item">
-                                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
-                                <form method="post" action="" style="display:inline;">
-                                    <?php echo csrf_field(); ?>
-                                    <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
-                                    <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Remove this photo from your court?" data-confirm-title="Remove photo" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
-                                </form>
-                            </div>
-                        <?php endforeach; ?>
-                        <?php if (!$photos): ?>
-                            <div class="empty-media-msg"><i class="fa-solid fa-image"></i> No photos uploaded yet.</div>
-                        <?php endif; ?>
-                    </div>
-
-                    <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm">
-                        <?php echo csrf_field(); ?>
-                        <input type="hidden" name="upload_photos" value="1">
-                        <div class="form-group file-pick">
-                            <label class="file-btn" for="photoInput"><i class="fa-solid fa-cloud-arrow-up"></i> Select New Photos</label>
-                            <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
-                            <span class="file-name" id="fileNames">No files selected</span>
-                        </div>
-                        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload selected photos</button>
-                    </form>
-                </div>
-
-                <div class="form-card sub">
-                    <div class="media-section-head">
-                        <div>
-                            <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
-                        </div>
-                    </div>
-
-                    <?php $groundQr = ground_qr((int)$editing['id']); ?>
-                    <?php if ($groundQr !== ''): ?>
-                        <div class="qr-preview-box mb">
-                            <div class="photo-item qr-item">
-                                <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                                <form method="post" action="" style="display:inline;">
-                                    <?php echo csrf_field(); ?>
-                                    <input type="hidden" name="delete_qr_ground" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
-                                </form>
-                            </div>
-                            <div class="qr-info-note">
-                                <span class="badge badge-confirmed"><i class="fa-solid fa-check"></i> Active QR</span>
-                            </div>
-                        </div>
-                        <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="upload_qr" value="1">
+                        <div class="form-card sub" style="margin-bottom: 20px;">
+                            <h4><i class="fa-solid fa-camera"></i> Court Photos</h4>
                             <div class="form-group file-pick">
-                                <label class="file-btn" for="qrInputEdit"><i class="fa-solid fa-arrows-rotate"></i> Replace QR image</label>
-                                <input type="file" id="qrInputEdit" name="payment_qr" accept="image/*">
-                                <span class="file-name" id="qrFileNameEdit">No file selected</span>
+                                <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
+                                <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
+                                <span class="file-name" id="fileNames">No files selected</span>
                             </div>
-                            <button type="submit" class="btn btn-outline btn-sm"><i class="fa-solid fa-upload"></i> Save replacement QR</button>
-                        </form>
-                    <?php else: ?>
-                        <p class="muted" style="font-size: 0.88rem;">No payment QR set yet.</p>
-                        <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="upload_qr" value="1">
+                            <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+                        </div>
+
+                        <div class="form-card sub">
+                            <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
                             <div class="form-group file-pick">
                                 <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
                                 <input type="file" id="qrInput" name="payment_qr" accept="image/*">
                                 <span class="file-name" id="qrFileName">No file selected</span>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload QR Code</button>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </form>
+
+            <?php if ($editing): ?>
+                <!-- TAB 4: MEDIA & QR FOR EXISTING GROUND -->
+                <div class="editor-panel-card" id="panel-media" role="tabpanel" hidden>
+                    <div class="panel-intro">
+                        <h3>Photos & Payment QR</h3>
+                    </div>
+
+                    <div class="form-card sub" style="margin-bottom: 24px;">
+                        <div class="media-section-head">
+                            <div>
+                                <h4><i class="fa-solid fa-camera"></i> Photo Gallery</h4>
+                            </div>
+                            <span class="media-count-tag"><?php echo count($photos); ?> photos</span>
+                        </div>
+
+                        <div class="photo-grid mb">
+                            <?php foreach ($photos as $ph): ?>
+                                <div class="photo-item">
+                                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
+                                    <form method="post" action="" style="display:inline;">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
+                                        <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                                        <button type="submit" class="photo-remove" data-confirm="Remove this photo from your court?" data-confirm-title="Remove photo" title="Remove" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php if (!$photos): ?>
+                                <div class="empty-media-msg"><i class="fa-solid fa-image"></i> No photos uploaded yet.</div>
+                            <?php endif; ?>
+                        </div>
+
+                        <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="upload_photos" value="1">
+                            <div class="form-group file-pick">
+                                <label class="file-btn" for="photoInput"><i class="fa-solid fa-cloud-arrow-up"></i> Select New Photos</label>
+                                <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
+                                <span class="file-name" id="fileNames">No files selected</span>
+                            </div>
+                            <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload selected photos</button>
                         </form>
-                    <?php endif; ?>
-                </div>
-            </div>
+                    </div>
 
-            <!-- TAB 5: BLACKOUT DATES (EDIT ONLY) -->
-            <div class="editor-panel-card" id="panel-schedule" role="tabpanel" hidden>
-                <div class="panel-intro">
-                    <h3>Blackout Schedule</h3>
+                    <div class="form-card sub">
+                        <div class="media-section-head">
+                            <div>
+                                <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
+                            </div>
+                        </div>
+
+                        <?php $groundQr = ground_qr((int)$editing['id']); ?>
+                        <?php if ($groundQr !== ''): ?>
+                            <div class="qr-preview-box mb">
+                                <div class="photo-item qr-item">
+                                    <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
+                                    <form method="post" action="" style="display:inline;">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="delete_qr_ground" value="<?php echo (int)$editing['id']; ?>">
+                                        <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
+                                <div class="qr-info-note">
+                                    <span class="badge badge-confirmed"><i class="fa-solid fa-check"></i> Active QR</span>
+                                </div>
+                            </div>
+                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="upload_qr" value="1">
+                                <div class="form-group file-pick">
+                                    <label class="file-btn" for="qrInputEdit"><i class="fa-solid fa-arrows-rotate"></i> Replace QR image</label>
+                                    <input type="file" id="qrInputEdit" name="payment_qr" accept="image/*">
+                                    <span class="file-name" id="qrFileNameEdit">No file selected</span>
+                                </div>
+                                <button type="submit" class="btn btn-outline btn-sm"><i class="fa-solid fa-upload"></i> Save replacement QR</button>
+                            </form>
+                        <?php else: ?>
+                            <p class="muted" style="font-size: 0.88rem;">No payment QR set yet.</p>
+                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="upload_qr" value="1">
+                                <div class="form-group file-pick">
+                                    <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
+                                    <input type="file" id="qrInput" name="payment_qr" accept="image/*">
+                                    <span class="file-name" id="qrFileName">No file selected</span>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload QR Code</button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
-                <?php
-                $blockedSet = [];
-                foreach ($blockedDates as $bd) {
-                    $blockedSet[$bd['block_date']] = true;
-                }
-                ?>
-                <div class="block-cal" data-picked="">
-                    <?php for ($mOff = 0; $mOff < 2; $mOff++):
-                        $cy = (int)date('Y');
-                        $cm = (int)date('n') + $mOff;
-                        while ($cm > 12) { $cm -= 12; $cy++; }
-                        $firstDow = (int)date('w', mktime(0, 0, 0, $cm, 1, $cy));
-                        $daysInMonth = (int)date('t', mktime(0, 0, 0, $cm, 1, $cy));
+                <!-- TAB 5: BLACKOUT DATES (EDIT ONLY) -->
+                <div class="editor-panel-card" id="panel-schedule" role="tabpanel" hidden>
+                    <div class="panel-intro">
+                        <h3>Blackout Schedule</h3>
+                    </div>
+
+                    <?php
+                    $blockedSet = [];
+                    foreach ($blockedDates as $bd) {
+                        $blockedSet[$bd['block_date']] = true;
+                    }
                     ?>
-                        <div class="block-cal-month">
-                            <div class="block-cal-head"><?php echo e(date('F Y', mktime(0, 0, 0, $cm, 1, $cy))); ?></div>
-                            <div class="block-cal-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
-                            <div class="block-cal-grid">
-                                <?php for ($i = 0; $i < $firstDow; $i++): ?><span class="block-cal-empty"></span><?php endfor; ?>
-                                <?php for ($d = 1; $d <= $daysInMonth; $d++):
-                                    $ds = sprintf('%04d-%02d-%02d', $cy, $cm, $d);
-                                    $isBlocked = isset($blockedSet[$ds]);
-                                    $isPast = $ds < date('Y-m-d');
-                                ?>
-                                    <button type="button" class="block-cal-day<?php echo $isBlocked ? ' blocked' : ''; ?><?php echo $isPast ? ' past' : ''; ?>" data-date="<?php echo $ds; ?>" <?php echo $isPast ? 'disabled' : ''; ?> title="<?php echo $isBlocked ? 'Already blocked' : 'Block this date'; ?>"><?php echo $d; ?></button>
-                                <?php endfor; ?>
+                    <div class="block-cal" data-picked="">
+                        <?php for ($mOff = 0; $mOff < 2; $mOff++):
+                            $cy = (int)date('Y');
+                            $cm = (int)date('n') + $mOff;
+                            while ($cm > 12) { $cm -= 12; $cy++; }
+                            $firstDow = (int)date('w', mktime(0, 0, 0, $cm, 1, $cy));
+                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $cm, 1, $cy));
+                        ?>
+                            <div class="block-cal-month">
+                                <div class="block-cal-head"><?php echo e(date('F Y', mktime(0, 0, 0, $cm, 1, $cy))); ?></div>
+                                <div class="block-cal-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                                <div class="block-cal-grid">
+                                    <?php for ($i = 0; $i < $firstDow; $i++): ?><span class="block-cal-empty"></span><?php endfor; ?>
+                                    <?php for ($d = 1; $d <= $daysInMonth; $d++):
+                                        $ds = sprintf('%04d-%02d-%02d', $cy, $cm, $d);
+                                        $isBlocked = isset($blockedSet[$ds]);
+                                        $isPast = $ds < date('Y-m-d');
+                                    ?>
+                                        <button type="button" class="block-cal-day<?php echo $isBlocked ? ' blocked' : ''; ?><?php echo $isPast ? ' past' : ''; ?>" data-date="<?php echo $ds; ?>" <?php echo $isPast ? 'disabled' : ''; ?> title="<?php echo $isBlocked ? 'Already blocked' : 'Block this date'; ?>"><?php echo $d; ?></button>
+                                    <?php endfor; ?>
+                                </div>
                             </div>
-                        </div>
-                    <?php endfor; ?>
-                </div>
+                        <?php endfor; ?>
+                    </div>
 
-                <div class="form-card sub" style="margin-top: 18px;">
-                    <h4><i class="fa-solid fa-lock"></i> Add Blackout Date</h4>
-                    <form method="post" action="" id="blockDateForm">
-                        <?php echo csrf_field(); ?>
-                        <input type="hidden" name="add_blocked_date" value="1">
-                        <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                        <div class="grid grid-2">
-                            <div class="form-group">
-                                <label for="blockDate">Selected Date <span class="req">*</span></label>
-                                <input type="date" id="blockDate" name="block_date" min="<?php echo e(date('Y-m-d')); ?>" required>
+                    <div class="form-card sub" style="margin-top: 18px;">
+                        <h4><i class="fa-solid fa-lock"></i> Add Blackout Date</h4>
+                        <form method="post" action="" id="blockDateForm">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="add_blocked_date" value="1">
+                            <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label for="blockDate">Selected Date <span class="req">*</span></label>
+                                    <input type="date" id="blockDate" name="block_date" min="<?php echo e(date('Y-m-d')); ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="blockNote">Reason / Note <span class="muted">(optional)</span></label>
+                                    <input type="text" id="blockNote" name="block_note" maxlength="255" placeholder="e.g. Private corporate tournament">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="blockNote">Reason / Note <span class="muted">(optional)</span></label>
-                                <input type="text" id="blockNote" name="block_note" maxlength="255" placeholder="e.g. Private corporate tournament">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-ban"></i> Block this date</button>
-                    </form>
-                </div>
+                            <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-ban"></i> Block this date</button>
+                        </form>
+                    </div>
 
-                <div class="blocked-list" style="margin-top: 20px;">
-                    <h4>Currently Closed Dates</h4>
-                    <?php if (!$blockedDates): ?>
-                        <p class="muted">No dates blocked. Your court is open on regular schedule.</p>
-                    <?php else: ?>
-                        <?php foreach ($blockedDates as $bd): ?>
-                            <div class="blocked-item">
-                                <span><i class="fa-solid fa-calendar-xmark"></i> <strong><?php echo e(date('D, M j, Y', strtotime($bd['block_date']))); ?></strong><?php echo $bd['note'] !== '' ? ' &mdash; ' . e($bd['note']) : ''; ?></span>
-                                <form method="post" action="" style="display:inline;">
-                                    <?php echo csrf_field(); ?>
-                                    <input type="hidden" name="unblock_date" value="<?php echo (int)$bd['id']; ?>">
-                                    <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                    <button type="submit" class="photo-remove" data-confirm="Unblock this date and make slots available again?" data-confirm-title="Unblock date" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
-                                </form>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <div class="blocked-list" style="margin-top: 20px;">
+                        <h4>Currently Closed Dates</h4>
+                        <?php if (!$blockedDates): ?>
+                            <p class="muted">No dates blocked. Your court is open on regular schedule.</p>
+                        <?php else: ?>
+                            <?php foreach ($blockedDates as $bd): ?>
+                                <div class="blocked-item">
+                                    <span><i class="fa-solid fa-calendar-xmark"></i> <strong><?php echo e(date('D, M j, Y', strtotime($bd['block_date']))); ?></strong><?php echo $bd['note'] !== '' ? ' &mdash; ' . e($bd['note']) : ''; ?></span>
+                                    <form method="post" action="" style="display:inline;">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="unblock_date" value="<?php echo (int)$bd['id']; ?>">
+                                        <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
+                                        <button type="submit" class="photo-remove" data-confirm="Unblock this date and make slots available again?" data-confirm-title="Unblock date" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
-            <!-- Card Bottom Action Bar (In Same Card) -->
+            <!-- Card Bottom Action Bar (Next link on right side beside Create Ground / Save Changes) -->
             <div class="editor-card-footer">
-                <div class="action-footer-nav">
+                <div class="action-footer-left">
                     <button type="button" class="btn btn-outline btn-sm" id="prevTabBtn" style="display: none;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                    <button type="button" class="btn btn-outline btn-sm" id="nextTabBtn">Next: Pricing <i class="fa-solid fa-arrow-right"></i></button>
+                    <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-ghost btn-sm">Cancel</a>
                 </div>
-                <div class="action-footer-save">
-                    <?php if ($editing): ?>
-                        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-ghost btn-sm">Cancel</a>
-                    <?php endif; ?>
+                <div class="action-footer-right">
+                    <button type="button" class="btn btn-outline btn-sm" id="nextTabBtn">Next: Pricing & Hours <i class="fa-solid fa-arrow-right"></i></button>
                     <button type="submit" form="groundForm" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
                 </div>
             </div>
@@ -481,58 +614,209 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<!-- List of All Manager's Grounds -->
-<div class="managed-courts-section">
-    <div class="courts-section-header">
-        <div>
-            <h3 class="dash-section" style="margin:0;">Your Managed Grounds (<?php echo count($grounds); ?>)</h3>
-        </div>
-    </div>
-
-    <div class="mbookings reveal">
-        <?php foreach ($grounds as $g): ?>
-            <div class="mbooking<?php echo $editing && (int)$editing['id'] === (int)$g['id'] ? ' is-current-editing' : ''; ?>">
-                <div class="mbooking-thumb">
-                    <?php $gcover = ground_cover((int)$g['id']); ?>
-                    <?php if ($gcover): ?>
-                        <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($gcover)); ?>" alt="<?php echo e($g['name']); ?> cover" loading="lazy" decoding="async">
-                    <?php else: ?>
-                        <i class="fa-solid fa-store"></i>
-                    <?php endif; ?>
-                </div>
-                <div class="mbooking-main">
-                    <div class="mbooking-head">
-                        <h3><?php echo e($g['name']); ?></h3>
-                        <span class="mbooking-status">
-                            <?php if ($g['is_active']): ?>
-                                <span class="badge badge-confirmed">Active</span>
-                            <?php else: ?>
-                                <span class="badge badge-cancelled">Inactive</span>
-                            <?php endif; ?>
-                        </span>
-                    </div>
-                    <div class="mbooking-meta">
-                        <span><i class="fa-solid fa-location-dot"></i> <?php echo e($g['location']); ?></span>
-                        <span class="mprice"><i class="fa-solid fa-tag"></i> <?php echo format_price($g['price_per_hour']); ?>/hr</span>
-                    </div>
-                </div>
-                <div class="mbooking-side">
-                    <div class="actions tight">
-                        <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-                        <?php echo post_action_form(base_url('manager/grounds.php'), 'duplicate_ground', (string)(int)$g['id'], '<i class="fa-solid fa-copy"></i> Duplicate', 'btn btn-outline btn-sm', 'Create a copy of this ground?', 'Duplicate ground', [], 'Duplicate ground?'); ?>
-                        <?php echo post_action_form(base_url('manager/grounds.php'), 'delete_ground', (string)(int)$g['id'], '<i class="fa-solid fa-trash"></i>', 'btn btn-danger btn-sm', 'Delete this ground?', 'Delete ground', [], 'Delete ground?'); ?>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-        <?php if (!$grounds): ?>
-            <div class="empty reveal"><span class="big"><i class="fa-solid fa-store"></i></span><h3>No grounds yet</h3><p>Use the form above to add your first futsal court.</p></div>
-        <?php endif; ?>
-    </div>
-</div>
+<?php endif; ?>
 
 <style>
+/* Stats bar in My Courts */
+.courts-stat-strip {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.cs-stat-item {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    flex: 1;
+}
+.cs-stat-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+.cs-stat-active {
+    color: var(--brand-700);
+}
+.cs-stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* My Courts Responsive Grid */
+.mc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
+    margin-bottom: 40px;
+}
+.mc-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--s1);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.mc-card:hover {
+    border-color: var(--line-2);
+    box-shadow: 0 10px 24px -4px rgba(10, 24, 16, 0.08);
+}
+.mc-card-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #092617;
+    overflow: hidden;
+}
+.mc-card-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: none !important;
+}
+.mc-card:hover .mc-card-cover {
+    transform: none !important;
+}
+.mc-card-badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+    align-items: center;
+}
+.mc-badge-pill {
+    background: rgba(10, 24, 16, 0.78);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--r-sm);
+    letter-spacing: 0.02em;
+}
+.mc-photo-pill {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--r-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.mc-card-content {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.mc-card-head-row {
+    margin-bottom: 6px;
+}
+.mc-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.3;
+}
+.mc-card-title a {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.mc-card-title a:hover {
+    color: var(--brand-700);
+}
+.mc-card-loc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+}
+.mc-card-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.mc-feat-item {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    padding: 4px 9px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.mc-card-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    margin-top: auto;
+    margin-bottom: 14px;
+}
+.mc-price-group {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.mc-price-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink);
+}
+.mc-price-unit {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+.mc-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mc-card-actions .btn {
+    white-space: nowrap;
+}
+.mc-card-actions .btn-primary {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Court Editor Layout */
 .court-editor-container {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 400px;
@@ -678,15 +962,7 @@ require __DIR__ . '/../includes/header.php';
     min-height: 96px;
     line-height: 1.5;
 }
-@media (max-width: 768px) {
-    .editor-panel-card .grid-2 {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-    .editor-panel-card {
-        padding: 18px 16px;
-    }
-}
+
 @keyframes fadeInTab {
     from { opacity: 0; transform: translateY(3px); }
     to { opacity: 1; transform: translateY(0); }
@@ -716,16 +992,18 @@ require __DIR__ . '/../includes/header.php';
     border-top: 1px solid var(--line);
     background: var(--bg-soft);
 }
-.action-footer-nav {
+.action-footer-left {
     display: flex;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
-.action-footer-save {
+.action-footer-right {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+    margin-left: auto;
 }
 .editor-side-pane {
     position: sticky;
@@ -747,12 +1025,18 @@ require __DIR__ . '/../includes/header.php';
     letter-spacing: 0.05em;
     padding: 0 2px;
 }
+
+/* Ground Preview Card - No zoom, clean */
 .ground-preview-card {
     width: 100%;
     margin: 0;
     box-shadow: var(--s2);
     border-radius: var(--r-lg);
     overflow: hidden;
+}
+.ground-preview-card:hover {
+    transform: none !important;
+    box-shadow: var(--s2) !important;
 }
 .ground-preview-card .card-img {
     position: relative;
@@ -761,12 +1045,18 @@ require __DIR__ . '/../includes/header.php';
     background: var(--dark-2, #18221c);
     overflow: hidden;
 }
+.ground-preview-card .card-cover,
+.ground-preview-card:hover .card-cover,
+.card:hover .card-cover {
+    transform: none !important;
+}
 .ground-preview-card .card-cover {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
+
 .media-section-head {
     display: flex;
     justify-content: space-between;
@@ -801,36 +1091,6 @@ require __DIR__ . '/../includes/header.php';
 .qr-preview-box .qr-item {
     margin-bottom: 0;
 }
-.manager-tip-box {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    padding: 12px 14px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    font-size: 0.82rem;
-    color: var(--ink-2);
-    line-height: 1.45;
-}
-.manager-tip-box .tip-ico {
-    color: var(--warn);
-    font-size: 1rem;
-    flex-shrink: 0;
-    margin-top: 1px;
-}
-.managed-courts-section {
-    margin-top: 36px;
-    border-top: 1px solid var(--line);
-    padding-top: 20px;
-}
-.courts-section-header {
-    margin-bottom: 14px;
-}
-.mbooking.is-current-editing {
-    border-color: var(--brand);
-    background: var(--brand-soft);
-}
 
 @media (max-width: 1180px) {
     .court-editor-container {
@@ -847,13 +1107,32 @@ require __DIR__ . '/../includes/header.php';
         max-width: 100%;
     }
 }
+@media (max-width: 768px) {
+    .editor-panel-card .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    .editor-panel-card {
+        padding: 18px 16px;
+    }
+    .mc-grid {
+        grid-template-columns: 1fr;
+    }
+}
 @media (max-width: 600px) {
-    .action-footer-nav, .action-footer-save {
+    .editor-card-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .action-footer-left,
+    .action-footer-right {
         width: 100%;
         display: flex;
         gap: 8px;
+        margin-left: 0;
     }
-    .action-footer-nav .btn, .action-footer-save .btn {
+    .action-footer-left .btn,
+    .action-footer-right .btn {
         flex: 1;
         text-align: center;
         justify-content: center;
@@ -862,6 +1141,8 @@ require __DIR__ . '/../includes/header.php';
 </style>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
+
+<?php if ($showEditor): ?>
 <script src="<?php echo base_url('assets/js/leaflet/leaflet.js'); ?>"></script>
 <script src="<?php echo base_url('assets/js/map-picker.js'); ?>"></script>
 <script>
@@ -909,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function () {
             history.replaceState(null, null, '#' + targetKey);
         }
 
-        // Navigation footer state
+        // Navigation footer state: Back on left, Next on right beside Create Ground
         if (prevBtn && nextBtn) {
             if (idx === 0) {
                 prevBtn.style.display = 'none';
@@ -1088,3 +1369,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+<?php endif; ?>

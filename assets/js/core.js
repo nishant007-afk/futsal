@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* Keep the desktop hover zoom (scale 1.03) inside inline swipe transforms. */
     function cardCoverTx(x) {
         const hoverable = !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
-        return 'translateX(' + x + 'px)' + (hoverable ? ' scale(1.03)' : '');
+        return 'translateX(' + x + 'px)';
     }
 
     /* Gallery swipe: the old photo slides out while the new one slides in

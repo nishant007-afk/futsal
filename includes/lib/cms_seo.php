@@ -126,7 +126,7 @@ function legal_pages_defaults(): array
                 <li><strong>No-Shows:</strong> Failing to attend a reserved slot without cancellation forfeits the advance deposit. Continued no-shows may lead to booking restrictions on your account.</li>
             </ul>
 
-            <h2>5. Manager and Court Owner Responsibilities</h2>
+            <h2 id="for-managers">5. Manager and Court Owner Responsibilities</h2>
             <p>Futsal court operators who register as Managers on GoalSpace agree to uphold the following standards:</p>
             <ul>
                 <li><strong>Listing Accuracy:</strong> Court dimensions, amenities, grass type, rates, and working hours must remain truthful and up to date.</li>

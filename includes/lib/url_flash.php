@@ -2,6 +2,11 @@
 
 function base_url(string $path = ''): string
 {
+    // If $path is already an absolute HTTP(S) URL or protocol-relative URL, return as-is
+    if (preg_match('#^(?:https?:)?//#i', $path)) {
+        return $path;
+    }
+
     // Works at any install location: computes the app's URL subdirectory from
     // its folder on disk relative to the web root ('' at the domain root,
     // '/futsal' under htdocs/futsal, etc.). An explicit BASE_PATH in .env wins.
@@ -17,11 +22,21 @@ function base_url(string $path = ''): string
             $root = rtrim(substr($appDir, strlen($docRoot)), '/');
         }
     }
-    return rtrim($root, '/') . '/' . ltrim($path, '/');
+
+    $cleanPath = '/' . ltrim($path, '/');
+    // Prevent duplicate root prefix (e.g. /futsal/futsal/... or base_url(base_url(...)))
+    if ($root !== '' && (strpos($cleanPath, $root . '/') === 0 || $cleanPath === $root)) {
+        return $cleanPath;
+    }
+
+    return rtrim($root, '/') . $cleanPath;
 }
 
 function absolute_url(string $path = ''): string
 {
+    if (preg_match('#^(?:https?:)?//#i', $path)) {
+        return $path;
+    }
     $scheme = env('APP_SCHEME');
     if ($scheme === null) {
         $fwd = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));

@@ -15,7 +15,7 @@ $suspended = false;
 $suspendedEmail = '';
 $failuresLeft = null;
 $errorTitle = 'Login failed';
-$showTimeout = isset($_GET['timeout']) && $_GET['timeout'] === '1';
+
 
 if (isset($_SESSION['login_lock']) && is_array($_SESSION['login_lock'])) {
     $ll = $_SESSION['login_lock'];

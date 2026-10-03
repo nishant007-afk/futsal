@@ -147,7 +147,7 @@ require __DIR__ . '/../includes/header.php';
 <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
 <div class="courts-toolbar reveal">
-    <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search">
+    <form method="get" action="<?php echo base_url('admin/users.php'); ?>" class="courts-search" data-ajax-results="usersResults">
         <div class="toolbar-flex-main">
             <div class="search-field sf-grow">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -163,16 +163,16 @@ require __DIR__ . '/../includes/header.php';
                 </select>
             </div>
             <div class="toolbar-actions">
-                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 <?php if ($search !== '' || $roleFilter !== ''): ?>
                     <a href="<?php echo base_url('admin/users.php'); ?>" class="btn btn-outline btn-sm">Clear</a>
                 <?php endif; ?>
             </div>
         </div>
     </form>
+
 </div>
 
-<div class="table-wrap reveal">
+<div class="table-wrap reveal" id="usersResults">
     <table>
         <thead>
             <tr>
@@ -195,7 +195,7 @@ require __DIR__ . '/../includes/header.php';
                     <td class="num" data-label="Grounds Owned"><?php echo (int)$u['grounds_owned']; ?></td>
                     <td data-label="">
                         <div class="actions">
-                            <form method="post" action="" class="role-switch<?php echo (int)$u['id'] === $affectedId ? ' has-error' : ''; ?>" data-role="<?php echo e($u['role']); ?>">
+                            <form method="post" action="" class="role-switch<?php echo (int)$u['id'] === $affectedId ? ' has-error' : ''; ?>" data-role="<?php echo e($u['role']); ?>" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
                                 <select name="role" data-role-select aria-label="Change role for <?php echo e($u['name']); ?>">
@@ -210,7 +210,7 @@ require __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
                             </form>
                             <?php if ((int)$u['id'] !== (int)$_SESSION['user_id']): ?>
-                                <form method="post" action="" style="display:inline;" data-confirm="Are you sure you want to delete this user? All their data will be removed." data-confirm-title="Delete user" data-confirm-ok="Yes, delete" data-confirm-cancel="No">
+                                <form method="post" action="" style="display:inline;" data-confirm="Are you sure you want to delete this user? All their data will be removed." data-confirm-title="Delete user" data-confirm-ok="Yes, delete" data-confirm-cancel="No" novalidate>
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="delete_user" value="<?php echo (int)$u['id']; ?>">
                                     <button type="submit" class="btn btn-outline btn-sm" title="Delete user" aria-label="Delete user" style="color:var(--danger); border-color:var(--line);"><i class="fa-solid fa-trash"></i></button>

@@ -343,7 +343,7 @@ require __DIR__ . '/../includes/header.php';
                 }
             }
             ?>
-            <form method="post" action="<?php echo base_url('pages/book.php'); ?>" class="bp-cta-form">
+            <form method="post" action="<?php echo base_url('pages/book.php'); ?>" class="bp-cta-form" novalidate>
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
                 <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
@@ -423,7 +423,7 @@ require __DIR__ . '/../includes/header.php';
                     <?php foreach ($takenSlots as $ts): ?>
                         <?php $wcount = waitlist_count((int)$ground['id'], $selected_date, $ts['start']); ?>
                         <?php $joined = is_logged_in() && on_waitlist((int)$ground['id'], $selected_date, $ts['start'], (int)$site_user['id']); ?>
-                        <form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader>
+                        <form method="post" action="<?php echo base_url('pages/book.php'); ?>" data-fullscreen-loader novalidate>
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="ground_id" value="<?php echo (int)$ground['id']; ?>">
                             <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
@@ -557,7 +557,7 @@ require __DIR__ . '/../includes/header.php';
                 <h4><?php echo $my_review ? 'Update your review' : 'Rate your match experience'; ?></h4>
                 <p>Share turf condition, lighting, parking, or match atmosphere.</p>
             </div>
-            <form method="post" action="" class="rfc-form">
+            <form method="post" action="" class="rfc-form" novalidate>
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="review_submit" value="1">
                 <div class="rfc-rating-group">
@@ -570,8 +570,10 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
                 <div class="form-group mb-12">
-                    <label for="reviewComment">Your Feedback <span class="muted font-normal">(optional)</span></label>
-                    <textarea id="reviewComment" name="comment" rows="3" placeholder="Tell other players about the pitch quality, lighting, and amenities..."><?php echo e($my_review['comment'] ?? ''); ?></textarea>
+                    <div class="input-group floating">
+                        <textarea id="reviewComment" name="comment" rows="3" placeholder=" "><?php echo e($my_review['comment'] ?? ''); ?></textarea>
+                        <label for="reviewComment">Your Feedback <span class="muted font-normal">(optional)</span></label>
+                    </div>
                 </div>
                 <div class="rfc-actions">
                     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> <?php echo $my_review ? 'Save Changes' : 'Publish Review'; ?></button>
@@ -616,7 +618,7 @@ require __DIR__ . '/../includes/header.php';
                             <p class="review-comment"><?php echo e($rv['comment']); ?></p>
                         <?php endif; ?>
                         <div class="review-helpful">
-                            <form method="post" action="<?php echo base_url('ajax/review_helpful.php'); ?>" class="helpful-form" data-review="<?php echo (int)$rv['id']; ?>">
+                            <form method="post" action="<?php echo base_url('ajax/review_helpful.php'); ?>" class="helpful-form" data-review="<?php echo (int)$rv['id']; ?>" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="review_id" value="<?php echo (int)$rv['id']; ?>">
                                 <button type="submit" class="helpful-btn <?php echo $helped ? 'helped' : ''; ?>" <?php echo $helped ? 'disabled' : ''; ?> aria-label="<?php echo $helped ? 'You found this helpful' : 'Mark as helpful'; ?>">

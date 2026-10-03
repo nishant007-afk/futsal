@@ -6,8 +6,8 @@ require_player();
 $booking_id = (int)($_GET['booking_id'] ?? 0);
 
 $stmt = $conn->prepare(
-    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
-            b.payment_status, b.amount_paid,
+'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.discount, b.status,
+      b.payment_status, b.amount_paid,
             g.id AS ground_id, g.name AS ground_name, g.price_per_hour, g.location
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
@@ -121,7 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'how' => 'Pick another date to see open slots.',
         ];
     }
-    $currentSlot = substr($booking['start_time'], 0, 2);
     if ($new_date === $booking['booking_date'] && $start_time === $booking['start_time']) {
         $errors[] = [
             'what' => 'That\'s your current slot.',
@@ -131,13 +130,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $stmt = $conn->prepare(
+        // Range conflict: any other non-cancelled booking that overlaps [start, end).
+        // Exact start_time matching is not enough - it would allow a booking to be
+        // moved into the middle of a longer booking on the same court.
+        $ov = $conn->prepare(
             'SELECT id FROM bookings
-             WHERE ground_id = ? AND booking_date = ? AND start_time = ? AND status != "cancelled"'
+             WHERE ground_id = ? AND booking_date = ? AND id != ? AND status != "cancelled"
+             AND start_time < ? AND end_time > ?'
         );
-        $stmt->bind_param('iss', $booking['ground_id'], $new_date, $start_time);
-        $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
+        $ov->bind_param('iissi', $booking['ground_id'], $new_date, $booking_id, $end_time, $start_time);
+        $ov->execute();
+        if ($ov->get_result()->num_rows > 0) {
             $errors[] = [
                 'what' => 'That time slot was just taken.',
                 'why' => 'Someone else booked it while you were choosing.',
@@ -167,14 +170,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $durHrs = max(0.25, (strtotime($end_time) - strtotime($start_time)) / 3600);
     $new_price = round($hourly * $durHrs, 2);
 
-    // Recalculate payment status if the court price changed (e.g. weekday to weekend)
+    // Recalculate payment status if the court price changed (e.g. weekday to weekend).
+    // Compare against the NET price (total minus any discount already on the booking),
+    // otherwise a fully-paid promo booking would be flipped back to "partial".
     $amount_paid = (float)$booking['amount_paid'];
+    $discount = (float)($booking['discount'] ?? 0);
+    $netAfterMove = max(0, round($new_price - $discount, 2));
     $payment_status = $booking['payment_status'];
-    if ($amount_paid >= $new_price && $new_price > 0) {
+    if ($netAfterMove > 0 && $amount_paid >= $netAfterMove) {
         $payment_status = 'paid';
-    } elseif ($amount_paid > 0 && $amount_paid < $new_price) {
+    } elseif ($amount_paid > 0) {
         $payment_status = 'partial';
-    } elseif ($amount_paid <= 0) {
+    } else {
         $payment_status = 'unpaid';
     }
 
@@ -287,7 +294,7 @@ require __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
         </div>
 
-        <form method="post" action="">
+        <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="booking_date" value="<?php echo e($selected_date); ?>">
             <input type="hidden" name="selected_slot" id="selectedSlot" value="">

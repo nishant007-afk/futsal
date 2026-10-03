@@ -219,4 +219,28 @@ if (!table_exists('email_queue')) {
     echo "Applied: added `email_queue` table for background processing.\n";
 }
 
+// Subscription invoice history: one row per setup-fee payment or renewal that an
+// admin confirms. Powers the "Recent Invoices" table on manager/subscription.php.
+// No backfill is possible - no subscription payment was ever recorded before this.
+if (!table_exists('subscription_payments')) {
+    $conn->query("CREATE TABLE subscription_payments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        manager_id INT NOT NULL,
+        kind ENUM('setup','renewal') NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        channel ENUM('esewa','khalti','bank') NOT NULL,
+        txn_ref VARCHAR(80) NOT NULL,
+        receipt_no VARCHAR(24) NOT NULL,
+        period_start DATE NULL,
+        period_end DATE NULL,
+        paid_at DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_receipt (receipt_no),
+        KEY idx_manager_paid (manager_id, paid_at),
+        FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB");
+    $applied++;
+    echo "Applied: added `subscription_payments` table for subscription invoice history.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

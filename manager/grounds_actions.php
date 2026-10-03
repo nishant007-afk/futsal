@@ -127,8 +127,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_ground_core'])) 
         $slot_interval = 60;
     }
 
-    if (!$errors) {
-        if ($id > 0 && user_owns_ground($id)) {
+    // Check if required details are filled before allowing tab switch
+// This is checked client-side, but we also ensure PHP doesn't save with empty required fields
+if (!$errors) {
+        // An explicit id must belong to this manager. Never fall through to INSERT here,
+        // otherwise posting someone else's court id silently creates a junk court.
+        if ($id > 0 && !user_owns_ground($id)) {
+            set_flash_error(
+                'You can only edit your own courts.',
+                'That court is not linked to your account.',
+                'Manage the courts from your own list instead.',
+                'manager/grounds.php'
+            );
+            redirect('manager/grounds.php');
+        }
+        if ($id > 0) {
             $stmt = $conn->prepare(
                 'UPDATE grounds SET name = ?, location = ?, description = ?, price_per_hour = ?, discount_price = ?, capacity = ?, is_active = ?, open_time = ?, close_time = ?, slot_interval = ?, price_weekend = ?, address = ?, court_number = ?, latitude = ?, longitude = ? WHERE id = ? AND manager_id = ?'
             );
@@ -256,51 +269,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_qr_ground'])) 
     redirect('manager/grounds.php?edit=' . $ground_id . '#media');
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_blocked_date'])) {
-    verify_csrf();
-    $ground_id = (int)($_POST['ground_id'] ?? 0);
-    if (!user_owns_ground($ground_id)) {
-        set_flash('error', 'You can only manage your own grounds.');
-        redirect('manager/grounds.php');
-    }
-    $block_date = trim($_POST['block_date'] ?? '');
-    $note = trim($_POST['block_note'] ?? '');
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $block_date)) {
-        set_flash_error(
-            'That date doesn\'t look valid.',
-            'We need a real calendar date to block it.',
-            'Pick the date from the calendar and try again.',
-            'manager/grounds.php?edit=' . $ground_id . '#schedule'
-        );
-    } else {
-        $stmt = $conn->prepare('INSERT INTO blocked_dates (ground_id, block_date, note) VALUES (?, ?, ?)');
-        $stmt->bind_param('iss', $ground_id, $block_date, $note);
-        if ($stmt->execute()) {
-            set_flash('success', 'Court blocked for ' . date('M j, Y', strtotime($block_date)) . '.');
-        } else {
-            set_flash_error(
-                'That date is already blocked.',
-                'The court already has this date on its closed list.',
-                'Pick a different date to block.',
-                'manager/grounds.php?edit=' . $ground_id . '#schedule'
-            );
-        }
-    }
-    redirect('manager/grounds.php?edit=' . $ground_id . '#schedule');
-}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unblock_date'])) {
-    verify_csrf();
-    $unblock_id = (int)$_POST['unblock_date'];
-    $unblock_ground = (int)($_POST['ground_id'] ?? 0);
-    if (!user_owns_ground($unblock_ground)) {
-        set_flash('error', 'You can only manage your own grounds.');
-        redirect('manager/grounds.php');
-    }
-    $stmt = $conn->prepare('DELETE FROM blocked_dates WHERE id = ? AND ground_id = ?');
-    $stmt->bind_param('ii', $unblock_id, $unblock_ground);
-    if ($stmt->execute()) {
-        set_flash('success', 'Date unblocked.');
-    }
-    redirect('manager/grounds.php?edit=' . $unblock_ground . '#schedule');
-}
+
+

@@ -33,10 +33,12 @@ _backinv.txt
 # Local design docs & low-fi mockups (keep off GitHub)
 Proposal.docx
 /futsal_low/
+/lofi/
 prompt.txt
 DESIGN.md
 design.docx
 PRODUCT.md
+*.pptx
 
 # Local lab work (keep off GitHub)
 /js(lab1)/

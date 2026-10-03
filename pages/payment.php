@@ -81,7 +81,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                         <span class="pm-badge pm-badge--popular">Instant</span>
                     </div>
 
-                    <form method="post" action="" id="qrPayForm">
+                    <form method="post" action="" id="qrPayForm" novalidate>
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="payment_action" value="pay_qr">
                         <input type="hidden" name="split_choice" id="splitChoiceInput" value="<?php echo $isPartial ? 'remaining' : 'advance'; ?>">
@@ -170,7 +170,7 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                                     <span>Pay Rs <?php echo number_format($netTotal, 0); ?> at the ground desk.</span>
                                 </div>
                             </div>
-                            <form method="post" action="">
+                            <form method="post" action="" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="payment_action" value="pay_court">
                                 <button type="submit" class="btn btn-outline btn-block btn-lg">
@@ -232,13 +232,13 @@ $qrFile = ground_qr((int)$booking['ground_id']);
                 <?php if ($discount > 0): ?>
                     <div class="promo-applied mb-14">
                         <span><i class="fa-solid fa-tag"></i> Coupon <strong><?php echo e($booking['promo_code']); ?></strong> applied</span>
-                        <form method="post" action="">
+                        <form method="post" action="" novalidate>
                             <?php echo csrf_field(); ?>
                             <button type="submit" name="remove_promo" value="1" class="promo-remove" aria-label="Remove promo"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                     </div>
                 <?php else: ?>
-                    <form method="post" action="" class="promo-form mb-14">
+                    <form method="post" action="" class="promo-form mb-14" novalidate>
                         <?php echo csrf_field(); ?>
                         <div class="promo-input">
                             <i class="fa-solid fa-tag"></i>

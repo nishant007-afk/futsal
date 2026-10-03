@@ -6,6 +6,17 @@ $managerId = (int)$_SESSION['user_id'];
 $sub = manager_subscription($managerId);
 $status = subscription_status($managerId);
 
+// Invoice history + lifetime totals for the Recent Invoices table.
+$invoices = manager_subscription_payments($managerId);
+$invoiceSummary = manager_subscription_payment_summary($managerId);
+
+// Venue checkout QR codes, one per court, for the QR dialog.
+$qrGrounds = $conn->query(
+    'SELECT id, name, payment_qr FROM grounds
+     WHERE manager_id = ' . $managerId . ' AND payment_qr IS NOT NULL AND payment_qr <> \'\'
+     ORDER BY name ASC'
+)->fetch_all(MYSQLI_ASSOC);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     if (isset($_POST['request_setup_payment']) && $sub && $sub['setup_paid_at'] === null) {
@@ -60,7 +71,7 @@ if ($sub && !empty($sub['period_end'])) {
     </div>
 </div>
 
-<?php if (flash_msg()): render_inline(flash_msg()); endif; ?>
+<?php if (!empty(get_flash())): render_inline(get_flash()); endif; ?>
 
 <div class="sub-layout">
     <?php if ($sub): ?>
@@ -122,7 +133,11 @@ if ($sub && !empty($sub['period_end'])) {
                 </div>
             <?php endif; ?>
 
-            <!-- Action Buttons Toolbar -->
+            <!-- Action Buttons Toolbar
+                 KEPT (removed per request): "Platform Payment Details" toggled an inline panel and
+                 "Venue Checkout QR" navigated away to manager/grounds.php#panel-media, losing the
+                 billing context. Both are now in-page <dialog> overlays; only Renew stays inline
+                 because it is a real form submission.
             <div class="sub-actions-bar">
                 <button type="button" class="btn btn-primary" id="btnToggleRenew">
                     <i class="fa-solid fa-arrows-rotate"></i> <?php echo $status['active'] ? 'Extend / Renew Subscription' : 'Pay & Reactivate Account'; ?>
@@ -137,6 +152,21 @@ if ($sub && !empty($sub['period_end'])) {
                     <i class="fa-solid fa-circle-question"></i> Billing FAQ
                 </a>
             </div>
+            -->
+            <div class="sub-actions-bar">
+                <button type="button" class="btn btn-primary" id="btnToggleRenew">
+                    <i class="fa-solid fa-arrows-rotate"></i> <?php echo $status['active'] ? 'Extend / Renew Subscription' : 'Pay & Reactivate Account'; ?>
+                </button>
+                <button type="button" class="btn btn-outline" data-open-dialog="dlgPayInfo">
+                    <i class="fa-solid fa-building-columns"></i> Platform Payment Details
+                </button>
+                <button type="button" class="btn btn-outline" data-open-dialog="dlgQr">
+                    <i class="fa-solid fa-qrcode"></i> Venue Checkout QR
+                </button>
+                <a href="<?php echo base_url('pages/faq.php'); ?>" class="btn btn-ghost">
+                    <i class="fa-solid fa-circle-question"></i> Billing FAQ
+                </a>
+            </div>
 
             <!-- Collapsible: Renewal & Payment Request Form -->
             <div class="sub-expand-panel" id="panelRenew" <?php echo ($status['key'] === 'overdue' || $status['key'] === 'setup_pending') ? '' : 'hidden'; ?>>
@@ -144,7 +174,7 @@ if ($sub && !empty($sub['period_end'])) {
                     <h4><i class="fa-solid fa-receipt"></i> Submit Payment Notification</h4>
                     <p>Transfer the fee via eSewa, Khalti, or Bank, then confirm below for admin verification.</p>
                 </div>
-                <form method="post" action="" class="sep-form">
+                <form method="post" action="" class="sep-form" novalidate>
                     <?php echo csrf_field(); ?>
                     <?php if ($status['key'] === 'setup_pending'): ?>
                         <div class="form-group mb-12">
@@ -166,7 +196,10 @@ if ($sub && !empty($sub['period_end'])) {
                 </form>
             </div>
 
-            <!-- Collapsible: Official Platform Bank / Digital Wallet Credentials -->
+            <!-- Collapsible: Official Platform Bank / Digital Wallet Credentials
+                 KEPT (removed per request): this was an inline expanding panel toggled by
+                 #btnTogglePayInfo. The same markup now lives in the <dialog id="dlgPayInfo">
+                 at the end of the page, so nothing is fetched or lost when it opens.
             <div class="sub-expand-panel" id="panelPayInfo" hidden>
                 <div class="sep-header">
                     <h4><i class="fa-solid fa-wallet"></i> GoalSpace Platform Accounts for Subscription Settlement</h4>
@@ -186,13 +219,17 @@ if ($sub && !empty($sub['period_end'])) {
                     <div class="pay-method-card">
                         <div class="pm-head"><i class="fa-solid fa-clock text-amber"></i> <strong>Verification Timeline</strong></div>
                         <p class="pm-data">Confirmed within 2 hours</p>
-                        <p class="pm-note">Need instant help? Contact admin via <a href="<?php echo base_url('pages/contact.php'); ?>">Support</a></p>
+                        <p class="pm-note">Need instant help? Contact admin via <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">Support</a></p>
                     </div>
                 </div>
             </div>
+            -->
         </div>
 
-        <!-- Venue Partner Features & Inclusions Grid -->
+        <!-- Recent Invoices / Payment History
+             KEPT (removed per request): the four marketing cards below ("Included in Your
+             Partner Tier") were static sales copy sitting on the billing page, where managers
+             come to reconcile payments. They are kept here in full and can be restored.
         <div class="sub-features-section">
             <h3 class="section-title">Included in Your Partner Tier</h3>
             <div class="sub-features-grid">
@@ -218,13 +255,81 @@ if ($sub && !empty($sub['period_end'])) {
                 </div>
             </div>
         </div>
+        -->
+        <div class="sub-invoices-section">
+            <div class="sub-invoices-head">
+                <h3 class="section-title">Recent Invoices</h3>
+                <div class="sub-invoices-meta">
+                    <span class="muted"><?php echo (int)$invoiceSummary['count']; ?> invoice<?php echo $invoiceSummary['count'] === 1 ? '' : 's'; ?></span>
+                    <span class="strong"><?php echo format_price($invoiceSummary['total']); ?> paid</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Invoice no.</th>
+                            <th>Type</th>
+                            <th class="num">Amount</th>
+                            <th>Channel</th>
+                            <th>Transaction ref.</th>
+                            <th>Period covered</th>
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!$invoices): ?>
+                            <tr>
+                                <td colspan="8" class="muted table-empty">
+                                    <i class="fa-solid fa-receipt"></i>
+                                    No invoices yet. An invoice is issued automatically when an admin
+                                    confirms your setup fee or a renewal.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($invoices as $inv): ?>
+                                <tr>
+                                    <td data-label="Date"><?php echo e(date('M j, Y', strtotime($inv['paid_at']))); ?></td>
+                                    <td data-label="Invoice no."><code><?php echo e($inv['receipt_no']); ?></code></td>
+                                    <td data-label="Type">
+                                        <span class="badge <?php echo $inv['kind'] === 'setup' ? 'badge-pending' : 'badge-confirmed'; ?>">
+                                            <?php echo e(subscription_kind_label($inv['kind'])); ?>
+                                        </span>
+                                    </td>
+                                    <td class="num strong" data-label="Amount"><?php echo format_price((float)$inv['amount']); ?></td>
+                                    <td data-label="Channel"><?php echo e(subscription_channel_label($inv['channel'])); ?></td>
+                                    <td data-label="Transaction ref."><code><?php echo e($inv['txn_ref']); ?></code></td>
+                                    <td data-label="Period covered">
+                                        <?php if (!empty($inv['period_start']) && !empty($inv['period_end'])): ?>
+                                            <?php echo e(date('M j', strtotime($inv['period_start']))); ?> &rarr;
+                                            <?php echo e(date('M j, Y', strtotime($inv['period_end']))); ?>
+                                        <?php else: ?>
+                                            <span class="muted">&mdash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td data-label="Receipt">
+                                        <a class="btn btn-outline btn-xs"
+                                           href="<?php echo base_url('manager/invoice_pdf.php?no=' . rawurlencode($inv['receipt_no'])); ?>"
+                                           target="_blank" rel="noopener">
+                                            <i class="fa-solid fa-file-pdf"></i> PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     <?php else: ?>
         <div class="empty reveal">
             <span class="big"><i class="fa-solid fa-receipt"></i></span>
             <h3>No Active Subscription Record</h3>
             <p>Your account is registered as a manager. Please contact the platform administration to activate your partner tier.</p>
-            <a href="<?php echo base_url('pages/contact.php'); ?>" class="btn btn-primary btn-sm mt-12">Contact Platform Admin</a>
+            <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>" class="btn btn-primary btn-sm mt-12">Contact Platform Admin</a>
         </div>
     <?php endif; ?>
 </div>
@@ -444,8 +549,20 @@ if ($sub && !empty($sub['period_end'])) {
 document.addEventListener('DOMContentLoaded', function () {
     var btnRenew = document.getElementById('btnToggleRenew');
     var panelRenew = document.getElementById('panelRenew');
-    var btnPayInfo = document.getElementById('btnTogglePayInfo');
-    var panelPayInfo = document.getElementById('panelPayInfo');
+
+    // KEPT (removed per request): payment details used to toggle #panelPayInfo inline, and
+    // the checkout QR used to be a link to manager/grounds.php#panel-media. Both are now
+    // native <dialog> overlays opened by [data-open-dialog].
+    // var btnPayInfo = document.getElementById('btnTogglePayInfo');
+    // var panelPayInfo = document.getElementById('panelPayInfo');
+    // if (btnPayInfo && panelPayInfo) {
+    //     btnPayInfo.addEventListener('click', function () {
+    //         panelPayInfo.hidden = !panelPayInfo.hidden;
+    //         if (!panelPayInfo.hidden) {
+    //             panelPayInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    //         }
+    //     });
+    // }
 
     if (btnRenew && panelRenew) {
         btnRenew.addEventListener('click', function () {
@@ -456,15 +573,114 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (btnPayInfo && panelPayInfo) {
-        btnPayInfo.addEventListener('click', function () {
-            panelPayInfo.hidden = !panelPayInfo.hidden;
-            if (!panelPayInfo.hidden) {
-                panelPayInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Native <dialog> overlays. Esc and the backdrop close them for free; we only
+    // wire the explicit open buttons and the [data-close-dialog] controls.
+    document.querySelectorAll('[data-open-dialog]').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+            var dlg = document.getElementById(trigger.dataset.openDialog);
+            if (!dlg) return;
+            if (typeof dlg.showModal === 'function') {
+                dlg.showModal();
+            } else {
+                dlg.setAttribute('open', '');
             }
         });
-    }
+    });
+
+    document.querySelectorAll('[data-close-dialog]').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+            var dlg = trigger.closest('dialog');
+            if (!dlg) return;
+            if (typeof dlg.close === 'function') {
+                dlg.close();
+            } else {
+                dlg.removeAttribute('open');
+            }
+        });
+    });
+
+    // Click on the backdrop (outside the dialog box) closes it.
+    document.querySelectorAll('dialog.gs-dialog').forEach(function (dlg) {
+        dlg.addEventListener('click', function (ev) {
+            if (ev.target === dlg) {
+                dlg.close();
+            }
+        });
+    });
 });
 </script>
+
+<?php /* ---------- Modal: Platform Payment Details ---------- */ ?>
+<dialog class="gs-dialog" id="dlgPayInfo" aria-labelledby="dlgPayInfoTitle">
+    <div class="gs-dialog-head">
+        <h3 id="dlgPayInfoTitle"><i class="fa-solid fa-wallet"></i> Platform Payment Details</h3>
+        <button type="button" class="gs-dialog-close" data-close-dialog aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="gs-dialog-body">
+        <p class="sep-header-p">Use any of the official methods below and mention your Ground / Manager name in the remarks.</p>
+        <div class="payment-methods-grid">
+            <div class="pay-method-card">
+                <div class="pm-head"><i class="fa-solid fa-mobile-screen-button text-green"></i> <strong>eSewa / Khalti</strong></div>
+                <p class="pm-data">ID: <code>9800000000</code></p>
+                <p class="pm-note">Name: GoalSpace Sports Pvt. Ltd.</p>
+            </div>
+            <div class="pay-method-card">
+                <div class="pm-head"><i class="fa-solid fa-building-columns text-emerald"></i> <strong>Bank Transfer</strong></div>
+                <p class="pm-data">Global IME Bank &middot; Current A/C</p>
+                <p class="pm-note">A/C: <code>01201010009988</code> &middot; Kathmandu Branch</p>
+            </div>
+            <div class="pay-method-card">
+                <div class="pm-head"><i class="fa-solid fa-clock text-amber"></i> <strong>Verification Timeline</strong></div>
+                <p class="pm-data">Confirmed within 2 hours</p>
+                <p class="pm-note">Need instant help? Contact admin via <a href="<?php echo base_url('pages/page.php?slug=contact'); ?>">Support</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="gs-dialog-foot">
+        <button type="button" class="btn btn-outline" data-close-dialog>Close</button>
+    </div>
+</dialog>
+
+<?php /* ---------- Modal: Venue Checkout QR ---------- */ ?>
+<dialog class="gs-dialog" id="dlgQr" aria-labelledby="dlgQrTitle">
+    <div class="gs-dialog-head">
+        <h3 id="dlgQrTitle"><i class="fa-solid fa-qrcode"></i> Venue Checkout QR</h3>
+        <button type="button" class="gs-dialog-close" data-close-dialog aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="gs-dialog-body">
+        <?php if (!$qrGrounds): ?>
+            <div class="empty">
+                <span class="big"><i class="fa-solid fa-qrcode"></i></span>
+                <h3>No checkout QR uploaded</h3>
+                <p>Upload the payment QR players should scan for each of your courts.</p>
+                <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm mt-12">Manage court QR codes</a>
+            </div>
+        <?php else: ?>
+            <p class="sep-header-p">Players scan the code for the court they are booking.</p>
+            <div class="qr-grid">
+                <?php foreach ($qrGrounds as $qg): ?>
+                    <div class="qr-item">
+                        <div class="qr-frame">
+                            <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($qg['payment_qr'])); ?>"
+                                 alt="Checkout QR for <?php echo e($qg['name']); ?>"
+                                 loading="lazy" decoding="async">
+                        </div>
+                        <span class="qr-name"><?php echo e($qg['name']); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    <div class="gs-dialog-foot">
+        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline">
+            <i class="fa-solid fa-sliders"></i> Edit QR codes
+        </a>
+        <button type="button" class="btn btn-primary" data-close-dialog>Close</button>
+    </div>
+</dialog>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

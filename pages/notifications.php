@@ -85,12 +85,12 @@ require __DIR__ . '/../includes/header.php';
 <div class="notif-actions reveal mb-18">
     <?php if ($allNotifications): ?>
         <?php if ($unreadTotal > 0): ?>
-            <form method="post" action="">
+            <form method="post" action="" novalidate>
                 <?php echo csrf_field(); ?>
                 <button type="submit" name="mark_read" value="1" class="btn btn-outline btn-sm"><i class="fa-solid fa-check-double"></i> Mark all as read</button>
             </form>
         <?php endif; ?>
-        <form method="post" action="">
+        <form method="post" action="" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="delete_all" value="1">
             <button type="submit" class="btn btn-danger btn-sm" data-confirm="Delete all notifications?" data-confirm-title="Clear notifications"><i class="fa-solid fa-trash-can"></i> Clear all</button>
@@ -134,7 +134,7 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="notif-side">
                         <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$n['id'] . '&view=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-right"></i> View</a>
-                        <form method="post" action="" class="d-inline">
+                        <form method="post" action="" class="d-inline" novalidate>
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="delete_notification" value="<?php echo (int)$n['id']; ?>">
                             <button type="submit" class="btn-icon" data-confirm="Delete this notification?" data-confirm-title="Delete notification" title="Delete" aria-label="Delete notification"><i class="fa-solid fa-trash"></i></button>

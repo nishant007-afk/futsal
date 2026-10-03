@@ -387,7 +387,14 @@ $pageBackUrl = base_url('index.php');
         $toastRole = $isSuccess ? 'status' : 'alert';
         $detail = $flash['detail'] ?? null;
         $rawHowUrl = is_array($detail) && !empty($detail['how_url']) ? (string)$detail['how_url'] : '';
-        $backUrl = ($rawHowUrl !== '') ? (preg_match('#^(https?://|/)#', $rawHowUrl) ? $rawHowUrl : base_url($rawHowUrl)) : '';
+        $backUrl = '';
+        if ($rawHowUrl !== '') {
+            if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $rawHowUrl) || strpos($rawHowUrl, '//') === 0) {
+                $backUrl = '';
+            } else {
+                $backUrl = (strpos($rawHowUrl, '/') === 0) ? $rawHowUrl : base_url($rawHowUrl);
+            }
+        }
     ?>
     <?php if ($type === 'success' || $type === 'info' || $type === 'warning'): ?>
         <?php

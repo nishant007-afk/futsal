@@ -91,11 +91,15 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
                         <?php
                         $needsPayment = $b['status'] === 'confirmed' && $b['payment_status'] !== 'paid';
                         $netDue = max(0, (float)$b['total_price'] - (float)($b['discount'] ?? 0));
-                        if ($b['status'] === 'cancelled') {
-                            $statusText = 'Cancelled';
-                            $statusIcon = 'fa-circle-xmark';
-                            $statusClass = 'status-cancelled';
-                        } elseif ($b['payment_status'] === 'paid') {
+if ($b['status'] === 'cancelled') {
+                    $statusText = 'Cancelled';
+                    $statusIcon = 'fa-circle-xmark';
+                    $statusClass = 'status-cancelled';
+                } elseif ($b['status'] === 'pending') {
+                    $statusText = $b['payment_status'] === 'paid' ? 'Pending · Paid' : 'Pending';
+                    $statusIcon = 'fa-clock';
+                    $statusClass = 'status-pending';
+                } elseif ($b['payment_status'] === 'paid') {
                             $statusText = 'Confirmed · Paid';
                             $statusIcon = 'fa-circle-check';
                             $statusClass = 'status-confirmed';

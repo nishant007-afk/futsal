@@ -54,14 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $location = trim($_POST['location'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $price = (float)($_POST['price_per_hour'] ?? 0);
-    $discount_price = $_POST['discount_price'] !== '' ? (float)$_POST['discount_price'] : null;
+    $discount_price = ($_POST['discount_price'] ?? '') !== '' ? (float)$_POST['discount_price'] : null;
     $capacity = (int)($_POST['capacity'] ?? 10);
     $manager_id = (int)($_POST['manager_id'] ?? 0);
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     $open_time = trim($_POST['open_time'] ?? '08:00');
     $close_time = trim($_POST['close_time'] ?? '22:00');
     $slot_interval = (int)($_POST['slot_interval'] ?? 60);
-    $price_weekend = $_POST['price_weekend'] !== '' ? (float)$_POST['price_weekend'] : null;
+    $price_weekend = ($_POST['price_weekend'] ?? '') !== '' ? (float)$_POST['price_weekend'] : null;
     $address = trim($_POST['address'] ?? '');
     $court_number = trim($_POST['court_number'] ?? '') !== '' ? trim($_POST['court_number']) : null;
     $latitude = ($_POST['latitude'] ?? '') !== '' ? (float)$_POST['latitude'] : null;
@@ -200,16 +200,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_qr'])) {
     redirect('admin/grounds.php?edit=' . $ground_id);
 }
 
-$grounds = $conn->query(
+$groundsAll = $conn->query(
     'SELECT g.*, u.name AS owner_name
      FROM grounds g
      LEFT JOIN users u ON u.id = g.manager_id
      ORDER BY g.id'
 )->fetch_all(MYSQLI_ASSOC);
 
+$f_g_search = trim($_GET['g_search'] ?? '');
+if (mb_strlen($f_g_search) > 60) { $f_g_search = mb_substr($f_g_search, 0, 60); }
+$f_g_active = trim($_GET['g_active'] ?? '');
+if (!in_array($f_g_active, ['', 'active', 'inactive'], true)) { $f_g_active = ''; }
+
+$grounds = $groundsAll;
+if ($f_g_search !== '') {
+    $needle = mb_strtolower($f_g_search);
+    $grounds = array_values(array_filter($grounds, function ($g) use ($needle) {
+        $hay = mb_strtolower(($g['name'] ?? '') . ' ' . ($g['location'] ?? '') . ' ' . ($g['owner_name'] ?? ''));
+        return mb_strpos($hay, $needle) !== false;
+    }));
+}
+if ($f_g_active !== '') {
+    $grounds = array_values(array_filter($grounds, function ($g) use ($f_g_active) {
+        return $f_g_active === 'active'
+            ? !empty($g['is_active'])
+            : empty($g['is_active']);
+    }));
+}
+
 if (isset($_GET['export']) || isset($_GET['export_excel'])) {
     $rows = [['ID', 'Ground', 'Location', 'Manager', 'Price/hr (Rs)', 'Capacity', 'Open', 'Close', 'Slot (min)', 'Weekend Price (Rs)', 'Active']];
-    foreach ($grounds as $g) {
+    foreach ($groundsAll as $g) {
         $rows[] = [
             $g['id'],
             $g['name'],
@@ -257,38 +278,52 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="id" value="<?php echo $editing ? (int)$editing['id'] : 0; ?>">
             <div class="grid grid-2">
                 <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                    <label for="name">Ground Name <span class="req">*</span></label>
-                    <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" required>
+                    <div class="input-group floating">
+                        <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" placeholder=" " required>
+                        <label for="name">Ground Name <span class="req">*</span></label>
+                    </div>
                     <?php field_error($errors, 'name'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'location'); ?>">
-                    <label for="location">Location <span class="req">*</span></label>
-                    <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" required>
+                    <div class="input-group floating">
+                        <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" placeholder=" " required>
+                        <label for="location">Location <span class="req">*</span></label>
+                    </div>
                     <?php field_error($errors, 'location'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
-                    <label for="price_per_hour">Price per Hour (Rs.) <span class="req">*</span></label>
-                    <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" required>
+                    <div class="input-group floating">
+                        <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder=" " required>
+                        <label for="price_per_hour">Price per Hour (Rs.) <span class="req">*</span></label>
+                    </div>
                     <?php field_error($errors, 'price_per_hour'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
-                    <label for="discount_price">Discounted price/hr (Rs.) <span class="muted">(optional)</span></label>
-                    <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Lower than regular price for a sale">
+                    <div class="input-group floating">
+                        <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder=" ">
+                        <label for="discount_price">Discounted price/hr (Rs.) <span class="muted">(optional)</span></label>
+                    </div>
                     <?php field_error($errors, 'discount_price'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
-                    <label for="capacity">Capacity <span class="req">*</span></label>
-                    <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" required>
+                    <div class="input-group floating">
+                        <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder=" " required>
+                        <label for="capacity">Capacity <span class="req">*</span></label>
+                    </div>
                     <?php field_error($errors, 'capacity'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
-                    <label for="open_time">Opens at</label>
-                    <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
+                    <div class="input-group floating">
+                        <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
+                        <label for="open_time">Opens at</label>
+                    </div>
                     <?php field_error($errors, 'open_time'); ?>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
-                    <label for="close_time">Closes at</label>
-                    <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
+                    <div class="input-group floating">
+                        <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
+                        <label for="close_time">Closes at</label>
+                    </div>
                     <?php field_error($errors, 'close_time'); ?>
                 </div>
                 <div class="form-group">
@@ -299,17 +334,23 @@ require __DIR__ . '/../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
-                    <label for="price_weekend">Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
-                    <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Uses weekday price">
+                    <div class="input-group floating">
+                        <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder=" ">
+                        <label for="price_weekend">Weekend price/hr (Rs.) <span class="muted">(optional)</span></label>
+                    </div>
                     <?php field_error($errors, 'price_weekend'); ?>
                  </div>
                  <div class="form-group">
-                     <label for="address">Full address (for maps)</label>
-                     <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder="e.g. New Road, Kathmandu 44600, Nepal">
+                     <div class="input-group floating">
+                         <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" placeholder=" ">
+                         <label for="address">Full address (for maps)</label>
+                     </div>
                  </div>
                  <div class="form-group">
-                     <label for="court_number">Court number/name (optional)</label>
-                     <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder="e.g. Court 1">
+                     <div class="input-group floating">
+                         <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" placeholder=" ">
+                         <label for="court_number">Court number/name <span class="muted">(optional)</span></label>
+                     </div>
                  </div>
              </div>
              <?php include __DIR__ . '/../includes/views/ground_location_picker.php'; ?>
@@ -327,8 +368,10 @@ require __DIR__ . '/../includes/header.php';
                 <?php field_error($errors, 'manager_id'); ?>
             </div>
             <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="3"><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
+                <div class="input-group floating">
+                    <textarea id="description" name="description" rows="3" placeholder=" "><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
+                    <label for="description">Description</label>
+                </div>
             </div>
             <div class="form-group">
                 <label class="check-line">
@@ -356,7 +399,7 @@ require __DIR__ . '/../includes/header.php';
                     <?php foreach ($photos as $ph): ?>
                         <div class="photo-item">
                             <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
-                            <form method="post" action="" style="display:inline;">
+                            <form method="post" action="" style="display:inline;" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
                                 <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
@@ -368,7 +411,7 @@ require __DIR__ . '/../includes/header.php';
                         <p class="muted">No photos yet.</p>
                     <?php endif; ?>
                 </div>
-                <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm">
+                <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm" novalidate>
                     <?php echo csrf_field(); ?>
                     <input type="hidden" name="upload_photos" value="1">
                     <div class="form-group file-pick">
@@ -397,13 +440,13 @@ require __DIR__ . '/../includes/header.php';
                 <?php if ($groundQr !== ''): ?>
                     <div class="photo-item qr-item mb">
                         <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                        <form method="post" action="" style="display:inline;">
+                        <form method="post" action="" style="display:inline;" novalidate>
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="delete_qr" value="<?php echo (int)$editing['id']; ?>">
                             <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
                         </form>
                     </div>
-                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm" novalidate>
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="upload_qr" value="1">
                         <div class="form-group file-pick">
@@ -415,7 +458,7 @@ require __DIR__ . '/../includes/header.php';
                     </form>
                 <?php else: ?>
                     <p class="muted">No payment QR yet.</p>
-                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                    <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm" novalidate>
                         <?php echo csrf_field(); ?>
                         <input type="hidden" name="upload_qr" value="1">
                         <div class="form-group file-pick">
@@ -461,7 +504,26 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<div id="groundsResults">
 <h3 class="reveal dash-section">All Listed Courts (<?php echo count($grounds); ?>)</h3>
+<div class="courts-toolbar reveal">
+    <form method="get" action="<?php echo base_url('admin/grounds.php'); ?>" class="courts-search" data-ajax-results="groundsResults">
+        <div class="courts-search-main courts-search-main--4">
+            <div class="search-field sf-grow">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="groundsSearch" name="g_search" placeholder="Court, area or manager..." value="<?php echo e($f_g_search); ?>" autocomplete="off" aria-label="Search courts">
+            </div>
+            <div class="search-field">
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <select id="groundsActive" name="g_active" aria-label="Filter by status">
+                    <option value="">Any status</option>
+                    <option value="active" <?php echo $f_g_active === 'active' ? 'selected' : ''; ?>>Active</option>
+                    <option value="inactive" <?php echo $f_g_active === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
 <div class="mbookings reveal">
     <?php foreach ($grounds as $g): ?>
         <div class="mbooking">
@@ -497,9 +559,12 @@ require __DIR__ . '/../includes/header.php';
             </div>
         </div>
     <?php endforeach; ?>
-    <?php if (!$grounds): ?>
+    <?php if (!$groundsAll): ?>
         <div class="empty reveal"><span class="big"><i class="fa-solid fa-store"></i></span><h3>No grounds yet</h3><p>Add your first futsal court above.</p></div>
+    <?php elseif (!$grounds): ?>
+        <div class="empty reveal"><span class="big"><i class="fa-solid fa-magnifying-glass"></i></span><h3>No courts match your search</h3><p>Try a different name, area or status.</p></div>
     <?php endif; ?>
+</div>
 </div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -63,8 +63,6 @@ if (!in_array($filter, ['all', 'open', 'resolved', 'login_locked'], true)) {
 }
 
 $where = '1=1';
-$types = '';
-$params = [];
 if ($filter === 'open') {
     $where = 'is_resolved = 0';
 } elseif ($filter === 'resolved') {

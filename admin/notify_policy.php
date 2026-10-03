@@ -16,7 +16,7 @@ $legal = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $slugs  = array_values($_POST['slugs'] ?? []);
+    $slugs  = array_values((array)($_POST['slugs'] ?? []));
     $scope  = $_POST['scope'] ?? 'admins';
     $force  = !empty($_POST['force']);
 
@@ -62,14 +62,14 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<form method="post" action="">
+<form method="post" action="" novalidate>
     <?php echo csrf_field(); ?>
     <div class="form-group">
-        <strong>Pages that were updated</strong>
+        <strong>Pages that were updated <span class="req">*</span></strong>
         <?php foreach ($legal as $slug => $label): ?>
             <div class="tick-row">
                 <label for="slug_<?php echo e($slug); ?>" class="tick-label"><?php echo e($label); ?></label>
-                <input type="checkbox" name="slugs[]" value="<?php echo e($slug); ?>" id="slug_<?php echo e($slug); ?>">
+                <input type="checkbox" name="slugs[]" value="<?php echo e($slug); ?>" id="slug_<?php echo e($slug); ?>" required>
             </div>
         <?php endforeach; ?>
     </div>

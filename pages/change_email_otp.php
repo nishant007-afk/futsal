@@ -122,7 +122,7 @@ require __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-circle-check"></i> Confirm & change email</button>
     </form>
 
-    <form method="post" action="" id="resendForm" class="mt-10">
+    <form method="post" action="" id="resendForm" class="mt-10" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="resend" value="1">
         <button type="submit" id="resendBtn" class="btn btn-ghost btn-block"

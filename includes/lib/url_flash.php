@@ -53,6 +53,10 @@ function grounds_list_url(): string
 
 function redirect(string $path): void
 {
+    // Ensure page scrolls to main content on load, not the bottom
+    if (strpos($path, '#') === false) {
+        $path .= '#mainContent';
+    }
     header('Location: ' . base_url($path));
     exit;
 }
@@ -120,17 +124,32 @@ function csrf_field(): string
     return '<input type="hidden" name="csrf_token" value="' . csrf_token() . '">';
 }
 
+/**
+ * Keeps a redirect target on this site. Absolute URLs are rejected outright so a
+ * spoofed HTTP_REFERER can never bounce a user off-site (open redirect).
+ */
+function safe_same_site_url(string $url): string
+{
+    $url = trim($url);
+    if ($url === '' || !is_string($url)) {
+        return '';
+    }
+    // Protocol-relative (//evil.com) and absolute (https://evil.com) are both out.
+    if (strpos($url, '//') === 0 || preg_match('#^[a-z][a-z0-9+.-]*:#i', $url)) {
+        return '';
+    }
+    // Must be a root-relative path.
+    return strpos($url, '/') === 0 ? $url : '';
+}
+
 function verify_csrf(): void
 {
     $token = $_POST['csrf_token'] ?? '';
     if (!is_string($token) || $token === '' || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
         http_response_code(403);
         set_flash('error', 'Invalid request. Please go back and try again.');
-        $ref = $_SERVER['HTTP_REFERER'] ?? base_url('index.php');
-        if (!is_string($ref) || $ref === '' || !preg_match('#^(https?://|/)#', $ref)) {
-            $ref = base_url('index.php');
-        }
-        header('Location: ' . $ref, true, 303);
+        $ref = safe_same_site_url($_SERVER['HTTP_REFERER'] ?? '');
+        header('Location: ' . ($ref !== '' ? $ref : base_url('index.php')), true, 303);
         exit;
     }
 }
@@ -164,37 +183,4 @@ function get_flash(): ?array
         return $flash;
     }
     return null;
-}
-
-function release_stale_bookings(): void
-{
-    $now = time();
-    if (isset($_SESSION['last_cleanup']) && $now - (int)$_SESSION['last_cleanup'] < 300) {
-        return;
-    }
-    $_SESSION['last_cleanup'] = $now;
-
-    global $conn;
-    // Use the same setting as the cron (default 60) so web + CLI agree.
-    $timeout = 60;
-    try {
-        $s = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'unpaid_cancel_timeout_minutes' LIMIT 1");
-        if ($s && ($row = $s->fetch_assoc()) && is_numeric($row['setting_value'])) {
-            $timeout = max(5, min(1440, (int)$row['setting_value']));
-        }
-    } catch (Exception $e) {
-        // fall back to 60
-    }
-    $stmt = $conn->prepare(
-        "UPDATE bookings
-         SET status = 'cancelled'
-         WHERE status = 'confirmed'
-           AND payment_status = 'unpaid'
-           AND TIMESTAMP(booking_date, start_time) < DATE_SUB(NOW(), INTERVAL ? MINUTE)"
-    );
-    if ($stmt) {
-        $stmt->bind_param('i', $timeout);
-        $stmt->execute();
-        $stmt->close();
-    }
 }

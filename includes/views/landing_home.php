@@ -32,16 +32,20 @@ if ($todayGrounds) {
     $bs = $conn->prepare("SELECT ground_id, start_time FROM bookings WHERE booking_date = ? AND status != 'cancelled' AND ground_id IN ($ph)");
     $bs->bind_param('s' . str_repeat('i', count($tids)), $today, ...$tids);
     $bs->execute();
-    while ($row = $bs->get_result()->fetch_assoc()) {
+    $bsRes = $bs->get_result();
+    while ($bsRes && ($row = $bsRes->fetch_assoc())) {
         $taken[(int)$row['ground_id']][(string)$row['start_time']] = true;
     }
+    $bs->close();
     $blocked = [];
     $bds = $conn->prepare("SELECT ground_id FROM blocked_dates WHERE block_date = ? AND ground_id IN ($ph)");
     $bds->bind_param('s' . str_repeat('i', count($tids)), $today, ...$tids);
     $bds->execute();
-    while ($row = $bds->get_result()->fetch_assoc()) {
+    $bdsRes = $bds->get_result();
+    while ($bdsRes && ($row = $bdsRes->fetch_assoc())) {
         $blocked[(int)$row['ground_id']] = true;
     }
+    $bds->close();
     foreach ($todayGrounds as $tg) {
         if (isset($blocked[(int)$tg['id']])) {
             continue;

@@ -132,7 +132,7 @@ if (isset($verification_email)) {
             <i class="fa-solid fa-envelope-circle-check"></i>
             <span><?php echo $verification_sent ? 'Check your inbox (and spam folder). The code expires in 5 minutes.' : 'Email delivery is unavailable right now. Please open Verify Email and tap Resend in a minute.'; ?></span>
         </div>
-        <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" class="mt-22">
+        <form method="post" action="<?php echo base_url('pages/verify.php'); ?>" class="mt-22" novalidate>
             <?php echo csrf_field(); ?>
             <input type="hidden" name="email" value="<?php echo e($verification_email); ?>">
             <input type="hidden" name="resend" value="0">

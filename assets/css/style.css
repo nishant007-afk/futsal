@@ -1279,6 +1279,14 @@ to { opacity: 0; transform: scale(.97) translateY(6px); }
 
 }
 
+/* KEPT (removed per request): the "@media (max-width: 640px)" opener that used to sit here was
+   lost in an earlier edit, leaving the rules below at the top level. Because they use !important
+   they then beat the desktop `.section` padding of 40px defined further down, so every section on
+   the site rendered with only 24px of vertical padding at every screen width. The opener is
+   restored below so these read as the mobile-only tweaks the comment describes.
+   Original line was: @media (max-width: 640px) brace */
+@media (max-width: 640px) {
+
 /* Section adjustments for breathing room */ .section { padding-top: 24px !important; padding-bottom: 24px !important; }
 
 .section-head-between { margin-bottom: 14px; }
@@ -1671,7 +1679,7 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s1); }
 
 }
 
-/* ============ COURTS PAGE ============ */ .courts-toolbar { margin: 0 0 22px; }
+/* ============ COURTS PAGE ============ */ .courts-toolbar { margin: 0 0 22px; position: relative; z-index: 20; }
 
 /* the filter bar owns search on the courts page - collapse the global navbar search there */ body.courts-page .site-header .header-search-wrap, body.courts-page .site-header .header-search-toggle { display: none !important; }
 
@@ -1697,7 +1705,8 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s1); }
 
 /* Courts search toolbar - outer toolbar card + inner field cards */ .courts-search { display: contents; }
 
-.courts-search-main { display: grid; grid-template-columns: 1.2fr 1fr 1.15fr 1.2fr 1.05fr auto; gap: 12px; align-items: stretch; }
+.courts-search-main { display: grid; grid-template-columns: 2.2fr 0.8fr 0.9fr 0.9fr 0.9fr; gap: 12px; align-items: stretch; }
+.courts-search-main--4 { grid-template-columns: 2.4fr 1fr 1fr auto !important; }
 
 .courts-search .search-field { display: flex; align-items: center; gap: 8px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 12px; box-shadow: none; min-width: 0; height: 44px; box-sizing: border-box; transition: all 0.15s ease; }
 
@@ -2025,13 +2034,22 @@ body.auth-page .page-back-arrow.page-back-main { display: inline-flex; }
 
 .input-group.floating { position: relative; }
 
-.input-group.floating input, .input-group.floating select { padding: 16px 12px 8px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; }
+.input-group.floating input, .input-group.floating select { padding: 22px 12px 4px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; }
 
 .input-group.floating input:focus, .input-group.floating select:focus { border-color: var(--ink); outline: none; }
 
 .input-group.floating label { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-3); pointer-events: none; transition: all 0.125s ease; background: transparent; padding: 0; }
 
-.input-group.floating input:focus + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input.has-value + label, .input-group.floating select:focus + label, .input-group.floating select:valid + label { top: 8px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
+.input-group.floating input:focus + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input.has-value + label, .input-group.floating select:focus + label, .input-group.floating select:valid + label { top: 6px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
+
+.input-group.floating textarea { padding: 22px 12px 4px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; resize: vertical; }
+
+.input-group.floating textarea:focus { border-color: var(--ink); outline: none; }
+
+.input-group.floating textarea + label { top: 16px; transform: none; }
+
+.input-group.floating textarea:focus + label, .input-group.floating textarea:not(:placeholder-shown) + label { top: 6px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
+
 
 .input-group.floating .icon-left + input, .input-group.floating .icon-left + select { padding-left: 36px; }
 
@@ -2161,6 +2179,48 @@ input[type="date"]::-webkit-datetime-edit { color: var(--ink); }
 select { cursor: pointer; }
 
 /* role select */ .role-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ============ GROUND FORM MEDIA UPLOAD IMPROVEMENTS ============ */ .file-pick { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 12px; background: var(--bg-soft); transition: border-color .15s, background .15s; }
+
+.file-pick:hover { border-color: var(--brand); background: var(--brand-soft); }
+
+.file-pick .file-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: none; border-radius: var(--r-sm); color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer; background: var(--brand); transition: background .15s; }
+
+.file-pick .file-btn:hover { background: color-mix(in srgb, var(--brand) 90%, var(--bg)); }
+
+.file-pick .file-btn i { font-size: 14px; color: #fff; }
+
+.file-pick .file-name { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+
+/* photo preview grid improvements */ .photo-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-bottom: 16px; }
+
+.photo-preview-item { position: relative; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--line-2); aspect-ratio: 16/9; background: var(--bg-soft); }
+
+.photo-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.photo-preview-item .photo-remove { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; font-size: 12px; }
+
+/* QR code preview box improvements */ .qr-preview-box { display: flex; align-items: center; gap: 16px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; }
+
+.qr-preview-box .qr-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.qr-preview-box .qr-item img { width: 80px; height: 80px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--line); }
+
+.qr-preview-box .qr-info { text-align: center; color: var(--ink-2); font-size: 13px; }
+
+/* improve the form-card sub sections */ .form-card.sub { margin-bottom: 24px; padding: 20px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg); }
+
+.form-card.sub h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3; margin-bottom: 12px; }
+
+.form-card.sub .form-group { margin-bottom: 12px; }
+
+.form-card.sub .form-group label { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+
+.form-card.sub .file-pick { padding: 10px; border: 1px solid var(--line-2); border-radius: var(--r-sm); }
+
+/* improve the tab active state for media */ .editor-tab-btn[data-tab="media"] { color: var(--brand-700); }
+
+.editor-tab-btn[data-tab="media"]:hover { color: var(--brand); }
 
 .role-option { position: relative; display: flex; align-items: center; gap: 10px; padding: 16px 40px 16px 16px; min-height: 64px; cursor: pointer; border: 1.5px solid var(--line-2); border-radius: var(--r-md); transition: border-color .15s, background .15s, box-shadow .15s; }
 
@@ -5424,7 +5484,7 @@ th { white-space: normal; }
 
 .form-group.has-error .input-group.floating, .form-group.has-error .input-group.floating:focus-within { border-color: var(--danger) !important; box-shadow: none !important; }
 
-.input-group.floating input, .input-group.floating input:focus, .signup-right .input-group.floating input, .signup-right .input-group.floating input:focus { width: 100% !important; flex: 1 1 auto !important; border: 0 !important; border-style: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; height: 56px !important; padding: 22px 14px 6px 16px !important; font-size: 16px !important; line-height: normal !important; -webkit-appearance: none !important; appearance: none !important; }
+.input-group.floating input, .input-group.floating input:focus, .signup-right .input-group.floating input, .signup-right .input-group.floating input:focus { width: 100% !important; flex: 1 1 auto !important; border: 0 !important; border-style: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; height: 56px !important; padding: 31px 14px 3px 16px !important; font-size: 16px !important; line-height: normal !important; -webkit-appearance: none !important; appearance: none !important; }
 
 .input-group.floating .pw-toggle { position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; width: 44px !important; height: 44px !important; border: none !important; outline: none !important; background: transparent !important; box-shadow: none !important; color: var(--ink-3) !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; border-radius: 6px !important; z-index: 3 !important; transition: color 0.15s ease, background 0.15s ease !important; }
 
@@ -5438,7 +5498,7 @@ th { white-space: normal; }
 
 .input-group.floating:has(> i) label { left: 43px !important; }
 
-.input-group.floating input:focus ~ label, .input-group.floating input.has-value ~ label, .input-group.floating input:not(:placeholder-shown) ~ label, .input-group.floating input:-webkit-autofill ~ label, .input-group.floating input:autofill ~ label, .input-group.floating input:focus + label, .input-group.floating input.has-value + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input:-webkit-autofill + label, .input-group.floating input:autofill + label { top: 7px !important; transform: translateY(0) !important; font-size: 12px !important; font-weight: 700 !important; color: var(--brand) !important; }
+.input-group.floating input:focus ~ label, .input-group.floating input.has-value ~ label, .input-group.floating input:not(:placeholder-shown) ~ label, .input-group.floating input:-webkit-autofill ~ label, .input-group.floating input:autofill ~ label, .input-group.floating input:focus + label, .input-group.floating input.has-value + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input:-webkit-autofill + label, .input-group.floating input:autofill + label { top: 4px !important; transform: translateY(0) !important; font-size: 11px !important; font-weight: 700 !important; color: var(--brand) !important; }
 
 .header-search input::placeholder, #headerSearchInput::placeholder, #hsOverlayInput::placeholder { font-size: 12px !important; letter-spacing: -0.01em !important; }
 
@@ -6066,7 +6126,7 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 
 /* Courts Filter Toolbar - single card only (toolbar holds chrome; form is bare) */ .courts-toolbar { background: #ffffff; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--s1); padding: 10px 14px; margin-bottom: 22px; }
 
-.courts-search-main { display: grid; grid-template-columns: 1.2fr 1fr 1.15fr 1.2fr 1.05fr auto; gap: 12px; align-items: center; }
+.courts-search-main { display: grid; grid-template-columns: 2.2fr 0.8fr 0.9fr 0.9fr 0.9fr; gap: 12px; align-items: center; }
 
 .search-field { display: flex; align-items: center; gap: 8px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 12px; transition: all 0.15s ease; position: relative; }
 
@@ -8441,7 +8501,7 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
     border-radius: var(--r-md, 10px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 20px 40px -8px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.04);
     padding: 5px;
-    z-index: 1050;
+    z-index: 2000;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-6px) scale(0.98);
@@ -8825,3 +8885,906 @@ html[data-theme="dark"] .hero-quick-search .gs-select-group {
 }
 
 
+
+
+/* ============================================================
+   MANAGER DASHBOARD / BILLING UI UPGRADES (2026-10-03)
+   Appended rather than inlined so every override is reversible.
+   Superseded rules stay above, commented with a KEPT marker.
+   ============================================================ */
+
+/* --- A. Subscription alert: one card, one left border, subtle tint ---
+   KEPT (removed per request): .attention-strip already had a
+   border-left: 4px solid var(--warn), but the subscription banner itself
+   was a .toast.toast-inline (position: fixed), which is why its accent
+   read as a detached bracket floating beside the card. */
+.notice-alert {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--warn-soft);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--warn);
+    border-radius: var(--r-md);
+    padding: 14px 18px;
+    margin: 20px 0 26px;
+}
+.notice-alert-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--warn);
+    line-height: 1;
+}
+.notice-alert-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.94rem;
+    line-height: 1.5;
+    color: var(--ink);
+}
+.notice-alert-cta {
+    flex-shrink: 0;
+}
+@media (max-width: 600px) {
+    .notice-alert {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .notice-alert-cta {
+        width: 100%;
+    }
+}
+html[data-theme="dark"] .notice-alert {
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(255, 255, 255, 0.12);
+    border-left-color: var(--warn);
+}
+
+/* --- B. Booking table: real button for "Mark paid" + payment sub-label ---
+   KEPT (removed per request): .mb-cta had NO button styling anywhere - only
+   `.table-wrap td .mb-cta { justify-content: center }`. Because post_action_form()
+   emits a bare <button>, it inherited browser default chrome and read as plain text.
+   Fixing it here repairs all 5 call sites (player/manager/admin + dashboard). */
+.mbt-actions .mb-cta,
+.mb-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    min-height: 30px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color .18s ease, background .18s ease, color .18s ease,
+                transform .18s ease, box-shadow .18s ease;
+}
+.mb-cta i {
+    font-size: 11px;
+    opacity: .8;
+}
+.mb-cta:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    background: var(--brand-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
+}
+.mb-cta:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+.mb-cta:active {
+    transform: translateY(0);
+}
+/* Mark-paid gets the brand tint so the one destructive-free write action reads first. */
+.mb-cta-mark {
+    border-color: color-mix(in srgb, var(--warn) 45%, var(--line));
+    color: var(--warn);
+}
+.mb-cta-mark:hover {
+    border-color: var(--warn);
+    color: var(--warn);
+    background: var(--warn-soft);
+}
+
+/* Payment flag as a concise sub-label under the Total (replaces .mb-pay-pill in Status). */
+.mb-pay-sub {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--muted);
+}
+.mb-pay-sub--unpaid,
+.mb-pay-sub--partial {
+    color: var(--warn);
+}
+.mb-pay-sub--paid {
+    color: var(--ok);
+}
+
+/* --- C. Chart: scale axis, reference gridlines, custom tooltip --- */
+   KEPT (removed per request): the old chart was a bare flex row of .bar-group with no
+   scale and a native title= tooltip, so bar heights had nothing to be read against.
+   .bar-axis is new; .bar-chart now sits inside .bar-chart-frame to carry the gridlines. */
+.bar-chart-frame {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+/* Left-hand scale: one tick per horizontal gridline, top to bottom. */
+.bar-axis {
+    flex: 0 0 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 0 34px;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+.bar-axis-tick {
+    display: block;
+    transform: translateY(-50%);
+}
+.bar-axis-tick:first-child {
+    transform: translateY(0);
+}
+.bar-axis-tick:last-child {
+    transform: translateY(-100%);
+}
+
+/* Plot area: gridlines drawn behind the bars, 4 rules matching the 5 axis ticks. */
+#dashChartBars,
+.bar-chart {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    background-image: repeating-linear-gradient(
+        to top,
+        var(--line) 0,
+        var(--line) 1px,
+        transparent 1px,
+        transparent 25%
+    );
+    background-position: 0 0;
+    background-size: 100% calc(100% - 34px);
+    background-repeat: no-repeat;
+    border-bottom: 1px solid var(--line);
+}
+#dashChartBars.is-loading,
+.chart-wrap.is-loading .bar-chart {
+    opacity: .55;
+    transition: opacity .15s ease;
+}
+.bar-group:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+}
+
+/* Custom tooltip */
+.bar-tip {
+    position: absolute;
+    z-index: 40;
+    transform: translate(-50%, -100%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 132px;
+    padding: 9px 11px;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .16);
+    font-size: 12px;
+    line-height: 1.35;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.bar-tip[hidden] {
+    display: none;
+}
+.bar-tip strong {
+    font-weight: 700;
+}
+.bar-tip span {
+    color: var(--muted);
+}
+
+/* Range toggle is now <button>, so reset the UA chrome. */
+.chart-range .cr-link {
+    font: inherit;
+    cursor: pointer;
+}
+.chart-range .cr-link:disabled {
+    opacity: .6;
+    cursor: progress;
+}
+
+@media (max-width: 700px) {
+    .bar-axis {
+        flex-basis: 26px;
+        font-size: 10px;
+    }
+}
+
+/* --- D. Subscription billing: invoice table, dialogs, admin payment capture --- */
+
+/* Native <dialog> overlay. No JS positioning needed; ::backdrop dims the page. */
+.gs-dialog {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 64px);
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 24px 64px rgba(15, 23, 42, .28);
+    overflow: hidden;
+}
+.gs-dialog::backdrop {
+    background: rgba(15, 23, 42, .55);
+    backdrop-filter: blur(2px);
+}
+.gs-dialog[open] {
+    animation: gsDialogIn .18s ease;
+}
+@keyframes gsDialogIn {
+    from { opacity: 0; transform: translateY(8px) scale(.99); }
+    to   { opacity: 1; transform: none; }
+}
+.gs-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+}
+.gs-dialog-head h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.gs-dialog-close {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.gs-dialog-close:hover {
+    color: var(--ink);
+    border-color: var(--line-2);
+    background: var(--bg-soft);
+}
+.gs-dialog-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 220px);
+}
+.gs-dialog-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-soft);
+}
+.sep-header-p {
+    margin: 0 0 16px;
+    font-size: .85rem;
+    color: var(--ink-3);
+}
+
+/* Venue checkout QR grid inside the dialog. */
+.qr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px;
+}
+.qr-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.qr-frame {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+}
+.qr-frame img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.qr-name {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+}
+
+/* Recent Invoices table on manager/subscription.php */
+.sub-invoices-section {
+    margin-top: 6px;
+}
+.sub-invoices-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.sub-invoices-head .section-title {
+    margin-bottom: 0;
+}
+.sub-invoices-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    font-size: .85rem;
+}
+.invoice-table code {
+    font-size: .78rem;
+    white-space: nowrap;
+}
+.invoice-table td,
+.invoice-table th {
+    white-space: nowrap;
+}
+.invoice-table td[data-label="Transaction ref."] code,
+.invoice-table td[data-label="Period covered"] {
+    white-space: normal;
+}
+.table-empty i {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 8px;
+    opacity: .5;
+}
+
+/* Admin settlements: inline channel + reference capture before confirming payment. */
+details.pay-capture {
+    display: inline-block;
+}
+details.pay-capture > summary {
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+details.pay-capture > summary::-webkit-details-marker {
+    display: none;
+}
+.pay-capture-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 12px;
+    min-width: 230px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+}
+.pay-capture-label {
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+}
+.pay-capture-hint {
+    margin: 2px 0 4px;
+    font-size: .78rem;
+    color: var(--muted);
+}
+.pay-capture-form .gs-input,
+.pay-capture-form .gs-select {
+    width: 100%;
+}
+
+/* --- E. Court editor: numbered steps, drag-and-drop media zone ---
+   RETIRED on request: the numbered-step styling below was reverted to the plain tab labels.
+   Every rule is kept here, commented out, so it can be restored by removing the comment
+   markers and putting the step chips back into manager/grounds.php.
+
+   Step chip: leading number that swaps to a check when the step validates.
+.step-chip {
+    position: relative;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    [note: inline-grid lets the number and the check occupy the same cell, so one can
+     be shown while the other is hidden without shifting the layout.]
+    display: inline-grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+.step-num,
+.step-done {
+    grid-area: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.step-done {
+    display: none;
+    font-size: 10px;
+    color: #fff;
+}
+.editor-tab-btn.is-complete .step-num {
+    display: none;
+}
+.editor-tab-btn.is-complete .step-done {
+    display: flex;
+}
+.editor-tab-btn.is-complete .step-chip {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #fff;
+}
+.editor-tab-btn.active .step-chip {
+    border-color: var(--brand);
+    color: var(--brand);
+}
+.editor-tab-btn.active.is-complete .step-chip {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #fff;
+}
+[note: dim the leading icon once numbering carries the meaning.]
+.step-icon {
+    opacity: .55;
+}
+.editor-tabs-divider {
+    align-self: stretch;
+    width: 1px;
+    margin: 4px 6px;
+    background: var(--line);
+}
+.editor-steps-progress {
+    margin: 8px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+}
+   --- end of retired step-numbering block --- */
+
+
+/* Drag-and-drop zone wrapping the real <input type="file">. */
+.dropzone {
+    position: relative;
+    border: 2px dashed var(--line-2);
+    border-radius: var(--r-md);
+    background: var(--bg-soft);
+    padding: 22px 16px;
+    text-align: center;
+    transition: border-color .18s ease, background .18s ease;
+}
+.dropzone.is-dragover {
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
+.dropzone > input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.dropzone-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.dropzone-inner strong {
+    font-size: .95rem;
+    color: var(--ink);
+}
+.dropzone-icon {
+    font-size: 26px;
+    color: var(--brand);
+    opacity: .8;
+}
+.dropzone.is-dragover .dropzone-icon {
+    opacity: 1;
+}
+.dropzone .file-name {
+    font-size: .78rem;
+}
+
+/* --- F. Notification badge: centred over the bell glyph --- */
+   KEPT (removed per request): .bell-dot was corner-anchored to the button:
+       .bell-dot { position: absolute; top: -2px; right: -2px; ... }
+   Because the badge is a child of the 32px .bell-btn, that put the count over the
+   top-right corner instead of over the bell. It is now centred horizontally on the
+   glyph and lifted just clear of the button.
+.bell-dot {
+    top: -5px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 2px var(--bg);
+}
+html[data-theme="dark"] .bell-dot {
+    box-shadow: 0 0 0 2px var(--bg);
+}
+
+/* --- G. Auth field internals: label clearance + tighter row/column spacing ---
+   Scope: .auth-fields exists only in includes/views/auth_split.php, so this affects the
+   login and register pages and nothing else. forgot_password / reset_password / verify use
+   plain .input-group.floating and keep the general values.
+
+   (1) LABEL CLEARANCE. The floated label used to sit directly on the typed text. Measured with
+       the original values: box locked to 53px, padding-top 20px, label at top 6.5px with a
+       13.5px font and line-height 1, so the label bottom edge landed at 6.5 + 13.5 = 20px,
+       exactly the top of the text - a 0px gap. An intermediate pass took it to 8.5px, which
+       was still cramped. The label now sits 2px from the top inner edge and the text starts
+       32px down, giving a 16.5px gap. The box grew to 64px because the height is locked with
+       height/min-height/max-height and there is no room for more padding without clipping the
+       17px text; the content area is 25px. The label font size is deliberately unchanged.
+
+   (2) ROW / COLUMN SPACING. The gaps were inconsistent per breakpoint: 7px / 8px above 900px,
+       10px / 11px at <=900px, and 12px once .form-row-2 collapsed to a single column at
+       <=600px (where its gap becomes the vertical gap). All of that is now one tighter scale:
+       6px between stacked fields, 7px between adjacent columns.
+
+   Previous values, kept for reference:
+     .auth-fields .input-group.floating          height/min-height/max-height: 53px, then 58px
+     .auth-fields .input-group.floating input    padding: 20px 16px 5px 16px, then 26px 16px 5px 16px
+     .auth-split-card .auth-fields ... label     top: 6.5px, then 4px  (font-size 13.5px unchanged)
+     plain .auth-fields ... label                top: 4.5px
+     .auth-fields .form-group                   margin-bottom: 7px (>900px), 10px (<=900px)
+     .auth-fields .form-row-2                   gap: 8px (>900px), 11px (<=900px), 12px (<=600px)
+     .auth-fields .form-row-2.form-row-name-phone / .form-row-passwords   gap: 8px / 11px
+
+   Legacy .signup-right rules are unused - no PHP emits that class - so they are left alone.
+*/
+.auth-fields .input-group.floating {
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
+}
+
+.auth-fields .input-group.floating input {
+    padding: 32px 16px 5px 16px !important;
+}
+
+/* Floated label pushed up toward the top inner edge. */
+.auth-split-card .auth-fields .input-group.floating input:focus ~ label,
+.auth-split-card .auth-fields .input-group.floating input.has-value ~ label,
+.auth-split-card .auth-fields .input-group.floating input:not(:placeholder-shown) ~ label,
+.auth-split-card .auth-fields .input-group.floating input:-webkit-autofill ~ label,
+.auth-split-card .auth-fields .input-group.floating input:autofill ~ label {
+    top: 2px !important;
+}
+
+.auth-fields .input-group.floating input:focus ~ label,
+.auth-fields .input-group.floating input.has-value ~ label,
+.auth-fields .input-group.floating input:not(:placeholder-shown) ~ label,
+.auth-fields .input-group.floating input:-webkit-autofill ~ label,
+.auth-fields .input-group.floating input:autofill ~ label {
+    top: 3px !important;
+}
+
+/* Tighter vertical rhythm between stacked fields. */
+.auth-fields .form-group {
+    margin-bottom: 6px !important;
+}
+
+.auth-fields .form-row-2 {
+    gap: 7px !important;
+    margin-bottom: 6px !important;
+}
+
+/* Tighter horizontal gutter between the side-by-side columns. */
+.auth-fields .form-row-2.form-row-name-phone,
+.auth-fields .form-row-2.form-row-passwords {
+    gap: 7px !important;
+}
+
+
+/* ============================================================
+   PROMO CODES PAGE (manager/promos.php)
+   ============================================================ */
+
+/* --- Form: tighter vertical rhythm ---
+   The left card was much taller than the table beside it. */
+.promo-form .form-group {
+    margin-bottom: 12px;
+}
+.promo-form .grid-2 {
+    gap: 10px 12px;
+}
+.promo-form .grid-2 .form-group {
+    margin-bottom: 12px;
+}
+
+/* --- Form: helper text under a box, instead of a crowded floating label --- */
+.field-hint {
+    margin: 5px 0 0;
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+
+/* --- Form: dynamic Rs. / % unit inside the discount value box --- */
+.affix-group {
+    position: relative;
+}
+.affix {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-3);
+    background: var(--bg-soft);
+    border-radius: 5px;
+    padding: 2px 6px;
+    pointer-events: none;
+    line-height: 1;
+}
+.affix[hidden] {
+    display: none;
+}
+.affix-prefix {
+    left: 34px;
+}
+.affix-suffix {
+    right: 34px;
+}
+/* Room for the unit so the typed number never runs underneath it. */
+.affix-group input {
+    padding-left: 56px !important;
+    padding-right: 52px !important;
+}
+/* With no prefix showing, the value should not keep the wide left gutter. */
+.affix-group[data-affix-state="percent"] input {
+    padding-left: 44px !important;
+}
+
+/* --- Form: codes are shown in caps as they are typed --- */
+.js-upper {
+    text-transform: uppercase;
+}
+.js-upper::placeholder {
+    text-transform: none;
+}
+
+/* --- Stats strip above the table --- */
+.promo-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.promo-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 13px 15px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+}
+.promo-stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+}
+.promo-stat-value {
+    font-size: 1.28rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.promo-stat-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+@media (max-width: 640px) {
+    .promo-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+/* --- Purposeful empty state (replaces the empty table) --- */
+.promo-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 44px 28px 48px;
+    background: var(--bg-soft);
+    border: 1px dashed var(--line-2);
+    border-radius: var(--r-lg);
+}
+.promo-empty-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand-700);
+    font-size: 22px;
+    margin-bottom: 2px;
+}
+.promo-empty h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+.promo-empty p {
+    margin: 0;
+    max-width: 46ch;
+    font-size: .88rem;
+    line-height: 1.6;
+    color: var(--ink-3);
+}
+
+/* --- Copy Code button beside the code chip --- */
+.promo-code-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.promo-copy {
+    white-space: nowrap;
+}
+.promo-copy.is-copied {
+    border-color: var(--ok);
+    color: var(--ok);
+    background: var(--ok-soft);
+}
+.promo-copy.is-failed {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* --- Status badges: emerald / amber / muted --- */
+.promo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+}
+.promo-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.promo-badge--ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+}
+.promo-badge--warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+.promo-badge--muted {
+    background: var(--bg-tint);
+    color: var(--ink-3);
+}
+
+/* --- Active / Paused switch --- */
+.promo-toggle-form {
+    margin: 0;
+}
+.promo-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .16s ease, border-color .16s ease;
+}
+.promo-switch:hover:not(:disabled) {
+    background: var(--bg-soft);
+    border-color: var(--line);
+}
+.promo-switch-track {
+    position: relative;
+    width: 34px;
+    height: 19px;
+    flex-shrink: 0;
+    border-radius: 99px;
+    background: var(--line-2);
+    transition: background .18s ease;
+}
+.promo-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .3);
+    transition: transform .18s ease;
+}
+.promo-switch.is-on .promo-switch-track {
+    background: var(--ok);
+}
+.promo-switch.is-on .promo-switch-thumb {
+    transform: translateX(15px);
+}
+.promo-switch-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-3);
+    min-width: 46px;
+    text-align: left;
+}
+.promo-switch.is-on .promo-switch-text {
+    color: var(--ok);
+}
+.promo-switch:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+.promo-switch:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}

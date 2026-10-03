@@ -136,11 +136,19 @@ function require_manager(): void
     }
 }
 
+/**
+ * Player-only guard. Unlike require_login() this also enforces the role, so a
+ * logged-in manager/admin cannot book, pay, reschedule or generate receipts.
+ */
 function require_player(): void
 {
     if (!is_logged_in()) {
         remember_return_path();
         header('Location: ' . base_url('pages/login.php'));
+        exit;
+    }
+    if (!is_player()) {
+        header('Location: ' . base_url('index.php'));
         exit;
     }
 }

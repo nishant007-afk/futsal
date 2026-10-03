@@ -89,8 +89,8 @@ require __DIR__ . '/../includes/header.php';
             <div class="receipt-row receipt-grand">
                 <span><?php echo $booking['payment_status'] === 'paid' ? 'Total Settled' : 'Balance Due at Kickoff'; ?></span>
                 <strong class="text-brand"><?php echo $booking['payment_status'] === 'paid'
-                    ? 'Rs ' . number_format((float)$booking['total_price'] - (float)$booking['discount'], 2)
-                    : 'Rs ' . number_format((float)$booking['total_price'] - (float)$booking['discount'] - (float)$booking['amount_paid'], 2); ?></strong>
+                    ? 'Rs ' . number_format(max(0, (float)$booking['total_price'] - (float)$booking['discount']), 2)
+                    : 'Rs ' . number_format(max(0, (float)$booking['total_price'] - (float)$booking['discount'] - (float)$booking['amount_paid']), 2); ?></strong>
             </div>
             <?php if ($booking['paid_at']): ?>
                 <div class="receipt-row receipt-subtle">

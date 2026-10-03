@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $conn->prepare('UPDATE users SET avatar = ? WHERE id = ?');
                 $stmt->bind_param('si', $filename, $_SESSION['user_id']);
                 if ($stmt->execute()) { set_flash('success', 'Profile photo updated.'); redirect('pages/profile.php'); }
-                else { unlink($dest); $errors[] = 'Could not save the photo.'; }
-            } else { $errors[] = 'Could not save the upload.'; }
+                else { unlink($dest); $errors['avatar'] = 'Could not save the photo.'; }
+            } else { $errors['avatar'] = 'Could not save the upload.'; }
         }
     }
 }
@@ -104,10 +104,10 @@ $upStmt->close();
 $pastStmt = $conn->prepare(
     'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.status, g.name AS ground_name, g.location
      FROM bookings b JOIN grounds g ON g.id = b.ground_id
-     WHERE b.user_id = ? AND b.status != \'cancelled\'
+     WHERE b.user_id = ? AND b.booking_date < ? AND b.status != \'cancelled\'
      ORDER BY b.booking_date DESC, b.start_time DESC LIMIT 18'
 );
-$pastStmt->bind_param('i', $_SESSION['user_id']);
+$pastStmt->bind_param('is', $_SESSION['user_id'], $today);
 $pastStmt->execute();
 $past = $pastStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $pastStmt->close();
@@ -156,14 +156,14 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <form method="post" action="" enctype="multipart/form-data" class="sr-only" id="avatarForm">
+    <form method="post" action="" enctype="multipart/form-data" class="sr-only" id="avatarForm" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="upload_avatar">
         <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif">
     </form>
 
     <?php if (!empty($user['avatar'])): ?>
-    <form method="post" action="" class="sr-only" id="removeAvatarForm">
+    <form method="post" action="" class="sr-only" id="removeAvatarForm" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="remove_avatar">
     </form>

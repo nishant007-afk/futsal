@@ -121,7 +121,7 @@ require __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn btn-danger btn-block"><i class="fa-solid fa-trash-can"></i> Permanently delete my account</button>
     </form>
 
-    <form method="post" action="" id="resendForm" class="mt-10">
+    <form method="post" action="" id="resendForm" class="mt-10" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="resend" value="1">
         <button type="submit" id="resendBtn" class="btn btn-ghost btn-block"

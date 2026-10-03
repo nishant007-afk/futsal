@@ -18,7 +18,7 @@ $stmt = $conn->prepare(
     "UPDATE bookings
      SET status = 'cancelled'
      WHERE status = 'confirmed'
-       AND payment_status = 'unpaid'
+       AND payment_status IN ('unpaid', 'partial')
        AND TIMESTAMP(booking_date, start_time) < DATE_SUB(NOW(), INTERVAL ? MINUTE)"
 );
 $stmt->bind_param('i', $timeoutMinutes);

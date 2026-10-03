@@ -40,16 +40,20 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="announce-layout">
     <div class="announce-form-pane">
-        <form method="post" action="" id="announceForm">
+        <form method="post" action="" id="announceForm" novalidate>
             <?php echo csrf_field(); ?>
             <div class="form-group">
-                <label for="subject"><strong>Subject</strong></label>
-                <input type="text" id="subject" name="subject" required maxlength="150" placeholder="e.g. Scheduled maintenance this weekend" autocomplete="off">
+                <div class="input-group floating">
+                    <input type="text" id="subject" name="subject" required maxlength="150" placeholder=" " autocomplete="off">
+                    <label for="subject">Subject <span class="req">*</span></label>
+                </div>
             </div>
 
             <div class="form-group">
-                <label for="message"><strong>Message</strong></label>
-                <textarea id="message" name="message" rows="7" required placeholder="Write your announcement message here..."></textarea>
+                <div class="input-group floating">
+                    <textarea id="message" name="message" rows="7" required placeholder=" "></textarea>
+                    <label for="message">Message <span class="req">*</span></label>
+                </div>
             </div>
 
             <div class="form-group" role="radiogroup" aria-labelledby="scopeLabel">

@@ -53,22 +53,26 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="admin-page-body">
 <div class="admin-legal-edit-card">
-    <form method="post" action="" class="admin-legal-form">
+    <form method="post" action="" class="admin-legal-form" novalidate>
         <?php echo csrf_field(); ?>
         <input type="hidden" name="slug" value="<?php echo e($slug); ?>">
 
         <div class="form-group">
-            <label for="pTitle">Title</label>
-            <input type="text" id="pTitle" name="title" value="<?php echo e($title); ?>" maxlength="150" required>
+            <div class="input-group floating">
+                <input type="text" id="pTitle" name="title" value="<?php echo e($title); ?>" maxlength="150" placeholder=" " required>
+                <label for="pTitle">Title <span class="req">*</span></label>
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="pSummary">Summary</label>
-            <input type="text" id="pSummary" name="summary" value="<?php echo e($summary); ?>" maxlength="255">
+            <div class="input-group floating">
+                <input type="text" id="pSummary" name="summary" value="<?php echo e($summary); ?>" maxlength="255" placeholder=" ">
+                <label for="pSummary">Summary</label>
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="pBody">Body (HTML allowed - live preview on the right)</label>
+            <label for="pBody">Body (HTML allowed - live preview on the right) <span class="req">*</span></label>
             <div class="editor-split">
                 <textarea id="pBody" name="body" rows="24" required spellcheck="false"><?php echo e($body); ?></textarea>
                 <div class="editor-preview" id="editorPreview"></div>

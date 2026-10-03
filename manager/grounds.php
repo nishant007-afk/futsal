@@ -33,18 +33,11 @@ $isAdding = isset($_GET['add']) || (isset($_GET['action']) && $_GET['action'] ==
 $isEditing = $editing !== null;
 $showEditor = $isAdding || $isEditing || !empty($errors);
 
-$blockedDates = [];
 $photos = [];
-if ($editing) {
-    $stmt = $conn->prepare('SELECT * FROM blocked_dates WHERE ground_id = ? ORDER BY block_date');
-    $stmt->bind_param('i', $editing['id']);
-    $stmt->execute();
-    $blockedDates = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $photos = ground_images((int)$editing['id']);
-}
 
 $previewImages = [];
 if ($editing) {
+    $photos = ground_images((int)$editing['id']);
     $gallery = ground_gallery((int)$editing['id']);
     foreach ($gallery as $gimg) {
         $previewImages[] = base_url('uploads/grounds/' . rawurlencode($gimg));
@@ -226,7 +219,35 @@ $inactiveCourts = $totalCourts - $activeCourts;
 <div class="court-editor-container">
     <div class="editor-main-pane">
         <div class="editor-card-unified">
-            <!-- Tab Navigation Header (clean, without pills) -->
+            <!-- Tab Navigation Header (clean, without pills)
+                 REVERTED to the plain tab labels on request: the numbered steps with completion
+                 ticks were not wanted, so the chips, the "n of 4 complete" readout and the divider
+                 are all retired. They are kept below, commented out, in case they are wanted again.
+            <div class="editor-tabs-bar" role="tablist" aria-label="Court Configuration Steps">
+                <button type="button" class="editor-tab-btn active" data-tab="details" role="tab" aria-selected="true" aria-controls="panel-details">
+                    <span class="step-chip" aria-hidden="true"><span class="step-num">1</span><i class="fa-solid fa-check step-done"></i></span>
+                    <i class="fa-solid fa-circle-info step-icon"></i> Details
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="pricing" role="tab" aria-selected="false" aria-controls="panel-pricing">
+                    <span class="step-chip" aria-hidden="true"><span class="step-num">2</span><i class="fa-solid fa-check step-done"></i></span>
+                    <i class="fa-solid fa-tag step-icon"></i> Pricing &amp; Hours
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="location" role="tab" aria-selected="false" aria-controls="panel-location">
+                    <span class="step-chip" aria-hidden="true"><span class="step-num">3</span><i class="fa-solid fa-check step-done"></i></span>
+                    <i class="fa-solid fa-map-location-dot step-icon"></i> Location &amp; Pin
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="media" role="tab" aria-selected="false" aria-controls="panel-media">
+                    <span class="step-chip" aria-hidden="true"><span class="step-num">4</span><i class="fa-solid fa-check step-done"></i></span>
+                    <i class="fa-solid fa-images step-icon"></i> Media &amp; QR
+                </button>
+                <span class="editor-tabs-divider" aria-hidden="true"></span>
+                <a href="<?php echo base_url('manager/promos.php'); ?>" class="editor-tab-btn editor-tab-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-tags"></i> Promo Codes
+                </a>
+            </div>
+            <p class="editor-steps-progress" id="editorStepsProgress" role="status" aria-live="polite"></p>
+            -->
+
             <div class="editor-tabs-bar" role="tablist" aria-label="Court Configuration Sections">
                 <button type="button" class="editor-tab-btn active" data-tab="details" role="tab" aria-selected="true" aria-controls="panel-details">
                     <i class="fa-solid fa-circle-info"></i> Details
@@ -243,11 +264,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                 <a href="<?php echo base_url('manager/promos.php'); ?>" class="editor-tab-btn editor-tab-link" target="_blank" rel="noopener">
                     <i class="fa-solid fa-tags"></i> Promo Codes
                 </a>
-                <?php if ($editing): ?>
-                    <button type="button" class="editor-tab-btn" data-tab="schedule" role="tab" aria-selected="false" aria-controls="panel-schedule">
-                        <i class="fa-solid fa-calendar-xmark"></i> Blackout Schedule
-                    </button>
-                <?php endif; ?>
+
             </div>
 
             <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
@@ -265,32 +282,47 @@ $inactiveCourts = $totalCourts - $activeCourts;
                     </div>
                     <div class="grid grid-2">
                         <div class="form-group<?php echo has_error($errors, 'name'); ?>">
-                            <label for="name">Ground Name <span class="req">*</span></label>
-                            <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" placeholder="e.g. KickOff Arena Court 1" required>
+                            <div class="input-group floating">
+                                <input type="text" id="name" name="name" value="<?php echo e($editing['name'] ?? ($name ?? '')); ?>" maxlength="100" placeholder=" " required>
+                                <label for="name">Ground Name <span class="req">*</span></label>
+                            </div>
                             <?php field_error($errors, 'name'); ?>
                         </div>
                         <div class="form-group">
-                            <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
-                            <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder="e.g. Pitch A">
+                            <div class="input-group floating">
+                                <input type="text" id="court_number" name="court_number" value="<?php echo e($editing['court_number'] ?? ($court_number ?? '')); ?>" maxlength="20" placeholder=" ">
+                                <label for="court_number">Court Number or Label <span class="muted">(optional)</span></label>
+                            </div>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'location'); ?>">
-                            <label for="location">Neighborhood / Area <span class="req">*</span></label>
-                            <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" placeholder="e.g. Baneshwor, Kathmandu" required>
+                            <div class="input-group floating">
+                                <input type="text" id="location" name="location" value="<?php echo e($editing['location'] ?? ($location ?? '')); ?>" maxlength="255" placeholder=" " required>
+                                <label for="location">Neighborhood / Area <span class="req">*</span></label>
+                            </div>
                             <?php field_error($errors, 'location'); ?>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'capacity'); ?>">
-                            <label for="capacity">Player Capacity <span class="req">*</span></label>
-                            <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder="10 (for 5v5)" required>
+                            <div class="input-group floating">
+                                <input type="number" min="1" id="capacity" name="capacity" value="<?php echo e($editing['capacity'] ?? ($capacity ?? 10)); ?>" placeholder=" " required>
+                                <label for="capacity">Player Capacity <span class="req">*</span></label>
+                            </div>
                             <?php field_error($errors, 'capacity'); ?>
                         </div>
                         <div class="form-group span-full">
-                            <label for="address">Full Street Address</label>
-                            <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder="e.g. Madan Bhandari Path, New Baneshwor">
+                            <div class="input-group floating">
+                                <input type="text" id="address" name="address" value="<?php echo e($editing['address'] ?? ($address ?? '')); ?>" maxlength="255" placeholder=" ">
+                                <label for="address">Full Street Address</label>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="description">Court Overview & Highlights</label>
-                        <textarea id="description" name="description" rows="3" placeholder="Describe your turf quality, lighting, parking, changing rooms, and amenities..."><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
+                        <!-- KEPT (removed per request): the visible heading for this field was not
+                             wanted - the placeholder already says what to write. Kept here, commented
+                             out. The textarea carries aria-label with the same text so screen readers
+                             and the shared validation still have a field name to work with.
+                        <label for="description">Court Overview &amp; Highlights</label>
+                        -->
+                        <textarea id="description" name="description" rows="3" aria-label="Court Overview &amp; Highlights" placeholder="Describe your turf quality, lighting, parking, changing rooms, and amenities..."><?php echo e($editing['description'] ?? ($description ?? '')); ?></textarea>
                     </div>
                     <div class="form-group" style="margin-top: 14px;">
                         <label class="check-line" for="is_active">
@@ -308,18 +340,24 @@ $inactiveCourts = $totalCourts - $activeCourts;
                     </div>
                     <div class="grid grid-2">
                         <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
-                            <label for="price_per_hour">Regular Price / Hour (Rs.) <span class="req">*</span></label>
-                            <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder="e.g. 1500" required>
+                            <div class="input-group floating">
+                                <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder=" " required>
+                                <label for="price_per_hour">Regular Price / Hour (Rs.) <span class="req">*</span></label>
+                            </div>
                             <?php field_error($errors, 'price_per_hour'); ?>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'discount_price'); ?>">
-                            <label for="discount_price">Special Promotional Rate (Rs.) <span class="muted">(optional)</span></label>
-                            <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder="Discounted price per hour">
+                            <div class="input-group floating">
+                                <input type="number" step="0.01" min="0" id="discount_price" name="discount_price" value="<?php echo e($editing['discount_price'] ?? ''); ?>" placeholder=" ">
+                                <label for="discount_price">Special Promotional Rate (Rs.) <span class="muted">(optional)</span></label>
+                            </div>
                             <?php field_error($errors, 'discount_price'); ?>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'price_weekend'); ?>">
-                            <label for="price_weekend">Weekend Rate / Hour (Rs.) <span class="muted">(optional)</span></label>
-                            <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder="Defaults to regular price if empty">
+                            <div class="input-group floating">
+                                <input type="number" step="0.01" min="0" id="price_weekend" name="price_weekend" value="<?php echo e($editing['price_weekend'] ?? ''); ?>" placeholder=" ">
+                                <label for="price_weekend">Weekend Rate / Hour (Rs.) <span class="muted">(optional)</span></label>
+                            </div>
                             <?php field_error($errors, 'price_weekend'); ?>
                         </div>
                         <div class="form-group">
@@ -330,13 +368,17 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             </select>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'open_time'); ?>">
-                            <label for="open_time">Opening Time</label>
-                            <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
+                            <div class="input-group floating">
+                                <input type="time" id="open_time" name="open_time" value="<?php echo e($editing['open_time'] ?? '08:00'); ?>">
+                                <label for="open_time">Opening Time</label>
+                            </div>
                             <?php field_error($errors, 'open_time'); ?>
                         </div>
                         <div class="form-group<?php echo has_error($errors, 'close_time'); ?>">
-                            <label for="close_time">Closing Time</label>
-                            <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
+                            <div class="input-group floating">
+                                <input type="time" id="close_time" name="close_time" value="<?php echo e($editing['close_time'] ?? '22:00'); ?>">
+                                <label for="close_time">Closing Time</label>
+                            </div>
                             <?php field_error($errors, 'close_time'); ?>
                         </div>
                     </div>
@@ -358,10 +400,27 @@ $inactiveCourts = $totalCourts - $activeCourts;
                         </div>
                         <div class="form-card sub" style="margin-bottom: 20px;">
                             <h4><i class="fa-solid fa-camera"></i> Court Photos</h4>
+                            <!-- KEPT (removed per request): plain file input with a "Choose files"
+                                 label, so photos could only be added through the file browser and
+                                 there was no visual target to drop onto. Now a drop zone; the
+                                 <input> is still the real form control and stays keyboard reachable.
                             <div class="form-group file-pick">
                                 <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
                                 <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
                                 <span class="file-name" id="fileNames">No files selected</span>
+                            </div>
+                            -->
+                            <div class="form-group file-pick">
+                                <div class="dropzone" id="photoDropzone" data-for="photoInput">
+                                    <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
+                                    <div class="dropzone-inner">
+                                        <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                                        <strong>Drag photos here</strong>
+                                        <span class="muted">or</span>
+                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
+                                        <span class="file-name" id="fileNames">No files selected</span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                         </div>
@@ -397,7 +456,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             <?php foreach ($photos as $ph): ?>
                                 <div class="photo-item">
                                     <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($ph['image'])); ?>" alt="<?php echo e($editing['name']); ?> photo" loading="lazy" decoding="async">
-                                    <form method="post" action="" style="display:inline;">
+                                    <form method="post" action="" style="display:inline;" novalidate>
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="delete_photo" value="<?php echo (int)$ph['id']; ?>">
                                         <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
@@ -410,13 +469,28 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             <?php endif; ?>
                         </div>
 
-                        <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm">
+                        <form method="post" action="" enctype="multipart/form-data" id="photoUploadForm" novalidate>
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="upload_photos" value="1">
+                            <!-- KEPT (removed per request): same plain file input as the add form,
+                                 replaced here by the drag-and-drop zone for consistency.
                             <div class="form-group file-pick">
                                 <label class="file-btn" for="photoInput"><i class="fa-solid fa-cloud-arrow-up"></i> Select New Photos</label>
                                 <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
                                 <span class="file-name" id="fileNames">No files selected</span>
+                            </div>
+                            -->
+                            <div class="form-group file-pick">
+                                <div class="dropzone" id="photoDropzone" data-for="photoInput">
+                                    <input type="file" id="photoInput" name="photos[]" accept="image/*" multiple>
+                                    <div class="dropzone-inner">
+                                        <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                                        <strong>Drag photos here</strong>
+                                        <span class="muted">or</span>
+                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Select New Photos</label>
+                                        <span class="file-name" id="fileNames">No files selected</span>
+                                    </div>
+                                </div>
                             </div>
                             <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                             <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload selected photos</button>
@@ -435,7 +509,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             <div class="qr-preview-box mb">
                                 <div class="photo-item qr-item">
                                     <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($groundQr)); ?>" alt="Payment QR code for <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                                    <form method="post" action="" style="display:inline;">
+                                    <form method="post" action="" style="display:inline;" novalidate>
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="delete_qr_ground" value="<?php echo (int)$editing['id']; ?>">
                                         <button type="submit" class="photo-remove" data-confirm="Remove this payment QR code?" data-confirm-title="Remove QR code" title="Remove" aria-label="Remove QR code"><i class="fa-solid fa-xmark"></i></button>
@@ -445,7 +519,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                     <span class="badge badge-confirmed"><i class="fa-solid fa-check"></i> Active QR</span>
                                 </div>
                             </div>
-                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="upload_qr" value="1">
                                 <div class="form-group file-pick">
@@ -457,7 +531,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             </form>
                         <?php else: ?>
                             <p class="muted" style="font-size: 0.88rem;">No payment QR set yet.</p>
-                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm">
+                            <form method="post" action="" enctype="multipart/form-data" id="qrUploadForm" novalidate>
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="upload_qr" value="1">
                                 <div class="form-group file-pick">
@@ -467,83 +541,6 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload QR Code</button>
                             </form>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- TAB 5: BLACKOUT DATES (EDIT ONLY) -->
-                <div class="editor-panel-card" id="panel-schedule" role="tabpanel" hidden>
-                    <div class="panel-intro">
-                        <h3>Blackout Schedule</h3>
-                    </div>
-
-                    <?php
-                    $blockedSet = [];
-                    foreach ($blockedDates as $bd) {
-                        $blockedSet[$bd['block_date']] = true;
-                    }
-                    ?>
-                    <div class="block-cal" data-picked="">
-                        <?php for ($mOff = 0; $mOff < 2; $mOff++):
-                            $cy = (int)date('Y');
-                            $cm = (int)date('n') + $mOff;
-                            while ($cm > 12) { $cm -= 12; $cy++; }
-                            $firstDow = (int)date('w', mktime(0, 0, 0, $cm, 1, $cy));
-                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $cm, 1, $cy));
-                        ?>
-                            <div class="block-cal-month">
-                                <div class="block-cal-head"><?php echo e(date('F Y', mktime(0, 0, 0, $cm, 1, $cy))); ?></div>
-                                <div class="block-cal-dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
-                                <div class="block-cal-grid">
-                                    <?php for ($i = 0; $i < $firstDow; $i++): ?><span class="block-cal-empty"></span><?php endfor; ?>
-                                    <?php for ($d = 1; $d <= $daysInMonth; $d++):
-                                        $ds = sprintf('%04d-%02d-%02d', $cy, $cm, $d);
-                                        $isBlocked = isset($blockedSet[$ds]);
-                                        $isPast = $ds < date('Y-m-d');
-                                    ?>
-                                        <button type="button" class="block-cal-day<?php echo $isBlocked ? ' blocked' : ''; ?><?php echo $isPast ? ' past' : ''; ?>" data-date="<?php echo $ds; ?>" <?php echo $isPast ? 'disabled' : ''; ?> title="<?php echo $isBlocked ? 'Already blocked' : 'Block this date'; ?>"><?php echo $d; ?></button>
-                                    <?php endfor; ?>
-                                </div>
-                            </div>
-                        <?php endfor; ?>
-                    </div>
-
-                    <div class="form-card sub" style="margin-top: 18px;">
-                        <h4><i class="fa-solid fa-lock"></i> Add Blackout Date</h4>
-                        <form method="post" action="" id="blockDateForm">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="add_blocked_date" value="1">
-                            <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                            <div class="grid grid-2">
-                                <div class="form-group">
-                                    <label for="blockDate">Selected Date <span class="req">*</span></label>
-                                    <input type="date" id="blockDate" name="block_date" min="<?php echo e(date('Y-m-d')); ?>" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="blockNote">Reason / Note <span class="muted">(optional)</span></label>
-                                    <input type="text" id="blockNote" name="block_note" maxlength="255" placeholder="e.g. Private corporate tournament">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-outline btn-block"><i class="fa-solid fa-ban"></i> Block this date</button>
-                        </form>
-                    </div>
-
-                    <div class="blocked-list" style="margin-top: 20px;">
-                        <h4>Currently Closed Dates</h4>
-                        <?php if (!$blockedDates): ?>
-                            <p class="muted">No dates blocked. Your court is open on regular schedule.</p>
-                        <?php else: ?>
-                            <?php foreach ($blockedDates as $bd): ?>
-                                <div class="blocked-item">
-                                    <span><i class="fa-solid fa-calendar-xmark"></i> <strong><?php echo e(date('D, M j, Y', strtotime($bd['block_date']))); ?></strong><?php echo $bd['note'] !== '' ? ' &mdash; ' . e($bd['note']) : ''; ?></span>
-                                    <form method="post" action="" style="display:inline;">
-                                        <?php echo csrf_field(); ?>
-                                        <input type="hidden" name="unblock_date" value="<?php echo (int)$bd['id']; ?>">
-                                        <input type="hidden" name="ground_id" value="<?php echo (int)$editing['id']; ?>">
-                                        <button type="submit" class="photo-remove" data-confirm="Unblock this date and make slots available again?" data-confirm-title="Unblock date" title="Unblock" aria-label="Unblock date"><i class="fa-solid fa-xmark"></i></button>
-                                    </form>
-                                </div>
-                            <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -1007,6 +1004,15 @@ $inactiveCourts = $totalCourts - $activeCourts;
 .editor-side-pane {
     position: sticky;
     top: 24px;
+    /* KEPT (removed per request): a tall preview (long gallery, long description)
+       made the sticky pane taller than the viewport, so it scrolled away instead of
+       staying put. It now scrolls internally and never exceeds the viewport.
+       Previous values were simply `position: sticky; top: 24px;` with no cap. */
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room for the scrollbar so it does not sit on top of the card. */
+    padding-right: 4px;
 }
 .preview-sticky-card {
     display: flex;
@@ -1135,6 +1141,67 @@ $inactiveCourts = $totalCourts - $activeCourts;
         justify-content: center;
     }
 }
+
+/* ============================================================
+   ADD / EDIT COURT: floating label clearance + tighter field spacing
+   Added after review of this page. Two real problems were measured here.
+
+   1. THE LABEL OVERLAPPED THE TEXT. The rule above at "line 934" sets
+      `padding: 10px 14px !important` on every panel input, which overrode the
+      global floating-label padding (`padding: 31px 14px 3px 16px !important`
+      in assets/css/style.css). The floated label sits at top 4px with an 11px
+      font and line-height 1, so it occupies 4px-15px, while the text started at
+      10px: a -5px gap, i.e. the label was drawn on top of the typed value.
+      Scoped to `.input-group.floating input` so the plain labelled controls in
+      these panels - the "Court Overview" textarea and the Active status checkbox -
+      keep their normal 10px padding.
+      30px of top padding puts the text 15px below the label; min-height rises to
+      60px so the 14.5px text still gets its full 20px line box (was 44px tall).
+
+   2. THE FIELD SPACING WAS DOUBLE-COUNTED AND TOO LOOSE. `.grid-2` had an 18px
+      row gap *and* every `.form-group` added another 18px margin-bottom, so
+      stacked rows were really 36px apart, with a 20px column gutter.
+
+   Previous values, kept for reference:
+     .editor-panel-card input/select/textarea   padding: 10px 14px; min-height: 44px
+     .editor-panel-card .grid-2                gap: 18px 20px   (14px on <=768px)
+     .editor-panel-card .form-group            margin-bottom: 18px
+   ============================================================ */
+
+/* 1. Restore room for the floated label (floating inputs only). */
+.editor-panel-card .input-group.floating input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+    min-height: 60px;
+    padding: 30px 14px 8px !important;
+}
+
+/* 2. Tighter, single-source spacing: the grid gap owns the rhythm, the
+      form-group margin no longer doubles it up. */
+.editor-panel-card .grid-2 {
+    gap: 10px 12px;
+    /* Zeroing the grid children's margin-bottom (below) removed the only space
+       that used to sit between the grid and whatever followed it. In the Details
+       panel that collapsed the gap between "Full Street Address" and the Court
+       Overview textarea to 0. The grid carries its own trailing space instead,
+       matching its 10px row gap. */
+    margin-bottom: 10px;
+}
+.editor-panel-card .grid-2 > .form-group {
+    margin-bottom: 0;
+}
+.editor-panel-card > .form-group,
+.editor-panel-card .form-card > .form-group {
+    margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+    .editor-panel-card .grid-2 {
+        gap: 10px;
+    }
+    .editor-panel-card .input-group.floating input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+        min-height: 56px;
+        padding: 27px 13px 7px !important;
+    }
+}
 </style>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
@@ -1157,8 +1224,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'details': 'Details',
         'pricing': 'Pricing & Hours',
         'location': 'Location & Pin',
-        'media': 'Media & QR',
-        'schedule': 'Blackout Schedule'
+        'media': 'Media & QR'
     };
 
     function switchTab(targetKey) {
@@ -1188,6 +1254,39 @@ document.addEventListener('DOMContentLoaded', function () {
         if (history.replaceState) {
             history.replaceState(null, null, '#' + targetKey);
         }
+
+        /* RETIRED on request: per-step completion tracking (green ticks + the "n of 4 complete"
+           readout). The tabs are plain labels again, so this no longer runs. Kept for reference:
+        var stepDone = {
+            details: function (p) {
+                return p.querySelector('[name="name"]') &&
+                       p.querySelector('[name="name"]').value.trim() !== '';
+            },
+            pricing: function (p) {
+                var price = p.querySelector('[name="price_per_hour"]');
+                return price && parseFloat(price.value) > 0;
+            },
+            location: function (p) {
+                var loc = p.querySelector('[name="location"]');
+                return loc && loc.value.trim() !== '';
+            },
+            media: function () { return true; }
+        };
+
+        tabs.forEach(function (b) {
+            var key = b.getAttribute('data-tab');
+            var panel = document.getElementById('panel-' + key);
+            var done = !!(stepDone[key] && panel && stepDone[key](panel));
+            b.classList.toggle('is-complete', done);
+            b.setAttribute('data-step-state', done ? 'complete' : 'todo');
+        });
+
+        var progress = document.getElementById('editorStepsProgress');
+        if (progress) {
+            var completeCount = tabs.filter(function (b) { return b.classList.contains('is-complete'); }).length;
+            progress.textContent = completeCount + ' of ' + tabs.length + ' steps complete';
+        }
+        */
 
         // Navigation footer state: Back on left, Next on right beside Create Ground
         if (prevBtn && nextBtn) {
@@ -1244,6 +1343,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (nextBtn) {
         nextBtn.addEventListener('click', function () {
+            // When switching to details tab from another tab, validate required fields
+            var currentTarget = document.querySelector('.editor-tab-btn.active');
+            var currentTab = currentTarget ? currentTarget.getAttribute('data-tab') : null;
+
+            // If we're on or moving to details tab, validate required fields
+            if (!target || target === 'details' || currentTab === 'details') {
+                var name = document.getElementById('name')?.value.trim();
+                var location = document.getElementById('location')?.value.trim();
+                var capacity = document.getElementById('capacity')?.value;
+                var price = document.getElementById('price_per_hour')?.value;
+
+                var hasErrors = false;
+                if (!name) { alert('Please enter a ground name.'); hasErrors = true; }
+                if (!location) { alert('Please enter a location.'); hasErrors = true; }
+                if (!capacity || capacity < 1) { alert('Please enter a valid capacity.'); hasErrors = true; }
+                if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) { alert('Please enter a valid price per hour.'); hasErrors = true; }
+
+                if (hasErrors) { return; }
+            }
+
             var target = this.getAttribute('data-target');
             if (target) { switchTab(target); }
         });
@@ -1290,80 +1409,119 @@ document.addEventListener('DOMContentLoaded', function () {
     if (priceInput) { priceInput.addEventListener('input', syncPreview); }
     if (capacityInput) { capacityInput.addEventListener('input', syncPreview); }
 
-    // 3. Calendar Blackout picker
-    var cal = document.querySelector('.block-cal');
-    var dateInput = document.getElementById('blockDate');
-    if (cal && dateInput) {
-        cal.addEventListener('click', function (e) {
-            var day = e.target.closest('.block-cal-day');
-            if (!day || day.disabled || day.classList.contains('blocked')) { return; }
-            cal.querySelectorAll('.block-cal-day').forEach(function (el) { el.classList.remove('picked'); });
-            day.classList.add('picked');
-            dateInput.value = day.getAttribute('data-date');
-            dateInput.focus();
-        });
-        dateInput.addEventListener('change', function () {
-            cal.querySelectorAll('.block-cal-day').forEach(function (el) {
-                el.classList.toggle('picked', el.getAttribute('data-date') === dateInput.value);
-            });
-        });
-    }
-
-    // 4. Client file names preview & live gallery update for photo uploads
+    // 3. Client file names preview & live gallery update for photo uploads
+    //    KEPT (removed per request): this was bound only to the <input>'s change event, so the
+    //    preview could not be produced any other way. The body below is unchanged apart from
+    //    being extracted into handlePhotoFiles() so the drop zone can reuse it verbatim.
     var photoInput = document.getElementById('photoInput');
     var fileNames = document.getElementById('fileNames');
     var photoGrid = document.getElementById('photoPreviewGrid');
 
+    function handlePhotoFiles(files) {
+        if (!files || files.length === 0) {
+            if (fileNames) { fileNames.textContent = 'No files selected'; }
+            if (photoGrid) { photoGrid.innerHTML = ''; }
+            return;
+        }
+        if (fileNames) {
+            fileNames.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
+        }
+
+        var newUrls = [];
+        if (photoGrid) { photoGrid.innerHTML = ''; }
+        Array.prototype.slice.call(files).forEach(function (f) {
+            if (!f.type.match('image.*')) { return; }
+            var url = URL.createObjectURL(f);
+            newUrls.push(url);
+            if (photoGrid) {
+                var wrap = document.createElement('div');
+                wrap.className = 'photo-preview-item';
+                var img = document.createElement('img');
+                img.src = url;
+                img.alt = f.name;
+                wrap.appendChild(img);
+                photoGrid.appendChild(wrap);
+            }
+        });
+
+        // Update live card preview gallery in right pane
+        if (newUrls.length > 0) {
+            var gal = document.getElementById('previewGallery');
+            var cover = document.getElementById('previewCoverImg');
+            var tot = document.getElementById('previewTotalCount');
+            var cur = gal ? gal.querySelector('.gallery-counter-current') : null;
+            var prevBtnEl = gal ? gal.querySelector('.card-gprev') : null;
+            var nextBtnEl = gal ? gal.querySelector('.card-gnext') : null;
+            if (gal) {
+                gal.setAttribute('data-images', JSON.stringify(newUrls));
+                gal._imgs = newUrls;
+                gal._idx = 0;
+                if (cur) cur.textContent = '1';
+                if (tot) tot.textContent = String(newUrls.length);
+                if (prevBtnEl) prevBtnEl.hidden = true;
+                if (nextBtnEl) nextBtnEl.hidden = newUrls.length <= 1;
+            }
+            if (cover) {
+                cover.src = newUrls[0];
+            }
+        }
+    }
+
     if (photoInput) {
         photoInput.addEventListener('change', function () {
-            var files = this.files;
-            if (!files || files.length === 0) {
-                if (fileNames) { fileNames.textContent = 'No files selected'; }
-                if (photoGrid) { photoGrid.innerHTML = ''; }
-                return;
-            }
-            if (fileNames) {
-                fileNames.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
-            }
+            handlePhotoFiles(this.files);
+        });
+    }
 
-            var newUrls = [];
-            if (photoGrid) { photoGrid.innerHTML = ''; }
-            Array.prototype.slice.call(files).forEach(function (f) {
-                if (!f.type.match('image.*')) { return; }
-                var url = URL.createObjectURL(f);
-                newUrls.push(url);
-                if (photoGrid) {
-                    var wrap = document.createElement('div');
-                    wrap.className = 'photo-preview-item';
-                    var img = document.createElement('img');
-                    img.src = url;
-                    img.alt = f.name;
-                    wrap.appendChild(img);
-                    photoGrid.appendChild(wrap);
-                }
+    // 3b. Drag-and-drop onto the photo zone. The real <input> still receives the
+    //     files (via DataTransfer) so the normal multipart upload is untouched.
+    var photoDropzone = document.getElementById('photoDropzone');
+    if (photoDropzone && photoInput && window.DataTransfer) {
+        var dzInput = photoDropzone.querySelector('input[type="file"]') || photoInput;
+        var dzDepth = 0;
+
+        ['dragenter', 'dragover'].forEach(function (evt) {
+            photoDropzone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (evt === 'dragenter') { dzDepth++; }
+                photoDropzone.classList.add('is-dragover');
             });
+        });
 
-            // Update live card preview gallery in right pane
-            if (newUrls.length > 0) {
-                var gal = document.getElementById('previewGallery');
-                var cover = document.getElementById('previewCoverImg');
-                var tot = document.getElementById('previewTotalCount');
-                var cur = gal ? gal.querySelector('.gallery-counter-current') : null;
-                var prevBtnEl = gal ? gal.querySelector('.card-gprev') : null;
-                var nextBtnEl = gal ? gal.querySelector('.card-gnext') : null;
-                if (gal) {
-                    gal.setAttribute('data-images', JSON.stringify(newUrls));
-                    gal._imgs = newUrls;
-                    gal._idx = 0;
-                    if (cur) cur.textContent = '1';
-                    if (tot) tot.textContent = String(newUrls.length);
-                    if (prevBtnEl) prevBtnEl.hidden = true;
-                    if (nextBtnEl) nextBtnEl.hidden = newUrls.length <= 1;
-                }
-                if (cover) {
-                    cover.src = newUrls[0];
-                }
+        photoDropzone.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dzDepth = Math.max(0, dzDepth - 1);
+            if (dzDepth === 0) { photoDropzone.classList.remove('is-dragover'); }
+        });
+
+        photoDropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dzDepth = 0;
+            photoDropzone.classList.remove('is-dragover');
+
+            var dt = e.dataTransfer;
+            if (!dt || !dt.files || dt.files.length === 0) { return; }
+
+            // Only images are accepted, matching accept="image/*" on the input.
+            var images = [];
+            Array.prototype.slice.call(dt.files).forEach(function (f) {
+                if (f.type && f.type.match('image.*')) { images.push(f); }
+            });
+            if (images.length === 0) { return; }
+
+            try {
+                var transfer = new DataTransfer();
+                images.forEach(function (f) { transfer.items.add(f); });
+                dzInput.files = transfer.files;
+            } catch (err) {
+                // Older browsers refuse assignment to input.files; the preview still works.
+                if (window.console) { console.warn('Could not attach dropped files to the input', err); }
             }
+
+            handlePhotoFiles(images);
         });
     }
 

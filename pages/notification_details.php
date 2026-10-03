@@ -138,7 +138,7 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($n['link']): ?>
                 <a href="<?php echo e(base_url($n['link'])); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Go to related page</a>
             <?php endif; ?>
-            <form method="post" action="" class="d-inline">
+            <form method="post" action="" class="d-inline" novalidate>
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="delete_notification" value="1">
                 <button type="submit" class="btn btn-danger" data-confirm="Delete this notification?" data-confirm-title="Delete notification"><i class="fa-solid fa-trash-can"></i> Delete</button>

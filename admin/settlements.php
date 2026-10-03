@@ -8,13 +8,51 @@ $monthlyFee = manager_monthly_fee();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_setup'])) {
     verify_csrf();
     $manager_id = (int)$_POST['manager_id'];
+    $channel = trim((string)($_POST['pay_channel'] ?? ''));
+    $txn_ref = trim((string)($_POST['pay_txn_ref'] ?? ''));
     $sub = manager_subscription($manager_id);
-    if ($sub && $sub['setup_paid_at'] === null) {
-        $stmt = $conn->prepare('UPDATE manager_subscriptions SET setup_paid_at = CURDATE(), period_start = CURDATE(), period_end = DATE_ADD(CURDATE(), INTERVAL 1 MONTH) WHERE manager_id = ?');
-        $stmt->bind_param('i', $manager_id);
+    if (!$sub) {
+        set_flash_error(
+            'No subscription record found.',
+            'This manager has no subscription row to update.',
+            'Create the subscription record first, then mark the setup fee paid.',
+            'admin/settlements.php'
+        );
+    } elseif ($sub['setup_paid_at'] !== null) {
+        set_flash('info', 'That setup fee was already marked as paid.');
+    } elseif (!in_array($channel, subscription_payment_channels(), true)) {
+        set_flash_error(
+            'Payment channel is required.',
+            'Choose how the manager paid (eSewa, Khalti or bank transfer) so an invoice can be issued.',
+            'Pick a channel and enter the transaction reference, then save again.',
+            'admin/settlements.php'
+        );
+    } elseif ($txn_ref === '') {
+        set_flash_error(
+            'Transaction reference is required.',
+            'The reference from the payment receipt is printed on the manager\'s invoice.',
+            'Enter the transaction ID from the receipt, then save again.',
+            'admin/settlements.php'
+        );
+    } else {
+        // Period is computed in PHP (not with CURDATE()/DATE_ADD in SQL) so the
+        // invoice row and the subscription row are guaranteed to describe the
+        // same period.
+        $period_start = date('Y-m-d');
+        $period_end = date('Y-m-d', strtotime($period_start . ' +1 month'));
+        // KEPT (removed per request): the period was set with SQL date functions,
+        // so the values were unavailable for the invoice record.
+        // $stmt = $conn->prepare('UPDATE manager_subscriptions SET setup_paid_at = CURDATE(), period_start = CURDATE(), period_end = DATE_ADD(CURDATE(), INTERVAL 1 MONTH) WHERE manager_id = ?');
+        $stmt = $conn->prepare('UPDATE manager_subscriptions SET setup_paid_at = ?, period_start = ?, period_end = ? WHERE manager_id = ?');
+        $stmt->bind_param('sssi', $period_start, $period_start, $period_end, $manager_id);
         if ($stmt->execute()) {
+            $invoice = record_subscription_payment($manager_id, 'setup', $setupFee, $channel, $txn_ref, $period_start, $period_end);
             notify_user($manager_id, 'Setup fee received', 'Welcome aboard! Your Rs ' . number_format($setupFee, 0) . ' setup fee is confirmed and your courts are now live.', 'fa-store', 'manager/dashboard.php');
-            set_flash('success', 'Setup fee marked as paid. Manager\'s grounds are live.');
+            if ($invoice['ok']) {
+                set_flash('success', 'Setup fee marked as paid. Invoice ' . $invoice['receipt_no'] . ' issued.');
+            } else {
+                set_flash('success', 'Setup fee marked as paid, but the invoice could not be saved: ' . $invoice['error']);
+            }
         }
     }
     redirect('admin/settlements.php');
@@ -23,16 +61,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_setup'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['renew'])) {
     verify_csrf();
     $manager_id = (int)$_POST['manager_id'];
+    $channel = trim((string)($_POST['pay_channel'] ?? ''));
+    $txn_ref = trim((string)($_POST['pay_txn_ref'] ?? ''));
     $sub = manager_subscription($manager_id);
-    if ($sub && $sub['setup_paid_at'] !== null) {
+    if ($sub && $sub['setup_paid_at'] === null) {
+        set_flash_error(
+            'Setup fee still due.',
+            'Record the setup fee before the first monthly charge.',
+            'Use "Mark setup paid" first, then record the monthly charge.',
+            'admin/settlements.php'
+        );
+    } elseif (!$sub) {
+        set_flash_error(
+            'No subscription record found.',
+            'This manager has no subscription row to renew.',
+            'Create the subscription record first, then record the monthly charge.',
+            'admin/settlements.php'
+        );
+    } elseif (!in_array($channel, subscription_payment_channels(), true)) {
+        set_flash_error(
+            'Payment channel is required.',
+            'Choose how the manager paid so an invoice can be issued.',
+            'Pick a channel and enter the transaction reference, then save again.',
+            'admin/settlements.php'
+        );
+    } elseif ($txn_ref === '') {
+        set_flash_error(
+            'Transaction reference is required.',
+            'The reference from the payment receipt is printed on the manager\'s invoice.',
+            'Enter the transaction ID from the receipt, then save again.',
+            'admin/settlements.php'
+        );
+    } else {
         $period_start = $sub['period_end'] && $sub['period_end'] >= date('Y-m-d') ? $sub['period_end'] : date('Y-m-d');
         $period_end = date('Y-m-d', strtotime($period_start . ' +30 days'));
         $stmt = $conn->prepare('UPDATE manager_subscriptions SET period_start = ?, period_end = ?, last_paid_at = CURDATE() WHERE manager_id = ?');
         $stmt->bind_param('ssi', $period_start, $period_end, $manager_id);
         if ($stmt->execute()) {
-            $conn->query('UPDATE grounds SET is_active = 1 WHERE manager_id = ' . (int)$manager_id);
+            $invoice = record_subscription_payment($manager_id, 'renewal', $monthlyFee, $channel, $txn_ref, $period_start, $period_end);
             notify_user($manager_id, 'Monthly charge paid', 'Thanks! Your subscription is active until ' . date('M j, Y', strtotime($period_end)) . '.', 'fa-calendar-check', 'manager/dashboard.php');
-            set_flash('success', 'Monthly charge recorded. Subscription renewed and grounds re-activated.');
+            if ($invoice['ok']) {
+                set_flash('success', 'Monthly charge recorded. Invoice ' . $invoice['receipt_no'] . ' issued.');
+            } else {
+                set_flash('success', 'Monthly charge recorded, but the invoice could not be saved: ' . $invoice['error']);
+            }
         }
     }
     redirect('admin/settlements.php');
@@ -121,16 +193,12 @@ require __DIR__ . '/../includes/header.php';
                 <?php foreach ($managerRows as $m): ?>
                     <?php
                     $status = 'no_sub';
-                    $statusLabel = 'Not subscribed';
                     if ($m['setup_paid_at'] === null) {
                         $status = 'setup_pending';
-                        $statusLabel = 'Setup fee due';
                     } elseif ($m['period_end'] && $m['period_end'] < $today) {
                         $status = 'overdue';
-                        $statusLabel = 'Overdue';
                     } else {
                         $status = 'active';
-                        $statusLabel = 'Active';
                     }
                     ?>
                     <tr>
@@ -142,7 +210,7 @@ require __DIR__ . '/../includes/header.php';
                         </td>
                         <td class="num" data-label="Monthly charge">Rs <?php echo number_format((float)$m['monthly_fee'], 0); ?>/mo</td>
                         <td data-label="Period">
-                            <?php if ($m['period_end']): ?>
+                            <?php if (!empty($m['period_end']) && !empty($m['period_start'])): ?>
                                 <?php echo e(date('M j', strtotime($m['period_start']))); ?> &rarr; <?php echo e(date('M j, Y', strtotime($m['period_end']))); ?>
                             <?php else: ?>
                                 -
@@ -161,19 +229,78 @@ require __DIR__ . '/../includes/header.php';
                         </td>
                         <td data-label="">
                             <div class="row-actions">
+                                <!-- KEPT (removed per request): both actions were bare submit buttons,
+                                     so confirming a payment recorded no channel and no transaction
+                                     reference and no invoice could ever be produced. The fields are now
+                                     captured inline before the subscription is updated.
                                 <?php if ($status === 'setup_pending'): ?>
-                                    <form method="post" action="">
+                                    <form method="post" action="" novalidate>
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="manager_id" value="<?php echo (int)$m['id']; ?>">
                                         <button type="submit" name="mark_setup" value="1" class="btn btn-primary btn-xs"><i class="fa-solid fa-file-invoice-dollar"></i> Mark setup paid</button>
                                     </form>
                                 <?php endif; ?>
                                 <?php if ($status !== 'setup_pending' && $m['setup_paid_at']): ?>
-                                    <form method="post" action="">
+                                    <form method="post" action="" novalidate>
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="manager_id" value="<?php echo (int)$m['id']; ?>">
                                         <button type="submit" name="renew" value="1" class="btn btn-outline btn-xs"><i class="fa-solid fa-calendar-plus"></i> Record monthly charge</button>
                                     </form>
+                                <?php endif; ?>
+                                -->
+
+                                <?php if ($status === 'setup_pending'): ?>
+                                    <details class="pay-capture">
+                                        <summary class="btn btn-primary btn-xs"><i class="fa-solid fa-file-invoice-dollar"></i> Mark setup paid</summary>
+                                        <form method="post" action="" class="pay-capture-form" novalidate>
+                                            <?php echo csrf_field(); ?>
+                                            <input type="hidden" name="manager_id" value="<?php echo (int)$m['id']; ?>">
+
+                                            <label class="pay-capture-label" for="ch-<?php echo (int)$m['id']; ?>">Channel</label>
+                                            <select class="gs-select" name="pay_channel" id="ch-<?php echo (int)$m['id']; ?>" required>
+                                                <option value="">Select…</option>
+                                                <?php foreach (subscription_payment_channels() as $ch): ?>
+                                                    <option value="<?php echo e($ch); ?>"><?php echo e(subscription_channel_label($ch)); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                            <label class="pay-capture-label" for="tx-<?php echo (int)$m['id']; ?>">Transaction reference</label>
+                                            <input class="gs-input" type="text" name="pay_txn_ref" id="tx-<?php echo (int)$m['id']; ?>"
+                                                   maxlength="80" required placeholder="e.g. 240310001234">
+
+                                            <p class="pay-capture-hint">Amount: <?php echo format_price((float)$m['setup_fee']); ?></p>
+                                            <button type="submit" name="mark_setup" value="1" class="btn btn-primary btn-xs">
+                                                <i class="fa-solid fa-check"></i> Confirm &amp; issue invoice
+                                            </button>
+                                        </form>
+                                    </details>
+                                <?php endif; ?>
+
+                                <?php if ($status !== 'setup_pending' && $m['setup_paid_at']): ?>
+                                    <details class="pay-capture">
+                                        <summary class="btn btn-outline btn-xs"><i class="fa-solid fa-calendar-plus"></i> Record monthly charge</summary>
+                                        <form method="post" action="" class="pay-capture-form" novalidate>
+                                            <?php echo csrf_field(); ?>
+                                            <input type="hidden" name="manager_id" value="<?php echo (int)$m['id']; ?>">
+
+                                            <label class="pay-capture-label" for="rch-<?php echo (int)$m['id']; ?>">Channel</label>
+                                            <select class="gs-select" name="pay_channel" id="rch-<?php echo (int)$m['id']; ?>" required>
+                                                <option value="">Select…</option>
+                                                <?php foreach (subscription_payment_channels() as $ch): ?>
+                                                    <option value="<?php echo e($ch); ?>"><?php echo e(subscription_channel_label($ch)); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+
+                                            <label class="pay-capture-label" for="rtx-<?php echo (int)$m['id']; ?>">Transaction reference</label>
+                                            <input class="gs-input" type="text" name="pay_txn_ref" id="rtx-<?php echo (int)$m['id']; ?>"
+                                                   maxlength="80" required placeholder="e.g. 240310001234">
+
+                                            <p class="pay-capture-hint">Amount: <?php echo format_price((float)$m['monthly_fee']); ?>/mo</p>
+                                            <button type="submit" name="renew" value="1" class="btn btn-outline btn-xs">
+                                                <i class="fa-solid fa-check"></i> Confirm &amp; issue invoice
+                                            </button>
+                                        </form>
+                                    </details>
                                 <?php endif; ?>
                             </div>
                         </td>

@@ -5,8 +5,7 @@ require_admin();
 $totalGrounds = (int)$conn->query('SELECT COUNT(*) c FROM grounds')->fetch_assoc()['c'];
 $totalUsers = (int)$conn->query('SELECT COUNT(*) c FROM users')->fetch_assoc()['c'];
 $totalBookings = (int)$conn->query('SELECT COUNT(*) c FROM bookings')->fetch_assoc()['c'];
-$revenue = $conn->query('SELECT COALESCE(SUM(total_price), 0) s FROM bookings WHERE status != "cancelled"')->fetch_assoc()['s'];
-$setupFee = manager_setup_fee();
+$revenue = $conn->query('SELECT COALESCE(SUM(total_price - COALESCE(discount, 0)), 0) s FROM bookings WHERE status != "cancelled"')->fetch_assoc()['s'];
 $monthlyFee = manager_monthly_fee();
 $managerCount = (int)$conn->query('SELECT COUNT(*) c FROM users WHERE role = "manager"')->fetch_assoc()['c'];
 $setupCollected = $conn->query('SELECT COUNT(*) c FROM manager_subscriptions WHERE setup_paid_at IS NOT NULL')->fetch_assoc()['c'];
@@ -23,7 +22,7 @@ foreach ($roleCounts as $r) {
 }
 
 $recent = $conn->query(
-    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
+    'SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.discount, b.status,
             b.payment_status, b.amount_paid, b.payment_method, b.created_at,
             g.name AS ground_name, u.name AS user_name, u.email AS user_email,
             m.name AS manager_name
@@ -37,22 +36,25 @@ $recent = $conn->query(
 
 $months = [];
 for ($i = 5; $i >= 0; $i--) {
-    $months[date('Y-m', strtotime("-$i months"))] = ['gross' => 0, 'count' => 0, 'label' => date('M', strtotime("-$i months"))];
+    // KEPT (removed per request): the bucket key was 'gross' and the label read "Monthly gross",
+    // but the query sums total_price - discount, which is net of discount. Renamed to 'net' so the
+    // name matches the number. The old key was 'gross' and $maxGross was $maxNet.
+    $months[date('Y-m', strtotime("-$i months"))] = ['net' => 0, 'count' => 0, 'label' => date('M', strtotime("-$i months"))];
 }
 $monthRows = $conn->query(
-    'SELECT DATE_FORMAT(booking_date, "%Y-%m") ym, SUM(total_price) s, COUNT(*) c
+    'SELECT DATE_FORMAT(booking_date, "%Y-%m") ym, SUM(total_price - COALESCE(discount, 0)) s, COUNT(*) c
      FROM bookings WHERE status != "cancelled" GROUP BY ym'
 );
 while ($row = $monthRows->fetch_assoc()) {
     if (isset($months[$row['ym']])) {
-        $months[$row['ym']]['gross'] = (float)$row['s'];
+        $months[$row['ym']]['net'] = (float)$row['s'];
         $months[$row['ym']]['count'] = (int)$row['c'];
     }
 }
-$maxGross = max(1, max(array_column($months, 'gross')));
+$maxNet = max(1, max(array_column($months, 'net')));
 
 $topGrounds = $conn->query(
-    'SELECT g.name, COUNT(*) bookings, COALESCE(SUM(b.total_price),0) revenue
+    'SELECT g.name, COUNT(*) bookings, COALESCE(SUM(b.total_price - COALESCE(b.discount, 0)),0) revenue
      FROM bookings b JOIN grounds g ON g.id = b.ground_id
      WHERE b.status != "cancelled"
      GROUP BY g.id ORDER BY revenue DESC LIMIT 5'
@@ -106,7 +108,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
     <div class="stat reveal">
         <h3>Platform Players</h3>
-        <p><?php echo $roleMap['user'] ?? $totalUsers; ?></p>
+        <p><?php echo $roleMap['user']; ?></p>
         <span class="muted"><?php echo $totalUsers; ?> total registered accounts</span>
     </div>
     <div class="stat reveal">
@@ -135,14 +137,15 @@ require __DIR__ . '/../includes/header.php';
     <div class="chart-card">
         <div class="chart-title">
             <span>Revenue (Last 6 Months)</span>
-            <span class="muted" style="font-weight: 500; font-size: 13px;">Monthly gross</span>
+            <!-- KEPT (removed per request): this read "Monthly gross"; the figure is net of discount. -->
+            <span class="muted" style="font-weight: 500; font-size: 13px;">Monthly net</span>
         </div>
-        <div class="bar-chart" role="img" aria-label="Monthly revenue">
+        <div class="bar-chart" role="img" aria-label="Monthly net revenue">
             <?php foreach ($months as $ym => $m): ?>
-                <?php $pct = $maxGross > 0 ? round(($m['gross'] / $maxGross) * 100, 1) : 0; ?>
-                <div class="bar-group" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['gross'], 0); ?> (<?php echo $m['count']; ?> bookings)">
+                <?php $pct = $maxNet > 0 ? round(($m['net'] / $maxNet) * 100, 1) : 0; ?>
+                <div class="bar-group" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['net'], 0); ?> net (<?php echo $m['count']; ?> bookings)">
                     <div class="bar-track"><div class="bar-fill" style="height:<?php echo max((int)$pct, 6); ?>%;"></div></div>
-                    <div class="bar-value"><?php echo $m['gross'] > 0 ? 'Rs ' . number_format($m['gross'] / 1000, 0) . 'k' : '-'; ?></div>
+                    <div class="bar-value"><?php echo $m['net'] > 0 ? 'Rs ' . number_format($m['net'] / 1000, 0) . 'k' : '-'; ?></div>
                     <div class="bar-label"><?php echo e($m['label']); ?></div>
                 </div>
             <?php endforeach; ?>
@@ -173,14 +176,12 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <h3 class="reveal dash-section">Recent Bookings</h3>
-<?php if (!$recent): ?>
-    <?php empty_state('fa-regular fa-calendar-xmark', 'No bookings yet', 'New bookings from across the platform will appear here.'); ?>
-<?php else: ?>
-    <div class="mbookings reveal">
-        <?php foreach ($recent as $b): ?>
-            <?php booking_card_mini($b, 'user'); ?>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+<?php bookings_table_html($recent, [
+    'show_player' => true,
+    'show_ref' => true,
+    'empty_icon' => 'fa-regular fa-calendar-xmark',
+    'empty_title' => 'No bookings yet',
+    'empty_sub' => 'New bookings from across the platform will appear here.',
+]); ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -2,6 +2,18 @@
 // POST handlers for pages/payment.php  -  promo apply/remove, pay-at-court, QR submit.
 // Never marks a booking paid from the client path: QR only records method + intent.
 
+// Defence in depth: this file is normally included from payment.php (which has
+// already booted the app and guarded the role). If it is ever requested directly
+// it must not run any handler on its own.
+if (!defined('GOALSPACE_BOOTED')) {
+    http_response_code(403);
+    exit('Forbidden');
+}
+if (!function_exists('verify_csrf')) {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     return;
 }

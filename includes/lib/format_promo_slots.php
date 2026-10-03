@@ -257,3 +257,92 @@ function validate_password(string $password): ?string
     }
     return null;
 }
+/* ------------------------------------------------------------------
+   Promo status + stats helpers (manager/promos.php)
+
+   promo_status() is the single source of truth for a promo's state so the
+   STATUS column and the summary counters can never disagree.
+   ------------------------------------------------------------------ */
+
+/**
+ * Classify one promo row.
+ *
+ * Order matters: a code that is both expired and depleted reports Expired,
+ * and an inactive code reports Paused even if its dates look fine.
+ *
+ * "Expiring Soon" means the code has an end date and it is today or tomorrow,
+ * i.e. under 48 hours remain. expires_at is a DATE column, so there is no
+ * time-of-day component to be more precise than that.
+ *
+ * @return array{key:string,label:string,tone:string}  tone: ok|warn|muted
+ */
+function promo_status(array $p, ?string $today = null): array
+{
+    $today = $today ?: date('Y-m-d');
+    $tomorrow = date('Y-m-d', strtotime($today . ' +1 day'));
+
+    $expires = $p['expires_at'] ?? null;
+    $starts = $p['starts_at'] ?? null;
+    $maxUses = (int)($p['max_uses'] ?? 0);
+    $used = (int)($p['used_count'] ?? 0);
+    $isActive = (int)($p['is_active'] ?? 0) === 1;
+
+    if ($expires && $today > $expires) {
+        return ['key' => 'expired', 'label' => 'Expired', 'tone' => 'muted'];
+    }
+    if ($maxUses > 0 && $used >= $maxUses) {
+        return ['key' => 'depleted', 'label' => 'Depleted', 'tone' => 'muted'];
+    }
+    if (!$isActive) {
+        return ['key' => 'paused', 'label' => 'Paused', 'tone' => 'muted'];
+    }
+    if ($starts && $starts > $today) {
+        return ['key' => 'scheduled', 'label' => 'Scheduled', 'tone' => 'warn'];
+    }
+    if ($expires && $expires <= $tomorrow) {
+        return ['key' => 'expiring', 'label' => 'Expiring Soon', 'tone' => 'warn'];
+    }
+    return ['key' => 'active', 'label' => 'Active', 'tone' => 'ok'];
+}
+
+/**
+ * Counters shown above the promo table.
+ *
+ * Active Promos counts anything a player can still redeem, which includes the
+ * "Expiring Soon" codes. Total Discount Given comes from real bookings rather
+ * than an estimate, joined on bookings.promo_id.
+ *
+ * @return array{active:int,redemptions:int,discount:float,total:int}
+ */
+function manager_promo_stats(int $manager_id, array $promos, ?string $today = null): array
+{
+    global $conn;
+
+    $today = $today ?: date('Y-m-d');
+    $active = 0;
+    $redemptions = 0;
+    foreach ($promos as $p) {
+        $st = promo_status($p, $today);
+        if ($st['key'] === 'active' || $st['key'] === 'expiring') {
+            $active++;
+        }
+        $redemptions += (int)($p['used_count'] ?? 0);
+    }
+
+    $stmt = $conn->prepare(
+        'SELECT COALESCE(SUM(b.discount), 0) s
+         FROM bookings b
+         INNER JOIN promo_codes p ON p.id = b.promo_id
+         WHERE p.manager_id = ?'
+    );
+    $stmt->bind_param('i', $manager_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    return [
+        'active' => $active,
+        'redemptions' => $redemptions,
+        'discount' => (float)($row['s'] ?? 0),
+        'total' => count($promos),
+    ];
+}

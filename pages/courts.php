@@ -229,7 +229,7 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="courts-toolbar reveal">
-    <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search">
+    <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="courts-search" data-ajax-results="courtsResults">
         <div class="courts-search-main">
             <div class="search-field sf-query">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -265,12 +265,7 @@ require __DIR__ . '/../includes/header.php';
                     <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name A to Z</option>
                 </select>
             </div>
-            <div class="toolbar-actions">
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
-                <?php if ($q !== '' || $city !== '' || $date !== '' || $slot !== '' || $sort !== 'price_asc'): ?>
-                    <a href="<?php echo base_url('pages/courts.php'); ?>" class="btn btn-outline" title="Reset all filters"><i class="fa-solid fa-rotate-left"></i> Reset</a>
-                <?php endif; ?>
-            </div>
+            
         </div>
     </form>
 </div>
@@ -294,18 +289,7 @@ if ($sort !== 'price_asc') {
     $filterChips[] = ['sort', ($sortLabels[$sort] ?? 'Custom')];
 }
 ?>
-<?php if ($filterChips): ?>
-    <div class="filter-chips" aria-label="Active filters">
-        <?php foreach ($filterChips as [$key, $label]): ?>
-            <a class="fc-chip" href="<?php echo base_url('pages/courts.php?' . build_query([$key => ''])); ?>">
-                <?php echo e($label); ?> <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-            </a>
-        <?php endforeach; ?>
-        <?php if ($filterChips): ?>
-            <a class="fc-chip fc-chip-clear" href="<?php echo base_url('pages/courts.php'); ?>" title="Reset all filters"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset all</a>
-        <?php endif; ?>
-    </div>
-<?php endif; ?>
+<div id="courtsResults">
 
 <?php if ($slot !== ''): ?>
     <div class="courts-summary" role="status">
@@ -327,7 +311,7 @@ if ($sort !== 'price_asc') {
         </div>
 
         <?php if ($totalPages > 1): ?>
-            <nav class="pagination" aria-label="Courts pages">
+            <nav class="pagination" aria-label="Courts pages" data-ajax-link="courtsResults">
                 <?php if ($page > 1): ?>
                     <a class="page-link" href="<?php echo base_url('pages/courts.php?' . build_query(['page' => $page - 1])); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
                 <?php endif; ?>
@@ -340,5 +324,6 @@ if ($sort !== 'price_asc') {
             </nav>
         <?php endif; ?>
     <?php endif; ?>
+</div>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

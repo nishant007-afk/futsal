@@ -207,7 +207,9 @@ $inactiveCourts = $totalCourts - $activeCourts;
         </div>
         <div class="actions">
             <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to My Courts</a>
-            <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+            <?php if ($editing): ?>
+                <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -224,20 +226,6 @@ $inactiveCourts = $totalCourts - $activeCourts;
 <div class="court-editor-container">
     <div class="editor-main-pane">
         <div class="editor-card-unified">
-            <!-- Card Header: Title + Action Links In Same Card (TOP CREATE GROUND BUTTON REMOVED) -->
-            <div class="editor-card-head">
-                <div class="ech-title-wrap">
-                    <h2 class="ech-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h2>
-                    <p class="ech-sub">Configure your futsal pitch specifications, pricing, and live availability</p>
-                </div>
-                <div class="ech-actions">
-                    <?php if ($editing): ?>
-                        <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
-                    <?php endif; ?>
-                    <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
-                </div>
-            </div>
-
             <!-- Tab Navigation Header (clean, without pills) -->
             <div class="editor-tabs-bar" role="tablist" aria-label="Court Configuration Sections">
                 <button type="button" class="editor-tab-btn active" data-tab="details" role="tab" aria-selected="true" aria-controls="panel-details">
@@ -252,6 +240,9 @@ $inactiveCourts = $totalCourts - $activeCourts;
                 <button type="button" class="editor-tab-btn" data-tab="media" role="tab" aria-selected="false" aria-controls="panel-media">
                     <i class="fa-solid fa-images"></i> Media & QR
                 </button>
+                <a href="<?php echo base_url('manager/promos.php'); ?>" class="editor-tab-btn editor-tab-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-tags"></i> Promo Codes
+                </a>
                 <?php if ($editing): ?>
                     <button type="button" class="editor-tab-btn" data-tab="schedule" role="tab" aria-selected="false" aria-controls="panel-schedule">
                         <i class="fa-solid fa-calendar-xmark"></i> Blackout Schedule
@@ -905,6 +896,15 @@ $inactiveCourts = $totalCourts - $activeCourts;
     border-color: var(--brand);
     font-weight: 700;
 }
+.editor-tab-btn.editor-tab-link {
+    color: var(--ink-2);
+    text-decoration: none !important;
+}
+.editor-tab-btn.editor-tab-link:hover {
+    color: var(--brand-700);
+    border-color: var(--brand);
+    background: var(--brand-soft);
+}
 .editor-panel-card {
     background: transparent;
     border: none;
@@ -1145,7 +1145,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // 1. Tab switching system
-    var tabs = Array.prototype.slice.call(document.querySelectorAll('.editor-tab-btn'));
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.editor-tab-btn[data-tab]'));
     var panels = Array.prototype.slice.call(document.querySelectorAll('.editor-panel-card'));
     var prevBtn = document.getElementById('prevTabBtn');
     var nextBtn = document.getElementById('nextTabBtn');

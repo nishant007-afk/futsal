@@ -7241,7 +7241,7 @@ html[data-theme="dark"] .step-card-body p { color: #cbd5e1 !important; }
 
 .toast-wrap[data-pos="bottom-center"], .top-flash-wrap[data-pos="bottom-center"] { top: auto; right: 0; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 0; margin-inline: auto; align-items: center; }
 
-/* ---- toast card ------------------------------------------------ */ .toast { position: relative; display: flex; align-items: flex-start; gap: 11px; box-sizing: border-box; width: 100%; padding: 12px 12px 13px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--t-color, var(--brand)); border-radius: var(--r-lg); box-shadow: var(--s3), 0 18px 44px -22px rgba(10, 20, 15, 0.45); font-size: 14px; line-height: 1.45; overflow: hidden; pointer-events: auto; animation: toastInUp .34s cubic-bezier(0.16, 1, 0.3, 1) both; transition: box-shadow .2s ease; }
+/* ---- toast card ------------------------------------------------ */ .toast { position: relative; display: flex; align-items: flex-start; gap: 11px; box-sizing: border-box; width: 100%; padding: 12px 12px 13px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--s3), 0 18px 44px -22px rgba(10, 20, 15, 0.45); font-size: 14px; line-height: 1.45; overflow: hidden; pointer-events: auto; animation: toastInUp .34s cubic-bezier(0.16, 1, 0.3, 1) both; transition: box-shadow .2s ease; }
 
 .toast:hover { box-shadow: var(--s3), 0 22px 50px -20px rgba(10, 20, 15, 0.5); }
 

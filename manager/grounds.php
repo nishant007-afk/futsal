@@ -39,6 +39,22 @@ if ($editing) {
     $photos = ground_images((int)$editing['id']);
 }
 
+$previewImages = [];
+if ($editing) {
+    $gallery = ground_gallery((int)$editing['id']);
+    foreach ($gallery as $gimg) {
+        $previewImages[] = base_url('uploads/grounds/' . rawurlencode($gimg));
+    }
+}
+if (empty($previewImages)) {
+    $previewImages = [
+        base_url('uploads/grounds/court_brastad_arena.jpg'),
+        base_url('uploads/grounds/court_night_floodlights.jpg'),
+        base_url('uploads/grounds/court_match_action.jpg')
+    ];
+}
+$firstImage = $previewImages[0];
+
 // Determine default active tab based on any errors or context
 $defaultTab = 'details';
 if (!empty($errors['price_per_hour']) || !empty($errors['discount_price']) || !empty($errors['open_time']) || !empty($errors['close_time']) || !empty($errors['price_weekend'])) {
@@ -55,13 +71,7 @@ require __DIR__ . '/../includes/header.php';
     <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
         <div>
-            <h1 class="page-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h1>
-        </div>
-        <div class="actions">
-            <?php if ($editing): ?>
-                <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
-            <?php endif; ?>
-            <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+            <h1 class="page-title">Manage Courts</h1>
         </div>
     </div>
 </div>
@@ -77,34 +87,44 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="court-editor-container">
     <div class="editor-main-pane">
-        <!-- Tab Navigation Header -->
-        <div class="editor-tabs-bar" role="tablist" aria-label="Court Configuration Sections">
-            <button type="button" class="editor-tab-btn active" data-tab="details" role="tab" aria-selected="true" aria-controls="panel-details">
-                <i class="fa-solid fa-circle-info"></i> Details
-            </button>
-            <button type="button" class="editor-tab-btn" data-tab="pricing" role="tab" aria-selected="false" aria-controls="panel-pricing">
-                <i class="fa-solid fa-tag"></i> Pricing & Hours
-            </button>
-            <button type="button" class="editor-tab-btn" data-tab="location" role="tab" aria-selected="false" aria-controls="panel-location">
-                <i class="fa-solid fa-map-location-dot"></i> Location & Pin
-            </button>
-            <button type="button" class="editor-tab-btn" data-tab="media" role="tab" aria-selected="false" aria-controls="panel-media">
-                <i class="fa-solid fa-images"></i> Media & QR
-                <?php if ($editing && count($photos) > 0): ?>
-                    <span class="tab-chip"><?php echo count($photos); ?></span>
-                <?php endif; ?>
-            </button>
-            <?php if ($editing): ?>
-                <button type="button" class="editor-tab-btn" data-tab="schedule" role="tab" aria-selected="false" aria-controls="panel-schedule">
-                    <i class="fa-solid fa-calendar-xmark"></i> Blackout Schedule
-                    <?php if (count($blockedDates) > 0): ?>
-                        <span class="tab-chip chip-warn"><?php echo count($blockedDates); ?></span>
+        <div class="editor-card-unified">
+            <!-- Card Header: Title + Action Links In Same Card -->
+            <div class="editor-card-head">
+                <div class="ech-title-wrap">
+                    <h2 class="ech-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h2>
+                    <p class="ech-sub">Configure your futsal pitch specifications, pricing, and live availability</p>
+                </div>
+                <div class="ech-actions">
+                    <?php if ($editing): ?>
+                        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Add New Court</a>
                     <?php endif; ?>
-                </button>
-            <?php endif; ?>
-        </div>
+                    <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
+                    <button type="submit" form="groundForm" class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
+                </div>
+            </div>
 
-        <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
+            <!-- Tab Navigation Header (clean, without pills) -->
+            <div class="editor-tabs-bar" role="tablist" aria-label="Court Configuration Sections">
+                <button type="button" class="editor-tab-btn active" data-tab="details" role="tab" aria-selected="true" aria-controls="panel-details">
+                    <i class="fa-solid fa-circle-info"></i> Details
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="pricing" role="tab" aria-selected="false" aria-controls="panel-pricing">
+                    <i class="fa-solid fa-tag"></i> Pricing & Hours
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="location" role="tab" aria-selected="false" aria-controls="panel-location">
+                    <i class="fa-solid fa-map-location-dot"></i> Location & Pin
+                </button>
+                <button type="button" class="editor-tab-btn" data-tab="media" role="tab" aria-selected="false" aria-controls="panel-media">
+                    <i class="fa-solid fa-images"></i> Media & QR
+                </button>
+                <?php if ($editing): ?>
+                    <button type="button" class="editor-tab-btn" data-tab="schedule" role="tab" aria-selected="false" aria-controls="panel-schedule">
+                        <i class="fa-solid fa-calendar-xmark"></i> Blackout Schedule
+                    </button>
+                <?php endif; ?>
+            </div>
+
+            <?php if (!empty($errors['general'])): render_inline($errors['general']); endif; ?>
 
         <!-- Primary Form for Ground Core Data -->
         <form method="post" action="" id="groundForm" enctype="multipart/form-data" novalidate>
@@ -403,54 +423,59 @@ require __DIR__ . '/../includes/header.php';
             </div>
         <?php endif; ?>
 
-        <!-- Persistent Bottom Action Bar -->
-        <div class="editor-action-footer">
-            <div class="action-footer-nav">
-                <button type="button" class="btn btn-outline btn-sm" id="prevTabBtn" style="display: none;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                <button type="button" class="btn btn-outline btn-sm" id="nextTabBtn">Next: Pricing <i class="fa-solid fa-arrow-right"></i></button>
+            <!-- Card Bottom Action Bar (In Same Card) -->
+            <div class="editor-card-footer">
+                <div class="action-footer-nav">
+                    <button type="button" class="btn btn-outline btn-sm" id="prevTabBtn" style="display: none;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="nextTabBtn">Next: Pricing <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="action-footer-save">
+                    <?php if ($editing): ?>
+                        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-ghost btn-sm">Cancel</a>
+                    <?php endif; ?>
+                    <button type="submit" form="groundForm" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
+                </div>
             </div>
-            <div class="action-footer-save">
-                <?php if ($editing): ?>
-                    <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-ghost btn-sm">Cancel</a>
-                <?php endif; ?>
-                <button type="submit" form="groundForm" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> <?php echo $editing ? 'Save Changes' : 'Create Ground'; ?></button>
-            </div>
-        </div>
-    </div>
+        </div><!-- /.editor-card-unified -->
+    </div><!-- /.editor-main-pane -->
 
-    <!-- Right Side Column: Sticky Live Card Preview & Tips -->
+    <!-- Right Side Column: Sticky Live Card Preview Only (No Tip, Authentic Card With Slider) -->
     <div class="editor-side-pane">
         <div class="preview-sticky-card">
             <div class="preview-card-header">
                 <span><i class="fa-solid fa-eye"></i> Live Card Preview</span>
-                <span class="preview-status-pill" id="previewStatusPill">Live</span>
             </div>
-            <div class="ground-preview">
+            <div class="card ground-preview-card" data-href="#">
                 <div class="card-img">
-                    <?php if ($editing): $cover = ground_cover((int)$editing['id']); endif; ?>
-                    <?php if (!empty($cover)): ?>
-                        <img src="<?php echo base_url('uploads/grounds/' . rawurlencode($cover)); ?>" id="previewImg" alt="Cover photo of <?php echo e($editing['name']); ?>" loading="lazy" decoding="async">
-                    <?php else: ?>
-                        <div class="pitch" id="previewPitch"></div>
-                    <?php endif; ?>
+                    <img src="<?php echo $firstImage; ?>" id="previewCoverImg" alt="Preview cover" class="card-cover" loading="lazy" decoding="async" draggable="false">
+                    <div class="card-gallery" id="previewGallery" role="group" aria-label="Photos" data-images="<?php echo e(json_encode($previewImages)); ?>">
+                        <button type="button" class="card-gnav card-gprev" aria-label="Previous photo" title="Previous photo" <?php echo count($previewImages) <= 1 ? 'hidden' : ''; ?>><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                        <button type="button" class="card-gnav card-gnext" aria-label="Next photo" title="Next photo" <?php echo count($previewImages) <= 1 ? 'hidden' : ''; ?>><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+                        <span class="gallery-counter"><span class="gallery-counter-current">1</span>&nbsp;/&nbsp;<span class="gallery-counter-total" id="previewTotalCount"><?php echo max(1, count($previewImages)); ?></span></span>
+                    </div>
                 </div>
-                <div class="preview-body">
-                    <h3 id="previewName"><?php echo e($editing['name'] ?? 'Your court name'); ?></h3>
-                    <span class="preview-loc"><i class="fa-solid fa-location-dot"></i> <span id="previewLoc"><?php echo e($editing['location'] ?? 'Kathmandu, Nepal'); ?></span></span>
-                    <span class="preview-price">Rs <span id="previewPrice"><?php echo number_format((float)($editing['price_per_hour'] ?? 0), 0); ?></span> <small>/ hour</small></span>
-                    <p class="preview-desc" id="previewDesc"><?php echo e($editing['description'] ?? 'A short overview of your turf and venue features.'); ?></p>
-                    <?php if ($editing): ?>
-                        <a href="<?php echo base_url('pages/ground.php?id=' . (int)$editing['id']); ?>" class="btn btn-primary btn-sm btn-block" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Open Public View</a>
-                    <?php else: ?>
-                        <span class="btn btn-outline btn-sm btn-block disabled"><i class="fa-solid fa-arrow-up-from-bracket"></i> Save to publish preview</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <div class="manager-tip-box">
-                <div class="tip-ico"><i class="fa-solid fa-lightbulb"></i></div>
-                <div class="tip-text">
-                    <strong>Manager Tip:</strong> Adding photos and a payment QR code helps players book with confidence and complete checkout faster.
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <span id="previewName"><?php echo e($editing['name'] ?? 'Your Court Name'); ?></span>
+                    </h3>
+                    <p class="card-sub">
+                        <span class="cs-loc"><i class="fa-solid fa-location-dot"></i> <span id="previewLoc"><?php echo e($editing['location'] ?? 'Kathmandu, Nepal'); ?></span></span>
+                        <span class="cs-dot" aria-hidden="true">•</span>
+                        <span class="cs-surface"><span id="previewCapacity"><?php echo (int)($editing['capacity'] ?? 10) === 10 ? '5A-Side' : ((int)($editing['capacity'] ?? 10) . ' Players'); ?></span></span>
+                        <span class="cs-dot" aria-hidden="true">•</span>
+                        <span class="cs-slots cs-free"><i class="fa-solid fa-circle-check"></i> Available</span>
+                    </p>
+                    <div class="card-meta">
+                        <div class="price-block">
+                            <div class="price-main-row">
+                                <strong class="price-current">Rs <span id="previewPrice"><?php echo number_format((float)($editing['price_per_hour'] ?? 1500), 0); ?></span></strong>
+                                <span class="price-unit">/ hr</span>
+                            </div>
+                        </div>
+                        <?php if ($editing): ?>
+                            <a href="<?php echo base_url('pages/ground.php?id=' . (int)$editing['id']); ?>" class="btn btn-outline btn-sm" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> View</a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -510,8 +535,8 @@ require __DIR__ . '/../includes/header.php';
 <style>
 .court-editor-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 26px;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 24px;
     align-items: start;
     margin-top: 14px;
     margin-bottom: 40px;
@@ -522,22 +547,60 @@ require __DIR__ . '/../includes/header.php';
     min-width: 0;
     max-width: 100%;
 }
+.editor-card-unified {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--s1);
+    overflow: hidden;
+}
+.editor-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+}
+.ech-title-wrap {
+    min-width: 0;
+}
+.ech-title {
+    margin: 0 0 4px 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+.ech-sub {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--ink-3);
+}
+.ech-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 .editor-tabs-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    padding: 14px 24px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 10px;
-    margin-bottom: 22px;
+    background: var(--bg-soft);
     max-width: 100%;
     overflow-x: visible;
 }
 .editor-tab-btn {
-    background: var(--bg-soft);
+    background: var(--bg);
     border: 1px solid var(--line);
-    padding: 8px 16px;
+    padding: 7px 14px;
     border-radius: var(--r-md);
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--ink-2);
     cursor: pointer;
@@ -550,7 +613,7 @@ require __DIR__ . '/../includes/header.php';
 }
 .editor-tab-btn:hover {
     color: var(--ink);
-    background: var(--bg);
+    background: var(--bg-soft);
     border-color: var(--line-2);
 }
 .editor-tab-btn.active {
@@ -559,33 +622,18 @@ require __DIR__ . '/../includes/header.php';
     border-color: var(--brand);
     font-weight: 700;
 }
-.editor-tab-btn.active::after {
-    display: none;
-}
-.tab-chip {
-    font-size: 0.72rem;
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: var(--bg-soft);
-    color: var(--ink-2);
-    font-weight: 700;
-}
-.tab-chip.chip-warn {
-    background: var(--warn-soft);
-    color: var(--warn);
-}
 .editor-panel-card {
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    padding: 28px 28px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 24px 24px 28px;
     animation: fadeInTab 0.18s ease;
     box-sizing: border-box;
 }
 .editor-panel-card .grid-2 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 24px;
+    gap: 18px 20px;
 }
 .editor-panel-card .form-group {
     margin-bottom: 18px;
@@ -607,9 +655,9 @@ require __DIR__ . '/../includes/header.php';
 .editor-panel-card textarea {
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 46px;
-    padding: 11px 15px !important;
-    font-size: 15px !important;
+    min-height: 44px;
+    padding: 10px 14px !important;
+    font-size: 14.5px !important;
     font-family: inherit;
     color: var(--ink) !important;
     background: var(--bg) !important;
@@ -627,16 +675,16 @@ require __DIR__ . '/../includes/header.php';
     outline: none !important;
 }
 .editor-panel-card textarea {
-    min-height: 100px;
+    min-height: 96px;
     line-height: 1.5;
 }
 @media (max-width: 768px) {
     .editor-panel-card .grid-2 {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 14px;
     }
     .editor-panel-card {
-        padding: 20px 16px;
+        padding: 18px 16px;
     }
 }
 @keyframes fadeInTab {
@@ -644,34 +692,29 @@ require __DIR__ . '/../includes/header.php';
     to { opacity: 1; transform: translateY(0); }
 }
 .panel-intro {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 12px;
+    padding-bottom: 10px;
 }
 .panel-intro h3 {
     margin: 0 0 4px 0;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: var(--ink);
 }
 .panel-intro p {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: var(--ink-3);
 }
-.editor-action-footer {
+.editor-card-footer {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    padding: 16px 20px;
-    margin-top: 20px;
-    box-shadow: var(--s1);
-    box-sizing: border-box;
-    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-soft);
 }
 .action-footer-nav {
     display: flex;
@@ -691,26 +734,38 @@ require __DIR__ . '/../includes/header.php';
 .preview-sticky-card {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 .preview-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.82rem;
+    font-weight: 700;
     color: var(--ink-3);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0 4px;
+    letter-spacing: 0.05em;
+    padding: 0 2px;
 }
-.preview-status-pill {
-    background: var(--brand-soft);
-    color: var(--brand-700);
-    border: 1px solid var(--brand);
-    border-radius: 999px;
-    padding: 2px 8px;
-    font-size: 0.72rem;
+.ground-preview-card {
+    width: 100%;
+    margin: 0;
+    box-shadow: var(--s2);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+}
+.ground-preview-card .card-img {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: var(--dark-2, #18221c);
+    overflow: hidden;
+}
+.ground-preview-card .card-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 .media-section-head {
     display: flex;
@@ -917,16 +972,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var nameInput = document.getElementById('name');
     var locInput = document.getElementById('location');
     var priceInput = document.getElementById('price_per_hour');
-    var descInput = document.getElementById('description');
+    var capacityInput = document.getElementById('capacity');
 
     var prevName = document.getElementById('previewName');
     var prevLoc = document.getElementById('previewLoc');
     var prevPrice = document.getElementById('previewPrice');
-    var prevDesc = document.getElementById('previewDesc');
+    var prevCapacity = document.getElementById('previewCapacity');
 
     function syncPreview() {
         if (nameInput && prevName) {
-            prevName.textContent = nameInput.value.trim() || 'Your court name';
+            prevName.textContent = nameInput.value.trim() || 'Your Court Name';
         }
         if (locInput && prevLoc) {
             prevLoc.textContent = locInput.value.trim() || 'Kathmandu, Nepal';
@@ -935,15 +990,16 @@ document.addEventListener('DOMContentLoaded', function () {
             var val = parseFloat(priceInput.value);
             prevPrice.textContent = isNaN(val) ? '0' : val.toLocaleString();
         }
-        if (descInput && prevDesc) {
-            prevDesc.textContent = descInput.value.trim() || 'A short overview of your turf and venue features.';
+        if (capacityInput && prevCapacity) {
+            var cap = parseInt(capacityInput.value, 10);
+            prevCapacity.textContent = cap === 10 ? '5A-Side' : (cap ? cap + ' Players' : '5A-Side');
         }
     }
 
     if (nameInput) { nameInput.addEventListener('input', syncPreview); }
     if (locInput) { locInput.addEventListener('input', syncPreview); }
     if (priceInput) { priceInput.addEventListener('input', syncPreview); }
-    if (descInput) { descInput.addEventListener('input', syncPreview); }
+    if (capacityInput) { capacityInput.addEventListener('input', syncPreview); }
 
     // 3. Calendar Blackout picker
     var cal = document.querySelector('.block-cal');
@@ -964,36 +1020,60 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. Client file names preview for photo uploads
+    // 4. Client file names preview & live gallery update for photo uploads
     var photoInput = document.getElementById('photoInput');
     var fileNames = document.getElementById('fileNames');
     var photoGrid = document.getElementById('photoPreviewGrid');
 
-    if (photoInput && fileNames) {
+    if (photoInput) {
         photoInput.addEventListener('change', function () {
             var files = this.files;
             if (!files || files.length === 0) {
-                fileNames.textContent = 'No files selected';
+                if (fileNames) { fileNames.textContent = 'No files selected'; }
                 if (photoGrid) { photoGrid.innerHTML = ''; }
                 return;
             }
-            fileNames.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
-            if (photoGrid) {
-                photoGrid.innerHTML = '';
-                Array.prototype.slice.call(files).forEach(function (f) {
-                    if (!f.type.match('image.*')) { return; }
-                    var reader = new FileReader();
-                    reader.onload = function (evt) {
-                        var wrap = document.createElement('div');
-                        wrap.className = 'photo-preview-item';
-                        var img = document.createElement('img');
-                        img.src = evt.target.result;
-                        img.alt = f.name;
-                        wrap.appendChild(img);
-                        photoGrid.appendChild(wrap);
-                    };
-                    reader.readAsDataURL(f);
-                });
+            if (fileNames) {
+                fileNames.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
+            }
+
+            var newUrls = [];
+            if (photoGrid) { photoGrid.innerHTML = ''; }
+            Array.prototype.slice.call(files).forEach(function (f) {
+                if (!f.type.match('image.*')) { return; }
+                var url = URL.createObjectURL(f);
+                newUrls.push(url);
+                if (photoGrid) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'photo-preview-item';
+                    var img = document.createElement('img');
+                    img.src = url;
+                    img.alt = f.name;
+                    wrap.appendChild(img);
+                    photoGrid.appendChild(wrap);
+                }
+            });
+
+            // Update live card preview gallery in right pane
+            if (newUrls.length > 0) {
+                var gal = document.getElementById('previewGallery');
+                var cover = document.getElementById('previewCoverImg');
+                var tot = document.getElementById('previewTotalCount');
+                var cur = gal ? gal.querySelector('.gallery-counter-current') : null;
+                var prevBtnEl = gal ? gal.querySelector('.card-gprev') : null;
+                var nextBtnEl = gal ? gal.querySelector('.card-gnext') : null;
+                if (gal) {
+                    gal.setAttribute('data-images', JSON.stringify(newUrls));
+                    gal._imgs = newUrls;
+                    gal._idx = 0;
+                    if (cur) cur.textContent = '1';
+                    if (tot) tot.textContent = String(newUrls.length);
+                    if (prevBtnEl) prevBtnEl.hidden = true;
+                    if (nextBtnEl) nextBtnEl.hidden = newUrls.length <= 1;
+                }
+                if (cover) {
+                    cover.src = newUrls[0];
+                }
             }
         });
     }

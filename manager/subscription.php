@@ -19,81 +19,452 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash('success', 'Payment request sent. Your courts will go live once the admin confirms the setup fee.');
         redirect('manager/subscription.php');
     }
-    if (isset($_POST['request_renew']) && $sub && $status['key'] === 'overdue') {
+    if (isset($_POST['request_renew']) && $sub) {
         notify_announcement(
             'Subscription renewal request',
             'Manager #' . $managerId . ' paid the monthly fee of ' . format_price((float)$sub['monthly_fee']) . ' and requests renewal. Review in Settlements.',
             'admins',
             false
         );
-        notify_user($managerId, 'Renewal payment recorded', 'We received your renewal request. Your courts will reactivate once confirmed.', 'fa-calendar-check', 'manager/subscription.php');
-        set_flash('success', 'Renewal request sent. Courts reactivate after admin confirmation.');
+        notify_user($managerId, 'Renewal payment recorded', 'We received your renewal request. An admin will review and extend your subscription period shortly.', 'fa-calendar-check', 'manager/subscription.php');
+        set_flash('success', 'Renewal request sent successfully. Courts remain active while an admin confirms your payment.');
         redirect('manager/subscription.php');
     }
     set_flash('info', 'No action taken.');
     redirect('manager/subscription.php');
 }
 
-$page_title = 'Subscription';
+$page_title = 'Subscription & Billing';
 require __DIR__ . '/../includes/header.php';
+
+// Calculate days remaining in period if active
+$daysRemaining = 0;
+if ($sub && !empty($sub['period_end'])) {
+    $now = new DateTime();
+    $end = new DateTime($sub['period_end']);
+    $diff = $now->diff($end);
+    $daysRemaining = $now < $end ? (int)$diff->format('%a') : 0;
+}
 ?>
 
-<div class="container py-lg-40">
-    <div class="page-top">
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1>Subscription</h1>
-    </div>
-
-    <?php if (flash_msg()): render_inline(flash_msg()); endif; ?>
-
-    <div class="settings-card reveal">
-        <div class="settings-head">
-            <h3>Current Plan</h3>
+<div class="page-head dash-page-head">
+    <a href="<?php echo base_url('manager/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="dash-head-main">
+        <div>
+            <h1 class="page-title">Subscription & Billing</h1>
         </div>
-        <div class="settings-body">
-            <?php if ($sub): ?>
-            <div class="sub-status-row">
-                <span class="badge-pill <?php echo $status['active'] ? 'badge-green' : 'badge-red'; ?>">
-                    <i class="fa-solid <?php echo $status['active'] ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
-                    <?php echo e($status['label']); ?>
-                </span>
-            </div>
-            <div class="table-wrap">
-            <table class="settings-table">
-                <tr><td data-label="Setup fee">Setup fee</td><td data-label="Amount"><?php echo format_price($sub['setup_fee']); ?></td><td data-label="Status"><?php echo $sub['setup_paid_at'] ? 'Paid ' . date('M j, Y', strtotime($sub['setup_paid_at'])) : '<span class="text-red">Unpaid</span>'; ?></td></tr>
-                <tr><td data-label="Monthly fee">Monthly fee</td><td data-label="Amount"><?php echo format_price($sub['monthly_fee']); ?></td><td data-label="Status"><?php echo $sub['period_end'] && !$status['active'] ? '<span class="text-red">Due</span>' : ($status['active'] ? 'Current period' : ''); ?></td></tr>
-                <tr><td data-label="Period start">Period start</td><td data-label="Date"><?php echo $sub['period_start'] ? date('M j, Y', strtotime($sub['period_start'])) : '-'; ?></td><td data-label="Status"></td></tr>
-                <tr><td data-label="Period end">Period end</td><td data-label="Date"><?php echo $sub['period_end'] ? date('M j, Y', strtotime($sub['period_end'])) : '-'; ?></td><td data-label="Status"><?php if ($sub['period_end'] && !$status['active']): ?><span class="text-red">Expired</span><?php endif; ?></td></tr>
-            </table>
-            </div>
-            <?php if ($status['key'] === 'setup_pending'): ?>
-                <div class="notice notice-info mt-14 mb-10">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>Pay the setup fee via eSewa / Khalti / bank transfer (see platform admin), then submit the request below.</span>
-                </div>
-                <form method="post" action="">
-                    <?php echo csrf_field(); ?>
-                    <button type="submit" name="request_setup_payment" value="1" class="btn btn-primary">
-                        <i class="fa-solid fa-file-invoice-dollar"></i> I paid  -  request activation
-                    </button>
-                </form>
-            <?php elseif ($status['key'] === 'overdue'): ?>
-                <div class="notice notice-info mt-14 mb-10">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>Your subscription has expired. Pay the monthly fee of <?php echo format_price((float)$sub['monthly_fee']); ?>, then submit the request below to reactivate your courts.</span>
-                </div>
-                <form method="post" action="">
-                    <?php echo csrf_field(); ?>
-                    <button type="submit" name="request_renew" value="1" class="btn btn-primary">
-                        <i class="fa-solid fa-calendar-plus"></i> I paid  -  renew subscription
-                    </button>
-                </form>
-            <?php endif; ?>
-            <?php else: ?>
-                <p class="muted">No subscription found. Contact support to get started as a manager.</p>
-            <?php endif; ?>
+        <div class="actions">
+            <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-store"></i> My Courts</a>
+            <a href="<?php echo base_url('manager/bookings.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-check"></i> Bookings</a>
         </div>
     </div>
 </div>
+
+<?php if (flash_msg()): render_inline(flash_msg()); endif; ?>
+
+<div class="sub-layout">
+    <?php if ($sub): ?>
+        <!-- Hero Subscription Card -->
+        <div class="sub-hero-card">
+            <div class="shc-header">
+                <div class="shc-badge-group">
+                    <span class="shc-plan-name"><i class="fa-solid fa-crown text-amber"></i> Venue Partner Tier</span>
+                    <span class="badge <?php echo $status['active'] ? 'badge-confirmed' : 'badge-cancelled'; ?>">
+                        <i class="fa-solid <?php echo $status['active'] ? 'fa-circle-check' : 'fa-circle-exclamation'; ?>"></i>
+                        <?php echo e($status['label']); ?>
+                    </span>
+                </div>
+                <div class="shc-pricing">
+                    <span class="shc-price-val"><?php echo format_price((float)$sub['monthly_fee']); ?></span>
+                    <span class="shc-price-period">/ month</span>
+                </div>
+            </div>
+
+            <!-- Key Subscription Metrics -->
+            <div class="sub-metrics-grid">
+                <div class="sub-metric-box">
+                    <span class="smb-label">Monthly Rate</span>
+                    <strong class="smb-value"><?php echo format_price((float)$sub['monthly_fee']); ?></strong>
+                    <span class="smb-hint">Flat subscription fee</span>
+                </div>
+                <div class="sub-metric-box">
+                    <span class="smb-label">Setup Fee</span>
+                    <strong class="smb-value"><?php echo $sub['setup_paid_at'] ? '<span class="text-green"><i class="fa-solid fa-check"></i> Paid</span>' : '<span class="text-red">Unpaid</span>'; ?></strong>
+                    <span class="smb-hint"><?php echo $sub['setup_paid_at'] ? date('M j, Y', strtotime($sub['setup_paid_at'])) : format_price((float)$sub['setup_fee']) . ' one-time'; ?></span>
+                </div>
+                <div class="sub-metric-box">
+                    <span class="smb-label">Current Period</span>
+                    <strong class="smb-value"><?php echo $sub['period_start'] ? date('M j', strtotime($sub['period_start'])) : '-'; ?> &ndash; <?php echo $sub['period_end'] ? date('M j, Y', strtotime($sub['period_end'])) : '-'; ?></strong>
+                    <span class="smb-hint">Active billing cycle</span>
+                </div>
+                <div class="sub-metric-box">
+                    <span class="smb-label">Status & Expiry</span>
+                    <strong class="smb-value <?php echo $status['active'] ? 'text-green' : 'text-red'; ?>">
+                        <?php if ($status['active']): ?>
+                            <?php echo $daysRemaining > 0 ? $daysRemaining . ' days left' : 'Renews today'; ?>
+                        <?php else: ?>
+                            Expired
+                        <?php endif; ?>
+                    </strong>
+                    <span class="smb-hint"><?php echo $status['active'] ? 'Renews ' . ($sub['period_end'] ? date('M j, Y', strtotime($sub['period_end'])) : 'soon') : 'Immediate action required'; ?></span>
+                </div>
+            </div>
+
+            <?php if ($status['key'] === 'setup_pending'): ?>
+                <div class="notice notice-warning mt-14 mb-14">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span><strong>Setup fee required:</strong> Transfer the one-time onboarding fee of <?php echo format_price((float)$sub['setup_fee']); ?> to platform admin to publish your courts to players.</span>
+                </div>
+            <?php elseif ($status['key'] === 'overdue'): ?>
+                <div class="notice notice-error mt-14 mb-14">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span><strong>Subscription Overdue:</strong> Your courts are temporarily hidden from search results. Pay the monthly fee of <?php echo format_price((float)$sub['monthly_fee']); ?> to restore live player bookings.</span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Action Buttons Toolbar -->
+            <div class="sub-actions-bar">
+                <button type="button" class="btn btn-primary" id="btnToggleRenew">
+                    <i class="fa-solid fa-arrows-rotate"></i> <?php echo $status['active'] ? 'Extend / Renew Subscription' : 'Pay & Reactivate Account'; ?>
+                </button>
+                <button type="button" class="btn btn-outline" id="btnTogglePayInfo">
+                    <i class="fa-solid fa-building-columns"></i> Platform Payment Details
+                </button>
+                <a href="<?php echo base_url('manager/grounds.php#panel-media'); ?>" class="btn btn-outline">
+                    <i class="fa-solid fa-qrcode"></i> Venue Checkout QR
+                </a>
+                <a href="<?php echo base_url('pages/faq.php'); ?>" class="btn btn-ghost">
+                    <i class="fa-solid fa-circle-question"></i> Billing FAQ
+                </a>
+            </div>
+
+            <!-- Collapsible: Renewal & Payment Request Form -->
+            <div class="sub-expand-panel" id="panelRenew" <?php echo ($status['key'] === 'overdue' || $status['key'] === 'setup_pending') ? '' : 'hidden'; ?>>
+                <div class="sep-header">
+                    <h4><i class="fa-solid fa-receipt"></i> Submit Payment Notification</h4>
+                    <p>Transfer the fee via eSewa, Khalti, or Bank, then confirm below for admin verification.</p>
+                </div>
+                <form method="post" action="" class="sep-form">
+                    <?php echo csrf_field(); ?>
+                    <?php if ($status['key'] === 'setup_pending'): ?>
+                        <div class="form-group mb-12">
+                            <label>Amount to pay</label>
+                            <input type="text" value="<?php echo format_price((float)$sub['setup_fee']); ?> (One-time Setup Fee)" disabled>
+                        </div>
+                        <button type="submit" name="request_setup_payment" value="1" class="btn btn-primary">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> I Have Paid Setup Fee  -  Activate Courts
+                        </button>
+                    <?php else: ?>
+                        <div class="form-group mb-12">
+                            <label>Amount to pay</label>
+                            <input type="text" value="<?php echo format_price((float)$sub['monthly_fee']); ?> (1 Month Extension)" disabled>
+                        </div>
+                        <button type="submit" name="request_renew" value="1" class="btn btn-primary">
+                            <i class="fa-solid fa-calendar-check"></i> I Have Transferred Monthly Fee  -  Confirm Renewal
+                        </button>
+                    <?php endif; ?>
+                </form>
+            </div>
+
+            <!-- Collapsible: Official Platform Bank / Digital Wallet Credentials -->
+            <div class="sub-expand-panel" id="panelPayInfo" hidden>
+                <div class="sep-header">
+                    <h4><i class="fa-solid fa-wallet"></i> GoalSpace Platform Accounts for Subscription Settlement</h4>
+                    <p>Use any of the official methods below and mention your Ground / Manager name in the remarks.</p>
+                </div>
+                <div class="payment-methods-grid">
+                    <div class="pay-method-card">
+                        <div class="pm-head"><i class="fa-solid fa-mobile-screen-button text-green"></i> <strong>eSewa / Khalti</strong></div>
+                        <p class="pm-data">ID: <code>9800000000</code></p>
+                        <p class="pm-note">Name: GoalSpace Sports Pvt. Ltd.</p>
+                    </div>
+                    <div class="pay-method-card">
+                        <div class="pm-head"><i class="fa-solid fa-building-columns text-emerald"></i> <strong>Bank Transfer</strong></div>
+                        <p class="pm-data">Global IME Bank &middot; Current A/C</p>
+                        <p class="pm-note">A/C: <code>01201010009988</code> &middot; Kathmandu Branch</p>
+                    </div>
+                    <div class="pay-method-card">
+                        <div class="pm-head"><i class="fa-solid fa-clock text-amber"></i> <strong>Verification Timeline</strong></div>
+                        <p class="pm-data">Confirmed within 2 hours</p>
+                        <p class="pm-note">Need instant help? Contact admin via <a href="<?php echo base_url('pages/contact.php'); ?>">Support</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Partner Features & Inclusions Grid -->
+        <div class="sub-features-section">
+            <h3 class="section-title">Included in Your Partner Tier</h3>
+            <div class="sub-features-grid">
+                <div class="sub-feature-card">
+                    <div class="sfc-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <h4>Unlimited Court Management</h4>
+                    <p>List and organize all pitches, indoor turfs, and court variants under a unified manager dashboard.</p>
+                </div>
+                <div class="sub-feature-card">
+                    <div class="sfc-icon"><i class="fa-solid fa-percent"></i></div>
+                    <h4>0% Booking Commission</h4>
+                    <p>Keep 100% of player payments. Direct on-site cash and your own custom QR collections incur zero fees.</p>
+                </div>
+                <div class="sub-feature-card">
+                    <div class="sfc-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h4>Real-time Slot Engine</h4>
+                    <p>Automatic collision prevention prevents double-bookings, with customizable interval durations and blackout dates.</p>
+                </div>
+                <div class="sub-feature-card">
+                    <div class="sfc-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h4>Revenue & Analytics</h4>
+                    <p>Track occupancy rates, popular game hours, customer contact lists, and export comprehensive booking records.</p>
+                </div>
+            </div>
+        </div>
+
+    <?php else: ?>
+        <div class="empty reveal">
+            <span class="big"><i class="fa-solid fa-receipt"></i></span>
+            <h3>No Active Subscription Record</h3>
+            <p>Your account is registered as a manager. Please contact the platform administration to activate your partner tier.</p>
+            <a href="<?php echo base_url('pages/contact.php'); ?>" class="btn btn-primary btn-sm mt-12">Contact Platform Admin</a>
+        </div>
+    <?php endif; ?>
+</div>
+
+<style>
+.sub-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin-top: 14px;
+    margin-bottom: 40px;
+}
+.sub-hero-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    box-shadow: var(--s1);
+}
+.shc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+}
+.shc-badge-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.shc-plan-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.shc-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.shc-price-val {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--brand-700);
+    letter-spacing: -0.03em;
+}
+.shc-price-period {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+    font-weight: 600;
+}
+.sub-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 22px;
+    margin-bottom: 22px;
+}
+.sub-metric-box {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.smb-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+}
+.smb-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+.smb-hint {
+    font-size: 0.76rem;
+    color: var(--ink-3);
+}
+.sub-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+.sub-expand-panel {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 22px;
+    margin-top: 20px;
+    animation: fadeInTab 0.18s ease;
+}
+.sep-header h4 {
+    margin: 0 0 4px 0;
+    font-size: 1.05rem;
+    color: var(--ink);
+}
+.sep-header p {
+    margin: 0 0 16px 0;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+}
+.sep-form {
+    max-width: 440px;
+}
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+.pay-method-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    font-size: 0.85rem;
+}
+.pm-head {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.pm-data {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    color: var(--ink);
+}
+.pm-note {
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+}
+.sub-features-section {
+    margin-top: 10px;
+}
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+}
+.sub-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+}
+.sub-feature-card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--s1);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.sub-feature-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-2);
+}
+.sfc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--brand-soft);
+    color: var(--brand-700);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+.sub-feature-card h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+.sub-feature-card p {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--ink-3);
+    line-height: 1.5;
+}
+@media (max-width: 600px) {
+    .sub-hero-card {
+        padding: 18px 16px;
+    }
+    .sub-actions-bar .btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btnRenew = document.getElementById('btnToggleRenew');
+    var panelRenew = document.getElementById('panelRenew');
+    var btnPayInfo = document.getElementById('btnTogglePayInfo');
+    var panelPayInfo = document.getElementById('panelPayInfo');
+
+    if (btnRenew && panelRenew) {
+        btnRenew.addEventListener('click', function () {
+            panelRenew.hidden = !panelRenew.hidden;
+            if (!panelRenew.hidden) {
+                panelRenew.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+
+    if (btnPayInfo && panelPayInfo) {
+        btnPayInfo.addEventListener('click', function () {
+            panelPayInfo.hidden = !panelPayInfo.hidden;
+            if (!panelPayInfo.hidden) {
+                panelPayInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+});
+</script>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

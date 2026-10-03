@@ -1832,4 +1832,376 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
     });
+
+    /* ======================================================================
+       GoalSpace Custom Select Enhancer
+       Replaces native OS dropdowns with custom styled GoalSpace dropdowns
+       ====================================================================== */
+    function initCustomSelect(select) {
+        if (!select || select.dataset.gsEnhanced || select.hasAttribute('data-native') || select.multiple) return;
+        select.dataset.gsEnhanced = 'true';
+
+        // Check if inside specific containers
+        const parentSearchField = select.closest('.search-field');
+        const parentHqsField = select.closest('.hqs-field');
+        const parentRoleSwitch = select.closest('.role-switch');
+        const parentFormGroup = select.closest('.form-group');
+
+        // Wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'gs-select';
+        if (select.disabled) wrapper.classList.add('is-disabled');
+        if (select.classList.contains('hqs-select')) wrapper.classList.add('gs-select-hqs');
+        if (parentSearchField) wrapper.classList.add('gs-select-search');
+        if (parentRoleSwitch) wrapper.classList.add('gs-select-compact');
+
+        // Trigger button
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'gs-select-trigger';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        if (select.disabled) trigger.disabled = true;
+        if (select.id) trigger.setAttribute('id', select.id + '-trigger');
+        if (select.getAttribute('aria-label')) trigger.setAttribute('aria-label', select.getAttribute('aria-label'));
+
+        // Label
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'gs-select-label';
+
+        // Arrow
+        const arrowSpan = document.createElement('span');
+        arrowSpan.className = 'gs-select-arrow';
+        arrowSpan.setAttribute('aria-hidden', 'true');
+        arrowSpan.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        trigger.appendChild(labelSpan);
+        trigger.appendChild(arrowSpan);
+
+        // Dropdown menu
+        const dropdown = document.createElement('div');
+        dropdown.className = 'gs-select-dropdown';
+        dropdown.setAttribute('role', 'listbox');
+        if (select.id) dropdown.setAttribute('aria-labelledby', select.id + '-trigger');
+
+        // Reorganize DOM: place wrapper where select was, put select inside wrapper
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(dropdown);
+
+        // Hide native select visually
+        select.classList.add('gs-native-select-hidden');
+        select.setAttribute('tabindex', '-1');
+        select.setAttribute('aria-hidden', 'true');
+
+        let typeaheadBuffer = '';
+        let typeaheadTimer = null;
+
+        function updateTriggerLabel() {
+            const selectedOpt = select.selectedOptions && select.selectedOptions[0];
+            const text = selectedOpt ? selectedOpt.textContent.trim() : (select.options[0] ? select.options[0].textContent.trim() : '');
+            labelSpan.textContent = text;
+        }
+
+        function createOptionElement(opt) {
+            const optEl = document.createElement('div');
+            optEl.className = 'gs-select-option';
+            optEl.setAttribute('role', 'option');
+            optEl.dataset.value = opt.value;
+            const isSel = opt.selected;
+            if (isSel) {
+                optEl.classList.add('is-selected');
+                optEl.setAttribute('aria-selected', 'true');
+            } else {
+                optEl.setAttribute('aria-selected', 'false');
+            }
+            if (opt.disabled) {
+                optEl.classList.add('is-disabled');
+                optEl.setAttribute('aria-disabled', 'true');
+            }
+
+            const textEl = document.createElement('span');
+            textEl.className = 'gs-select-option-text';
+            textEl.textContent = opt.textContent.trim();
+
+            const checkEl = document.createElement('span');
+            checkEl.className = 'gs-select-check';
+            checkEl.setAttribute('aria-hidden', 'true');
+            checkEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+
+            optEl.appendChild(textEl);
+            optEl.appendChild(checkEl);
+
+            optEl.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (opt.disabled) return;
+                chooseValue(opt.value);
+            });
+
+            return optEl;
+        }
+
+        function buildOptions() {
+            dropdown.innerHTML = '';
+            const children = select.children;
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                if (child.tagName === 'OPTGROUP') {
+                    const groupEl = document.createElement('div');
+                    groupEl.className = 'gs-select-group';
+                    const groupLabel = document.createElement('div');
+                    groupLabel.className = 'gs-select-group-label';
+                    groupLabel.textContent = child.label;
+                    groupEl.appendChild(groupLabel);
+
+                    const subOpts = child.children;
+                    for (let j = 0; j < subOpts.length; j++) {
+                        if (subOpts[j].tagName === 'OPTION') {
+                            groupEl.appendChild(createOptionElement(subOpts[j]));
+                        }
+                    }
+                    dropdown.appendChild(groupEl);
+                } else if (child.tagName === 'OPTION') {
+                    dropdown.appendChild(createOptionElement(child));
+                }
+            }
+            updateTriggerLabel();
+        }
+
+        function chooseValue(val) {
+            if (select.value !== val) {
+                select.value = val;
+                select.dispatchEvent(new Event('input', { bubbles: true }));
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            syncFromNative();
+            closeDropdown();
+            trigger.focus();
+        }
+
+        function syncFromNative() {
+            updateTriggerLabel();
+            const curVal = select.value;
+            dropdown.querySelectorAll('.gs-select-option').forEach(function (optEl) {
+                const match = optEl.dataset.value === curVal;
+                optEl.classList.toggle('is-selected', match);
+                optEl.setAttribute('aria-selected', match ? 'true' : 'false');
+            });
+            if (select.checkValidity && select.checkValidity()) {
+                trigger.classList.remove('is-invalid');
+            }
+        }
+        select._gsSync = syncFromNative;
+
+        function setParentZIndex(active) {
+            const parent = parentSearchField || parentHqsField || parentFormGroup;
+            if (parent) {
+                parent.classList.toggle('has-select-open', active);
+            }
+        }
+
+        function openDropdown() {
+            // Close any other open dropdowns
+            document.querySelectorAll('.gs-select.is-open').forEach(function (el) {
+                if (el !== wrapper && el._gsClose) el._gsClose();
+            });
+
+            wrapper.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            setParentZIndex(true);
+
+            // Viewport boundary check
+            const rect = wrapper.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+                wrapper.classList.add('is-dropup');
+            } else {
+                wrapper.classList.remove('is-dropup');
+            }
+
+            // Right boundary check
+            if (rect.left + 260 > window.innerWidth) {
+                wrapper.classList.add('is-align-right');
+            } else {
+                wrapper.classList.remove('is-align-right');
+            }
+
+            // Scroll selected option into view
+            const selectedOpt = dropdown.querySelector('.gs-select-option.is-selected');
+            if (selectedOpt) {
+                dropdown.querySelectorAll('.gs-select-option').forEach(function (el) { el.classList.remove('is-focused'); });
+                selectedOpt.classList.add('is-focused');
+                selectedOpt.scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function closeDropdown() {
+            if (!wrapper.classList.contains('is-open')) return;
+            wrapper.classList.remove('is-open', 'is-dropup', 'is-align-right');
+            trigger.setAttribute('aria-expanded', 'false');
+            setParentZIndex(false);
+            dropdown.querySelectorAll('.gs-select-option.is-focused').forEach(function (el) {
+                el.classList.remove('is-focused');
+            });
+        }
+        wrapper._gsClose = closeDropdown;
+
+        trigger.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (wrapper.classList.contains('is-open')) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        // Keyboard navigation
+        trigger.addEventListener('keydown', function (e) {
+            const isOpen = wrapper.classList.contains('is-open');
+            const options = Array.from(dropdown.querySelectorAll('.gs-select-option:not(.is-disabled)'));
+            if (!options.length) return;
+
+            let curIdx = options.findIndex(function (el) { return el.classList.contains('is-focused'); });
+            if (curIdx === -1) {
+                curIdx = options.findIndex(function (el) { return el.classList.contains('is-selected'); });
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (!isOpen) {
+                    openDropdown();
+                } else {
+                    const nextIdx = curIdx < options.length - 1 ? curIdx + 1 : 0;
+                    options.forEach(function (el) { el.classList.remove('is-focused'); });
+                    options[nextIdx].classList.add('is-focused');
+                    options[nextIdx].scrollIntoView({ block: 'nearest' });
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (!isOpen) {
+                    openDropdown();
+                } else {
+                    const prevIdx = curIdx > 0 ? curIdx - 1 : options.length - 1;
+                    options.forEach(function (el) { el.classList.remove('is-focused'); });
+                    options[prevIdx].classList.add('is-focused');
+                    options[prevIdx].scrollIntoView({ block: 'nearest' });
+                }
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (isOpen) {
+                    const focused = options[curIdx];
+                    if (focused) chooseValue(focused.dataset.value);
+                } else {
+                    openDropdown();
+                }
+            } else if (e.key === 'Escape') {
+                if (isOpen) {
+                    e.preventDefault();
+                    closeDropdown();
+                    trigger.focus();
+                }
+            } else if (e.key === 'Tab') {
+                if (isOpen) {
+                    closeDropdown();
+                }
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                typeaheadBuffer += e.key.toLowerCase();
+                clearTimeout(typeaheadTimer);
+                typeaheadTimer = setTimeout(function () { typeaheadBuffer = ''; }, 600);
+
+                const match = options.find(function (opt) {
+                    const text = (opt.textContent || '').trim().toLowerCase();
+                    return text.startsWith(typeaheadBuffer);
+                });
+                if (match) {
+                    options.forEach(function (el) { el.classList.remove('is-focused'); });
+                    match.classList.add('is-focused');
+                    match.scrollIntoView({ block: 'nearest' });
+                    if (!isOpen) {
+                        chooseValue(match.dataset.value);
+                    }
+                }
+            }
+        });
+
+        // Sync when native select changes (programmatic or via other event)
+        select.addEventListener('change', syncFromNative);
+
+        // Sync when parent form is reset
+        const form = select.closest('form');
+        if (form) {
+            form.addEventListener('reset', function () {
+                setTimeout(syncFromNative, 20);
+            });
+        }
+
+        // Forward label clicks to trigger
+        if (select.id) {
+            try {
+                const label = document.querySelector('label[for="' + CSS.escape(select.id) + '"]');
+                if (label) {
+                    label.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        trigger.focus();
+                        openDropdown();
+                    });
+                }
+            } catch (err) {}
+        }
+
+        // Native validation invalid hook
+        select.addEventListener('invalid', function () {
+            trigger.classList.add('is-invalid');
+        });
+
+        // Watch for dynamic changes in select options
+        if ('MutationObserver' in window) {
+            const observer = new MutationObserver(function () {
+                buildOptions();
+            });
+            observer.observe(select, { childList: true, subtree: true, characterData: true });
+        }
+
+        buildOptions();
+    }
+
+    function initCustomSelects(root) {
+        const scope = root || document;
+        scope.querySelectorAll('select:not([data-native]):not([multiple]):not([data-gs-enhanced])').forEach(function (sel) {
+            initCustomSelect(sel);
+        });
+    }
+
+    // Global click listener to close open custom selects when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.gs-select')) {
+            document.querySelectorAll('.gs-select.is-open').forEach(function (el) {
+                if (el._gsClose) el._gsClose();
+            });
+        }
+    });
+
+    // Global escape listener
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.gs-select.is-open').forEach(function (el) {
+                if (el._gsClose) el._gsClose();
+            });
+        }
+    });
+
+    // Page bfcache restore sync
+    window.addEventListener('pageshow', function () {
+        document.querySelectorAll('select[data-gs-enhanced]').forEach(function (sel) {
+            if (sel._gsSync) sel._gsSync();
+        });
+    });
+
+    initCustomSelects();
+    window.initCustomSelects = initCustomSelects;
+    window.initCustomSelect = initCustomSelect;
 });
+

@@ -1924,6 +1924,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const textEl = document.createElement('span');
             textEl.className = 'gs-select-option-text';
             textEl.textContent = opt.textContent.trim();
+            optEl.title = opt.textContent.trim();
 
             const checkEl = document.createElement('span');
             checkEl.className = 'gs-select-check';

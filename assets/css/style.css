@@ -8423,20 +8423,21 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
     color: var(--brand, #16a34a);
 }
 
-/* Floating Dropdown Panel */
+/* Floating Dropdown Panel: covers exact width of initial box */
 .gs-select-dropdown {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 4px);
     left: 0;
+    right: 0;
+    width: 100%;
     min-width: 100%;
-    width: max-content;
-    max-width: min(340px, 92vw);
+    max-width: 100%;
     max-height: 275px;
     overflow-y: auto;
     overscroll-behavior: contain;
     background: #ffffff;
     border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 13px;
+    border-radius: var(--r-md, 10px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 20px 40px -8px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.04);
     padding: 5px;
     z-index: 1050;
@@ -8459,18 +8460,12 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
 /* Dropup positioning */
 .gs-select.is-dropup .gs-select-dropdown {
     top: auto;
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 4px);
     transform: translateY(6px) scale(0.98);
     transform-origin: bottom center;
 }
 .gs-select.is-dropup.is-open .gs-select-dropdown {
     transform: translateY(0) scale(1);
-}
-
-/* Right alignment if overflowing viewport */
-.gs-select.is-align-right .gs-select-dropdown {
-    left: auto;
-    right: 0;
 }
 
 /* Slim scrollbar */
@@ -8583,7 +8578,11 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
 }
 
 /* Context: Inside .search-field */
+.search-field {
+    position: relative;
+}
 .search-field .gs-select {
+    position: static;
     flex: 1;
     min-width: 0;
     width: 100%;
@@ -8613,14 +8612,28 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
     color: var(--ink);
 }
 .search-field .gs-select-dropdown {
+    left: 0;
+    right: 0;
+    width: 100%;
     min-width: 100%;
-    width: max-content;
-    max-width: 290px;
-    top: calc(100% + 8px);
+    max-width: 100%;
+    top: calc(100% + 5px);
+    border-radius: var(--r-md, 10px);
+}
+.search-field .gs-select.is-dropup .gs-select-dropdown {
+    top: auto;
+    bottom: calc(100% + 5px);
 }
 
 /* Context: Inside Hero Quick Search */
-.hqs-control .gs-select {
+.hqs-field {
+    position: relative;
+}
+.hqs-field .hqs-control {
+    position: static;
+}
+.hqs-field .gs-select {
+    position: static;
     width: 100%;
 }
 .hqs-control .gs-select-trigger {
@@ -8642,12 +8655,21 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
     margin-left: 6px;
 }
 .hero-quick-search .gs-select-dropdown {
+    left: 0;
+    right: 0;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    top: calc(100% + 6px);
     background: #ffffff;
     border: 1px solid rgba(226, 232, 240, 0.9);
     color: #0f172a;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 20px 42px -6px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.06);
-    border-radius: 14px;
-    top: calc(100% + 10px);
+    border-radius: 12px;
+}
+.hero-quick-search .gs-select.is-dropup .gs-select-dropdown {
+    top: auto;
+    bottom: calc(100% + 6px);
 }
 .hero-quick-search .gs-select-option {
     color: #0f172a;
@@ -8684,6 +8706,7 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
 .role-switch .gs-select {
     min-width: 110px;
     display: inline-block;
+    position: relative;
 }
 .role-switch .gs-select-trigger {
     height: 30px;
@@ -8701,8 +8724,11 @@ html[data-theme="dark"] .courts-summary strong { color: #ffffff; }
     border-color: var(--line-strong);
 }
 .role-switch .gs-select-dropdown {
-    min-width: 140px;
-    width: max-content;
+    left: 0;
+    right: 0;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
 }
 
 /* Dark Theme Overrides */

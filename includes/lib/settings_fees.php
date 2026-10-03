@@ -23,25 +23,6 @@ function manager_monthly_fee(): float
     return max(0, (float)setting('manager_monthly_fee', '800'));
 }
 
-/**
- * Platform commission model (configurable in `settings`).
- * Managers keep (100 - fee)% of each booking's gross; the platform keeps the rest.
- */
-function platform_fee_percent(): float
-{
-    return max(0.0, min(100.0, (float)setting('platform_fee_percent', '10')));
-}
-
-function platform_fee_amount(float $gross): float
-{
-    return round($gross * (platform_fee_percent() / 100.0), 2);
-}
-
-function manager_payout(float $gross): float
-{
-    return round($gross - platform_fee_amount($gross), 2);
-}
-
 function manager_subscription(int $manager_id): ?array
 {
     global $conn;

@@ -1,28 +1,6 @@
-/* GoalSpace module: manager/admin admin pages (settlement modal, repeat toggle,
+/* GoalSpace module: manager/admin admin pages (repeat toggle,
    ground form live preview, photo upload). Loaded only for manager/admin roles. */
 document.addEventListener('DOMContentLoaded', function () {
-    const settleButtons = document.querySelectorAll('[data-settle]');
-    const settleModal = document.getElementById('settleModal');
-    const settleClose = document.getElementById('settleClose');
-    if (settleButtons.length && settleModal) {
-        settleButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.getElementById('settleName').textContent = btn.dataset.name;
-                document.getElementById('settleManagerId').value = btn.dataset.settle;
-                document.getElementById('settleGross').value = btn.dataset.gross;
-                document.getElementById('settleFee').value = btn.dataset.fee;
-                document.getElementById('settlePayout').value = btn.dataset.payout;
-                settleModal.hidden = false;
-            });
-        });
-        if (settleClose) {
-            settleClose.addEventListener('click', function () { settleModal.hidden = true; });
-        }
-        settleModal.addEventListener('click', function (e) {
-            if (e.target === settleModal) settleModal.hidden = true;
-        });
-    }
-
     const repeatToggle = document.getElementById('repeatToggle');
     const repeatWeeksWrap = document.getElementById('repeatWeeksWrap');
     if (repeatToggle && repeatWeeksWrap) {

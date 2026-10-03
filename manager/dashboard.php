@@ -51,15 +51,6 @@ $subStatus = subscription_status((int)$_SESSION['user_id']);
 $setupFee = manager_setup_fee();
 $monthlyFee = manager_monthly_fee();
 
-// Payout history from settlements
-$settlements = $conn->query(
-    "SELECT period_start, period_end, gross, fee, payout, paid_at
-     FROM settlements
-     WHERE manager_id = " . (int)$_SESSION['user_id'] . "
-     ORDER BY period_end DESC
-     LIMIT 12"
-)->fetch_all(MYSQLI_ASSOC);
-
 $recent = $conn->query(
     "SELECT b.id, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.amount_paid, b.payment_method, b.created_at,
@@ -142,12 +133,9 @@ $groundSummary = $conn->query(
 )->fetch_all(MYSQLI_ASSOC);
 
 $grossTotal = 0;
-$platformFeeTotal = 0;
 foreach ($groundSummary as $gs) {
     $grossTotal += (float)$gs['gross'];
-    $platformFeeTotal += platform_fee_amount((float)$gs['gross']);
 }
-$payoutTotal = $grossTotal - $platformFeeTotal;
 
 $page_title = 'Manager Dashboard';
 require __DIR__ . '/../includes/header.php';
@@ -204,14 +192,9 @@ require __DIR__ . '/../includes/header.php';
         <span class="muted"><?php echo $paidCount; ?> paid across all time</span>
     </div>
     <div class="stat reveal">
-        <h3>Gross Revenue</h3>
+        <h3>Revenue</h3>
         <p class="stat-amount"><?php echo format_price($revenue); ?></p>
-        <span class="muted">All-time confirmed</span>
-    </div>
-    <div class="stat reveal">
-        <h3>Your Payout</h3>
-        <p class="stat-amount"><?php echo format_price(manager_payout((float)$revenue)); ?></p>
-        <span class="muted">Net after <?php echo (int)platform_fee_percent(); ?>% fee</span>
+        <span class="muted">All-time confirmed &middot; 100% yours</span>
     </div>
     <div class="stat reveal">
         <h3>Subscription</h3>
@@ -281,72 +264,27 @@ require __DIR__ . '/../includes/header.php';
                 <th>Ground</th>
                 <th class="num">Bookings</th>
                 <th class="num">Paid</th>
-                <th class="num">Gross Revenue</th>
-                <th class="num">Platform Fee</th>
-                <th class="num">Your Payout</th>
+                <th class="num">Revenue</th>
             </tr>
         </thead>
         <tbody>
             <?php if (!$groundSummary): ?>
-                <tr><td colspan="6" class="muted table-empty">Add a ground to see your financial summary.</td></tr>
+                <tr><td colspan="4" class="muted table-empty">Add a ground to see your financial summary.</td></tr>
             <?php else: ?>
                 <?php foreach ($groundSummary as $gs): ?>
-                    <?php $gross = (float)$gs['gross']; $fee = platform_fee_amount($gross); ?>
                     <tr>
                         <td class="strong" data-label="Ground"><?php echo e($gs['name']); ?></td>
                         <td class="num" data-label="Bookings"><?php echo (int)$gs['booking_count']; ?></td>
                         <td class="num" data-label="Paid"><?php echo (int)$gs['paid_count']; ?></td>
-                        <td class="num" data-label="Gross Revenue"><?php echo format_price($gross); ?></td>
-                        <td class="num" data-label="Platform Fee"><?php echo format_price($fee); ?>
-                            <span class="muted" style="font-size:11px">(<?php echo (int)platform_fee_percent(); ?>%)</span>
-                        </td>
-                        <td class="num strong" data-label="Your Payout"><?php echo format_price(manager_payout($gross)); ?></td>
+                        <td class="num strong" data-label="Revenue"><?php echo format_price((float)$gs['gross']); ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <tr class="table-total">
                     <td class="strong" data-label="Total">Total</td>
                     <td class="num" data-label="Bookings"><?php echo (int)array_sum(array_column($groundSummary, 'booking_count')); ?></td>
                     <td class="num" data-label="Paid"><?php echo (int)array_sum(array_column($groundSummary, 'paid_count')); ?></td>
-                    <td class="num" data-label="Gross Revenue"><?php echo format_price($grossTotal); ?></td>
-                    <td class="num" data-label="Platform Fee"><?php echo format_price($platformFeeTotal); ?></td>
-                    <td class="num strong" data-label="Your Payout"><?php echo format_price($payoutTotal); ?></td>
+                    <td class="num strong" data-label="Revenue"><?php echo format_price($grossTotal); ?></td>
                 </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-
-<h3 class="reveal dash-section">Payout History</h3>
-<div class="table-wrap reveal">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Period</th>
-                <th class="num">Gross Revenue</th>
-                <th class="num">Platform Fee</th>
-                <th class="num">Your Payout</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (!$settlements): ?>
-                <tr><td colspan="5" class="muted table-empty">No payouts yet. They appear here after each billing period.</td></tr>
-            <?php else: ?>
-                <?php foreach ($settlements as $s): ?>
-                    <tr>
-                        <td data-label="Period"><?php echo e(date('M j, Y', strtotime($s['period_start']))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($s['period_end']))); ?></td>
-                        <td class="num" data-label="Gross Revenue"><?php echo format_price((float)$s['gross']); ?></td>
-                        <td class="num" data-label="Platform Fee"><?php echo format_price((float)$s['fee']); ?></td>
-                        <td class="num strong" data-label="Your Payout"><?php echo format_price((float)$s['payout']); ?></td>
-                        <td data-label="Status">
-                            <?php if ($s['paid_at']): ?>
-                                <span class="badge badge-confirmed">Paid <?php echo e(date('M j, Y', strtotime($s['paid_at']))); ?></span>
-                            <?php else: ?>
-                                <span class="badge badge-pending">Pending</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
     </table>

@@ -125,8 +125,6 @@ CREATE TABLE IF NOT EXISTS settings (
   setting_value VARCHAR(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB;
 
-INSERT INTO settings (setting_key, setting_value) VALUES ('platform_fee_percent', '10')
-  ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 INSERT INTO settings (setting_key, setting_value) VALUES ('manager_setup_fee', '2500')
   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 INSERT INTO settings (setting_key, setting_value) VALUES ('manager_monthly_fee', '800')

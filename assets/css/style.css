@@ -10214,35 +10214,94 @@ html[data-theme="dark"] .subtab.is-active { background: var(--bg); color: var(--
 }
 .updated-chip i { font-size: 11px; }
 
-/* ---- Legal pages: readable reading measure ----
-   The prose column was full container width, so on a 1440px screen a line ran to
-   120+ characters. Capping the measure is the whole fix.
-   KEPT (removed per request): the sticky "On this page" rail and its rules, plus the
-   two-column .legal-layout grid it lived in. With the rail gone the prose is just
-   centred in the container, which keeps the same comfortable line length. */
-.legal-prose { max-width: 820px; margin-inline: auto; font-size: 15px; line-height: 1.75; }
-.legal-prose h2 { scroll-margin-top: calc(var(--header-h) + 24px); }
-.legal-prose h2:first-child { margin-top: 0; }
-.legal-prose ul, .legal-prose ol { padding-left: 22px; }
-.legal-prose li { margin-bottom: 9px; }
-/* The heading block has to share the prose measure, otherwise removing the rail left
-   the h1 hard against the container edge while the centred text started 180px later.
-   !important is required because .content-hero sets `margin: 0 !important` further up. */
-.content-hero--narrow { max-width: 820px !important; margin-inline: auto !important; }
-
-/* ---- Callout boxes for the clauses that matter most ----
-   KEPT (removed per request): the thick coloured left edge (3px) on both callout
-   variants. They were the same accent-bar treatment already removed from the message
-   cards, cookie box and FAQ answers. The box is now a uniformly tinted panel, so the
-   clause still reads as highlighted without a bar down one side. */
-.legal-callout {
-    margin: 4px 0 18px; padding: 14px 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md); background: var(--bg-soft);
+/* ---- Legal pages: readable reading measure & balanced layout ---- */
+.content-hero--narrow {
+    max-width: 760px !important;
+    margin-inline: auto !important;
+    padding: 24px 0 20px !important;
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid var(--line);
 }
-.legal-callout p { margin: 0; font-size: 14px; line-height: 1.6; }
+.content-hero--narrow .title-back-row {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px 14px !important;
+    margin-bottom: 8px !important;
+}
+.content-hero--narrow .title-back-row h1 {
+    margin: 0 !important;
+    font-size: clamp(24px, 3.2vw, 32px) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+}
+.content-hero--narrow > p {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    margin: 0;
+}
+
+.legal-prose {
+    max-width: 760px;
+    margin-inline: auto;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--ink-2);
+    padding-bottom: 72px;
+}
+.legal-prose h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+    margin: 38px 0 14px;
+    scroll-margin-top: calc(var(--header-h) + 24px);
+}
+.legal-prose h2:first-child,
+.legal-prose h2:first-of-type {
+    margin-top: 8px;
+}
+.legal-prose p {
+    margin-bottom: 16px;
+    line-height: 1.8;
+}
+.legal-prose a {
+    color: var(--brand-700);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.legal-prose a:hover {
+    color: var(--brand);
+}
+.legal-prose ul, .legal-prose ol {
+    margin: 12px 0 22px;
+    padding-left: 24px;
+}
+.legal-prose li {
+    margin-bottom: 8px;
+    line-height: 1.7;
+}
+.legal-prose li:last-child {
+    margin-bottom: 0;
+}
+.legal-prose li strong {
+    color: var(--ink);
+}
+
+/* ---- Callout boxes for the clauses that matter most ---- */
+.legal-callout {
+    margin: 20px 0 24px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-soft);
+}
+.legal-callout p { margin: 0; font-size: 14px; line-height: 1.65; }
 .legal-callout strong { color: var(--ink); }
-.legal-callout a { color: inherit; }
+.legal-callout a { color: inherit; text-decoration: underline; }
 .legal-callout--warn { background: var(--warn-soft); border-color: #f0dfb6; }
 .legal-callout--brand { background: var(--ok-soft); border-color: #c6e7d4; }
 
@@ -10366,48 +10425,74 @@ html[data-theme="dark"] .subtab.is-active { background: var(--bg); color: var(--
 @media (max-width: 760px) {
     .feature-grid, .persona-grid { grid-template-columns: minmax(0, 1fr); }
 
-    /* Legal pages on phones share a single left rail.
-
-       Side by side, the "last updated" pill took 219px of the 367px row and squeezed
-       the h1 into a 118px column that wrapped "Terms of Service" over three lines, so
-       the pill drops to its own row under the title.
-
-       Everything else then lines up on the title's margin rather than the container
-       edge: the back arrow keeps its own narrow column on the left, and the title,
-       the pill, the hero summary and every paragraph below start at the same offset.
-       Previously the pill and the body text sat at the container edge while the title
-       was indented 29px, leaving a ragged left margin.
-
-       The arrow column is a fixed 17px instead of `auto` so the rail is a known
-       number. The two variables exist because the header grid and the prose are
-       siblings and cannot read each other's computed columns; without them the grid
-       and the text would drift apart on the next spacing tweak.
-
-       The !important flags are required: .title-back-row is declared
-       `display: inline-flex !important` further up the file (style.css:5613). */
-    :root {
-        --legal-rail-arrow: 17px;
-        --legal-rail-gap: 12px;
-        --legal-rail: calc(var(--legal-rail-arrow) + var(--legal-rail-gap));
+    /* Legal pages: mobile balanced margins & spacing */
+    .content-hero--narrow {
+        max-width: 100% !important;
+        margin-inline: 0 !important;
+        padding: 16px 0 16px !important;
+        margin-bottom: 20px !important;
     }
-
-    .title-back-row:has(> .updated-chip) {
-        display: grid !important;
-        grid-template-columns: var(--legal-rail-arrow) minmax(0, 1fr);
-        grid-template-areas: "arrow title" ". chip";
-        gap: 9px var(--legal-rail-gap) !important;
-        justify-content: stretch !important;
+    .content-hero--narrow .title-back-row {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 8px 12px !important;
+        margin-bottom: 10px !important;
     }
-    .title-back-row:has(> .updated-chip) > .page-back-arrow {
-        grid-area: arrow; width: var(--legal-rail-arrow); justify-content: flex-start;
+    .content-hero--narrow .title-back-row .page-back-arrow {
+        display: inline-flex !important;
+        align-items: center;
+        flex-shrink: 0;
     }
-    .title-back-row:has(> .updated-chip) > h1 { grid-area: title; }
-    .title-back-row:has(> .updated-chip) > .updated-chip {
-        grid-area: chip; justify-self: start; margin-left: 0;
+    .content-hero--narrow .title-back-row h1 {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+        margin: 0 !important;
     }
-
-    .content-hero--narrow > p,
-    .legal-prose { padding-left: var(--legal-rail); }
+    .content-hero--narrow .updated-chip {
+        font-size: 11.5px;
+        padding: 3px 9px;
+    }
+    .content-hero--narrow > p {
+        font-size: 14px;
+        line-height: 1.55;
+        padding: 0 !important;
+        margin: 0;
+    }
+    .legal-prose {
+        max-width: 100%;
+        margin-inline: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 48px;
+        font-size: 14.5px;
+        line-height: 1.75;
+    }
+    .legal-prose h2 {
+        font-size: 17.5px;
+        margin: 28px 0 10px;
+    }
+    .legal-prose h2:first-child,
+    .legal-prose h2:first-of-type {
+        margin-top: 4px;
+    }
+    .legal-prose p {
+        margin-bottom: 14px;
+    }
+    .legal-prose ul, .legal-prose ol {
+        margin: 10px 0 18px;
+        padding-left: 20px;
+    }
+    .legal-prose li {
+        margin-bottom: 7px;
+    }
+    .legal-callout {
+        margin: 16px 0 20px;
+        padding: 13px 15px;
+    }
+    .legal-callout p {
+        font-size: 13.5px;
+    }
 }
 
 /* ---- Dark mode ---- */

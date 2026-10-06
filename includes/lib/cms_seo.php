@@ -12,24 +12,56 @@ function legal_pages_defaults(): array
         'about'   => [
             'title'   => 'About GoalSpace',
             'summary' => 'Connecting passionate futsal players with verified courts across Nepal.',
+            // KEPT (removed per request): the two opening paragraphs rendered as one
+            // edge-to-edge block of body text with no lead-in. They now sit in
+            // .about-hero-copy, which pages/page.php lifts into the left column of a
+            // two-column hero so the metrics sit beside them.
             'body'    => '
-            <p><strong>GoalSpace</strong> is Nepal\'s dedicated futsal discovery and court reservation platform. We make booking a court as quick and effortless as scoring a tap-in, connecting players directly with venue managers in real time.</p>
-            
+            <div class="about-hero-copy">
+            <p class="about-lead">GoalSpace is Nepal\'s dedicated futsal discovery and court reservation platform. We make booking a court as quick and effortless as scoring a tap-in, connecting players directly with venue managers in real time.</p>
             <p>Before GoalSpace, organizing a friendly match meant making multiple phone calls, checking availability through busy signals, and hoping your court slot was actually held when you arrived. We built GoalSpace to replace guesswork with clarity: see open slots live, lock in your game instantly, and hit the turf with confidence.</p>
+            </div>
 
             <h2>What We Believe In</h2>
-            <ul>
-                <li><strong>No more double bookings.</strong> Every confirmed reservation is locked in our database instantly. There are no verbal holds or lost time slots.</li>
-                <li><strong>Full transparency.</strong> Clear pricing, court dimensions, surface details, parking info, changing rooms, and customer reviews are openly displayed for every ground.</li>
-                <li><strong>Empowering venue managers.</strong> Court owners get dedicated dashboard tools to automate reservations, verify digital QR payments, manage custom rates, and run off-peak promotions.</li>
-            </ul>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-ico"><i class="fa-solid fa-calendar-check"></i></span>
+                    <h3>No More Double Bookings</h3>
+                    <p>Every confirmed reservation is locked in our database instantly. There are no verbal holds and no lost time slots.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-ico"><i class="fa-solid fa-eye"></i></span>
+                    <h3>Full Transparency</h3>
+                    <p>Clear pricing, court dimensions, surface details, parking, changing rooms and customer reviews are openly displayed for every ground.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-ico"><i class="fa-solid fa-chart-line"></i></span>
+                    <h3>Empowering Venue Managers</h3>
+                    <p>Court owners get dedicated dashboard tools to automate reservations, verify digital QR payments, manage custom rates and run off-peak promotions.</p>
+                </div>
+            </div>
 
             <h2>Who Uses GoalSpace</h2>
-            <ul>
-                <li><strong>Players and Teams:</strong> Explore local courts by location or amenities, check live free slots, reserve in seconds, and track match histories.</li>
-                <li><strong>Court Managers:</strong> Streamline front-desk operations, replace paper registers, accept cashless payments, and fill off-peak hours with automated promos.</li>
-                <li><strong>Tournament Organizers:</strong> Discover verified venues with multi-court capacity, floodlights, and spectator seating.</li>
-            </ul>
+            <div class="persona-grid">
+                <div class="persona-card">
+                    <span class="persona-ico"><i class="fa-solid fa-futbol"></i></span>
+                    <h3>Players &amp; Teams</h3>
+                    <p>Explore local courts by location or amenities, check live free slots, reserve in seconds, and track match histories.</p>
+                    <a class="persona-cta" href="' . base_url('pages/courts.php') . '">Find Courts <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <div class="persona-card">
+                    <span class="persona-ico"><i class="fa-solid fa-store"></i></span>
+                    <h3>Court Managers</h3>
+                    <p>Streamline front-desk operations, replace paper registers, accept cashless payments, and fill off-peak hours with automated promos.</p>
+                    <a class="persona-cta" href="' . base_url('pages/register.php?role=manager') . '">List Your Venue <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+                <div class="persona-card">
+                    <span class="persona-ico"><i class="fa-solid fa-trophy"></i></span>
+                    <h3>Tournament Organizers</h3>
+                    <p>Discover verified venues with multi-court capacity, floodlights, and spectator seating.</p>
+                    <a class="persona-cta" href="' . base_url('pages/courts.php') . '">Host an Event <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
 
             <h2>Get in Touch</h2>
             <p>Have ideas to make GoalSpace better, or want to partner with us? Our Kathmandu-based team is always here to listen. Email us anytime at <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> or visit our <a href="' . base_url('pages/page.php?slug=contact') . '">Contact page</a>.</p>
@@ -77,6 +109,9 @@ function legal_pages_defaults(): array
 
             <h2>5. Your Privacy Rights</h2>
             <p>You have full autonomy over your personal information on GoalSpace:</p>
+            <aside class="legal-callout legal-callout--brand">
+                <p><strong>Your data is yours.</strong> Request a copy of your booking history, or delete your account entirely, at any time, from your profile settings or by emailing <a href="mailto:hello@goalspace.com">hello@goalspace.com</a>. Deletion is permanent.</p>
+            </aside>
             <ul>
                 <li><strong>Access and Correction:</strong> You can view and edit your profile name, contact phone, and avatar at any time in your account settings.</li>
                 <li><strong>Data Portability and Deletion:</strong> You can request a copy of your booking history or permanently delete your account through your profile settings or by emailing <a href="mailto:hello@goalspace.com">hello@goalspace.com</a>.</li>
@@ -120,6 +155,9 @@ function legal_pages_defaults(): array
             </ul>
 
             <h2>4. Cancellation and Refund Policy</h2>
+            <aside class="legal-callout legal-callout--warn">
+                <p><strong>The 24-hour threshold.</strong> Cancel at least 24 hours before kickoff for a full refund or platform credit. Inside 24 hours the advance deposit is kept.</p>
+            </aside>
             <ul>
                 <li><strong>Standard Notice (24+ hours before kickoff):</strong> Cancellations submitted at least 24 hours prior to game start qualify for a 100% refund or platform credit.</li>
                 <li><strong>Late Cancellation (within 24 hours):</strong> For cancellations made less than 24 hours before kickoff, the advance deposit is retained as credit for future bookings or paid to the court to cover idle turf loss.</li>
@@ -144,18 +182,14 @@ function legal_pages_defaults(): array
         'contact' => [
             'title'   => 'Contact Us',
             'summary' => 'Get in touch with the GoalSpace team for support, court onboarding, and inquiries.',
+            // KEPT (removed per request): the "Support Channels" heading and its four-item
+            // list repeated the same email addresses, phone number and Kathmandu address
+            // that the sidebar card on this very page already shows, a few hundred pixels
+            // below. The intro now runs straight into the form + channels split.
             'body'    => '
             <p>Whether you need assistance with a current booking, want to register your futsal court on our platform, or simply have feedback to share, we are here to help.</p>
 
-            <h2>Support Channels</h2>
-            <ul>
-                <li><strong>Email Support:</strong> <a href="mailto:hello@goalspace.com">hello@goalspace.com</a> (typically answered within 4 hours during business days)</li>
-                <li><strong>Manager Venue Onboarding:</strong> <a href="mailto:partners@goalspace.com">partners@goalspace.com</a></li>
-                <li><strong>Headquarters:</strong> GoalSpace Technologies, Kathmandu, Nepal</li>
-                <li><strong>Operating Hours:</strong> Sunday through Friday, 8:00 AM to 8:00 PM NPT</li>
-            </ul>
-
-            <p>You can also send a direct inquiry using the contact form below, and our team will get back to you promptly.</p>
+            <p class="contact-lead-line">Send a message using the form and our team will get back to you promptly, usually within 4 hours during business days. Prefer to write directly? The channels on the right are all monitored.</p>
         ',
         ],
         'help'    => [
@@ -238,22 +272,38 @@ function page_content(string $slug): ?array
 function sanitize_page_body(string $html): string
 {
     // Allow only safe formatting tags; strip scripts, iframes, objects, forms, event handlers.
-    $allowed = '<p><br><h2><h3><h4><ul><ol><li><strong><em><b><i><u><a><blockquote><code><pre><hr>';
+    // div/span/section/aside/time were added for the card grids, callout boxes and the
+    // "last updated" chip. None of them load a resource or carry a URL, so they add no
+    // injection surface beyond what <p class="..."> already had; the attribute passes
+    // below still remove on* handlers, style, and non-safe href protocols.
+    $allowed = '<p><br><h2><h3><h4><ul><ol><li><strong><em><b><i><u><a><blockquote><code><pre><hr>'
+             . '<div><span><section><aside><time><figure><figcaption><dl><dt><dd><small><mark>';
     $html = strip_tags($html, $allowed);
     // Remove event-handler attributes (onclick= etc.)
     $html = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
     // Remove style attributes that could hide content or exfiltrate.
     $html = preg_replace('/\s+style\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html);
-    // For <a> tags: validate href is a safe protocol (http, https, mailto, #)
-    // This defeats encoded javascript: URIs (unicode, percent-encoding, newlines, etc.)
-    $html = preg_replace_callback('/<a\s[^>]*href\s*=\s*(["\'])(.*?)\1/i', function ($m) {
-        $val = rawurldecode(html_entity_decode($m[2], ENT_QUOTES, 'UTF-8'));
+    // For <a> tags: validate href is a safe target, then rewrite ONLY the href value.
+    //
+    // Two bugs lived here. (1) The allowlist was https?|mailto:|#, but base_url()
+    // returns a root-relative path such as "/pages/courts.php", so every internal link
+    // written into page copy - the About page's contact link, the whole Help page -
+    // was silently rewritten to "#". (2) The match stopped at the closing quote and
+    // never consumed the tag's ">", so a rejected href replaced the opening tag and
+    // left its ">" behind as stray text. That is where the visible
+    // "or visit our >Contact page." came from.
+    // The /s matters: without it the href pattern cannot span a newline, so an
+    // attribute like href="java\nscript:alert(1)" never reached the check at all -
+    // and browsers strip newlines out of URLs, so that one executes.
+    $html = preg_replace_callback('/(<a\s[^>]*?href\s*=\s*)(["\'])(.*?)\2/is', function ($m) {
+        $val = rawurldecode(html_entity_decode($m[3], ENT_QUOTES, 'UTF-8'));
         // Strip whitespace/control chars that could bypass protocol check
         $clean = preg_replace('/[\s\x00-\x1f\x7f]+/', '', $val);
-        if (!preg_match('~^(https?://|mailto:|#)~i', $clean)) {
-            return str_replace($m[0], '<a href="#">', $m[0]);
-        }
-        return $m[0];
+        $isAbsolute = (bool)preg_match('~^(https?://|mailto:|tel:|#)~i', $clean);
+        // Root-relative is safe, but "//host" is protocol-relative and points off-site.
+        $isRelative = strncmp($clean, '/', 1) === 0 && strncmp($clean, '//', 2) !== 0;
+        $target = ($isAbsolute || $isRelative) ? $clean : '#';
+        return $m[1] . $m[2] . e($target) . $m[2];
     }, $html);
     return trim($html);
 }
@@ -333,6 +383,7 @@ function ground_json_ld(array $ground): string
     $rating = ground_rating($ground['id']);
     $img    = ground_cover($ground['id']);
     $price  = isset($ground['price']) ? (float) $ground['price'] : 0.0;
+    $loc    = $ground['address'] ?? ($ground['city'] ?? '');
     $data   = [
         '@context' => 'https://schema.org',
         '@type'    => 'SportsActivityLocation',
@@ -344,6 +395,7 @@ function ground_json_ld(array $ground): string
             'addressLocality' => $ground['city'] ?? '',
             'addressRegion'   => $ground['state'] ?? '',
             'postalCode'      => $ground['zip'] ?? '',
+            'addressCountry'  => 'NP',
         ],
         'geo' => [
             '@type'      => 'GeoCoordinates',
@@ -358,6 +410,19 @@ function ground_json_ld(array $ground): string
             'reviewCount'   => $rating['count'] ?? 0,
             'bestRating'    => 5,
             'worstRating'   => 1,
+        ],
+        'owner' => [
+            '@type'       => 'Organization',
+            'name'        => 'GoalSpace',
+            'telephone'   => '+977-9800-000-000',
+            'email'       => 'hello@goalspace.com',
+            'url'         => absolute_url('/'),
+        ],
+        'areaServed' => [
+            '@type'            => 'AdministrativeArea',
+            'name'             => 'Kathmandu Valley',
+            'addressRegion'    => 'Bagmati',
+            'addressLocality'  => 'Kathmandu',
         ],
     ];
     return render_json_ld($data);

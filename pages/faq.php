@@ -207,64 +207,78 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<script>
-(function () {
-    var input = document.getElementById('faqSearch');
-    var empty = document.getElementById('faqEmpty');
-    var items = document.querySelectorAll('.faq-item');
-    var groups = document.querySelectorAll('.faq-group');
-    var cats = document.querySelectorAll('.faq-cat');
-    var activeCat = 'all';
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+<?php
+$groups = [
+    'cat-booking' => 'Booking a Court',
+    'cat-payment' => 'Payments and Pricing',
+    'cat-cancel' => 'Cancellations and Refunds',
+    'cat-account' => 'Account and Security',
+    'cat-owners' => 'For Court Owners',
+    'cat-tech' => 'Technical Help',
+];
+$first = true;
+foreach ($groups as $groupId => $groupName) {
+    $groupScripts = [
+        'cat-booking' => [
+            ['How do I book a futsal court on GoalSpace?', 'Find a venue via search or the courts directory, choose your date and time slot, confirm the booking, and pay via QR code or at the venue. Your slot is locked instantly.'],
+            'Do I need an account to make a reservation?', 'Yes. A free account records your booking and emails your receipt.',
+            'Can I book recurring weekly slots?', 'Yes. On courts that support it, select weekly recurrence.',
+            'Is my booking confirmed instantly?', 'Yes. Every booking is confirmed immediately upon submission. No manual approval needed.',
+        ],
+        'cat-payment' => [
+            'What payment options are available?', '20% advance via QR, 100% via QR, or pay at the counter.',
+            'How does QR code payment work?', 'Scan the venue\'s QR with Khalti, eSewa, IME Pay, or mobile banking. Status updates automatically.',
+            'Are digital payments secure?', 'Yes. QR payments happen in your bank or wallet app. We never store your credentials.',
+            'Where can I find my receipt?', 'A receipt is emailed upon confirmation. You can also view it anytime from My Bookings.',
+        ],
+        'cat-cancel' => [
+            'What is the cancellation policy?', '<strong>24+ hours before:</strong> Full refund. <strong>Within 24 hours:</strong> Advance retained as credit. <strong>No-show:</strong> Advance forfeited.',
+            'How do I cancel or reschedule?', 'Go to My Bookings, find the reservation, and click Cancel or Reschedule. You\'ll see the refund breakdown before confirming.',
+            'What if bad weather makes the court unplayable?', 'The manager can cancel the slot. You\'ll receive a 100% refund or credit to reschedule.',
+        ],
+        'cat-account' => [
+            'How do I register?', 'Click Sign Up, fill in your details, select Player role. You can also sign in with Google.',
+            'What if I forget my password?', 'Click Forgot password? on the login page, enter your email, and we\'ll send a one-time code.',
+            'Can I change my phone or email?', 'Yes. Open your Profile and go to Settings to update your details.',
+        ],
+        'cat-owners' => [
+            'How do I list my court?', 'Register as a Manager, go to My Grounds, and click Add Ground to set specs, rates, photos, and location.',
+            'How do I receive QR payments?', 'In My Grounds, edit your court and upload your merchant QR code. Players scan it during checkout.',
+            'How do I record cash payments?', 'In your Bookings screen, find the reservation and click Mark Paid.',
+            'Can I block slots for private events?', 'Yes. In the court edit page, use Blocked Dates to close hours, full days, or custom ranges.',
+        ],
+        'cat-tech' => [
+            'How do I contact support?', 'Email hello@goalspace.com or use our contact form. We respond within 4 hours on business days.',
+        ],
+    ];
 
-    var filter = function () {
-        var term = ((input && input.value) || '').trim().toLowerCase();
-        var shown = 0;
-        groups.forEach(function (g) {
-            var inCat = activeCat === 'all' || g.id === activeCat;
-            var visible = 0;
-            g.querySelectorAll('.faq-item').forEach(function (item) {
-                var text = (item.textContent || '').toLowerCase();
-                var match = inCat && text.indexOf(term) !== -1;
-                item.style.display = match ? '' : 'none';
-                if (match) {
-                    visible++;
-                    shown++;
-                    if (term.length > 0) item.open = true;
-                } else {
-                    item.open = false;
-                }
-            });
-            g.style.display = (inCat && visible > 0) ? '' : 'none';
-        });
-        if (empty) {
-            empty.hidden = shown !== 0;
-        }
-    };
+    if (!isset($groupScripts[$groupId])) continue;
 
-    if (input) input.addEventListener('input', filter);
-
-    cats.forEach(function (c) {
-        c.addEventListener('click', function (e) {
-            e.preventDefault();
-            activeCat = c.getAttribute('data-cat') || 'all';
-            cats.forEach(function (x) { x.classList.remove('active'); x.removeAttribute('aria-current'); });
-            c.classList.add('active');
-            c.setAttribute('aria-current', 'true');
-            filter();
-            var target = document.getElementById(activeCat === 'all' ? 'faqLayout' : activeCat);
-            if (target && target.offsetParent !== null) {
-                target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    foreach ($groupScripts[$groupId] as $key => $value) {
+        $isLast = (($key + 1) === count($groupScripts[$groupId]));
+        $label = is_numeric($key) ? $value : $key;
+        $question = is_numeric($key) ? $label : $label;
+        $answer = is_numeric($key) ? $value : '';
+        
+        echo ($first ? '' : ',\n') . '        {
+            "@type": "Question",
+            "name": "' . e($question) . '",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "' . (is_string($answer) ? e($answer) : '') . '"
             }
-        });
-    });
-
-    items.forEach(function (item) {
-        item.addEventListener('toggle', function () {
-            item.setAttribute('aria-expanded', item.open ? 'true' : 'false');
-        });
-    });
-})();
+        }';
+        $first = false;
+    }
+}
+?>
+    ]
+}
 </script>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

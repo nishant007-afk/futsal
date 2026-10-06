@@ -10214,10 +10214,11 @@ html[data-theme="dark"] .subtab.is-active { background: var(--bg); color: var(--
 }
 .updated-chip i { font-size: 11px; }
 
-/* ---- Legal pages: readable reading measure & balanced layout ---- */
+/* ---- Legal pages: full container width & balanced layout ---- */
 .content-hero--narrow {
-    max-width: 760px !important;
-    margin-inline: auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
     padding: 24px 0 20px !important;
     margin-bottom: 24px !important;
     border-bottom: 1px solid var(--line);
@@ -10244,8 +10245,9 @@ html[data-theme="dark"] .subtab.is-active { background: var(--bg); color: var(--
 }
 
 .legal-prose {
-    max-width: 760px;
-    margin-inline: auto;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
     font-size: 15px;
     line-height: 1.8;
     color: var(--ink-2);

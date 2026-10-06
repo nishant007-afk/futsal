@@ -5738,7 +5738,7 @@ html[data-theme="dark"] body.register-page .check-line a { color: var(--brand); 
 
 .steps-grid { grid-template-columns: 1fr !important; gap: 10px !important; margin-top: 10px !important; }
 
-.step-card { padding: 16px 14px !important; }
+.steps-grid .step-card { padding: 16px 14px !important; }
 
 .step-card-head { margin-bottom: 10px !important; }
 
@@ -6134,9 +6134,9 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 
 /* The frame takes its shape from the card instead of a fixed pixel height, so the three
    screenshots are the same size as each other at every breakpoint. */
-.step-card-img { position: relative; overflow: hidden; background: #eef1f0; border-bottom: 1px solid var(--line); aspect-ratio: 16 / 9; }
+.step-card-img { position: relative; overflow: hidden; background: #ffffff; border-bottom: 1px solid var(--line); aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; padding: 6px 8px; }
 
-.step-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1); }
+.step-card-img img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
 
 /* The step images are real product screenshots (courts list, slot picker, checkout)
    rather than the earlier stylised mockups, and they arrive at three different ratios
@@ -6151,7 +6151,8 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 .step-shot img { object-position: center; transform: none; }
 
 /* Only a hint of zoom, and only while hovering, so the screenshot stays legible at rest. */
-.step-card:hover .step-shot img { transform: scale(1.03); }
+.step-card:hover .step-shot img,
+.step-card:hover .step-card-img img { transform: none !important; }
 
 .step-card-body { padding: 20px 22px 24px; flex: 1; display: flex; flex-direction: column; }
 
@@ -6519,7 +6520,7 @@ html[data-theme="dark"] .card, html[data-theme="dark"] .ground-card, html[data-t
 
 html[data-theme="dark"] .hero-search, html[data-theme="dark"] .hero-search-box--multi, html[data-theme="dark"] .courts-toolbar, html[data-theme="dark"] .search-field, html[data-theme="dark"] .review-form-card, html[data-theme="dark"] .qr-showcase, html[data-theme="dark"] .court-pay-notice, html[data-theme="dark"] .match-pass-schedule { background: var(--dark-2) !important; border-color: var(--dark-3) !important; }
 
-html[data-theme="dark"] .step-card-img { border-color: var(--dark-3) !important; background: var(--dark-1) !important; }
+html[data-theme="dark"] .step-card-img { border-color: var(--dark-3) !important; background: #ffffff !important; }
 
 html[data-theme="dark"] .hero-search input, html[data-theme="dark"] .hsb-input, html[data-theme="dark"] .search-field input, html[data-theme="dark"] .search-field select, html[data-theme="dark"] .fc-title a, html[data-theme="dark"] .card-title, html[data-theme="dark"] .pm-title-wrap h3, html[data-theme="dark"] .osc-title, html[data-theme="dark"] .match-pass-top h1, html[data-theme="dark"] .mps-value, html[data-theme="dark"] .review-name { color: #ffffff !important; }
 
@@ -7384,7 +7385,7 @@ html[data-theme="dark"] .price-main-row .price-orig { color: #94a3b8 !important;
 
 html[data-theme="dark"] .step-card { background: var(--dark-2) !important; border-color: var(--dark-3) !important; }
 
-html[data-theme="dark"] .step-card-img { background: var(--dark-1, #08100b) !important; border-color: var(--dark-3) !important; }
+html[data-theme="dark"] .step-card-img { background: #ffffff !important; border-color: var(--dark-3) !important; }
 
 html[data-theme="dark"] .step-card-body h3 { color: #ffffff !important; }
 

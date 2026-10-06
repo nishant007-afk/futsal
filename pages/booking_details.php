@@ -36,9 +36,14 @@ if ($b) {
     }
 }
 
+/* Where "back" goes for this viewer. Hoisted so the 404 page, the back link in the header
+   and any future caller all agree instead of repeating the role ternary. */
+$backUrl = $me['role'] === 'admin' ? 'admin/bookings.php'
+    : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php');
+$backLabel = $me['role'] === 'user' ? 'Back to My Bookings' : 'Back to Bookings';
+
 if (!$b || !$allowed) {
-    $back = $me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php');
-    http_error_page(404, 'Booking not found', 'We couldn\'t find that booking. It may have been cancelled, or you may not have access to it.', 'Back to bookings', $back);
+    http_error_page(404, 'Booking not found', 'We couldn\'t find that booking. It may have been cancelled, or you may not have access to it.', 'Back to bookings', $backUrl);
 }
 
 $policy = booking_refund_policy($b['booking_date'], $b['start_time'], (float)$b['amount_paid']);
@@ -59,9 +64,12 @@ require __DIR__ . '/../includes/header.php';
 
 <div class="bd-wrap reveal">
 
+    <a class="bd-backlink" href="<?php echo base_url($backUrl); ?>">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> <?php echo e($backLabel); ?>
+    </a>
+
     <div class="bd-head">
         <div class="title-back-row bd-title-row">
-            <a href="<?php echo base_url($me['role'] === 'admin' ? 'admin/bookings.php' : ($me['role'] === 'manager' ? 'manager/bookings.php' : 'pages/my_bookings.php')); ?>" class="page-back-arrow" data-back aria-label="Back to bookings"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
                 <h1><?php echo e($b['ground_name']); ?></h1>
                 <p class="muted"><i class="fa-solid fa-location-dot"></i> <?php echo e($b['location']); ?></p>

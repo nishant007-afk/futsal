@@ -306,7 +306,7 @@ if ($sub && !empty($sub['period_end'])) {
                                             <?php echo e(date('M j', strtotime($inv['period_start']))); ?> &rarr;
                                             <?php echo e(date('M j, Y', strtotime($inv['period_end']))); ?>
                                         <?php else: ?>
-                                            <span class="muted">&mdash;</span>
+                                            <span class="muted">-</span>
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="Receipt">

@@ -22,13 +22,65 @@ if (in_array($active, ['ground.php', 'courts.php', 'book.php', 'payment.php', 'r
 }
 
 $scriptDir = basename(dirname($_SERVER['SCRIPT_NAME']));
-$has_sidebar = $site_user && $site_user['role'] === 'admin' && in_array($scriptDir, ['admin'], true);
+// KEPT (removed per request): the admin console rendered a fixed left sidebar and
+// $has_sidebar reserved 260px of horizontal padding for it.
+//     $has_sidebar = $site_user && $site_user['role'] === 'admin' && in_array($scriptDir, ['admin'], true);
+// The admin console now uses the top navbar with dropdown submenus, so nothing is
+// reserved. The class is still added so .has-sidebar rules stay reachable, and
+// `body.has-sidebar.adm-topnav` cancels the old padding.
+$has_sidebar = false;
+$is_admin_console = $site_user && $site_user['role'] === 'admin' && in_array($scriptDir, ['admin'], true);
+
+// Admin top navigation. Each entry is either a direct link or a titled group of
+// dropdown links. 'match' lists the script basenames that light the item up, so
+// sub-pages (edit_user.php, notify_policy.php) highlight their parent section.
+// KEPT (removed per request): every item carried a 'sub' line ("Every venue on the
+// platform") and its own 'icon'. The dropdown is now a flat list of page names, so
+// both keys are gone. The group-level 'icon' stays: that is the glyph in the parent
+// button, which is still wanted.
+$admNav = [
+    [
+        'label' => 'Dashboard', 'icon' => 'fa-solid fa-gauge-high',
+        'items' => [['label' => 'Dashboard', 'href' => 'admin/dashboard.php', 'match' => ['dashboard.php']]],
+    ],
+    [
+        'label' => 'Operations', 'icon' => 'fa-solid fa-diagram-project',
+        'items' => [
+            ['label' => 'Grounds &amp; Courts', 'href' => 'admin/grounds.php', 'match' => ['grounds.php']],
+            ['label' => 'Bookings Management', 'href' => 'admin/bookings.php', 'match' => ['bookings.php']],
+            ['label' => 'Slot &amp; Pricing Schedule', 'href' => 'admin/grounds.php#pricing', 'match' => []],
+        ],
+    ],
+    [
+        'label' => 'Users &amp; Finance', 'icon' => 'fa-solid fa-users-gear',
+        'items' => [
+            ['label' => 'User Accounts', 'href' => 'admin/users.php', 'match' => ['users.php', 'edit_user.php']],
+            ['label' => 'Manager Subscriptions', 'href' => 'admin/settlements.php', 'match' => ['settlements.php']],
+        ],
+    ],
+    [
+        'label' => 'Platform Settings', 'icon' => 'fa-solid fa-sliders',
+        'items' => [
+            ['label' => 'Broadcasts &amp; Announcements', 'href' => 'admin/announce.php', 'match' => ['announce.php', 'notify_policy.php']],
+            ['label' => 'Legal Pages &amp; Policies', 'href' => 'admin/pages.php', 'match' => ['pages.php', 'edit_page.php']],
+            ['label' => 'FAQs &amp; Help Content', 'href' => 'pages/faq.php', 'match' => ['faq.php']],
+            ['label' => 'Contact Messages', 'href' => 'admin/contact_messages.php', 'match' => ['contact_messages.php']],
+        ],
+    ],
+];
+
+// KEPT (removed per request): the $admCrumbs breadcrumb trail and the .adm-crumbs bar
+// it rendered. The bar showed a small page name on the left and $page_title on the
+// right, directly under a navbar that already carries the same words - and every admin
+// page sets its own <h1> plus a back arrow, so the row only ever duplicated them.
+// The page's own title is now the single heading.
 
 $role_label = $site_user ? ucfirst($site_user['role']) : '';
 $body_role = $site_user ? $site_user['role'] : 'guest';
 $body_classes = [$body_role];
-if ($has_sidebar) {
+if ($is_admin_console) {
     $body_classes[] = 'has-sidebar';
+    $body_classes[] = 'adm-topnav';
 }
 if ($active === 'index.php' && !$site_user) {
     $body_classes[] = 'landing';
@@ -107,6 +159,10 @@ $pageBackUrl = base_url('index.php');
     $og_url   = isset($page_url)    ? e($page_url) : e(absolute_url());
     $og_type  = isset($og_type) && $og_type === 'article' ? 'article' : 'website';
     ?>
+    <?php if (in_array($scriptDir, ['admin', 'manager'], true) || in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php', 'receipt.php', 'receipt_pdf.php', 'booking_ics.php', 'my_bookings.php', 'booking_details.php', 'book.php', 'payment.php'], true)): ?>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
+    <?php endif; ?>
     <meta name="description" content="<?php echo $og_desc; ?>">
     <meta property="og:title" content="<?php echo $og_title; ?>">
     <meta property="og:description" content="<?php echo $og_desc; ?>">
@@ -162,11 +218,54 @@ $pageBackUrl = base_url('index.php');
                 <a href="<?php echo base_url('manager/subscription.php'); ?>" class="dmn-link <?php echo $active === 'subscription.php' ? 'active' : ''; ?>">Subscription</a>
                 <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
             <?php elseif ($site_user && $site_user['role'] === 'admin'): ?>
-                <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="dmn-link <?php echo $active === 'dashboard.php' ? 'active' : ''; ?>">Home</a>
-                <a href="<?php echo base_url('admin/users.php'); ?>" class="dmn-link <?php echo $active === 'users.php' ? 'active' : ''; ?>">Users</a>
-                <a href="<?php echo base_url('admin/grounds.php'); ?>" class="dmn-link <?php echo $active === 'grounds.php' ? 'active' : ''; ?>">Grounds</a>
-                <a href="<?php echo base_url('admin/bookings.php'); ?>" class="dmn-link <?php echo $active === 'bookings.php' ? 'active' : ''; ?>">Bookings</a>
-                <a href="<?php echo base_url('pages/faq.php'); ?>" class="dmn-link <?php echo $active === 'faq.php' ? 'active' : ''; ?>">FAQ</a>
+                <?php /* Admin console navigation. KEPT (removed per request): five flat
+                       links - Home, Users, Grounds, Bookings, FAQ - duplicated the sidebar
+                       and the mobile "More" panel. Replaced by the grouped dropdowns below,
+                       which give every admin page exactly one home. */ ?>
+                <nav class="adm-nav" aria-label="Admin navigation">
+                    <ul class="adm-nav-list">
+                        <?php foreach ($admNav as $admEntryIndex => $admEntry):
+                            $admIsLast = $admEntryIndex === array_key_last($admNav);
+                            $admGroupActive = false;
+                            foreach ($admEntry['items'] as $admItem) {
+                                if (in_array($active, $admItem['match'], true)) { $admGroupActive = true; break; }
+                            }
+                            $admFirst = $admEntry['items'][0];
+                        ?>
+                            <li class="adm-nav-item<?php echo $admIsLast ? ' adm-nav-item--end' : ''; ?>">
+                                <?php if (count($admEntry['items']) === 1): ?>
+                                    <a class="adm-nav-direct<?php echo $admGroupActive ? ' is-active' : ''; ?>"
+                                       href="<?php echo base_url($admFirst['href']); ?>"
+                                       <?php echo $admGroupActive ? 'aria-current="page"' : ''; ?>><?php echo $admEntry['label']; ?></a>
+                                <?php else: ?>
+                                    <button type="button" class="adm-nav-btn<?php echo $admGroupActive ? ' is-active' : ''; ?>"
+                                            data-adm-toggle aria-expanded="false" aria-haspopup="true"
+                                            aria-controls="admMenu<?php echo (int)$admEntryIndex; ?>">
+                                        <i class="<?php echo $admEntry['icon']; ?>" aria-hidden="true"></i><?php echo $admEntry['label']; ?>
+                                        <i class="fa-solid fa-chevron-down adm-nav-caret" aria-hidden="true"></i>
+                                    </button>
+                                    <ul class="adm-nav-menu" id="admMenu<?php echo (int)$admEntryIndex; ?>">
+                                        <li class="adm-nav-menu-title"><?php echo $admEntry['label']; ?></li>
+                                        <?php foreach ($admEntry['items'] as $admItem):
+                                            $admItemActive = in_array($active, $admItem['match'], true);
+                                        ?>
+                                            <li>
+                                                <?php /* KEPT (removed per request): the per-item <i> glyph
+                                                       and the .adm-nav-link-sub description line. A dropdown
+                                                       item is now just its page name. */ ?>
+                                                <a class="adm-nav-link<?php echo $admItemActive ? ' is-active' : ''; ?>"
+                                                   href="<?php echo base_url($admItem['href']); ?>"
+                                                   <?php echo $admItemActive ? 'aria-current="page"' : ''; ?>>
+                                                    <span class="adm-nav-link-text"><?php echo $admItem['label']; ?></span>
+                                                </a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
             <?php else: ?>
                 <a href="<?php echo base_url('index.php'); ?>" class="dmn-link <?php echo $active === 'index.php' ? 'active' : ''; ?>">Home</a>
                 <a href="<?php echo grounds_list_url(); ?>" class="dmn-link <?php echo $activeSection === 'grounds' ? 'active' : ''; ?>">Courts</a>
@@ -295,36 +394,45 @@ $pageBackUrl = base_url('index.php');
 </div>
 
 <?php if ($has_sidebar): ?>
-<!-- persistent desktop sidebar for manager and admin consoles -->
-<nav class="nav" id="mainNav" aria-label="Main navigation">
-    <div class="nav-sidebar-head">
-        <a href="<?php echo base_url('index.php'); ?>" class="brand" aria-label="GoalSpace home">
-            <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
-            <span class="brand-name">GoalSpace</span>
-        </a>
-        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
-            <i class="fa-solid fa-angles-left"></i>
-        </button>
-    </div>
-    <?php if ($site_user && $site_user['role'] === 'admin'): ?>
-        <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
-        <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>"><i class="fa-solid fa-users"></i> <span class="nav-label">Users</span></a>
-        <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> <span class="nav-label">Grounds</span></a>
-        <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> <span class="nav-label">Bookings</span></a>
-        <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> <span class="nav-label">Announce</span></a>
-        <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> <span class="nav-label">Billing</span></a>
-        <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> <span class="nav-label">Messages</span></a>
-        <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> <span class="nav-label">Legal pages</span></a>
-        <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> <span class="nav-label">Announce update</span></a>
-    <?php endif; ?>
-    <a href="<?php echo base_url('pages/faq.php'); ?>" class="nav-faq <?php echo $active === 'faq.php' ? 'active' : ''; ?>"><i class="fa-solid fa-circle-question"></i> <span class="nav-label">FAQ</span></a>
-    <div class="nav-sidebar-foot">
-        <div class="nsf-wrap">
-            <p class="nsf-meta">GoalSpace &middot; v1.0</p>
-        </div>
-    </div>
-</nav>
+<!-- KEPT (removed per request): persistent desktop sidebar for manager and admin consoles.
+     The admin console now navigates through the top navbar dropdowns plus the
+     breadcrumb row below, which returns the horizontal space to data tables,
+     metrics and charts. This markup is inert: $has_sidebar is false.
+     <nav class="nav" id="mainNav" aria-label="Main navigation">
+         <div class="nav-sidebar-head">
+             <a href="<?php echo base_url('index.php'); ?>" class="brand" aria-label="GoalSpace home">
+                 <span class="brand-mark"><i class="fa-solid fa-futbol"></i></span>
+                 <span class="brand-name">GoalSpace</span>
+             </a>
+             <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                 <i class="fa-solid fa-angles-left"></i>
+             </button>
+         </div>
+         <?php if ($site_user && $site_user['role'] === 'admin'): ?>
+             <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="<?php echo $active === 'dashboard.php' ? 'active' : ''; ?>"><i class="fa-solid fa-house"></i> <span class="nav-label">Home</span></a>
+             <a href="<?php echo base_url('admin/users.php'); ?>" class="<?php echo $active === 'users.php' ? 'active' : ''; ?>"><i class="fa-solid fa-users"></i> <span class="nav-label">Users</span></a>
+             <a href="<?php echo base_url('admin/grounds.php'); ?>" class="<?php echo $active === 'grounds.php' ? 'active' : ''; ?>"><i class="fa-solid fa-store"></i> <span class="nav-label">Grounds</span></a>
+             <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>"><i class="fa-solid fa-list-check"></i> <span class="nav-label">Bookings</span></a>
+             <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> <span class="nav-label">Announce</span></a>
+             <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> <span class="nav-label">Billing</span></a>
+             <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> <span class="nav-label">Messages</span></a>
+             <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> <span class="nav-label">Legal pages</span></a>
+             <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> <span class="nav-label">Announce update</span></a>
+         <?php endif; ?>
+         <a href="<?php echo base_url('pages/faq.php'); ?>" class="nav-faq <?php echo $active === 'faq.php' ? 'active' : ''; ?>"><i class="fa-solid fa-circle-question"></i> <span class="nav-label">FAQ</span></a>
+         <div class="nav-sidebar-foot">
+             <div class="nsf-wrap">
+                 <p class="nsf-meta">GoalSpace &middot; v1.0</p>
+             </div>
+         </div>
+     </nav>
+-->
 <?php endif; ?>
+
+<?php /* KEPT (removed per request): the .adm-crumbs orientation row ("Dashboard / Operations /
+        Grounds & Courts" on the left, $page_title on the right). Each admin page already
+        renders its own <h1> and a back arrow, so the row was a second, smaller heading
+        carrying the same words. See the note where $admCrumbs used to be defined. */ ?>
 
 <nav class="bottom-nav" id="bottomNav" aria-label="Primary navigation">
     <?php
@@ -357,11 +465,13 @@ $pageBackUrl = base_url('index.php');
         <a href="<?php echo base_url('admin/bookings.php'); ?>" class="<?php echo $active === 'bookings.php' ? 'active' : ''; ?>" title="Bookings" aria-label="Bookings"><i class="fa-solid fa-list-check"></i><span class="bn-label" hidden>Bookings</span></a>
         <button type="button" class="bn-more <?php echo $bnMoreActive ? 'active' : ''; ?>" id="bnMoreBtn" aria-expanded="false" aria-haspopup="true" title="More" aria-label="More"><i class="fa-solid fa-ellipsis"></i><span class="bn-label" hidden>More</span></button>
         <div class="bn-more-panel" id="bnMorePanel" hidden>
-            <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo $active === 'announce.php' ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> Announce</a>
+            <?php /* KEPT (removed per request): "Announce" and "Announce update" were two
+                   separate entries here. Both broadcasts now live under one Broadcasts
+                   page with sub-tabs, so this is a single entry. */ ?>
+            <a href="<?php echo base_url('admin/announce.php'); ?>" class="<?php echo in_array($active, ['announce.php', 'notify_policy.php'], true) ? 'active' : ''; ?>"><i class="fa-solid fa-bullhorn"></i> Broadcasts</a>
             <a href="<?php echo base_url('admin/settlements.php'); ?>" class="<?php echo $active === 'settlements.php' ? 'active' : ''; ?>"><i class="fa-solid fa-hand-holding-dollar"></i> Billing</a>
             <a href="<?php echo base_url('admin/contact_messages.php'); ?>" class="<?php echo $active === 'contact_messages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-inbox"></i> Messages</a>
             <a href="<?php echo base_url('admin/pages.php'); ?>" class="<?php echo $active === 'pages.php' ? 'active' : ''; ?>"><i class="fa-solid fa-file-pen"></i> Legal pages</a>
-            <a href="<?php echo base_url('admin/notify_policy.php'); ?>" class="<?php echo $active === 'notify_policy.php' ? 'active' : ''; ?>"><i class="fa-solid fa-paper-plane"></i> Announce update</a>
             <a href="<?php echo base_url('pages/faq.php'); ?>" class="<?php echo $active === 'faq.php' ? 'active' : ''; ?>"><i class="fa-solid fa-circle-question"></i> FAQ</a>
         </div>
     <?php else: ?>

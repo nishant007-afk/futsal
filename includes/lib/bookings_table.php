@@ -7,7 +7,10 @@
 /**
  * @param array $rows   Booking rows (must include total_price, discount, amount_paid, status, payment_status).
  * @param array $opts   show_player: bool   show_ground_meta: bool   show_ref: bool
- *                      manager_action: bool  detail_link: bool  empty_icon/title/sub
+ *                      manager_action: bool  detail_link: bool  drawer: bool  empty_icon/title/sub
+ *
+ * drawer: opt into the slide-over booking viewer. The link keeps its real href either way,
+ *         so it still works with JS off, on middle-click, and for the roles that navigate.
  */
 function bookings_table_html(array $rows, array $opts = []): void
 {
@@ -15,6 +18,7 @@ function bookings_table_html(array $rows, array $opts = []): void
     $showRef = (bool)($opts['show_ref'] ?? false);
     $managerAction = (bool)($opts['manager_action'] ?? false);
     $detailLink = !array_key_exists('detail_link', $opts) || (bool)$opts['detail_link'];
+    $drawer = (bool)($opts['drawer'] ?? false);
 
     if (!$rows) {
         $icon = $opts['empty_icon'] ?? 'fa-regular fa-calendar-xmark';
@@ -138,7 +142,7 @@ function bookings_table_html(array $rows, array $opts = []): void
                                     ); ?>
                                 <?php endif; ?>
                                 <?php if ($detailLink): ?>
-                                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm" title="View details"><i class="fa-solid fa-chevron-right"></i><span class="sr-only">Details</span></a>
+                                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm" title="View details"<?php echo $drawer ? ' data-booking-drawer="' . (int)$b['id'] . '"' : ''; ?>><i class="fa-solid fa-chevron-right"></i><span class="sr-only">Details</span></a>
                                 <?php endif; ?>
                             </div>
                         </td>

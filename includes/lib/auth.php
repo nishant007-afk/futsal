@@ -100,6 +100,7 @@ function require_login(): void
 
 function require_admin(): void
 {
+    header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet', true);
     if (!is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;
@@ -119,6 +120,7 @@ function require_admin(): void
 
 function require_manager(): void
 {
+    header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet', true);
     if (!is_manager() && !is_admin()) {
         header('Location: ' . base_url('index.php'));
         exit;

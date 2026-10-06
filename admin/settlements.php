@@ -132,6 +132,36 @@ foreach ($managerRows as $m) {
     }
 }
 
+// Filter for the admin dashboard's "Overdue Accounts" card, which links straight
+// here as admin/settlements.php?filter=overdue. Overdue means the setup fee was
+// paid but the paid-through date has already passed.
+$billingFilter = in_array($_GET['filter'] ?? '', ['overdue', 'setup_pending', 'active'], true) ? $_GET['filter'] : '';
+$isOverdue = function (array $m): bool {
+    return $m['setup_paid_at'] !== null && $m['period_end'] !== null && $m['period_end'] < date('Y-m-d');
+};
+$isSetupPending = function (array $m): bool {
+    return $m['setup_paid_at'] === null;
+};
+$isActive = function (array $m) use ($isOverdue, $isSetupPending): bool {
+    return !$isOverdue($m) && !$isSetupPending($m);
+};
+
+$filteredRows = $managerRows;
+if ($billingFilter === 'overdue') {
+    $filteredRows = array_values(array_filter($managerRows, $isOverdue));
+} elseif ($billingFilter === 'setup_pending') {
+    $filteredRows = array_values(array_filter($managerRows, $isSetupPending));
+} elseif ($billingFilter === 'active') {
+    $filteredRows = array_values(array_filter($managerRows, $isActive));
+}
+$overdueTotal = count(array_filter($managerRows, $isOverdue));
+$pendingTotal = count(array_filter($managerRows, $isSetupPending));
+$activeTotal = count(array_filter($managerRows, $isActive));
+
+$billingFilterUrl = function (string $key) use ($billingFilter): string {
+    return base_url('admin/settlements.php' . ($key === '' ? '' : '?filter=' . $key));
+};
+
 if (isset($_GET['export']) || isset($_GET['export_excel'])) {
     $rows = [['Manager', 'Email', 'Grounds', 'Setup Fee (Rs)', 'Setup Paid At', 'Monthly Fee (Rs)', 'Period Start', 'Period End', 'Last Paid At']];
     foreach ($managerRows as $m) {
@@ -173,6 +203,24 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<div class="subtabs" role="tablist" aria-label="Filter accounts">
+    <a class="subtab<?php echo $billingFilter === '' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl(''); ?>"
+       <?php echo $billingFilter === '' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-list" aria-hidden="true"></i> All (<?php echo count($managerRows); ?>)</a>
+    <a class="subtab<?php echo $billingFilter === 'overdue' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('overdue'); ?>"
+       <?php echo $billingFilter === 'overdue' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Overdue (<?php echo $overdueTotal; ?>)</a>
+    <a class="subtab<?php echo $billingFilter === 'setup_pending' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('setup_pending'); ?>"
+       <?php echo $billingFilter === 'setup_pending' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-clock" aria-hidden="true"></i> Setup unpaid (<?php echo $pendingTotal; ?>)</a>
+    <a class="subtab<?php echo $billingFilter === 'active' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('active'); ?>"
+       <?php echo $billingFilter === 'active' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Active (<?php echo $activeTotal; ?>)</a>
+</div>
+
+<?php if ($billingFilter !== ''): ?>
+    <p class="muted" style="margin:-12px 0 18px; font-size:13.5px;">
+        Showing <?php echo count($filteredRows); ?> of <?php echo count($managerRows); ?> manager<?php echo count($managerRows) === 1 ? '' : 's'; ?>
+        &middot; <a href="<?php echo $billingFilterUrl(''); ?>">clear filter</a>
+    </p>
+<?php endif; ?>
+
 <div class="table-wrap reveal">
     <table>
         <thead>
@@ -187,10 +235,16 @@ require __DIR__ . '/../includes/header.php';
             </tr>
         </thead>
         <tbody>
-            <?php if (!$managerRows): ?>
-                <tr><td colspan="7" class="muted table-empty">No managers yet.</td></tr>
+            <?php if (!$filteredRows): ?>
+                <tr><td colspan="7" class="muted table-empty">
+                    <?php echo $billingFilter === 'overdue'
+                        ? 'No overdue accounts - every subscription is current.'
+                        : ($billingFilter === 'setup_pending'
+                            ? 'No managers are awaiting a setup fee.'
+                            : ($billingFilter === 'active' ? 'No active subscriptions.' : 'No managers yet.')); ?>
+                </td></tr>
             <?php else: ?>
-                <?php foreach ($managerRows as $m): ?>
+                <?php foreach ($filteredRows as $m): ?>
                     <?php
                     $status = 'no_sub';
                     if ($m['setup_paid_at'] === null) {

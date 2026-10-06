@@ -20,11 +20,22 @@ html { scrollbar-gutter: auto; }
 html { scrollbar-gutter: stable; }
 }
 
-* { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+/* KEPT (removed per request): the scrollbar thumb was `background: var(--line-2)` =
+   #d0d7d0 - a pale grey carrying a slight green cast (g=215 vs r=b=208). Because
+   `scrollbar-gutter: stable` above always reserves the 10px gutter on desktop, a 6px
+   slice of that thumb (10px wide minus the 2px --page border on each side) was painted
+   against the white page from the moment a page loaded, on every scrollable page, and
+   read as a thin green line down the right-hand edge. Nothing is a border here -
+   elementFromPoint() in the gutter returns null; this is the scrollbar.
+
+   The gutter stays, because dropping `scrollbar-gutter: stable` makes the layout jump
+   sideways whenever a page changes height. Only the thumb colour changed, to a neutral
+   grey with no green in it. */
+* { scrollbar-width: thin; scrollbar-color: #c9ccce transparent; }
 
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 
-*::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid var(--page); }
+*::-webkit-scrollbar-thumb { background: #c9ccce; border-radius: 8px; border: 2px solid var(--page); }
 
 *::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
 
@@ -43,6 +54,20 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 /* Accessible focus indicator (keyboard users) */ a:focus-visible, button:focus-visible, input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 :focus:not(:focus-visible) { outline: none; }
+
+/* No green frame around the page. The rule above also matches `[tabindex]`, and the page
+   wrapper is `<main class="container page" id="mainContent" tabindex="-1">`
+   (includes/header.php). It is focused programmatically on essentially every navigation,
+   because redirect() appends #mainContent (includes/lib/url_flash.php) and the skip link
+   targets it. With `outline-offset: 2px` that painted a 2px emerald rectangle just
+   outside the whole content column, i.e. a full-height green line down both the left and
+   right edge of every page. The wrapper is a landmark, not a control: it is not reachable
+   by Tab, and the skip link that sends focus here already shows its own indicator, so
+   dropping the outline here costs keyboard users nothing.
+
+   Specificity is 0,2,1 against the 0,2,0 above, so this wins wherever it is placed. */
+main[tabindex="-1"]:focus-visible,
+[role="main"][tabindex="-1"]:focus-visible { outline: none; }
 
 /* Skip-to-content link (shown only when focused) */ .skip-link { position: absolute; left: -9999px; top: 0; z-index: 300; background: var(--brand-700); color: #fff; padding: 10px 16px; border-radius: 0 0 var(--r-sm) 0; font-size: 14px; font-weight: 600; text-decoration: none; }
 
@@ -732,7 +757,12 @@ body { background: #fff !important; }
 
 .quick-tab.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 
-/* needs-attention strip (manager + admin dashboards) */ .attention-strip { display: flex; flex-direction: column; gap: 8px; background: var(--bg); border: 1px solid var(--line); border-left: 4px solid var(--warn, #d97706); border-radius: var(--r-md); padding: 14px 18px; margin: 20px 0 26px; }
+/* needs-attention strip (manager + admin dashboards) */
+/* KEPT (removed per request): `border-left: 4px solid var(--warn, #d97706)`. The strip
+   carried the warning entirely on that bar, so removing it would have left an ordinary
+   white card claiming a manager owes money. It now reads as a warning from a tinted
+   surface and a full warn-tinted border instead, and keeps its amber icon chip. */
+.attention-strip { display: flex; flex-direction: column; gap: 8px; background: var(--warn-soft); border: 1px solid #f0dfb6; border-radius: var(--r-md); padding: 14px 18px; margin: 20px 0 26px; }
 
 .attention-item { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
 
@@ -1138,7 +1168,10 @@ to { opacity: 0; transform: scale(.97) translateY(6px); }
 
 .step-note.bd-note { margin-bottom: 26px; }
 
-/* ============ COOKIE CONSENT ============ */ .cookie-banner { position: fixed; left: 50%; bottom: 28px; z-index: 200; transform: translate(-50%, 140%); width: 90%; max-width: 700px; display: flex; gap: 14px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line-2); border-top: 3px solid var(--role, var(--brand)); border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(11, 26, 18, .18); padding: 20px 24px 20px; opacity: 0; transition: transform .45s cubic-bezier(.2,.7,.3,1), opacity .35s; }
+/* KEPT (removed per request): border-top: 3px solid var(--role, var(--brand)) - a thick
+   accent bar across the top of the consent box. It resolved to #22c55e, the same
+   decorative edge that was removed from the contact-message cards. The banner keeps
+   its 1px --line-2 border on all four sides. */ .cookie-banner { position: fixed; left: 50%; bottom: 28px; z-index: 200; transform: translate(-50%, 140%); width: 90%; max-width: 700px; display: flex; gap: 14px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(11, 26, 18, .18); padding: 20px 24px 20px; opacity: 0; transition: transform .45s cubic-bezier(.2,.7,.3,1), opacity .35s; }
 
 .cookie-banner.show { transform: translate(-50%, 0); opacity: 1; }
 
@@ -1629,11 +1662,11 @@ a.card-mini:hover { border-color: var(--line-2); box-shadow: var(--s1); }
 
 .step-note a, .step-note .link-inline { color: var(--role-dark, var(--brand)); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
-.step-note.urgent { border-left-color: var(--warn); }
-
+/* KEPT (removed per request): .step-note.urgent / .step-note.success only recoloured the
+   LEFT border (border-left-color: var(--warn) / var(--ok)), leaving a one-sided accent on
+   an otherwise uniform 1px box. The state is still carried by the icon glyph colour below,
+   so the box itself is now uniformly bordered. */
 .step-note.urgent i { color: var(--warn); }
-
-.step-note.success { border-left-color: var(--ok); }
 
 .step-note.success i { color: var(--ok); }
 
@@ -2034,7 +2067,7 @@ body.auth-page .page-back-arrow.page-back-main { display: inline-flex; }
 
 .input-group.floating { position: relative; }
 
-.input-group.floating input, .input-group.floating select { padding: 22px 12px 4px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; }
+.input-group.floating input, .input-group.floating select { padding: 18px 12px 6px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; }
 
 .input-group.floating input:focus, .input-group.floating select:focus { border-color: var(--ink); outline: none; }
 
@@ -2042,13 +2075,20 @@ body.auth-page .page-back-arrow.page-back-main { display: inline-flex; }
 
 .input-group.floating input:focus + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input.has-value + label, .input-group.floating select:focus + label, .input-group.floating select:valid + label { top: 6px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
 
-.input-group.floating textarea { padding: 22px 12px 4px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; resize: vertical; }
+/* KEPT (removed per request): padding was 18px 12px 6px, which left the lifted
+   label only 3px of clearance above the first line of text. */
+.input-group.floating textarea { padding: 23px 12px 6px; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 0; width: 100%; color: var(--ink); font-family: inherit; transition: border-color 0.125s; resize: vertical; }
 
 .input-group.floating textarea:focus { border-color: var(--ink); outline: none; }
 
 .input-group.floating textarea + label { top: 16px; transform: none; }
 
-.input-group.floating textarea:focus + label, .input-group.floating textarea:not(:placeholder-shown) + label { top: 6px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
+.input-group.floating textarea:focus + label, .input-group.floating textarea:not(:placeholder-shown) + label { top: 8px; transform: none; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.02em; text-transform: none; }
+
+/* A floated label is 11px, but the `.muted` suffix inside it kept the global
+   14px/1.6 (style.css:85), so the line box measured 22px and the label bottom
+   landed 5px into the typed text. Let the suffix follow the label's own size. */
+.input-group.floating label .muted { font-size: inherit; line-height: inherit; }
 
 
 .input-group.floating .icon-left + input, .input-group.floating .icon-left + select { padding-left: 36px; }
@@ -3563,6 +3603,31 @@ body.contact-page .prose h2 { font-size: 24px; font-weight: 700; letter-spacing:
 .bd-section { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px 26px; }
 
 .bd-section-full { grid-column: 1 / -1; }
+
+/* Explicit way back from a booking, at every viewport.
+
+   This replaces an icon-only .page-back-arrow, which is display:none above 820px
+   (see the max-width: 820px block that sets it back to inline-flex), so on a desktop the
+   manager had nothing but the browser back button to return to the bookings list. It is a
+   plain link with a real href rather than [data-back], because data-back calls
+   history.back() and would drop the user out of the app when the page was opened directly
+   from a notification link.
+
+   The pill matches the other bordered icon controls in the app (the header search button,
+   the search sheet close button) rather than introducing a new edge treatment. */
+.bd-backlink {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin: 18px 0 0; padding: 7px 15px 7px 12px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--bg); color: var(--ink-2);
+    font-size: 13.5px; font-weight: 600; line-height: 1.3;
+    text-decoration: none;
+    transition: color .15s, background .15s, border-color .15s;
+}
+
+.bd-backlink i { font-size: 11px; }
+
+.bd-backlink:hover { background: var(--bg-soft); border-color: var(--line-2); color: var(--ink); }
 
 .bd-section h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; text-wrap: balance; }
 
@@ -5484,7 +5549,8 @@ th { white-space: normal; }
 
 .form-group.has-error .input-group.floating, .form-group.has-error .input-group.floating:focus-within { border-color: var(--danger) !important; box-shadow: none !important; }
 
-.input-group.floating input, .input-group.floating input:focus, .signup-right .input-group.floating input, .signup-right .input-group.floating input:focus { width: 100% !important; flex: 1 1 auto !important; border: 0 !important; border-style: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; height: 56px !important; padding: 31px 14px 3px 16px !important; font-size: 16px !important; line-height: normal !important; -webkit-appearance: none !important; appearance: none !important; }
+/* KEPT (removed per request): height: 56px; padding: 31px 14px 3px 16px */
+.input-group.floating input, .input-group.floating input:focus, .signup-right .input-group.floating input, .signup-right .input-group.floating input:focus { width: 100% !important; flex: 1 1 auto !important; border: 0 !important; border-style: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; height: 46px !important; padding: 21px 14px 3px 16px !important; font-size: 16px !important; line-height: normal !important; -webkit-appearance: none !important; appearance: none !important; }
 
 .input-group.floating .pw-toggle { position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; width: 44px !important; height: 44px !important; border: none !important; outline: none !important; background: transparent !important; box-shadow: none !important; color: var(--ink-3) !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; border-radius: 6px !important; z-index: 3 !important; transition: color 0.15s ease, background 0.15s ease !important; }
 
@@ -5498,7 +5564,14 @@ th { white-space: normal; }
 
 .input-group.floating:has(> i) label { left: 43px !important; }
 
-.input-group.floating input:focus ~ label, .input-group.floating input.has-value ~ label, .input-group.floating input:not(:placeholder-shown) ~ label, .input-group.floating input:-webkit-autofill ~ label, .input-group.floating input:autofill ~ label, .input-group.floating input:focus + label, .input-group.floating input.has-value + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input:-webkit-autofill + label, .input-group.floating input:autofill + label { top: 4px !important; transform: translateY(0) !important; font-size: 11px !important; font-weight: 700 !important; color: var(--brand) !important; }
+.input-group.floating input:focus ~ label, .input-group.floating input.has-value ~ label, .input-group.floating input:not(:placeholder-shown) ~ label, .input-group.floating input:-webkit-autofill ~ label, .input-group.floating input:autofill ~ label, .input-group.floating input:focus + label, .input-group.floating input.has-value + label, .input-group.floating input:not(:placeholder-shown) + label, .input-group.floating input:-webkit-autofill + label, .input-group.floating input:autofill + label { top: 6px !important; transform: translateY(0) !important; font-size: 11px !important; font-weight: 700 !important; color: var(--brand) !important; }
+
+/* Textareas float too. The rule above only ever listed `input`, so the !important
+   `top: 50%` centred label underneath always won for textareas: a filled textarea
+   kept its label in the middle of the box, printed on top of the text. The markup
+   already supplies placeholder=" " and a sibling <label>, so :not(:placeholder-shown)
+   covers the "has text" case and :focus covers the rest - no JS change is needed. */
+.input-group.floating textarea:focus ~ label, .input-group.floating textarea.has-value ~ label, .input-group.floating textarea:not(:placeholder-shown) ~ label, .input-group.floating textarea:-webkit-autofill ~ label, .input-group.floating textarea:autofill ~ label, .input-group.floating textarea:focus + label, .input-group.floating textarea.has-value + label, .input-group.floating textarea:not(:placeholder-shown) + label, .input-group.floating textarea:-webkit-autofill + label, .input-group.floating textarea:autofill + label { top: 6px !important; transform: translateY(0) !important; font-size: 11px !important; font-weight: 700 !important; color: var(--brand) !important; }
 
 .header-search input::placeholder, #headerSearchInput::placeholder, #hsOverlayInput::placeholder { font-size: 12px !important; letter-spacing: -0.01em !important; }
 
@@ -6059,15 +6132,26 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 
 .step-card:hover { box-shadow: 0 10px 28px -4px rgba(10, 24, 16, 0.12); transform: translateY(-3px); }
 
-.step-card-img { position: relative; overflow: hidden; background: #f1f5f9; border-bottom: 1px solid var(--line); height: 220px; }
+/* The frame takes its shape from the card instead of a fixed pixel height, so the three
+   screenshots are the same size as each other at every breakpoint. */
+.step-card-img { position: relative; overflow: hidden; background: #eef1f0; border-bottom: 1px solid var(--line); aspect-ratio: 16 / 9; }
 
 .step-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1); }
 
-/* Interaction Zoom Focus Points */ .step-img-zoom-find img { object-position: 50% 30%; transform: scale(1.1); }
+/* The step images are real product screenshots (courts list, slot picker, checkout)
+   rather than the earlier stylised mockups, and they arrive at three different ratios
+   (2.01, 2.01 and 1.40). Left alone, `cover` cropped about 7% off each side of the 2:1
+   pair, cutting into the outer court cards, and `contain` fitted each one differently so
+   the three cards showed screenshots at three different sizes.
 
-.step-img-zoom-slot img { object-position: 50% 62%; transform: scale(1.18); }
+   Each file is therefore padded to 16:9 at build time (step-1-browse-courts.png,
+   step-2-pick-slot.png, step-3-payment.png), which lets all three fill the 16:9 frame
+   edge to edge: nothing is cropped and nothing is letterboxed. The only frame paint
+   left is the scrollbar gutter of the checkout screenshot itself. */
+.step-shot img { object-position: center; transform: none; }
 
-.step-img-zoom-pass img { object-position: 50% 50%; transform: scale(1.06); }
+/* Only a hint of zoom, and only while hovering, so the screenshot stays legible at rest. */
+.step-card:hover .step-shot img { transform: scale(1.03); }
 
 .step-card-body { padding: 20px 22px 24px; flex: 1; display: flex; flex-direction: column; }
 
@@ -6090,8 +6174,6 @@ html[data-theme="dark"] .qr-frame { background: #fff; }
 .steps-visual { grid-template-columns: 1fr; gap: 20px; }
 
 .step-connector { display: none; }
-
-.step-card-img { height: 200px; }
 }
 
 /* Manager Arena Banner */ .manager-cta-banner { background: #071f13; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 40px 32px; color: #ffffff; position: relative; overflow: hidden; text-align: left; }
@@ -6599,13 +6681,16 @@ body.login-page main.container, body.register-page main.container, body.login-pa
 
 .auth-mobile-header { display: none; }
 
-/* 3. Form Content & Navigation (Direct 50% Page Half) */ .auth-card-content { position: absolute; top: 0; left: 0; bottom: 0; width: 50%; height: 100% !important; min-height: 100% !important; max-height: 100% !important; z-index: 4; padding: clamp(8px, 1.6vh, 20px) clamp(20px, 3.6vw, 48px); display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-sizing: border-box; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; border-radius: 0 !important; transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1); will-change: transform; }
+/* 3. Form Content & Navigation (Direct 50% Page Half) */ .auth-card-content { position: absolute; top: 0; left: 0; bottom: 0; width: 50%; height: 100% !important; min-height: 100% !important; max-height: 100% !important; z-index: 4; padding: clamp(8px, 1.6vh, 20px) clamp(20px, 3.6vw, 48px); display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; box-sizing: border-box; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c9ccce transparent; border-radius: 0 !important; transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1); will-change: transform; }
 
 .auth-card-content::-webkit-scrollbar { width: 6px; }
 
 .auth-card-content::-webkit-scrollbar-track { background: transparent; }
 
-.auth-card-content::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 99px; }
+/* Neutral thumb, same reason as the two declarations above: this panel is a full-height
+   column on login and register, and the old var(--line-2) thumb (#d0d7d0) read as a green
+   vertical line down the split card. */
+.auth-card-content::-webkit-scrollbar-thumb { background: #c9ccce; border-radius: 99px; }
 
 /* Login: Form is on the LEFT */ .auth-split-card.is-login .auth-card-content { transform: translateX(0%); }
 
@@ -6954,9 +7039,15 @@ html[data-theme="dark"] .bd-list > div { border-bottom-color: rgba(255, 255, 255
 
 .brand-mark i, .auth-brand-mark i { color: #ffffff !important; font-size: 17px !important; }
 
-/* Header action icons layout: Notification Bell on the LEFT, Profile on the RIGHT */ .site-header .nav-auth { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; margin-left: auto !important; }
+/* Header action icons layout: Search on the LEFT, then the bell and profile on the RIGHT */ .site-header .nav-auth { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; margin-left: auto !important; }
 
-.site-header .header-search-toggle { order: 1 !important; }
+/* Desktop shows the full search field to the left of Log in / Sign up, so the mobile
+   icon button belongs in the same slot. It is already first in the markup; this used to
+   force order: 1, which pushed it past the order: 0 auth buttons and stranded it at the
+   far right of the bar on phones. order: 0 keeps the DOM position for the logged out
+   row (search, Log in, Sign up) and still leaves it ahead of the order: 2 bell and
+   order: 3 profile when signed in. */
+.site-header .header-search-toggle { order: 0 !important; }
 
 .site-header .bell-wrap { order: 2 !important; display: flex !important; align-items: center !important; }
 
@@ -7814,7 +7905,11 @@ body { padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)); }
 
 .faq-item[open] { background: none; border-radius: 0; border-bottom-color: #f1f5f9; }
 
-.faq-item[open] > p { background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 0 8px 8px 0; padding: 14px 16px; margin-top: 10px; margin-bottom: 2px; font-size: 0.9rem; color: #334155; line-height: 1.6; }
+/* KEPT (removed per request): the answer box had `border-left: 3px solid #10b981` and
+   `border-radius: 0 8px 8px 0` - the squared left corners existed only to meet that bar.
+   The open state is now carried by the mint background alone, and all four corners are
+   rounded. */
+.faq-item[open] > p { background: #f0fdf4; border-radius: 8px; padding: 14px 16px; margin-top: 10px; margin-bottom: 2px; font-size: 0.9rem; color: #334155; line-height: 1.6; }
 
 @media (max-width: 820px) {
 
@@ -7856,7 +7951,7 @@ html[data-theme="dark"] .faq-item[open] > summary::before { background: rgba(16,
 
 html[data-theme="dark"] .faq-item[open] { border-bottom-color: var(--line); }
 
-html[data-theme="dark"] .faq-item[open] > p { background: rgba(16, 185, 129, 0.12); border-left-color: #10b981; color: var(--ink-2); }
+html[data-theme="dark"] .faq-item[open] > p { background: rgba(16, 185, 129, 0.12); color: var(--ink-2); }
 
 html[data-theme="dark"] .faq-cat:hover { background: rgba(255, 255, 255, 0.06); }
 
@@ -8903,8 +8998,9 @@ html[data-theme="dark"] .hero-quick-search .gs-select-group {
     align-items: center;
     gap: 14px;
     background: var(--warn-soft);
-    border: 1px solid var(--line);
-    border-left: 4px solid var(--warn);
+    /* KEPT (removed per request): border-left: 4px solid var(--warn). The warn-soft
+       fill and the amber icon already carry the warning, so the bar is redundant. */
+    border: 1px solid #f0dfb6;
     border-radius: var(--r-md);
     padding: 14px 18px;
     margin: 20px 0 26px;
@@ -8936,8 +9032,7 @@ html[data-theme="dark"] .hero-quick-search .gs-select-group {
 }
 html[data-theme="dark"] .notice-alert {
     background: rgba(217, 119, 6, 0.12);
-    border-color: rgba(255, 255, 255, 0.12);
-    border-left-color: var(--warn);
+    border-color: rgba(245, 158, 11, 0.32);
 }
 
 /* --- B. Booking table: real button for "Mark paid" + payment sub-label ---
@@ -9464,10 +9559,14 @@ html[data-theme="dark"] .bell-dot {
        the original values: box locked to 53px, padding-top 20px, label at top 6.5px with a
        13.5px font and line-height 1, so the label bottom edge landed at 6.5 + 13.5 = 20px,
        exactly the top of the text - a 0px gap. An intermediate pass took it to 8.5px, which
-       was still cramped. The label now sits 2px from the top inner edge and the text starts
-       32px down, giving a 16.5px gap. The box grew to 64px because the height is locked with
-       height/min-height/max-height and there is no room for more padding without clipping the
-       17px text; the content area is 25px. The label font size is deliberately unchanged.
+       was still cramped. The label now sits 4px from the top inner edge and the box is 46px
+       with padding-top 21px. The rendered gap between the label bottom and the first line of
+       text measures 6px - an <input> centres its content box, so the text sits a few px below
+       the padding edge rather than on it. The label font size is deliberately unchanged.
+
+       KEPT (height reduced per request): the box here was 64px with padding-top 32px, a 16.5px
+       gap and a 25px content area; the two earlier .auth-fields rules above used 53px/20px
+       and 47px/17px.
 
    (2) ROW / COLUMN SPACING. The gaps were inconsistent per breakpoint: 7px / 8px above 900px,
        10px / 11px at <=900px, and 12px once .form-row-2 collapsed to a single column at
@@ -9486,13 +9585,16 @@ html[data-theme="dark"] .bell-dot {
    Legacy .signup-right rules are unused - no PHP emits that class - so they are left alone.
 */
 .auth-fields .input-group.floating {
-    height: 64px !important;
-    min-height: 64px !important;
-    max-height: 64px !important;
+    /* KEPT (removed per request): height/min-height/max-height were 64px here
+       and 53px / 47px in the two earlier .auth-fields rules above. */
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
 }
 
 .auth-fields .input-group.floating input {
-    padding: 32px 16px 5px 16px !important;
+    /* KEPT (removed per request): padding: 32px 16px 5px 16px !important; */
+    padding: 21px 16px 5px 16px !important;
 }
 
 /* Floated label pushed up toward the top inner edge. */
@@ -9501,7 +9603,7 @@ html[data-theme="dark"] .bell-dot {
 .auth-split-card .auth-fields .input-group.floating input:not(:placeholder-shown) ~ label,
 .auth-split-card .auth-fields .input-group.floating input:-webkit-autofill ~ label,
 .auth-split-card .auth-fields .input-group.floating input:autofill ~ label {
-    top: 2px !important;
+    top: 4px !important;
 }
 
 .auth-fields .input-group.floating input:focus ~ label,
@@ -9509,7 +9611,7 @@ html[data-theme="dark"] .bell-dot {
 .auth-fields .input-group.floating input:not(:placeholder-shown) ~ label,
 .auth-fields .input-group.floating input:-webkit-autofill ~ label,
 .auth-fields .input-group.floating input:autofill ~ label {
-    top: 3px !important;
+    top: 5px !important;
 }
 
 /* Tighter vertical rhythm between stacked fields. */
@@ -9788,3 +9890,653 @@ html[data-theme="dark"] .bell-dot {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
 }
+
+/* ================================================================
+   ADMIN PANEL: TOP NAVIGATION
+   Replaces the admin left sidebar so data tables, metrics and charts
+   get the full page width. The sidebar markup in includes/header.php is
+   retired (kept as a comment); the old #mainNav rules above are KEPT.
+   ================================================================ */
+
+/* The sidebar no longer renders, so reclaim the offset it reserved. */
+body.has-sidebar.adm-topnav { padding-left: 0 !important; }
+body.has-sidebar.adm-topnav .site-header .header-inner > .brand { display: flex !important; }
+
+/* ---- Nav shell ---- */
+.adm-nav { display: flex; align-items: center; min-width: 0; }
+.adm-nav-list { display: flex; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+/* Each item is the positioning context for its own dropdown. Without this the
+   absolutely-positioned .adm-nav-menu resolves against the sticky .site-header
+   instead, so it dropped to the far-left of the viewport and covered the page
+   title instead of hanging off its own button. */
+.adm-nav-item { position: relative; }
+
+/* Top-nav links mirror the player navbar (.dmn-link): no pill, no radius, the
+   state is carried by an emerald bottom-border rule under the label. */
+.adm-nav-btn,
+.adm-nav-direct {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 38px; padding: 0 12px;
+    border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+    background: transparent; color: var(--ink-2);
+    font: 600 14px/1 var(--font); text-decoration: none;
+    cursor: pointer; white-space: nowrap;
+    transition: color .15s ease, border-color .15s ease;
+}
+.adm-nav-btn:hover,
+.adm-nav-direct:hover { background: transparent; color: var(--brand-700); border-bottom-color: var(--brand); }
+.adm-nav-btn:focus-visible,
+.adm-nav-direct:focus-visible { outline: none; box-shadow: var(--ring); }
+/* A dropdown parent reads as current while it is open, and stays marked while
+   it owns the page you are on. */
+.adm-nav-btn[aria-expanded="true"],
+.adm-nav-btn.is-active,
+.adm-nav-direct.is-active {
+    background: transparent; color: var(--brand-700); font-weight: 700;
+    border-bottom-color: var(--brand);
+}
+
+/* Leading glyph tracks the label, same as .dmn-link i. */
+.adm-nav-btn > i:first-child,
+.adm-nav-direct > i { color: var(--ink-3); transition: color .15s ease; }
+.adm-nav-btn:hover > i:first-child,
+.adm-nav-direct:hover > i,
+.adm-nav-btn[aria-expanded="true"] > i:first-child,
+.adm-nav-btn.is-active > i:first-child,
+.adm-nav-direct.is-active > i { color: var(--brand); }
+
+/* Rotating chevron indicator */
+.adm-nav-caret { font-size: 10px; opacity: .65; transition: transform .22s cubic-bezier(.4, 0, .2, 1); }
+.adm-nav-btn[aria-expanded="true"] .adm-nav-caret { transform: rotate(180deg); }
+
+/* ---- Dropdown: hangs off the bottom edge of its own button ---- */
+.adm-nav-menu {
+    position: absolute; top: calc(100% + 8px); left: 0;
+    /* Above the header's other popovers (.profile-menu 300, .bell-panel 200)
+       so an open menu is never overlapped inside the header's own context. */
+    z-index: 320;
+    min-width: 272px; margin: 0; padding: 6px; list-style: none;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--r-lg); box-shadow: var(--s3);
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.adm-nav-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+.adm-nav-menu-title {
+    padding: 8px 10px 6px; font: 700 11px/1 var(--font);
+    letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3);
+}
+.adm-nav-link {
+    display: block; padding: 9px 10px;
+    border-radius: var(--r-md); color: var(--ink-2); text-decoration: none;
+    font: 600 14px/1.3 var(--font);
+}
+.adm-nav-link:hover { background: var(--bg-soft); color: var(--ink); }
+.adm-nav-link.is-active { background: var(--brand-soft); color: var(--brand-700); }
+.adm-nav-link-text { display: block; }
+
+/* Anchor the last menu to the right edge so it cannot overflow the viewport */
+.adm-nav-item--end .adm-nav-menu { left: auto; right: 0; }
+
+/* KEPT (removed per request): the .adm-crumbs orientation bar and its rules. Each admin
+   page renders its own <h1> and back arrow, so the row was a duplicate heading. */
+
+/* ---- Contact messages: card shell, metadata, icon tools, view tabs ----
+   Scoped to .msgcard rather than reusing .mbooking, because bookings_table_html()
+   renders the .mbooking primitives and restyling them here would move those too. */
+.msgcards { display: flex; flex-direction: column; gap: 12px; }
+
+.msgcard {
+    background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-lg);
+    padding: 16px 18px; min-width: 0;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.msgcard:hover { border-color: var(--line-2); box-shadow: var(--s1); }
+/* KEPT (removed per request): unresolved rows carried a slim emerald left edge
+   (border-left: 3px solid var(--brand)) so the queue could be scanned without
+   reading. It also made the card's left padding read 3px narrower than its right.
+   The amber Open / green Resolved badge in the tool group already states the
+   status, so .is-open now carries no visual weight of its own. */
+
+.msgcard-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px 16px; flex-wrap: wrap;
+}
+.msgcard-id { flex: 1 1 320px; min-width: 0; }
+.msgcard-subject {
+    margin: 0; font-size: 16px; font-weight: 700;
+    letter-spacing: -0.01em; line-height: 1.35; color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+/* Metadata sits directly under the subject: sender, address, then when. */
+.msgcard-meta {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 4px 14px; margin-top: 5px;
+    font: 500 13px/1.45 var(--font); color: var(--ink-3);
+}
+.msgcard-meta > span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.msgcard-meta i { font-size: 11px; color: var(--ink-3); flex-shrink: 0; }
+.msgcard-topic {
+    padding: 2px 8px; border-radius: var(--r-pill);
+    background: var(--bg-tint); color: var(--ink-2);
+    font: 700 11px/1.5 var(--font); letter-spacing: .03em; text-transform: uppercase;
+}
+
+.msgcard-body {
+    margin: 10px 0 0; color: var(--ink-2); font-size: 14px; line-height: 1.6;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+/* ---- Tool group: status pill + compact icon buttons, top-right ---- */
+.msgcard-tools { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.msgcard-tools form { display: inline-flex; margin: 0; }
+.msgcard-tools .badge { font-size: 11.5px; padding: 3px 9px; white-space: nowrap; }
+
+.msgcard-tool {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; flex-shrink: 0;
+    border: 1px solid var(--line); border-radius: var(--r-sm);
+    background: var(--bg); color: var(--ink-3);
+    font-size: 13px; line-height: 1; text-decoration: none; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.msgcard-tool:hover { background: var(--bg-tint); border-color: var(--line-2); color: var(--ink); }
+.msgcard-tool:focus-visible { outline: none; box-shadow: var(--ring); }
+.msgcard-tool--reply:hover { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-700); }
+.msgcard-tool--resolve:hover { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.msgcard-tool--danger:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+/* Tooltip built from aria-label, so the bubble can never disagree with the
+   accessible name and post_action_form() needs no extra attribute. */
+.msgcard-tool::after {
+    content: attr(aria-label);
+    position: absolute; top: calc(100% + 8px); right: 0;
+    z-index: 40; padding: 5px 8px; border-radius: var(--r-sm);
+    background: var(--ink); color: var(--page);
+    font: 600 11.5px/1.3 var(--font); letter-spacing: .01em;
+    white-space: nowrap; pointer-events: none;
+    opacity: 0; visibility: hidden; transform: translateY(-3px);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s;
+}
+.msgcard-tool:hover::after, .msgcard-tool:focus-visible::after { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* The last tool would push its bubble off the card edge. */
+.msgcard-tools .msgcard-tool:last-child::after { right: 0; }
+.msgcard-tools .msgcard-tool:first-of-type::after { right: auto; left: 0; }
+
+@media (max-width: 640px) {
+    .msgcard { padding: 14px; }
+    .msgcard-head { flex-direction: column; align-items: stretch; }
+    /* .msgcard-id is flex: 1 1 320px for the row layout. Once the head turns into a
+       column that basis becomes a 320px *height*, which opened a void between the
+       metadata and the tools. Reset it to content height. */
+    .msgcard-id { flex: 0 0 auto; }
+    .msgcard-tools { justify-content: flex-end; }
+    /* On a phone there is no hover, and a bubble anchored to a 32px target would run
+       off the edge. Every tool still carries an aria-label, so drop the visual one. */
+    .msgcard-tool::after { display: none; }
+}
+
+/* ---- View tabs: counts belong to the view, not to a button label ---- */
+.subtab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 18px; padding: 0 6px; border-radius: var(--r-pill);
+    background: var(--line); color: var(--ink-2);
+    font: 700 11px/1 var(--font); font-variant-numeric: tabular-nums;
+}
+.subtab.is-active .subtab-count { background: var(--brand); color: #fff; }
+.subtab:hover .subtab-count { background: var(--line-2); }
+.subtab.is-active:hover .subtab-count { background: var(--brand-600); }
+
+/* ---- Balanced KPI grid: two clean rows of three ---- */
+.stat-grid.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .stat-grid.six { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .stat-grid.six { grid-template-columns: minmax(0, 1fr); } }
+
+/* Actionable stat card */
+.stat.stat-link {
+    display: block; text-decoration: none; color: inherit;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.stat.stat-link:hover { transform: translateY(-2px); box-shadow: var(--s2); border-color: var(--brand); }
+.stat-go {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    font: 700 13px/1 var(--font); color: var(--brand);
+}
+.stat-go i { font-size: 11px; transition: transform .15s ease; }
+.stat.stat-link:hover .stat-go i { transform: translateX(3px); }
+.stat-go[hidden] { display: none; }
+
+/* ---- Revenue chart: light dashed baseline gridlines + visible minimum bar ----
+   The lines sit on each .bar-track (135px tall, so a line every 33.75px gives
+   four equal bands). Across the chart they read as dashes because the tracks
+   are separated by the flex gap. */
+.bar-chart.is-gridlined .bar-track {
+    background-color: var(--bg-soft);
+    background-image: repeating-linear-gradient(to top, var(--line-2) 0 1px, transparent 1px 33.75px);
+}
+.bar-chart.is-gridlined .bar-fill { min-height: 9px; }
+
+/* ---- Top courts: relative bars, and the whole row is the link ---- */
+a.top-row {
+    display: flex; align-items: center; gap: 12px;
+    margin: 0 -8px; padding: 8px; border-radius: var(--r-md);
+    text-decoration: none; color: inherit;
+    transition: background .15s ease;
+}
+a.top-row:hover, a.top-row:focus-visible { background: var(--bg-soft); outline: none; }
+a.top-row:focus-visible { box-shadow: var(--ring); }
+.top-go { margin-left: auto; opacity: 0; transform: translateX(-4px); color: var(--brand); font-size: 11px; transition: opacity .15s ease, transform .15s ease; }
+a.top-row:hover .top-go, a.top-row:focus-visible .top-go { opacity: 1; transform: translateX(0); }
+.top-fill { transition: width .4s cubic-bezier(.4, 0, .2, 1); }
+.top-val { margin-left: auto; }
+
+/* Anchor targets clear the sticky navbar instead of hiding under it. */
+.anchor-target { display: block; height: 0; scroll-margin-top: calc(var(--header-h) + 20px); }
+
+/* ---- Broadcasts sub-tabs (announce.php / notify_policy.php) ---- */
+.subtabs { display: flex; gap: 4px; margin: 0 0 22px; padding: 4px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md); width: fit-content; }
+.subtab {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: var(--r-sm);
+    font: 600 13.5px/1 var(--font); color: var(--ink-2); text-decoration: none;
+    transition: background .15s ease, color .15s ease;
+}
+.subtab:hover { color: var(--ink); }
+.subtab.is-active { background: var(--card); color: var(--brand-700); box-shadow: var(--s1); }
+.subtab i { font-size: 12px; }
+
+/* ---- Responsive: the dropdown nav needs room, so hand off to the bottom bar ---- */
+@media (max-width: 1180px) {
+    .adm-nav-list { display: none; }
+    .adm-nav-mobile-note { display: flex; }
+}
+@media (min-width: 1181px) {
+    .adm-nav-mobile-note { display: none; }
+}
+
+/* ---- Dark mode ---- */
+html[data-theme="dark"] .adm-nav-menu { background: var(--bg-soft); border-color: var(--line-2); }
+html[data-theme="dark"] .adm-nav-btn,
+html[data-theme="dark"] .adm-nav-direct {
+    background: transparent; border-bottom: 2px solid transparent;
+}
+html[data-theme="dark"] .adm-nav-btn:hover,
+html[data-theme="dark"] .adm-nav-direct:hover { background: transparent; color: var(--brand); border-bottom-color: var(--brand); }
+html[data-theme="dark"] .adm-nav-btn[aria-expanded="true"],
+html[data-theme="dark"] .adm-nav-btn.is-active,
+html[data-theme="dark"] .adm-nav-direct.is-active {
+    background: transparent; color: var(--brand); border-bottom: 2px solid var(--brand);
+}
+html[data-theme="dark"] .adm-nav-btn:hover > i:first-child,
+html[data-theme="dark"] .adm-nav-direct:hover > i,
+html[data-theme="dark"] .adm-nav-btn[aria-expanded="true"] > i:first-child,
+html[data-theme="dark"] .adm-nav-btn.is-active > i:first-child,
+html[data-theme="dark"] .adm-nav-direct.is-active > i { color: var(--brand); }
+html[data-theme="dark"] .adm-nav-link:hover { background: var(--bg-tint); color: var(--ink); }
+html[data-theme="dark"] .msgcard { background: var(--bg); border-color: var(--line); }
+html[data-theme="dark"] .msgcard-subject { color: #ffffff; }
+html[data-theme="dark"] .msgcard-body, html[data-theme="dark"] .msgcard-meta { color: #cbd5e1; }
+html[data-theme="dark"] .msgcard-meta i { color: #94a3b8; }
+html[data-theme="dark"] .msgcard-topic { background: var(--bg-tint); color: #cbd5e1; }
+html[data-theme="dark"] .msgcard-tool { background: var(--bg-soft); border-color: var(--line-2); color: #cbd5e1; }
+html[data-theme="dark"] .msgcard-tool:hover { background: var(--bg-tint); color: #ffffff; }
+html[data-theme="dark"] .msgcard-tool::after { background: #f1f5f9; color: #0f172a; }
+html[data-theme="dark"] .subtab-count { background: var(--dark-3); color: #cbd5e1; }
+html[data-theme="dark"] .subtab.is-active .subtab-count,
+html[data-theme="dark"] .subtab.is-active:hover .subtab-count { background: var(--brand); color: #ffffff; }
+html[data-theme="dark"] .bar-chart.is-gridlined .bar-track { background-image: repeating-linear-gradient(to top, var(--line-2) 0 1px, transparent 1px 33.75px); }
+html[data-theme="dark"] a.top-row:hover { background: var(--bg-tint); }
+html[data-theme="dark"] .subtabs { background: var(--bg-soft); }
+html[data-theme="dark"] .subtab.is-active { background: var(--bg); color: var(--brand); }
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    .adm-nav-caret, .adm-nav-menu, .stat.stat-link, .stat-go i, .top-go, .top-fill, .msgcard, .msgcard-tool, .msgcard-tool::after { transition: none !important; }
+}
+
+/* ================================================================
+   STATIC / LEGAL PAGES  (pages/page.php: about, contact, terms, privacy, help)
+   Reading-measure column, sticky table of contents with scrollspy,
+   about hero + card grids, and the contact form/channel refinements.
+   ================================================================ */
+
+/* ---- "Last updated" chip, beside the page title ---- */
+.updated-chip {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+    padding: 4px 10px; border-radius: var(--r-pill);
+    background: var(--bg-soft); border: 1px solid var(--line);
+    font: 600 12px/1 var(--font); color: var(--ink-3); white-space: nowrap;
+}
+.updated-chip i { font-size: 11px; }
+
+/* ---- Legal pages: readable reading measure ----
+   The prose column was full container width, so on a 1440px screen a line ran to
+   120+ characters. Capping the measure is the whole fix.
+   KEPT (removed per request): the sticky "On this page" rail and its rules, plus the
+   two-column .legal-layout grid it lived in. With the rail gone the prose is just
+   centred in the container, which keeps the same comfortable line length. */
+.legal-prose { max-width: 820px; margin-inline: auto; font-size: 15px; line-height: 1.75; }
+.legal-prose h2 { scroll-margin-top: calc(var(--header-h) + 24px); }
+.legal-prose h2:first-child { margin-top: 0; }
+.legal-prose ul, .legal-prose ol { padding-left: 22px; }
+.legal-prose li { margin-bottom: 9px; }
+/* The heading block has to share the prose measure, otherwise removing the rail left
+   the h1 hard against the container edge while the centred text started 180px later.
+   !important is required because .content-hero sets `margin: 0 !important` further up. */
+.content-hero--narrow { max-width: 820px !important; margin-inline: auto !important; }
+
+/* ---- Callout boxes for the clauses that matter most ----
+   KEPT (removed per request): the thick coloured left edge (3px) on both callout
+   variants. They were the same accent-bar treatment already removed from the message
+   cards, cookie box and FAQ answers. The box is now a uniformly tinted panel, so the
+   clause still reads as highlighted without a bar down one side. */
+.legal-callout {
+    margin: 4px 0 18px; padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md); background: var(--bg-soft);
+}
+.legal-callout p { margin: 0; font-size: 14px; line-height: 1.6; }
+.legal-callout strong { color: var(--ink); }
+.legal-callout a { color: inherit; }
+.legal-callout--warn { background: var(--warn-soft); border-color: #f0dfb6; }
+.legal-callout--brand { background: var(--ok-soft); border-color: #c6e7d4; }
+
+/* ---- About: two-column hero ---- */
+.about-hero {
+    display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 40px; align-items: center;
+    padding: 26px 0 8px;
+}
+.about-hero-copy p { margin: 0 0 14px; color: var(--ink-2); font-size: 15.5px; line-height: 1.7; }
+.about-hero-copy p:last-child { margin-bottom: 0; }
+.about-hero-copy .about-lead { color: var(--ink); font-size: 18px; line-height: 1.6; letter-spacing: -0.01em; }
+
+.about-metrics {
+    display: flex; flex-direction: column; gap: 10px;
+    margin: 0; padding: 0; list-style: none;
+}
+.about-metric {
+    display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center;
+    gap: 2px 12px; padding: 13px 15px;
+    border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg-soft);
+}
+.about-metric-ico {
+    grid-row: span 2; display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: var(--r-sm);
+    background: var(--brand-soft); color: var(--brand-700); font-size: 15px;
+}
+.about-metric strong { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); line-height: 1.2; }
+.about-metric > span:last-child { font-size: 12.5px; line-height: 1.35; color: var(--ink-3); }
+
+/* ---- About: belief + persona card grids ---- */
+.feature-grid, .persona-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px; margin: 0 0 8px;
+}
+.feature-card, .persona-card {
+    display: flex; flex-direction: column;
+    padding: 20px 20px 22px; border: 1px solid var(--line);
+    border-radius: var(--r-lg); background: var(--bg);
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.feature-card:hover, .persona-card:hover { border-color: var(--line-2); box-shadow: var(--s2); transform: translateY(-2px); }
+.feature-ico, .persona-ico {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; margin-bottom: 13px; border-radius: var(--r-sm);
+    background: var(--brand-soft); color: var(--brand-700); font-size: 16px;
+}
+.feature-card h3, .persona-card h3 {
+    margin: 0 0 7px; font-size: 15.5px; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--ink); line-height: 1.3;
+}
+.feature-card p, .persona-card p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+.persona-cta {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+    font: 700 13px/1 var(--font); color: var(--brand-700); text-decoration: none;
+}
+.persona-cta i { font-size: 11px; transition: transform .15s ease; }
+.persona-cta:hover { color: var(--brand); }
+.persona-cta:hover i { transform: translateX(3px); }
+
+/* Prose should not add its own left padding around these blocks. */
+.prose .feature-grid, .prose .persona-grid { padding-left: 0; }
+
+/* ---- Contact: form alignment + char counter ---- */
+.field-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.field-label-row .form-label-static { margin-bottom: 6px; }
+.char-count {
+    font: 600 12px/1 var(--font); color: var(--ink-3);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.char-count.is-ok { color: var(--ok); }
+
+/* Topic and Subject sat at different heights with different inner padding because one
+   was a select with a static label and the other a floating-label input. Both controls
+   now share one height, border, radius and font.
+   The native <select> only needs this when JS is off - core.js replaces it with the
+   .gs-select widget, so the rule that matters in practice targets .gs-select-trigger. */
+.contact-form-col .form-row-2 select,
+.contact-form-col .form-row-2 input[type="text"],
+.contact-form-col .form-row-2 .gs-select-trigger {
+    width: 100%; height: 46px;
+    padding: 0 12px;
+    border: 1px solid var(--line-2); border-radius: 8px;
+    font: 400 14px/1 var(--font); color: var(--ink);
+    background-color: var(--bg); font-family: inherit;
+}
+/* room for the widget's chevron */
+.contact-form-col .form-row-2 .gs-select-trigger { display: flex; align-items: center; text-align: left; padding-right: 34px; }
+.contact-form-col .form-row-2 select {
+    padding-right: 38px; appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%236474a\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 11px 8px;
+}
+.contact-form-col .form-row-2 select:focus,
+.contact-form-col .form-row-2 input[type="text"]:focus,
+.contact-form-col .form-row-2 .gs-select-trigger:focus-visible {
+    border-color: var(--brand); box-shadow: none; outline: none;
+}
+
+/* ---- Contact: channel rows ---- */
+.contact-channel > div { min-width: 0; }
+/* One address per line. The manager channel lists two mailto addresses and they were
+   running together on a single line with only whitespace between them. */
+.contact-channel > div > a { display: block; width: fit-content; }
+.contact-channel em {
+    display: block; margin-top: 2px;
+    font: 400 12.5px/1.45 var(--font); color: var(--ink-3); font-style: normal;
+}
+.channel-link {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 7px;
+    font: 700 12.5px/1 var(--font) !important;
+}
+.channel-link i { font-size: 10px; }
+
+/* ---- Responsive ---- */
+@media (max-width: 980px) {
+    .about-hero { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    .about-metrics { flex-direction: row; flex-wrap: wrap; }
+    .about-metric { flex: 1 1 200px; }
+}
+@media (max-width: 760px) {
+    .feature-grid, .persona-grid { grid-template-columns: minmax(0, 1fr); }
+
+    /* Legal pages on phones share a single left rail.
+
+       Side by side, the "last updated" pill took 219px of the 367px row and squeezed
+       the h1 into a 118px column that wrapped "Terms of Service" over three lines, so
+       the pill drops to its own row under the title.
+
+       Everything else then lines up on the title's margin rather than the container
+       edge: the back arrow keeps its own narrow column on the left, and the title,
+       the pill, the hero summary and every paragraph below start at the same offset.
+       Previously the pill and the body text sat at the container edge while the title
+       was indented 29px, leaving a ragged left margin.
+
+       The arrow column is a fixed 17px instead of `auto` so the rail is a known
+       number. The two variables exist because the header grid and the prose are
+       siblings and cannot read each other's computed columns; without them the grid
+       and the text would drift apart on the next spacing tweak.
+
+       The !important flags are required: .title-back-row is declared
+       `display: inline-flex !important` further up the file (style.css:5613). */
+    :root {
+        --legal-rail-arrow: 17px;
+        --legal-rail-gap: 12px;
+        --legal-rail: calc(var(--legal-rail-arrow) + var(--legal-rail-gap));
+    }
+
+    .title-back-row:has(> .updated-chip) {
+        display: grid !important;
+        grid-template-columns: var(--legal-rail-arrow) minmax(0, 1fr);
+        grid-template-areas: "arrow title" ". chip";
+        gap: 9px var(--legal-rail-gap) !important;
+        justify-content: stretch !important;
+    }
+    .title-back-row:has(> .updated-chip) > .page-back-arrow {
+        grid-area: arrow; width: var(--legal-rail-arrow); justify-content: flex-start;
+    }
+    .title-back-row:has(> .updated-chip) > h1 { grid-area: title; }
+    .title-back-row:has(> .updated-chip) > .updated-chip {
+        grid-area: chip; justify-self: start; margin-left: 0;
+    }
+
+    .content-hero--narrow > p,
+    .legal-prose { padding-left: var(--legal-rail); }
+}
+
+/* ---- Dark mode ---- */
+html[data-theme="dark"] .legal-callout--warn { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.34); }
+html[data-theme="dark"] .legal-callout--brand { background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.34); }
+html[data-theme="dark"] .about-metric { background: var(--bg-soft); border-color: var(--line); }
+html[data-theme="dark"] .about-metric-ico,
+html[data-theme="dark"] .feature-ico, html[data-theme="dark"] .persona-ico { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+html[data-theme="dark"] .about-hero-copy .about-lead { color: #ffffff; }
+html[data-theme="dark"] .feature-card, html[data-theme="dark"] .persona-card { background: var(--bg); border-color: var(--line); }
+html[data-theme="dark"] .updated-chip { background: var(--bg-soft); border-color: var(--line); color: #94a3b8; }
+html[data-theme="dark"] .char-count.is-ok { color: #34d399; }
+html[data-theme="dark"] .contact-form-col .form-row-2 select,
+html[data-theme="dark"] .contact-form-col .form-row-2 input[type="text"] { background-color: var(--bg); border-color: var(--line-2); color: var(--ink); }
+
+/* ============ SLIDE-OVER BOOKING DRAWER ============ */
+/* Manager and admin bookings list: the row's details link opens the booking in a panel
+   instead of navigating, so the list, its filters and its scroll position survive.
+   Built and torn down by assets/js/modules/booking_drawer.js; this only styles it.
+
+   The panel is a right-hand sheet on desktop and full width on phones. Sizing follows the
+   existing --header-h token so the sheet never covers the sticky header. */
+/* z-index sits deliberately between the app's layers: above the sticky header (1000) and
+   the mobile bottom bar (1030) so the sheet covers them, but below the confirm dialog
+   (1250/1260) and toasts (1260), because the booking's own "Mark paid" and "Cancel
+   booking" buttons raise a data-confirm modal that must land on top of this panel. It also
+   stays below the mobile search sheet (2500) and the image lightbox (10000). */
+.bdrawer { position: fixed; inset: 0; z-index: 1100; display: none; }
+
+.bdrawer.is-open { display: block; }
+
+.bdrawer-scrim {
+    position: absolute; inset: 0;
+    background: rgba(6, 12, 9, .45);
+    opacity: 0; transition: opacity .22s ease;
+}
+
+.bdrawer.is-open .bdrawer-scrim { opacity: 1; }
+
+.bdrawer-panel {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: min(560px, 100%);
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    border-left: 1px solid var(--line);
+    box-shadow: -18px 0 44px -22px rgba(6, 12, 9, .38);
+    transform: translateX(100%);
+    transition: transform .26s cubic-bezier(.32, .72, 0, 1);
+    overscroll-behavior: contain;
+}
+
+/* The panel is focused on open so screen readers land inside it, but a full-height green
+   frame around the whole sheet would be the same defect the page wrapper had. */
+.bdrawer-panel:focus, .bdrawer-panel:focus-visible { outline: none; }
+
+.bdrawer.is-open .bdrawer-panel { transform: translateX(0); }
+
+.bdrawer-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    flex-shrink: 0;
+}
+
+.bdrawer-heading { min-width: 0; }
+
+.bdrawer-kicker {
+    display: block; margin-bottom: 3px;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.bdrawer-title {
+    margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25;
+    color: var(--ink); text-wrap: balance;
+}
+
+.bdrawer-close {
+    width: 38px; height: 38px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); border-radius: 50%;
+    background: var(--bg); color: var(--ink-2); font-size: 15px; cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+.bdrawer-close:hover { background: var(--bg-soft); color: var(--ink); }
+
+.bdrawer-body {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 18px 20px 40px;
+}
+
+/* The injected page keeps its own 820px cap and top padding, which would double up here. */
+.bdrawer-body .bd-wrap { max-width: none; margin: 0; }
+
+.bdrawer-body .bd-backlink { display: none; }
+
+.bdrawer-loading, .bdrawer-error {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; padding: 56px 20px; text-align: center; color: var(--ink-3);
+}
+
+.bdrawer-error i { font-size: 26px; color: var(--ink-3); }
+.bdrawer-error p { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+.bdrawer-spinner {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--line); border-top-color: var(--brand);
+    animation: bdrawer-spin .7s linear infinite;
+}
+
+@keyframes bdrawer-spin { to { transform: rotate(360deg); } }
+
+/* Scroll lock while the sheet is open. The gap compensation is set from JS. */
+body.bdrawer-locked { overflow: hidden; }
+
+@media (max-width: 560px) {
+    .bdrawer-head { padding: 14px 16px 13px; }
+    .bdrawer-body { padding: 14px 16px 32px; }
+    .bdrawer-title { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bdrawer-scrim, .bdrawer-panel { transition: none; }
+    .bdrawer-spinner { animation: none; }
+}
+
+html[data-theme="dark"] .bdrawer-panel { background: var(--bg); border-left-color: var(--dark-3); box-shadow: -18px 0 44px -22px rgba(0, 0, 0, .7); }
+html[data-theme="dark"] .bdrawer-head { border-bottom-color: var(--dark-3); }
+html[data-theme="dark"] .bdrawer-scrim { background: rgba(0, 0, 0, .6); }

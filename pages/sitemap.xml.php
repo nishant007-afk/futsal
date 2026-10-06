@@ -9,10 +9,7 @@ $urls = [];
 
 $urls[] = ['loc' => absolute_url('/'), 'changefreq' => 'daily', 'priority' => '1.0'];
 $urls[] = ['loc' => absolute_url('pages/courts.php'), 'changefreq' => 'daily', 'priority' => '0.9'];
-$urls[] = ['loc' => absolute_url('pages/favorites.php'), 'changefreq' => 'weekly', 'priority' => '0.5'];
-$urls[] = ['loc' => absolute_url('pages/my_bookings.php'), 'changefreq' => 'weekly', 'priority' => '0.6'];
-$urls[] = ['loc' => absolute_url('pages/login.php'), 'changefreq' => 'monthly', 'priority' => '0.4'];
-$urls[] = ['loc' => absolute_url('pages/register.php'), 'changefreq' => 'monthly', 'priority' => '0.4'];
+$urls[] = ['loc' => absolute_url('pages/faq.php'), 'changefreq' => 'weekly', 'priority' => '0.7'];
 $urls[] = ['loc' => absolute_url('pages/page.php?slug=contact'), 'changefreq' => 'monthly', 'priority' => '0.5'];
 $legal = legal_pages_defaults();
 foreach ($legal as $slug => $info) {

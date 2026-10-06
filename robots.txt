@@ -1,8 +1,11 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /futsal/admin/
 Disallow: /manager/
+Disallow: /futsal/manager/
 Disallow: /config/
+Disallow: /deploy/
 Disallow: /tools/
 Disallow: /uploads/
 Disallow: /pages/login.php
@@ -30,4 +33,5 @@ Disallow: /pages/contact_submit.php
 Disallow: /auth/
 Crawl-delay: 10
 
+Sitemap: https://goalspace.app/sitemap.xml
 Sitemap: https://goalspace.app/futsal/sitemap.xml

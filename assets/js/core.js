@@ -515,28 +515,35 @@ document.addEventListener('DOMContentLoaded', function () {
         reveals.forEach(function (el) { el.classList.add('visible'); });
     }
 
-    document.querySelectorAll('[data-confirm]').forEach(function (el) {
-        el.addEventListener('click', function (e) {
-            e.preventDefault();
-            openConfirmModal(el.dataset.confirm, function () {
-                showLoader();
-                if (el.tagName === 'A') {
-                    window.location.href = el.href;
-                } else if (el.tagName === 'BUTTON' && el.type === 'submit') {
-                    const f = el.form || el.closest('form');
-                    if (f) f.submit();
-                }
-            }, {
-                okText: el.dataset.confirmOk || confirmOkLabel(el.dataset.confirm),
-                cancelText: el.dataset.confirmCancel || 'Cancel',
-                title: el.dataset.confirmTitle || '',
-                type: el.dataset.confirmType || '',
-                userName: el.dataset.userName || '',
-                userEmail: el.dataset.userEmail || '',
-                userRole: el.dataset.userRole || '',
-                userAvatar: el.dataset.userAvatar || '',
-                userInitial: el.dataset.userInitial || ''
-            });
+    /* Confirmation prompts for destructive actions (cancel booking, mark paid, logout...).
+
+       Delegated on document rather than bound per element: the booking drawer injects a
+       whole booking page after load, and a querySelectorAll pass at DOMContentLoaded would
+       leave its "Cancel booking" and "Mark paid" buttons with no handler at all, so those
+       forms would submit on the first click with no confirmation. Delegation covers any
+       content added later, present or future. */
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-confirm]');
+        if (!el) return;
+        e.preventDefault();
+        openConfirmModal(el.dataset.confirm, function () {
+            showLoader();
+            if (el.tagName === 'A') {
+                window.location.href = el.href;
+            } else if (el.tagName === 'BUTTON' && el.type === 'submit') {
+                const f = el.form || el.closest('form');
+                if (f) f.submit();
+            }
+        }, {
+            okText: el.dataset.confirmOk || confirmOkLabel(el.dataset.confirm),
+            cancelText: el.dataset.confirmCancel || 'Cancel',
+            title: el.dataset.confirmTitle || '',
+            type: el.dataset.confirmType || '',
+            userName: el.dataset.userName || '',
+            userEmail: el.dataset.userEmail || '',
+            userRole: el.dataset.userRole || '',
+            userAvatar: el.dataset.userAvatar || '',
+            userInitial: el.dataset.userInitial || ''
         });
     });
 

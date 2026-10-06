@@ -301,7 +301,7 @@ function settings_sidebar(string $active): void
         <a href="<?php echo base_url('pages/profile.php'); ?>" class="stg-sidebar-user">
             <span class="stg-sidebar-avatar">
                 <?php if (!empty($user['avatar'])): ?>
-                    <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="" loading="lazy" decoding="async">
+                    <img src="<?php echo base_url('uploads/avatars/' . rawurlencode($user['avatar'])); ?>" alt="Profile photo" loading="lazy" decoding="async">
                 <?php else: ?>
                     <?php echo e(strtoupper(substr($user['name'], 0, 1))); ?>
                 <?php endif; ?>

@@ -54,13 +54,18 @@ require __DIR__ . '/../includes/header.php';
 <div class="content-hero">
     <div class="title-back-row">
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1>Announce a policy update</h1>
+        <h1>Broadcasts &amp; Announcements</h1>
     </div>
     <div class="hero-subtext">
         <p class="muted"><strong>When to use:</strong> Run this after you update legal pages in <code>pages/page.php</code>.</p>
         <p class="muted"><strong>What happens:</strong> Each recipient gets one combined message (every selected page in a single email) and one notification in their tab.</p>
     </div>
 </div>
+
+<nav class="subtabs" aria-label="Broadcast type">
+    <a class="subtab" href="<?php echo base_url('admin/announce.php'); ?>"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> General announcement</a>
+    <a class="subtab is-active" href="<?php echo base_url('admin/notify_policy.php'); ?>" aria-current="page"><i class="fa-solid fa-file-pen" aria-hidden="true"></i> Policy update notice</a>
+</nav>
 
 <form method="post" action="" novalidate>
     <?php echo csrf_field(); ?>
@@ -118,7 +123,10 @@ require __DIR__ . '/../includes/header.php';
     .tick-row:hover, .scope-row:hover, .tick-row:focus-within, .scope-row:focus-within { background: transparent; }
     .tick-row label:hover, .scope-row .scope-label:hover { background: transparent; color: inherit; }
     .hero-subtext { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-    .hero-subtext p { margin: 0; padding: 10px 14px; background: var(--bg-soft); border-radius: 6px; border-left: 3px solid var(--brand); }
+    /* KEPT (removed per request): border-left: 3px solid var(--brand) on .hero-subtext p -
+       the same accent bar removed from the message cards, cookie box and FAQ answers.
+       The tinted panel still separates each block. */
+    .hero-subtext p { margin: 0; padding: 10px 14px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 8px; }
     .hero-subtext p strong { color: var(--ink); }
     </style>
 

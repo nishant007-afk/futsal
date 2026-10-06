@@ -355,7 +355,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3><?php echo $hasFilters ? 'No bookings match your filters' : 'No bookings on your grounds yet'; ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : 'When players reserve a slot, it will appear here.'; ?></p></div>
 <?php else: ?>
 
-        <?php bookings_table_html($rows, ['show_player' => true, 'manager_action' => true]); ?>
+        <?php bookings_table_html($rows, ['show_player' => true, 'manager_action' => true, 'drawer' => true]); ?>
 
     <?php if ($totalPages > 1): ?>
         <nav class="pagination" aria-label="Bookings pages" data-ajax-link="bookingsResults">

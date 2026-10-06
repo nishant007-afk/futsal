@@ -54,12 +54,27 @@ while ($row = $monthRows->fetch_assoc()) {
 $maxNet = max(1, max(array_column($months, 'net')));
 
 $topGrounds = $conn->query(
-    'SELECT g.name, COUNT(*) bookings, COALESCE(SUM(b.total_price - COALESCE(b.discount, 0)),0) revenue
+    'SELECT g.id, g.name, COUNT(*) bookings, COALESCE(SUM(b.total_price - COALESCE(b.discount, 0)),0) revenue
      FROM bookings b JOIN grounds g ON g.id = b.ground_id
      WHERE b.status != "cancelled"
      GROUP BY g.id ORDER BY revenue DESC LIMIT 5'
 )->fetch_all(MYSQLI_ASSOC);
 $maxTop = max(1, max(array_map(fn($t) => (float)$t['revenue'], $topGrounds) ?: [1]));
+
+// One currency format for every figure on this page. The charts previously mixed
+// an abbreviated "Rs 12k" on the revenue bars with a full "Rs 12,450" beside the
+// top-courts bars, so the two panels could not be read against each other.
+function chart_money(float $amount): string
+{
+    $amount = max(0.0, $amount);
+    if ($amount >= 100000) {
+        return 'Rs ' . rtrim(rtrim(number_format($amount / 100000, 1), '0'), '.') . 'L';
+    }
+    if ($amount >= 1000) {
+        return 'Rs ' . rtrim(rtrim(number_format($amount / 1000, 1), '0'), '.') . 'k';
+    }
+    return 'Rs ' . number_format($amount, 0);
+}
 
 // Managers who haven't paid the setup fee yet
 $setupPending = $conn->query(
@@ -90,7 +105,10 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="stat-grid">
+<?php /* KEPT (removed per request): this grid was .stat-grid on its own, which resolved to
+       `repeat(auto-fit, minmax(200px,1fr))` and broke as 4 + 2, leaving a wide empty
+       gap on the right of the second row. `.six` pins two clean rows of three. */ ?>
+<div class="stat-grid six">
     <div class="stat reveal">
         <h3>Bookings Revenue</h3>
         <p class="stat-amount"><?php echo format_price($revenue); ?></p>
@@ -116,11 +134,18 @@ require __DIR__ . '/../includes/header.php';
         <p><?php echo $activeSubs; ?></p>
         <span class="muted"><?php echo $setupCollected; ?> / <?php echo $managerCount; ?> managers setup</span>
     </div>
-    <div class="stat reveal">
+    <?php /* Actionable: goes straight to the delinquent accounts, pre-filtered. */ ?>
+    <a class="stat stat-link reveal" href="<?php echo base_url('admin/settlements.php?filter=overdue'); ?>"
+       <?php if ($overdueSubs === 0): ?>aria-disabled="true"<?php endif; ?>>
         <h3>Overdue Accounts</h3>
         <p style="color: <?php echo $overdueSubs > 0 ? 'var(--warn)' : 'var(--ink)'; ?>;"><?php echo $overdueSubs; ?></p>
         <span class="muted"><?php echo $overdueSubs > 0 ? 'Requires subscription renewal' : 'All accounts current'; ?></span>
-    </div>
+        <?php if ($overdueSubs > 0): ?>
+            <span class="stat-go">Review delinquent accounts <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        <?php else: ?>
+            <span class="stat-go" hidden>Review delinquent accounts <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        <?php endif; ?>
+    </a>
 </div>
 
 <?php if ($setupPending): ?>
@@ -140,12 +165,19 @@ require __DIR__ . '/../includes/header.php';
             <!-- KEPT (removed per request): this read "Monthly gross"; the figure is net of discount. -->
             <span class="muted" style="font-weight: 500; font-size: 13px;">Monthly net</span>
         </div>
-        <div class="bar-chart" role="img" aria-label="Monthly net revenue">
+        <div class="bar-chart is-gridlined" role="img" aria-label="Monthly net revenue">
             <?php foreach ($months as $ym => $m): ?>
-                <?php $pct = $maxNet > 0 ? round(($m['net'] / $maxNet) * 100, 1) : 0; ?>
-                <div class="bar-group" title="<?php echo $m['label']; ?>: Rs <?php echo number_format($m['net'], 0); ?> net (<?php echo $m['count']; ?> bookings)">
-                    <div class="bar-track"><div class="bar-fill" style="height:<?php echo max((int)$pct, 6); ?>%;"></div></div>
-                    <div class="bar-value"><?php echo $m['net'] > 0 ? 'Rs ' . number_format($m['net'] / 1000, 0) . 'k' : '-'; ?></div>
+                <?php
+                    $pct = $maxNet > 0 ? round(($m['net'] / $maxNet) * 100, 1) : 0;
+                    // Floor the bar so a low-earning month reads as a short bar rather
+                    // than a broken sliver. A month with no revenue at all still gets a
+                    // small stub so the baseline never looks like a rendering failure.
+                    // KEPT (removed per request): the floor was a flat 6%.
+                    $barPct = max((int)$pct, $m['net'] > 0 ? 8 : 4);
+                ?>
+                <div class="bar-group" title="<?php echo $m['label']; ?>: <?php echo chart_money((float)$m['net']); ?> net (<?php echo $m['count']; ?> bookings)">
+                    <div class="bar-track"><div class="bar-fill" style="height:<?php echo $barPct; ?>%;"></div></div>
+                    <div class="bar-value"><?php echo chart_money((float)$m['net']); ?></div>
                     <div class="bar-label"><?php echo e($m['label']); ?></div>
                 </div>
             <?php endforeach; ?>
@@ -161,14 +193,19 @@ require __DIR__ . '/../includes/header.php';
         <?php else: ?>
             <div class="top-grounds">
                 <?php foreach ($topGrounds as $i => $tg): ?>
-                    <div class="top-row" title="<?php echo e($tg['name']); ?>">
+                    <?php /* Bars stay measured against the top earner; the 4% floor keeps a
+                             very low earner visible instead of collapsing to a dot. */ ?>
+                    <?php $topPct = max(4, round((float)$tg['revenue'] / $maxTop * 100, 1)); ?>
+                    <a class="top-row" href="<?php echo base_url('admin/grounds.php?edit=' . (int)$tg['id']); ?>"
+                       title="Manage <?php echo e($tg['name']); ?>">
                         <span class="top-rank"><?php echo $i + 1; ?></span>
                         <div class="top-main">
                             <span class="top-name"><?php echo e($tg['name']); ?></span>
-                            <div class="top-track"><div class="top-fill" style="width: <?php echo round((float)$tg['revenue'] / $maxTop * 100, 1); ?>%;"></div></div>
+                            <div class="top-track"><div class="top-fill" style="width: <?php echo $topPct; ?>%;"></div></div>
                         </div>
-                        <span class="top-val">Rs <?php echo number_format((float)$tg['revenue'], 0); ?></span>
-                    </div>
+                        <span class="top-val"><?php echo chart_money((float)$tg['revenue']); ?></span>
+                        <i class="fa-solid fa-arrow-right top-go" aria-hidden="true"></i>
+                    </a>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

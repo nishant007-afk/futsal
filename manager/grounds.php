@@ -1168,10 +1168,12 @@ $inactiveCourts = $totalCourts - $activeCourts;
      .editor-panel-card .form-group            margin-bottom: 18px
    ============================================================ */
 
-/* 1. Restore room for the floated label (floating inputs only). */
+/* 1. Restore room for the floated label (floating inputs only).
+      KEPT (removed per request): min-height: 60px; padding: 30px 14px 8px;
+      and on mobile min-height: 56px; padding: 27px 13px 7px.  */
 .editor-panel-card .input-group.floating input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
-    min-height: 60px;
-    padding: 30px 14px 8px !important;
+    min-height: 46px;
+    padding: 21px 14px 2px !important;
 }
 
 /* 2. Tighter, single-source spacing: the grid gap owns the rhythm, the
@@ -1198,8 +1200,8 @@ $inactiveCourts = $totalCourts - $activeCourts;
         gap: 10px;
     }
     .editor-panel-card .input-group.floating input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
-        min-height: 56px;
-        padding: 27px 13px 7px !important;
+        min-height: 46px;
+        padding: 21px 13px 2px !important;
     }
 }
 </style>

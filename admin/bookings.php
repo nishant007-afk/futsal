@@ -217,7 +217,7 @@ require __DIR__ . '/../includes/header.php';
                 <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', ''); ?>
             <?php endif; ?>
         <?php else: ?>
-            <?php bookings_table_html($bookings, ['show_player' => true, 'show_ref' => true]); ?>
+            <?php bookings_table_html($bookings, ['show_player' => true, 'show_ref' => true, 'drawer' => true]); ?>
         <?php endif; ?>
 
         <?php if ($totalPages > 1): ?>

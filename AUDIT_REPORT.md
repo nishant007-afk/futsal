@@ -1,7 +1,7 @@
-# GoalSpace Futsal Booking — Full-Stack Audit Report
+# GoalSpace Futsal Booking - Full-Stack Audit Report
 
 **Date:** September 22, 2026
-**Application:** GoalSpace — Futsal Court Booking Platform (PHP/MySQL)
+**Application:** GoalSpace - Futsal Court Booking Platform (PHP/MySQL)
 **Scope:** Every page, every route, every role, every layer
 
 ---
@@ -72,11 +72,11 @@
 
 ### Critical Issues (Must Fix)
 
-1. **Stored XSS in admin page editor** — Raw HTML stored for legal pages without server-side sanitization
-2. **No last-admin demotion guard** — Admin can demote themselves, locking out all admins
-3. **Dark mode is non-functional** — Only ~5% of components have dark overrides
-4. **`queue_worker.php` missing CLI guard** — Accessible via HTTP if .htaccess is misconfigured
-5. **SMTP TLS certificate not verified** — MITM risk on email delivery
+1. **Stored XSS in admin page editor** - Raw HTML stored for legal pages without server-side sanitization
+2. **No last-admin demotion guard** - Admin can demote themselves, locking out all admins
+3. **Dark mode is non-functional** - Only ~5% of components have dark overrides
+4. **`queue_worker.php` missing CLI guard** - Accessible via HTTP if .htaccess is misconfigured
+5. **SMTP TLS certificate not verified** - MITM risk on email delivery
 
 ### What's Done Well
 
@@ -225,13 +225,13 @@
 ### Admin Flow
 1. **Admin dashboard** → Revenue, user counts, top grounds
 2. **User management** → List, search, filter, change roles, delete
-3. **Ground management** — CRUD for all grounds
-4. **Booking management** — View/cancel all bookings
-5. **Announcements** — Broadcast notifications + email
-6. **Settlements** — Mark setup paid, record renewals
-7. **Contact messages** — View, resolve, delete
-8. **Legal pages** — Edit about/terms/privacy/help/contact
-9. **Policy notifications** — Send policy update notices
+3. **Ground management** - CRUD for all grounds
+4. **Booking management** - View/cancel all bookings
+5. **Announcements** - Broadcast notifications + email
+6. **Settlements** - Mark setup paid, record renewals
+7. **Contact messages** - View, resolve, delete
+8. **Legal pages** - Edit about/terms/privacy/help/contact
+9. **Policy notifications** - Send policy update notices
 
 ---
 
@@ -250,11 +250,11 @@
 - Promo code validation is thorough (per-user abuse prevention)
 
 ### Issues
-1. **`book.php` redirects to index instead of login** — Inconsistent with all other protected pages that redirect to `/pages/login.php`
-2. **Dark mode is non-functional** — Only ~5% of components have dark overrides. Toggle exists but page stays light.
-3. **Settings pages are verbose** — Settings overview (`settings.php`) shows profile info that's already on profile page
-4. **No booking confirmation email preview** — User doesn't see what email they'll receive
-5. **No "back to court" link after booking** — After booking, user is on receipt page with no obvious path back to browse
+1. **`book.php` redirects to index instead of login** - Inconsistent with all other protected pages that redirect to `/pages/login.php`
+2. **Dark mode is non-functional** - Only ~5% of components have dark overrides. Toggle exists but page stays light.
+3. **Settings pages are verbose** - Settings overview (`settings.php`) shows profile info that's already on profile page
+4. **No booking confirmation email preview** - User doesn't see what email they'll receive
+5. **No "back to court" link after booking** - After booking, user is on receipt page with no obvious path back to browse
 
 ### Security
 - All player routes properly require authentication
@@ -277,11 +277,11 @@
 - Promo code CRUD with thorough validation
 
 ### Issues
-1. **No bulk actions on bookings** — Manager must cancel/mark-paid one at a time
-2. **No booking export** — Manager cannot export their bookings to CSV
-3. **No revenue dashboard** — Financial summary exists but no trend charts
-4. **No customer list** — Manager cannot see who booked their courts
-5. **Subscription page is read-only** — Manager cannot initiate payment
+1. **No bulk actions on bookings** - Manager must cancel/mark-paid one at a time
+2. **No booking export** - Manager cannot export their bookings to CSV
+3. **No revenue dashboard** - Financial summary exists but no trend charts
+4. **No customer list** - Manager cannot see who booked their courts
+5. **Subscription page is read-only** - Manager cannot initiate payment
 
 ### Security
 - `require_manager()` allows admin bypass (by design)
@@ -303,13 +303,13 @@
 - Legal page CMS editor
 
 ### Issues
-1. **No last-admin demotion guard** — Critical: admin can demote all admins including themselves
-2. **No audit trail** — Admin actions (role changes, deletions, edits) are not logged
-3. **No admin-to-admin protection** — Any admin can edit/delete any other admin
-4. **CSV/Excel double-output bug** — When both `export` and `export_excel` GET params are set, both run
-5. **No email uniqueness check on user edit** — Could create duplicate accounts
-6. **Stored XSS in page editor** — Raw HTML body stored without server-side sanitization
-7. **Announcement body unsanitized** — Potential stored XSS in notification body
+1. **No last-admin demotion guard** - Critical: admin can demote all admins including themselves
+2. **No audit trail** - Admin actions (role changes, deletions, edits) are not logged
+3. **No admin-to-admin protection** - Any admin can edit/delete any other admin
+4. **CSV/Excel double-output bug** - When both `export` and `export_excel` GET params are set, both run
+5. **No email uniqueness check on user edit** - Could create duplicate accounts
+6. **Stored XSS in page editor** - Raw HTML body stored without server-side sanitization
+7. **Announcement body unsanitized** - Potential stored XSS in notification body
 
 ### Security
 - `require_admin()` with IP whitelist enforced
@@ -322,23 +322,23 @@
 ## 7. Public Website Audit
 
 ### Pages Inspected
-- Homepage (landing_home.php) — 200 OK
-- Courts listing (courts.php) — 200 OK
-- Court detail (ground.php?id=1) — 200 OK
-- FAQ (faq.php) — 200 OK
-- About (page.php?slug=about) — 200 OK
-- Terms (page.php?slug=terms) — 200 OK
-- Privacy (page.php?slug=privacy) — 200 OK
-- Help (page.php?slug=help) — 200 OK
-- Contact (page.php?slug=contact) — 200 OK
-- Login (login.php) — 200 OK
-- Register (register.php) — 200 OK
-- Forgot password (forgot_password.php) — 200 OK
-- 404 page — 404 status, proper content
-- Sitemap (sitemap.xml.php) — 200 OK, valid XML
-- robots.txt — 200 OK, proper disallows
-- manifest.json — 200 OK, PWA config
-- offline.html — 200 OK
+- Homepage (landing_home.php) - 200 OK
+- Courts listing (courts.php) - 200 OK
+- Court detail (ground.php?id=1) - 200 OK
+- FAQ (faq.php) - 200 OK
+- About (page.php?slug=about) - 200 OK
+- Terms (page.php?slug=terms) - 200 OK
+- Privacy (page.php?slug=privacy) - 200 OK
+- Help (page.php?slug=help) - 200 OK
+- Contact (page.php?slug=contact) - 200 OK
+- Login (login.php) - 200 OK
+- Register (register.php) - 200 OK
+- Forgot password (forgot_password.php) - 200 OK
+- 404 page - 404 status, proper content
+- Sitemap (sitemap.xml.php) - 200 OK, valid XML
+- robots.txt - 200 OK, proper disallows
+- manifest.json - 200 OK, PWA config
+- offline.html - 200 OK
 
 All public pages load correctly with no errors.
 
@@ -449,7 +449,7 @@ All hidden/internal pages are properly protected.
 ### Assessment
 - Navigation is clean and role-appropriate
 - Mobile bottom nav provides quick access to primary actions
-- Admin has the most items (9 sidebar items) — at the limit of usability
+- Admin has the most items (9 sidebar items) - at the limit of usability
 - The "More" panel on admin mobile is a good solution for overflow
 
 ---
@@ -504,12 +504,12 @@ The navbar is well-structured:
 ## 14. Footer Audit
 
 **Current State:** Two footer variants:
-1. **Full footer** on public/landing pages — 4-column grid with brand, players, owners, company, contact
-2. **Compact footer** on app/checkout pages — Copyright + legal links only
+1. **Full footer** on public/landing pages - 4-column grid with brand, players, owners, company, contact
+2. **Compact footer** on app/checkout pages - Copyright + legal links only
 
 **Issues:**
-1. Contact info shows placeholder email (hello@goalspace.com) and phone (+977 9800 000 000) — these should be real
-2. Footer is not shown on most authenticated pages (by design — compact footer only)
+1. Contact info shows placeholder email (hello@goalspace.com) and phone (+977 9800 000 000) - these should be real
+2. Footer is not shown on most authenticated pages (by design - compact footer only)
 
 **Verdict: KEEP with real contact info.** The dual-footer approach is correct.
 
@@ -561,10 +561,10 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - **375px:** Full mobile, all content readable, forms functional
 
 ### Issues
-1. **Tables on mobile** — Booking tables in admin/manager use card-based layout (`mbooking--card`) which works well
-2. **Date pickers on mobile** — Use native date inputs, which is correct
-3. **Maps on mobile** — Leaflet maps are responsive and touch-friendly
-4. **Image gallery** — Lightbox works on mobile with swipe-like prev/next
+1. **Tables on mobile** - Booking tables in admin/manager use card-based layout (`mbooking--card`) which works well
+2. **Date pickers on mobile** - Use native date inputs, which is correct
+3. **Maps on mobile** - Leaflet maps are responsive and touch-friendly
+4. **Image gallery** - Lightbox works on mobile with swipe-like prev/next
 
 **Verdict: GOOD.** Responsive implementation is thorough. No breaking issues found.
 
@@ -583,9 +583,9 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - Proper viewport meta tag
 
 ### Issues
-1. **No pull-to-refresh** — Not critical for this app type
-2. **No swipe gestures** on booking cards — Minor
-3. **Image gallery lacks swipe** — Only prev/next buttons
+1. **No pull-to-refresh** - Not critical for this app type
+2. **No swipe gestures** on booking cards - Minor
+3. **Image gallery lacks swipe** - Only prev/next buttons
 
 **Verdict: GOOD.** Mobile experience is well-implemented for a booking app.
 
@@ -638,10 +638,10 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - **Border radius:** 3 levels cover all needs.
 
 ### Issues
-1. **Dark mode tokens not defined** — Only light tokens exist
+1. **Dark mode tokens not defined** - Only light tokens exist
 2. **Hardcoded colors** appear in ~20 places alongside CSS variables
-3. **Duplicate selectors** — `.btn-outline-dark` = `.btn-outline`
-4. **Skeleton system is dead code** — ~200 lines immediately torn down
+3. **Duplicate selectors** - `.btn-outline-dark` = `.btn-outline`
+4. **Skeleton system is dead code** - ~200 lines immediately torn down
 5. **Duplicate `fadeIn` keyframe** at lines 66 and 671
 
 **Verdict: REFINED.** The design system is solid but needs dark mode tokens and dead code removal.
@@ -656,7 +656,7 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - ✅ `aria-label` on close buttons, gallery nav, OTP boxes
 - ✅ `aria-expanded` on profile button, nav toggles, search
 - ✅ `aria-pressed` on slot grid buttons
-- ✅ `prefers-reduced-motion` — comprehensive support
+- ✅ `prefers-reduced-motion` - comprehensive support
 - ✅ Semantic HTML (header, nav, main, footer, h1-h4)
 - ✅ Form labels and error associations
 - ✅ Color contrast ratios meet WCAG AA
@@ -684,11 +684,11 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - **PWA:** Service worker with network-first strategy
 
 ### Issues
-1. **Massive single CSS file** — No code splitting, no critical CSS
-2. **Font Awesome full bundle** — ~200KB loaded, only ~30 icons used
-3. **Dead skeleton code** — ~200 lines of CSS immediately removed
-4. **Mixed XHR/Fetch** — Favorites use XMLHttpRequest, everything else uses fetch
-5. **Polling for autofill** — `setInterval` runs 30 times at 100ms on every page
+1. **Massive single CSS file** - No code splitting, no critical CSS
+2. **Font Awesome full bundle** - ~200KB loaded, only ~30 icons used
+3. **Dead skeleton code** - ~200 lines of CSS immediately removed
+4. **Mixed XHR/Fetch** - Favorites use XMLHttpRequest, everything else uses fetch
+5. **Polling for autofill** - `setInterval` runs 30 times at 100ms on every page
 6. **No CSS/JS minification** evident (vendor files are minified)
 7. **Duplicate fadeIn keyframe** defined twice
 
@@ -720,11 +720,11 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 - Upload directories have PHP execution disabled
 
 ### Issues
-1. **Monolithic `functions.php`** — 2400 lines of business logic in one file
-2. **Global `$conn`** — Database connection passed via global variable
-3. **No PSR compliance** — No autoloading, no namespaces
-4. **No dependency injection** — Functions directly call `global $conn`
-5. **SMTP TLS not verified** — `stream_socket_enable_crypto` without cert verification
+1. **Monolithic `functions.php`** - 2400 lines of business logic in one file
+2. **Global `$conn`** - Database connection passed via global variable
+3. **No PSR compliance** - No autoloading, no namespaces
+4. **No dependency injection** - Functions directly call `global $conn`
+5. **SMTP TLS not verified** - `stream_socket_enable_crypto` without cert verification
 
 ---
 
@@ -758,9 +758,9 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 ### Issues
 1. **Missing FK constraints** on `promo_codes.manager_id`, `password_resets.user_id`, `favorites.user_id`, `login_attempts`
 2. **Missing indexes** on `bookings.user_id` (used in queries), `reviews.user_id`
-3. **`slot_key` generated column** — Clever UNIQUE constraint for double-booking prevention, but uses `IF(status='cancelled', NULL, ...)` which means cancelled slots don't free the unique key. Actually, NULL values are not considered equal by UNIQUE, so this works correctly.
-4. **No `ON DELETE` for `promo_codes`** — If a manager is deleted, promo codes become orphaned
-5. **No `ON DELETE` for `password_resets`** — Orphaned reset tokens
+3. **`slot_key` generated column** - Clever UNIQUE constraint for double-booking prevention, but uses `IF(status='cancelled', NULL, ...)` which means cancelled slots don't free the unique key. Actually, NULL values are not considered equal by UNIQUE, so this works correctly.
+4. **No `ON DELETE` for `promo_codes`** - If a manager is deleted, promo codes become orphaned
+5. **No `ON DELETE` for `password_resets`** - Orphaned reset tokens
 
 ---
 
@@ -779,7 +779,7 @@ All breakpoints tested via CSS. The application handles responsive transitions w
 
 ### Issues
 1. **No rate limiting** on `search_suggest.php`, `grounds_json.php`, `favorite.php`, `review_helpful.php`, `place_search.php`
-2. **`grounds_json.php`** has no HTTP method check — accepts any method
+2. **`grounds_json.php`** has no HTTP method check - accepts any method
 3. **`review_helpful.php`** has race condition on duplicate vote check (mitigated by UNIQUE constraint)
 
 ---
@@ -937,11 +937,11 @@ All protected pages tested via HTTP requests without authentication:
 - Service worker for offline support
 
 ### Issues
-1. **Single 2300-line CSS file** — No code splitting
-2. **Font Awesome full bundle** — ~200KB for ~30 icons used
-3. **Dead skeleton CSS** — ~200 lines immediately removed
+1. **Single 2300-line CSS file** - No code splitting
+2. **Font Awesome full bundle** - ~200KB for ~30 icons used
+3. **Dead skeleton CSS** - ~200 lines immediately removed
 4. **setInterval polling** for autofill detection (30×100ms on every page)
-5. **No critical CSS extraction** — Full CSS blocks render
+5. **No critical CSS extraction** - Full CSS blocks render
 6. **No image optimization pipeline** beyond WebP conversion
 7. **Google Fonts loaded without preconnect** (preconnect is present, actually)
 8. **No resource hints** for API endpoints
@@ -1030,13 +1030,13 @@ SEO is solid for a local booking platform. The JSON-LD on court detail pages is 
 ## 34. UI/UX Reference Research
 
 ### Design Patterns Successfully Used
-- **Card-based court listing** — Standard for marketplace apps
-- **Slot grid selection** — Clear visual availability
-- **Sticky header with scroll hide** — Saves vertical space
-- **Bottom navigation on mobile** — Standard for apps with 3-5 primary destinations
-- **Toast notifications** — Non-intrusive feedback
-- **Skeleton loading** — Perceived performance (though dead code currently)
-- **Role-based theming** — Unique differentiator
+- **Card-based court listing** - Standard for marketplace apps
+- **Slot grid selection** - Clear visual availability
+- **Sticky header with scroll hide** - Saves vertical space
+- **Bottom navigation on mobile** - Standard for apps with 3-5 primary destinations
+- **Toast notifications** - Non-intrusive feedback
+- **Skeleton loading** - Perceived performance (though dead code currently)
+- **Role-based theming** - Unique differentiator
 
 ### Patterns That Could Be Improved
 - Search could use a command palette pattern (but not necessary for this scale)
@@ -1070,15 +1070,15 @@ SEO is solid for a local booking platform. The JSON-LD on court detail pages is 
 
 ## 36. What Should Be Removed
 
-1. **Dead skeleton CSS code** — ~200 lines immediately torn down on DOMContentLoaded
-2. **`tools/preview.php`** — Dev tool should not exist in production
-3. **Deploy scripts** (`deploy/` directory) — Should be deleted after deployment
-4. **Duplicate `fadeIn` keyframe** — Defined twice in CSS
-5. **Duplicate button classes** — `.btn-outline-dark` = `.btn-outline`, `.btn-ghost-dark` = `.btn-ghost`
-6. **Dev OTP display in `otp_verify.php`** — Leaks codes on localhost
-7. **`futsal_low/` directory** — Wireframe directory should not be in production
-8. **`~$oposal.docx`** — Temp file from word processor
-9. **Polling for autofill** — 30×100ms setInterval on every page
+1. **Dead skeleton CSS code** - ~200 lines immediately torn down on DOMContentLoaded
+2. **`tools/preview.php`** - Dev tool should not exist in production
+3. **Deploy scripts** (`deploy/` directory) - Should be deleted after deployment
+4. **Duplicate `fadeIn` keyframe** - Defined twice in CSS
+5. **Duplicate button classes** - `.btn-outline-dark` = `.btn-outline`, `.btn-ghost-dark` = `.btn-ghost`
+6. **Dev OTP display in `otp_verify.php`** - Leaks codes on localhost
+7. **`futsal_low/` directory** - Wireframe directory should not be in production
+8. **`~$oposal.docx`** - Temp file from word processor
+9. **Polling for autofill** - 30×100ms setInterval on every page
 
 ---
 
@@ -1092,11 +1092,11 @@ SEO is solid for a local booking platform. The JSON-LD on court detail pages is 
 5. **SMTP TLS certificate verification**
 
 ### Important
-6. **Admin audit trail** — Log role changes, user edits, user deletions
+6. **Admin audit trail** - Log role changes, user edits, user deletions
 7. **Email uniqueness check** in `admin/edit_user.php`
-8. **Dark mode completion** — Implement for all components or remove the toggle
+8. **Dark mode completion** - Implement for all components or remove the toggle
 9. **ARIA live regions** for toasts and search results
-10. **CSS code splitting** — At minimum separate: base, components, layout, pages
+10. **CSS code splitting** - At minimum separate: base, components, layout, pages
 
 ### Nice-to-Have
 11. **Booking progress indicator** (Step 1 of 3)
@@ -1111,16 +1111,16 @@ SEO is solid for a local booking platform. The JSON-LD on court detail pages is 
 
 ## 38. What Should NOT Be Added
 
-1. **Command palette** — Unnecessary for this app's complexity level
-2. **Mega menu** — Navigation is already clean with 4-5 items
-3. **Complex dashboard with 10+ charts** — Manager needs simple financial summary, not analytics platform
-4. **Gamification** — Not appropriate for a booking tool
-5. **Chat/messaging system** — Contact form + notifications are sufficient
-6. **Multi-language support** — Nepal market is primarily Nepali/English, current English-only is fine
-7. **Native mobile apps** — PWA is sufficient for this use case
-8. **Complex onboarding wizards** — Simple registration + first booking is enough
-9. **Excessive animations** — Current minimal approach is correct
-10. **Social media login beyond Google** — Facebook/Twitter login adds complexity without proportional value in Nepal market
+1. **Command palette** - Unnecessary for this app's complexity level
+2. **Mega menu** - Navigation is already clean with 4-5 items
+3. **Complex dashboard with 10+ charts** - Manager needs simple financial summary, not analytics platform
+4. **Gamification** - Not appropriate for a booking tool
+5. **Chat/messaging system** - Contact form + notifications are sufficient
+6. **Multi-language support** - Nepal market is primarily Nepali/English, current English-only is fine
+7. **Native mobile apps** - PWA is sufficient for this use case
+8. **Complex onboarding wizards** - Simple registration + first booking is enough
+9. **Excessive animations** - Current minimal approach is correct
+10. **Social media login beyond Google** - Facebook/Twitter login adds complexity without proportional value in Nepal market
 
 ---
 
@@ -1212,7 +1212,7 @@ assets/
 
 ## 41. Implementation Roadmap
 
-### Phase 1 — Security and Critical Bugs (1-2 days)
+### Phase 1 - Security and Critical Bugs (1-2 days)
 1. Add server-side HTML sanitization for legal page editor
 2. Add last-admin demotion guard in `admin/users.php`
 3. Add CLI guard to `queue_worker.php`
@@ -1220,7 +1220,7 @@ assets/
 5. Remove dev OTP display from `otp_verify.php`
 6. Add email uniqueness check in `admin/edit_user.php`
 
-### Phase 2 — Broken User Flows (1 day)
+### Phase 2 - Broken User Flows (1 day)
 7. Fix `book.php` redirect to go to login page instead of index
 8. Fix CSV/Excel double-output bug in `admin/users.php`
 9. Remove `tools/preview.php` from production
@@ -1228,18 +1228,18 @@ assets/
 11. Remove `futsal_low/` wireframe directory
 12. Remove `~$oposal.docx` temp file
 
-### Phase 3 — Authorization and Role Separation (0.5 days)
+### Phase 3 - Authorization and Role Separation (0.5 days)
 13. Add audit trail for admin actions (role changes, deletions, edits)
 14. Review and test all IDOR protections (already good, just verify)
 
-### Phase 4 — Rate Limiting (0.5 days)
+### Phase 4 - Rate Limiting (0.5 days)
 15. Add rate limiting to `search_suggest.php`
 16. Add rate limiting to `favorite.php`
 17. Add rate limiting to `review_helpful.php`
 18. Add rate limiting to `place_search.php`
 19. Add rate limiting to `grounds_json.php`
 
-### Phase 5 — Frontend Cleanup (1-2 days)
+### Phase 5 - Frontend Cleanup (1-2 days)
 20. Remove dead skeleton CSS code (~200 lines)
 21. Remove duplicate `fadeIn` keyframe
 22. Remove duplicate button classes
@@ -1247,27 +1247,27 @@ assets/
 24. Remove autofill polling (`setInterval` 30×100ms)
 25. Consider Font Awesome subset or SVG icons
 
-### Phase 6 — Dark Mode Completion (2-3 days)
+### Phase 6 - Dark Mode Completion (2-3 days)
 26. Decide: Complete dark mode OR remove the toggle
 27. If completing: Define dark tokens, apply to all components
 28. Test across all pages and breakpoints
 
-### Phase 7 — Database Improvements (0.5 days)
+### Phase 7 - Database Improvements (0.5 days)
 29. Add missing FK constraints (`promo_codes.manager_id`, `password_resets.user_id`, `favorites.user_id`)
 30. Add missing indexes (`bookings.user_id`, `reviews.user_id`)
 
-### Phase 8 — CSS Architecture (1-2 days)
+### Phase 8 - CSS Architecture (1-2 days)
 31. Split `style.css` into component files
 32. Extract critical CSS
 33. Minify for production
 
-### Phase 9 — Accessibility (1 day)
+### Phase 9 - Accessibility (1 day)
 34. Add `aria-live` regions for toasts
 35. Add `role="listbox"` to search suggestions
 36. Add screen-reader text for skeleton loaders
 37. Fix star rating ARIA semantics
 
-### Phase 10 — SEO (0.5 days)
+### Phase 10 - SEO (0.5 days)
 38. Add structured data to homepage
 39. Verify social OG image exists
 40. Consider adding breadcrumbs
@@ -1364,17 +1364,17 @@ assets/
 GoalSpace is a **well-built custom PHP application** with strong security fundamentals. The developer clearly understands web security: prepared statements everywhere, CSRF on all POST handlers, output escaping via `e()`, rate limiting on critical paths, proper session management, and file upload validation. The booking logic (slot holds, repeat bookings, waitlist) is sophisticated and handles edge cases gracefully.
 
 ### What Needs Immediate Attention
-1. **Stored XSS in page editor** — Server-side HTML sanitization required
-2. **Last-admin demotion guard** — Platform lockout risk
-3. **Queue worker CLI guard** — Defense-in-depth failure
-4. **SMTP TLS verification** — Email delivery MITM risk
+1. **Stored XSS in page editor** - Server-side HTML sanitization required
+2. **Last-admin demotion guard** - Platform lockout risk
+3. **Queue worker CLI guard** - Defense-in-depth failure
+4. **SMTP TLS verification** - Email delivery MITM risk
 
 ### What Needs Improvement
-1. **Dark mode** — Either complete it or remove the toggle
-2. **Dead code removal** — Skeleton CSS, deploy scripts, temp files
-3. **Rate limiting gaps** — 5 AJAX endpoints unprotected
-4. **CSS architecture** — Split monolithic file
-5. **Accessibility** — Add ARIA live regions
+1. **Dark mode** - Either complete it or remove the toggle
+2. **Dead code removal** - Skeleton CSS, deploy scripts, temp files
+3. **Rate limiting gaps** - 5 AJAX endpoints unprotected
+4. **CSS architecture** - Split monolithic file
+5. **Accessibility** - Add ARIA live regions
 
 ### What's Fine As-Is
 - Navigation structure (sidebar for mgmt, bottom nav for mobile)
@@ -1389,27 +1389,27 @@ Strong security, clean code, good UX. Main gaps are operational (dead code, dark
 
 ---
 
-*Report generated by full-stack audit — 71 routes inspected, 3 roles tested, all layers analyzed.*
+*Report generated by full-stack audit - 71 routes inspected, 3 roles tested, all layers analyzed.*
 
 ---
 
-## 35. Implementation Log — All Changes Applied
+## 35. Implementation Log - All Changes Applied
 
 **Date:** September 22, 2026
 
 ### Security Fixes
 | # | Fix | File | Status |
 |---|-----|------|--------|
-| 1 | HTML sanitization for CMS pages | `includes/functions.php` | Applied — `sanitize_page_body()` with URL-safe href validation |
+| 1 | HTML sanitization for CMS pages | `includes/functions.php` | Applied - `sanitize_page_body()` with URL-safe href validation |
 | 2 | Sanitization in page editor | `admin/pages.php`, `admin/edit_page.php` | Applied |
-| 3 | Last-admin demotion guard | `admin/users.php` | Applied — prevents demoting/deleting the last admin |
+| 3 | Last-admin demotion guard | `admin/users.php` | Applied - prevents demoting/deleting the last admin |
 | 4 | Last-admin deletion guard | `admin/users.php` | Applied |
 | 5 | CLI guard for queue worker | `tools/queue_worker.php` | Applied |
 | 6 | SMTP TLS v1.2+v1.3 | `config/mail.php` | Applied |
 | 7 | Dev OTP display removed | `pages/otp_verify.php` | Applied |
 | 8 | Email uniqueness check | `admin/edit_user.php` | Applied |
-| 9 | CSV/Excel double-output fixed | `admin/users.php` | Applied — added `else` branch |
-| 10 | Footer contact links | `includes/footer.php` | Applied — `mailto:` and `tel:` links |
+| 9 | CSV/Excel double-output fixed | `admin/users.php` | Applied - added `else` branch |
+| 10 | Footer contact links | `includes/footer.php` | Applied - `mailto:` and `tel:` links |
 
 ### Rate Limiting
 | Endpoint | Key | Limit | Status |
@@ -1444,15 +1444,15 @@ Strong security, clean code, good UX. Main gaps are operational (dead code, dark
 - Standardized favorites toggle from XMLHttpRequest to `fetch()`
 
 ### Database Migrations (`tools/migrate_v2.php`)
-- `idx_bookings_user_id` — faster booking lookups
-- `idx_reviews_user_id` — faster review lookups
-- `idx_favorites_user_id` — faster favorites lookups
-- `idx_notifications_user_unread` — composite index for unread count query
+- `idx_bookings_user_id` - faster booking lookups
+- `idx_reviews_user_id` - faster review lookups
+- `idx_favorites_user_id` - faster favorites lookups
+- `idx_notifications_user_unread` - composite index for unread count query
 
 ### New Features
-- **Revenue trend chart** — CSS-only bar chart in manager dashboard (last 7 days)
-- **CSV export** — Manager bookings page now has a working CSV export button
-- **Booking progress indicator** — 3-step visual indicator (Select → Confirm → Pay) in ground detail page
+- **Revenue trend chart** - CSS-only bar chart in manager dashboard (last 7 days)
+- **CSV export** - Manager bookings page now has a working CSV export button
+- **Booking progress indicator** - 3-step visual indicator (Select → Confirm → Pay) in ground detail page
 
 ### SEO
 - Added JSON-LD structured data (`SportsActivityLocation`) to homepage
@@ -1489,7 +1489,7 @@ Strong security, clean code, good UX. Main gaps are operational (dead code, dark
 | `includes/views/landing_home.php` | JSON-LD structured data |
 
 ### Files Created
-- `tools/migrate_v2.php` — Database migration script
+- `tools/migrate_v2.php` - Database migration script
 
 ### Files Deleted
 - `tools/preview.php`

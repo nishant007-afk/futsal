@@ -1,4 +1,4 @@
-# Manager Dashboard, Subscription Billing & Court Editor — UI/UX Spec
+# Manager Dashboard, Subscription Billing & Court Editor - UI/UX Spec
 
 Date: 2026-10-03
 Status: Approved, in progress
@@ -26,7 +26,7 @@ Old code stays in the file, inert, so it can be inspected or restored. Verified 
 4. The **Subscription Alert** banner is the target of the accent-bracket fix
    (not the needs-attention strip).
 
-## Already present — do not duplicate
+## Already present - do not duplicate
 
 - `.editor-side-pane { position: sticky; top: 24px }` already exists in
   `manager/grounds.php` (~line 939), disabled below the 1180px breakpoint.

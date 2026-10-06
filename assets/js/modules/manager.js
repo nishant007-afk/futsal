@@ -131,3 +131,74 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+/* Admin top navigation: click-to-toggle dropdowns with outside-click and Escape
+   dismissal. The chevron rotation is pure CSS, driven by aria-expanded. */
+(function () {
+    function initAdminNav() {
+        const buttons = Array.prototype.slice.call(document.querySelectorAll('[data-adm-toggle]'));
+        if (!buttons.length) return;
+
+        const menuFor = (btn) => document.getElementById(btn.getAttribute('aria-controls'));
+        const isOpen = (btn) => btn.getAttribute('aria-expanded') === 'true';
+
+        function setOpen(btn, open) {
+            const menu = menuFor(btn);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (menu) menu.classList.toggle('is-open', open);
+        }
+
+        function closeAll(except) {
+            buttons.forEach((b) => { if (b !== except) setOpen(b, false); });
+        }
+
+        buttons.forEach((btn) => {
+            // Click toggles. The document-level outside-click handler skips
+            // anything inside .adm-nav, so no stopPropagation is needed here.
+            btn.addEventListener('click', () => {
+                const open = !isOpen(btn);
+                closeAll(btn);
+                setOpen(btn, open);
+            });
+
+            // Keyboard: ArrowDown opens and focuses the first link, Escape closes.
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { setOpen(btn, false); return; }
+                if (e.key !== 'ArrowDown') return;
+                e.preventDefault();
+                closeAll(btn);
+                setOpen(btn, true);
+                const menu = menuFor(btn);
+                const first = menu && menu.querySelector('.adm-nav-link');
+                if (first) first.focus();
+            });
+        });
+
+        // Outside click dismisses every open menu.
+        document.addEventListener('click', (e) => {
+            if (e.target.closest && e.target.closest('.adm-nav')) return;
+            closeAll(null);
+        });
+
+        // Escape dismisses whichever menu currently holds focus.
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const focused = document.activeElement;
+            buttons.forEach((b) => {
+                if (!isOpen(b)) return;
+                if (b === focused || (b.contains && b.contains(focused))) setOpen(b, false);
+            });
+        });
+
+        // Choosing a destination should not leave the menu open behind the page.
+        document.addEventListener('click', (e) => {
+            if (e.target.closest && e.target.closest('.adm-nav-link')) closeAll(null);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdminNav);
+    } else {
+        initAdminNav();
+    }
+})();

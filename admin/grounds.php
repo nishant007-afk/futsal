@@ -291,6 +291,9 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                     <?php field_error($errors, 'location'); ?>
                 </div>
+                <?php /* Landing target for the "Slot & Pricing Schedule" nav item, which points
+                       at admin/grounds.php#pricing. Price, discount and slot length follow. */ ?>
+                <span id="pricing" class="anchor-target" aria-hidden="true"></span>
                 <div class="form-group<?php echo has_error($errors, 'price_per_hour'); ?>">
                     <div class="input-group floating">
                         <input type="number" step="0.01" min="0" id="price_per_hour" name="price_per_hour" value="<?php echo e($editing['price_per_hour'] ?? ($price ?? '')); ?>" placeholder=" " required>

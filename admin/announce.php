@@ -33,10 +33,18 @@ require __DIR__ . '/../includes/header.php';
 <div class="content-hero">
     <div class="title-back-row">
         <a href="<?php echo base_url('admin/dashboard.php'); ?>" class="page-back-arrow" data-back aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1>Send announcement</h1>
+        <h1>Broadcasts &amp; Announcements</h1>
     </div>
     <p class="muted">Broadcast notification and email to platform users.</p>
 </div>
+
+<?php /* KEPT (removed per request): these two broadcasts were separate top-level nav
+       entries ("Announce" and "Announce update") with no visible relationship between
+       them. They are now one Platform Settings section with two sub-tabs. */ ?>
+<nav class="subtabs" aria-label="Broadcast type">
+    <a class="subtab is-active" href="<?php echo base_url('admin/announce.php'); ?>" aria-current="page"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> General announcement</a>
+    <a class="subtab" href="<?php echo base_url('admin/notify_policy.php'); ?>"><i class="fa-solid fa-file-pen" aria-hidden="true"></i> Policy update notice</a>
+</nav>
 
 <div class="announce-layout">
     <div class="announce-form-pane">

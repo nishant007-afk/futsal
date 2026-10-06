@@ -104,6 +104,9 @@ require __DIR__ . '/../includes/header.php';
             <a href="<?php echo base_url('pages/receipt_pdf.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> Download PDF Pass</a>
             <button type="button" class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
             <a href="<?php echo base_url('pages/my_bookings.php'); ?>" class="btn btn-ghost">My Bookings</a>
+            <?php if ($booking['user_id'] == $_SESSION['user_id'] && $booking['status'] === 'completed'): ?>
+                <a href="<?php echo base_url('pages/ground.php?id=' . $booking['ground_id']); ?>" class="btn btn-success"><i class="fa-solid fa-star"></i> Rate This Court</a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

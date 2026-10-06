@@ -40,6 +40,7 @@ $active = basename($_SERVER['SCRIPT_NAME']);
             <h4>Contact</h4>
             <span aria-label="Email"><i class="fa-solid fa-envelope"></i> <a href="mailto:hello@goalspace.com">hello@goalspace.com</a></span>
             <span aria-label="Phone"><i class="fa-solid fa-phone"></i> <a href="tel:+9779800000000">+977 9800 000 000</a></span>
+            <span aria-label="GMB"><i class="fa-brands fa-google"></i> <a href="https://www.google.com/business/" target="_blank" rel="noopener">Google My Business</a></span>
             <span aria-label="Location"><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</span>
         </div>
     </div>
@@ -269,6 +270,8 @@ if (in_array($active, [
 }
 if ($site_user && in_array($site_user['role'], ['manager', 'admin'], true)) {
     $pageModules[] = 'manager';
+    // Slide-over booking viewer, used by the manager and admin bookings tables.
+    $pageModules[] = 'booking_drawer';
 }
 foreach ($pageModules as $module) {
         echo '<script src="' . base_url('assets/js/modules/' . $module . '.js?v=' . filemtime(__DIR__ . '/../assets/js/modules/' . $module . '.js')) . '" defer></script>' . "\n";

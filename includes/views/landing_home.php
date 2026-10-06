@@ -100,6 +100,32 @@ foreach ($gridGrounds as $g) {
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "GoalSpace",
+    "description": "Book futsal courts online in Kathmandu, Nepal",
+    "url": "<?php echo absolute_url(''); ?>",
+    "logo": "<?php echo e(absolute_url('assets/img/icon-512.png')); ?>",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Kathmandu",
+        "addressLocality": "Kathmandu",
+        "addressRegion": "Bagmati",
+        "postalCode": "44600",
+        "addressCountry": "NP"
+    },
+    "telephone": "+977-9800-000-000",
+    "email": "hello@goalspace.com",
+    "priceRange": "Rs. 1500 - Rs. 2500",
+    "sameAs": [
+        "https://www.facebook.com/goalspace",
+        "https://instagram.com/goalspace"
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
     "name": "GoalSpace",
     "description": "Book futsal courts online in Kathmandu, Nepal",
@@ -233,8 +259,8 @@ foreach ($gridGrounds as $g) {
         </div>
         <div class="steps-visual">
             <div class="step-card">
-                <div class="step-card-img step-img-zoom-find">
-                    <img src="<?php echo base_url('assets/img/steps/step-1-find.png'); ?>" alt="Browse futsal courts on GoalSpace" loading="lazy" decoding="async">
+                <div class="step-card-img step-shot">
+                    <img src="<?php echo base_url('assets/img/steps/step-1-browse-courts.png'); ?>" alt="GoalSpace courts list showing Downtown Futsal Arena and Golden City Futsal with prices and available slots" loading="lazy" decoding="async">
                 </div>
                 <div class="step-card-body">
                     <span class="step-badge"><i class="fa-solid fa-magnifying-glass-location"></i> Step 1</span>
@@ -244,8 +270,8 @@ foreach ($gridGrounds as $g) {
             </div>
             <div class="step-connector" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
             <div class="step-card">
-                <div class="step-card-img step-img-zoom-slot">
-                    <img src="<?php echo base_url('assets/img/steps/step-2-slot.png'); ?>" alt="Pick a time slot on GoalSpace" loading="lazy" decoding="async">
+                <div class="step-card-img step-shot">
+                    <img src="<?php echo base_url('assets/img/steps/step-2-pick-slot.png'); ?>" alt="Ground detail page with the date picker and hourly time slots for booking a court" loading="lazy" decoding="async">
                 </div>
                 <div class="step-card-body">
                     <span class="step-badge"><i class="fa-solid fa-calendar-days"></i> Step 2</span>
@@ -255,8 +281,8 @@ foreach ($gridGrounds as $g) {
             </div>
             <div class="step-connector" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
             <div class="step-card">
-                <div class="step-card-img step-img-zoom-pass">
-                    <img src="<?php echo base_url('assets/img/steps/step-3-pass.png'); ?>" alt="Digital match pass on GoalSpace" loading="lazy" decoding="async">
+                <div class="step-card-img step-shot">
+                    <img src="<?php echo base_url('assets/img/steps/step-3-payment.png'); ?>" alt="Checkout page with QR payment, advance or full payment choice, and the booking summary" loading="lazy" decoding="async">
                 </div>
                 <div class="step-card-body">
                     <span class="step-badge"><i class="fa-solid fa-ticket"></i> Step 3</span>

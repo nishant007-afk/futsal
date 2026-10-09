@@ -128,7 +128,7 @@ if (!empty($pending['email'])) {
     $resendCount = (int)($pending['resend_count'] ?? 0);
     $cooldown = otp_send_cooldown($resetEmail, 'password_reset');
 
-    $page_title = 'Enter reset code';
+    $page_title = 'Enter Reset Code';
     require __DIR__ . '/../includes/header.php';
     ?>
     <div class="auth-wrap">

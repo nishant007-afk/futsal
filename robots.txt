@@ -25,6 +25,7 @@ Disallow: /pages/booking_details.php
 Disallow: /pages/book.php
 Disallow: /pages/payment.php
 Disallow: /pages/confirmation.php
+Disallow: /pages/thank_you.php
 Disallow: /pages/receipt.php
 Disallow: /pages/receipt_pdf.php
 Disallow: /pages/notifications.php

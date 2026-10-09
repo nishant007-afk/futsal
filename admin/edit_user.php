@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Edit User';
+$page_title = 'Edit User: ' . $user['name'];
 require __DIR__ . '/../includes/header.php';
 ?>
 

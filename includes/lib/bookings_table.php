@@ -142,7 +142,7 @@ function bookings_table_html(array $rows, array $opts = []): void
                                     ); ?>
                                 <?php endif; ?>
                                 <?php if ($detailLink): ?>
-                                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm" title="View details"<?php echo $drawer ? ' data-booking-drawer="' . (int)$b['id'] . '"' : ''; ?>><i class="fa-solid fa-chevron-right"></i><span class="sr-only">Details</span></a>
+                                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$b['id']); ?>" class="btn btn-outline btn-sm mbt-detail-btn" title="View details"<?php echo $drawer ? ' data-booking-drawer="' . (int)$b['id'] . '"' : ''; ?>><span class="mbt-detail-text">View details</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span class="sr-only">Details</span></a>
                                 <?php endif; ?>
                             </div>
                         </td>

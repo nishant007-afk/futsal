@@ -2,17 +2,24 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-require_player();
-
+$ref = trim($_GET['ref'] ?? '');
 $booking_id = (int)($_GET['id'] ?? ($_GET['booking_id'] ?? 0));
-if (!$booking_id) {
-    http_error_page(400, 'Missing booking', 'No booking ID provided.');
-}
 
-$stmt = $conn->prepare('SELECT b.*, g.name AS ground_name, g.location FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE b.id = ? AND b.user_id = ?');
-$stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
-$stmt->execute();
-$b = $stmt->get_result()->fetch_assoc();
+if ($ref !== '') {
+    $stmt = $conn->prepare('SELECT b.*, g.name AS ground_name, g.location FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE b.booking_ref = ?');
+    $stmt->bind_param('s', $ref);
+    $stmt->execute();
+    $b = $stmt->get_result()->fetch_assoc();
+} else {
+    require_player();
+    if (!$booking_id) {
+        http_error_page(400, 'Missing booking', 'No booking ID provided.');
+    }
+    $stmt = $conn->prepare('SELECT b.*, g.name AS ground_name, g.location FROM bookings b JOIN grounds g ON g.id = b.ground_id WHERE b.id = ? AND b.user_id = ?');
+    $stmt->bind_param('ii', $booking_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $b = $stmt->get_result()->fetch_assoc();
+}
 
 if (!$b) {
     http_error_page(404, 'Booking not found', 'We couldn\'t find that booking.');
@@ -24,8 +31,12 @@ if ($b['status'] === 'cancelled') {
 
 $dtStart = new DateTime($b['booking_date'] . ' ' . $b['start_time']);
 $dtEnd = new DateTime($b['booking_date'] . ' ' . $b['end_time']);
-$uid = 'booking-' . $b['booking_ref'] . '@goalspace.app';
-$desc = "Booking at {$b['ground_name']} ({$b['location']})\nRef: {$b['booking_ref']}\nPrice: " . format_price((float)$b['total_price']) . "\nStatus: {$b['status']}\nPayment: {$b['payment_status']}";
+if ($dtEnd <= $dtStart) {
+    $dtEnd->modify('+1 day');
+}
+$matchRef = !empty($b['booking_ref']) ? $b['booking_ref'] : ('#BK-' . $b['id']);
+$uid = 'booking-' . $matchRef . '@goalspace.app';
+$desc = "Booking at {$b['ground_name']} ({$b['location']})\nRef: {$matchRef}\nPrice: " . format_price((float)$b['total_price']) . "\nStatus: {$b['status']}\nPayment: {$b['payment_status']}";
 
 // Sanitize CR/LF from DB fields so managers cannot inject iCal lines.
 $groundName = str_replace(["\r", "\n"], ' ', $b['ground_name']);
@@ -49,5 +60,5 @@ $ics .= "END:VEVENT\r\n";
 $ics .= "END:VCALENDAR\r\n";
 
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: attachment; filename="goalspace-booking-' . $b['booking_ref'] . '.ics"');
+header('Content-Disposition: attachment; filename="goalspace-booking-' . $matchRef . '.ics"');
 echo $ics;

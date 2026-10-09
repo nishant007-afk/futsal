@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('admin/announce.php');
 }
 
-$page_title = 'Send announcement';
+$page_title = 'Send Announcement';
 require __DIR__ . '/../includes/header.php';
 ?>
 

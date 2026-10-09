@@ -68,80 +68,98 @@ foreach ($all as $i => $row) {
     }
 }
 
-$page_title = $n['title'];
+$page_title = !empty($n['title']) ? $n['title'] : 'Notification Details';
 require __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="nd-wrap reveal">
-
-    <?php if ($prevN || $nextN): ?>
-        <div class="nd-nav">
-            <?php if ($nextN): ?>
-                <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$nextN['id']); ?>" class="nd-nav-btn" title="<?php echo e($nextN['title']); ?>">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Newer</span>
-                </a>
-            <?php else: ?>
-                <span></span>
-            <?php endif; ?>
-            <span class="nd-nav-count"><?php echo count($all); ?> total</span>
-            <?php if ($prevN): ?>
-                <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$prevN['id']); ?>" class="nd-nav-btn" title="<?php echo e($prevN['title']); ?>">
-                    <span>Older</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            <?php else: ?>
-                <span></span>
-            <?php endif; ?>
+    <div class="nd-top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="title-back-row">
+            <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" data-back aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
+            <span style="font-size:15px; font-weight:700; color:var(--ink);">Notification Details</span>
         </div>
-    <?php endif; ?>
+        <?php if ($prevN || $nextN): ?>
+            <div class="nd-quick-pager" style="display:flex; align-items:center; gap:8px;">
+                <?php if ($nextN): ?>
+                    <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$nextN['id'] . '&view=1'); ?>" class="btn btn-outline btn-sm" title="<?php echo e($nextN['title']); ?>"><i class="fa-solid fa-chevron-left"></i> Newer</a>
+                <?php endif; ?>
+                <?php if ($prevN): ?>
+                    <a href="<?php echo base_url('pages/notification_details.php?id=' . (int)$prevN['id'] . '&view=1'); ?>" class="btn btn-outline btn-sm" title="<?php echo e($prevN['title']); ?>">Older <i class="fa-solid fa-chevron-right"></i></a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <div class="nd-card">
-        <div class="nd-top">
-            <div class="mbooking-thumb notif-thumb c-<?php echo notification_icon_color($n['icon']); ?>">
+        <div class="nd-header-row">
+            <div class="nd-icon-box notif-thumb c-<?php echo notification_icon_color($n['icon']); ?>">
                 <i class="fa-solid <?php echo e($n['icon']); ?>"></i>
             </div>
-            <div class="nd-title-col">
-                <div class="title-back-row">
-                    <a href="<?php echo base_url('pages/notifications.php'); ?>" class="page-back-arrow" data-back aria-label="Back to all notifications"><i class="fa-solid fa-arrow-left"></i></a>
-                    <h1><?php echo e($n['title']); ?></h1>
+            <div class="nd-header-meta">
+                <h1 class="nd-heading"><?php echo e($n['title']); ?></h1>
+                <div class="nd-timestamp">
+                    <span><i class="fa-regular fa-clock"></i> <?php echo e(date('l, F j, Y \a\t g:i A', strtotime($n['created_at']))); ?></span>
+                    <span class="nd-dot">&middot;</span>
+                    <span class="nd-timeago"><?php echo e(notification_time($n['created_at'])); ?></span>
                 </div>
-                <p class="muted text-sm"><i class="fa-regular fa-clock"></i> <?php echo e(date('M j, Y g:i A', strtotime($n['created_at']))); ?> &middot; <?php echo e(notification_time($n['created_at'])); ?></p>
             </div>
         </div>
 
         <?php if ($n['body'] !== ''): ?>
-            <div class="nd-body">
-                <p><?php echo e($n['body']); ?></p>
+            <div class="nd-message-box">
+                <p><?php echo nl2br(e($n['body'])); ?></p>
             </div>
         <?php endif; ?>
 
         <?php if ($relatedBooking): ?>
-            <div class="nd-booking">
-                <div class="nd-booking-head">
-                    <div class="mbooking-thumb"><i class="fa-solid fa-calendar-check"></i></div>
-                    <div>
+            <div class="nd-booking-card">
+                <div class="nd-booking-title-bar">
+                    <div class="nd-booking-icon">
+                        <i class="fa-solid fa-futbol"></i>
+                    </div>
+                    <div class="nd-booking-title-info">
                         <h3><?php echo e($relatedBooking['ground_name']); ?></h3>
-                        <p class="muted text-sm"><?php echo e($relatedBooking['booking_ref']); ?> &middot; <i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?></p>
+                        <p class="muted text-sm"><i class="fa-solid fa-location-dot"></i> <?php echo e($relatedBooking['location']); ?> &middot; <span class="nbc-ref">#<?php echo e($relatedBooking['booking_ref']); ?></span></p>
                     </div>
                 </div>
-                <dl class="bd-list">
-                    <div><dt>Date</dt><dd><?php echo e(date('D, M j, Y', strtotime($relatedBooking['booking_date']))); ?></dd></div>
-                    <div><dt>Time</dt><dd><?php echo e(substr($relatedBooking['start_time'], 0, 5)); ?> - <?php echo e(substr($relatedBooking['end_time'], 0, 5)); ?></dd></div>
-                    <div><dt>Status</dt><dd><span class="badge badge-<?php echo e($relatedBooking['status']); ?>"><?php echo ucfirst(e($relatedBooking['status'])); ?></span> <span class="badge badge-<?php echo $relatedBooking['payment_status'] === 'paid' ? 'paid' : ($relatedBooking['payment_status'] === 'partial' ? 'partial' : 'unpaid'); ?>"><?php echo ucfirst(e($relatedBooking['payment_status'])); ?></span></dd></div>
-                </dl>
-                <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$relatedBooking['id']); ?>" class="btn btn-primary btn-block"><i class="fa-solid fa-eye"></i> View this booking</a>
+
+                <div class="nd-booking-grid">
+                    <div class="nd-grid-item">
+                        <span class="nd-label">Match Date</span>
+                        <strong class="nd-val"><i class="fa-regular fa-calendar"></i> <?php echo date('D, M j, Y', strtotime($relatedBooking['booking_date'])); ?></strong>
+                    </div>
+                    <div class="nd-grid-item">
+                        <span class="nd-label">Time Slot</span>
+                        <strong class="nd-val"><i class="fa-regular fa-clock"></i> <?php echo substr($relatedBooking['start_time'], 0, 5); ?> - <?php echo substr($relatedBooking['end_time'], 0, 5); ?></strong>
+                    </div>
+                    <div class="nd-grid-item">
+                        <span class="nd-label">Booking Status</span>
+                        <div><span class="badge badge-<?php echo e($relatedBooking['status']); ?>"><?php echo ucfirst(e($relatedBooking['status'])); ?></span></div>
+                    </div>
+                    <div class="nd-grid-item">
+                        <span class="nd-label">Payment Status</span>
+                        <div><span class="badge badge-<?php echo $relatedBooking['payment_status'] === 'paid' ? 'paid' : ($relatedBooking['payment_status'] === 'partial' ? 'partial' : 'unpaid'); ?>"><?php echo ucfirst(e($relatedBooking['payment_status'])); ?></span></div>
+                    </div>
+                </div>
+
+                <div class="nd-booking-cta">
+                    <a href="<?php echo base_url('pages/booking_details.php?id=' . (int)$relatedBooking['id']); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Booking Details</a>
+                </div>
             </div>
         <?php endif; ?>
 
-        <div class="nd-actions">
-            <?php if ($n['link']): ?>
-                <a href="<?php echo e(base_url($n['link'])); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i> Go to related page</a>
+        <div class="nd-footer-actions">
+            <?php if (!empty($n['link']) && !$relatedBooking): ?>
+                <a href="<?php echo e(base_url($n['link'])); ?>" class="btn btn-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to related page</a>
             <?php endif; ?>
-            <form method="post" action="" class="d-inline" novalidate>
+            <a href="<?php echo base_url('pages/notifications.php'); ?>" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> All Notifications</a>
+            <?php
+            $shortTitle = (mb_strlen($n['title']) > 50) ? (mb_substr($n['title'], 0, 47) . '…') : $n['title'];
+            ?>
+            <form method="post" action="" class="d-inline" novalidate style="margin-left:auto;">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="delete_notification" value="1">
-                <button type="submit" class="btn btn-danger" data-confirm="Delete this notification?" data-confirm-title="Delete notification"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                <button type="submit" class="btn btn-danger" data-confirm="Delete &ldquo;<?php echo e($shortTitle); ?>&rdquo;?" data-confirm-title="Delete notification"><i class="fa-solid fa-trash-can"></i> Delete</button>
             </form>
         </div>
     </div>

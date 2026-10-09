@@ -6,6 +6,7 @@ $slug = $_GET['slug'] ?? 'about';
 $page = page_content($slug);
 if ($page === null) {
     http_response_code(404);
+    $page_title = 'Page Not Found';
     require __DIR__ . '/../includes/header.php';
     echo '<div class="error-page" style="text-align:center;padding:60px 0;">';
     echo '<div class="error-icon" style="font-size:48px;margin-bottom:12px;"><i class="fa-solid fa-map-location-dot"></i></div>';

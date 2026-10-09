@@ -79,7 +79,7 @@ if ($action === 'pay_court') {
     }
 
     set_flash('success', 'Booking confirmed! Your slot is locked. Please arrive 15 minutes before kickoff and pay Rs ' . number_format($netTotal, 0) . ' at the counter.');
-    redirect('pages/booking_details.php?id=' . $booking_id);
+    redirect('pages/thank_you.php?id=' . $booking_id);
 }
 
 if ($action === 'pay_qr') {
@@ -129,5 +129,5 @@ if ($action === 'pay_qr') {
         'success',
         'QR payment submitted. The court will verify your transfer and mark it paid  -  usually within a few minutes. Keep your transaction ID handy.'
     );
-    redirect('pages/booking_details.php?id=' . $booking_id . '&paid=1');
+    redirect('pages/thank_you.php?id=' . $booking_id . '&paid=1');
 }

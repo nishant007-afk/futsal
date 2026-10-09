@@ -214,7 +214,12 @@ $active = basename($_SERVER['SCRIPT_NAME']);
             .then(function (html) {
                 var doc = new DOMParser().parseFromString(html, 'text/html');
                 var fresh = doc.getElementById(id);
-                if (fresh) { box.innerHTML = fresh.innerHTML; }
+                if (fresh) {
+                    box.innerHTML = fresh.innerHTML;
+                    box.querySelectorAll('.reveal').forEach(function (el) {
+                        el.classList.add('visible');
+                    });
+                }
             })
             .catch(function () { window.location.href = url; })
             .then(function () { box.removeAttribute('aria-busy'); });

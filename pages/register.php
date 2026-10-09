@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (isset($verification_email)) {
     session_regenerate_id(true);
-    $page_title = 'Verify your email';
+    $page_title = 'Verify Your Email';
     require __DIR__ . '/../includes/header.php';
     ?>
     <div class="form-card lg">

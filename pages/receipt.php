@@ -8,7 +8,8 @@ $booking_id = (int)($_GET['booking_id'] ?? 0);
 $stmt = $conn->prepare(
     'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
             b.payment_status, b.payment_type, b.amount_paid, b.paid_at, b.discount, b.promo_code, b.created_at,
-            g.name AS ground_name, g.location, g.price_per_hour, g.slug AS slug, u.name AS owner_name
+            b.ground_id,
+            g.name AS ground_name, g.location, g.address, g.price_per_hour, g.slug AS slug, u.name AS owner_name
      FROM bookings b
      JOIN grounds g ON g.id = b.ground_id
      LEFT JOIN users u ON u.id = g.manager_id
@@ -28,7 +29,7 @@ if (!$booking || $booking['status'] === 'cancelled') {
     redirect('pages/my_bookings.php');
 }
 
-$page_title = 'Payment receipt';
+$page_title = 'Payment Receipt · ' . (!empty($booking['booking_ref']) ? $booking['booking_ref'] : ('#' . $booking['id']));
 require __DIR__ . '/../includes/header.php';
 ?>
 
@@ -100,6 +101,44 @@ require __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
 
+        <?php if ($booking['status'] !== 'cancelled'):
+            $matchUrl = absolute_url('pages/match.php?' . (!empty($booking['booking_ref']) ? ('ref=' . urlencode($booking['booking_ref'])) : ('id=' . (int)$booking['id'])));
+            $destQuery = !empty($booking['address']) ? ($booking['ground_name'] . ', ' . $booking['address']) : ($booking['ground_name'] . ', ' . $booking['location']);
+            $mapsDirUrl = 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($destQuery);
+            $shareText = "⚽ Futsal Match Invitation!\n"
+                . "🏟️ " . $booking['ground_name'] . "\n"
+                . "📅 " . date('D, M j, Y', strtotime($booking['booking_date'])) . "\n"
+                . "⏰ " . substr($booking['start_time'], 0, 5) . " - " . substr($booking['end_time'], 0, 5) . "\n"
+                . "📍 " . $booking['location'] . (!empty($booking['address']) ? " (" . $booking['address'] . ")" : "") . "\n"
+                . "🗺️ Directions: " . $mapsDirUrl . "\n"
+                . "🔗 Match Pass: " . $matchUrl . "\n\n"
+                . "See you on the pitch!";
+            $whatsappUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($shareText);
+            $viberUrl = 'viber://forward?text=' . rawurlencode($shareText);
+            $netPrice = max(0, (float)$booking['total_price'] - (float)($booking['discount'] ?? 0));
+            $split10 = (int)ceil($netPrice / 10);
+            $split12 = (int)ceil($netPrice / 12);
+        ?>
+        <div class="receipt-share-box">
+            <h4><i class="fa-solid fa-users"></i> Invite Teammates</h4>
+            <div class="rsb-actions">
+                <a href="<?php echo e($whatsappUrl); ?>" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+                <a href="<?php echo e($viberUrl); ?>" class="btn btn-viber btn-sm">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M19.78 4.22A11.94 11.94 0 0 0 11.96 0C5.35 0 0 5.35 0 11.96c0 2.21.6 4.36 1.74 6.24L.13 23.32a.75.75 0 0 0 .93.93l5.22-1.63A11.92 11.92 0 0 0 11.96 24c6.61 0 11.96-5.35 11.96-11.96 0-3.2-1.25-6.2-3.51-8.47zM12 21.6c-1.87 0-3.7-.52-5.28-1.5a.75.75 0 0 0-.58-.08l-3.8 1.18 1.2-3.72a.75.75 0 0 0-.08-.6A9.56 9.56 0 0 1 2.4 12c0-5.3 4.3-9.6 9.6-9.6s9.6 4.3 9.6 9.6-4.3 9.6-9.6 9.6zm5.1-6.8l-1.8-.8a1.2 1.2 0 0 0-1.4.3l-.6.7a8.6 8.6 0 0 1-3.6-3.6l.7-.6a1.2 1.2 0 0 0 .3-1.4l-.8-1.8a1.2 1.2 0 0 0-1.4-.7c-.8.2-1.6.9-1.8 1.7-.4 1.8.4 4.5 3.3 7.4s5.6 3.7 7.4 3.3c.8-.2 1.5-1 1.7-1.8a1.2 1.2 0 0 0-.7-1.4z"/></svg>
+                    Viber
+                </a>
+                <button type="button" class="btn btn-outline btn-sm" id="copyReceiptInviteBtn" onclick="copyReceiptInvite()">
+                    <i class="fa-solid fa-copy"></i> <span id="copyReceiptInviteLabel">Copy Info</span>
+                </button>
+                <a href="<?php echo e($matchUrl); ?>" target="_blank" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Match Pass
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="receipt-actions">
             <a href="<?php echo base_url('pages/receipt_pdf.php?booking_id=' . (int)$booking['id']); ?>" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> Download PDF Pass</a>
             <button type="button" class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
@@ -110,5 +149,36 @@ require __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+function copyReceiptInvite() {
+    var text = <?php echo isset($shareText) ? json_encode($shareText, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) : "''"; ?>;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(onCopied).catch(fallback);
+    } else {
+        fallback();
+    }
+    function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); onCopied(); } catch(e) {}
+        document.body.removeChild(ta);
+    }
+    function onCopied() {
+        var label = document.getElementById('copyReceiptInviteLabel');
+        var btn = document.getElementById('copyReceiptInviteBtn');
+        if (label) label.textContent = 'Copied! ✓';
+        if (btn) btn.classList.add('btn-success-temporary');
+        setTimeout(function() {
+            if (label) label.textContent = 'Copy Info';
+            if (btn) btn.classList.remove('btn-success-temporary');
+        }, 2200);
+    }
+}
+</script>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -1,0 +1,17 @@
+# Available Skills
+
+## Active in Session
+- agy-customizations
+- antigravity-guide
+- impeccable
+
+## All Installed Skills
+- agy-customizations
+- antigravity-guide
+- automation
+- generative_ui
+- impeccable
+- migrate-workflows
+- permissioned-github
+- plugin
+- ui-plugin-navigation

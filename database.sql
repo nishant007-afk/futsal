@@ -91,6 +91,17 @@ CREATE TABLE IF NOT EXISTS bookings (
   FOREIGN KEY (ground_id) REFERENCES grounds(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS match_rsvps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
+  identity_key VARCHAR(80) NOT NULL,
+  status ENUM('in','out') NOT NULL DEFAULT 'in',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_rsvp_booking_identity (booking_id, identity_key),
+  FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- ------------------------------------------------------------
 -- Ground images table
 -- ------------------------------------------------------------

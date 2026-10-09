@@ -27,14 +27,37 @@ function http_get_json(string $url): ?array
     if (!$host || !in_array($host, $allowed, true)) {
         return null;
     }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 4,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_HTTPHEADER => [
+                'User-Agent: GoalSpace/1.0 (futsal booking app; nepal)',
+                'Accept: application/json',
+            ],
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $raw = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($raw !== false && $code >= 200 && $code < 300) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+    }
+
     $ctx = stream_context_create([
         'http' => [
-            'timeout' => 8,
+            'timeout' => 4,
             'ignore_errors' => true,
-            'header' => "User-Agent: GoalSpace/1.0 (futsal booking app; localhost)\r\n"
+            'header' => "User-Agent: GoalSpace/1.0 (futsal booking app; nepal)\r\n"
                 . "Accept: application/json\r\n",
         ],
-        // Keep TLS verification on to prevent MITM on the geocode proxy.
         'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
     ]);
     $raw = @file_get_contents($url, false, $ctx);
@@ -45,10 +68,10 @@ function http_get_json(string $url): ?array
     return is_array($decoded) ? $decoded : null;
 }
 
-$url = 'https://photon.komoot.io/api/?q=' . rawurlencode($q) . '&limit=12&countrycode=NP';
+$url = 'https://photon.komoot.io/api/?q=' . rawurlencode($q) . '&lat=27.7172&lon=85.3240&limit=12&countrycode=NP';
 $photon = http_get_json($url);
 
-$nomUrl = 'https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=NP&limit=5&q=' . rawurlencode($q);
+$nomUrl = 'https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=NP&viewbox=80.0,30.5,88.2,26.3&bounded=0&limit=6&q=' . rawurlencode($q);
 $nom = http_get_json($nomUrl);
 
 if (isset($_GET['lat']) && isset($_GET['lng'])) {

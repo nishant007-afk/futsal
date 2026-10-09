@@ -10,7 +10,7 @@ function legal_pages_defaults(): array
 {
     return [
         'about'   => [
-            'title'   => 'About GoalSpace',
+            'title'   => 'About Us',
             'summary' => 'Connecting passionate futsal players with verified courts across Nepal.',
             // KEPT (removed per request): the two opening paragraphs rendered as one
             // edge-to-edge block of body text with no lead-in. They now sit in

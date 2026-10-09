@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     redirect('pages/settings_notifications.php');
 }
 
-$page_title = 'Notifications';
+$page_title = 'Notification Preferences';
 require __DIR__ . '/../includes/header.php';
 ?>
 

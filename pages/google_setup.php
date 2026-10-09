@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $firstName = preg_split('/\s+/', trim($gName))[0] ?? $gName;
-$page_title = 'Set up your account';
+$page_title = 'Complete Your Account';
 $page_description = 'Finish setting up your GoalSpace account after signing in with Google.';
 require __DIR__ . '/../includes/header.php';
 ?>

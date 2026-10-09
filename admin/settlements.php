@@ -110,6 +110,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['renew'])) {
     redirect('admin/settlements.php');
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_fees'])) {
+    verify_csrf();
+    $newSetup = max(0, (float)($_POST['setup_fee'] ?? 0));
+    $newMonthly = max(0, (float)($_POST['monthly_fee'] ?? 0));
+    save_setting('manager_setup_fee', (string)$newSetup);
+    save_setting('manager_monthly_fee', (string)$newMonthly);
+    set_flash('success', 'Platform subscription pricing updated (Setup: Rs ' . number_format($newSetup, 0) . ', Monthly: Rs ' . number_format($newMonthly, 0) . ').');
+    redirect('admin/settlements.php');
+}
+
 $managerRows = $conn->query(
     'SELECT u.id, u.name, u.email,
             s.setup_fee, s.setup_paid_at, s.monthly_fee, s.period_start, s.period_end, s.last_paid_at,
@@ -183,8 +193,36 @@ require __DIR__ . '/../includes/header.php';
         <h1 class="page-title">Manager Billing</h1>
     </div>
     <div class="actions">
+        <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('feeConfigModal').style.display='flex'"><i class="fa-solid fa-gear"></i> Edit Fees</button>
         <a href="<?php echo base_url('admin/settlements.php?export_excel=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
         <a href="<?php echo base_url('admin/settlements.php?export=1'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+    </div>
+</div>
+
+<div id="feeConfigModal" class="modal-wrap" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal" role="dialog" aria-labelledby="feeModalTitle" style="max-width:440px;">
+        <div class="modal-head">
+            <h2 id="feeModalTitle"><i class="fa-solid fa-sliders"></i> Platform Subscription Fees</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('feeConfigModal').style.display='none'" aria-label="Close">&times;</button>
+        </div>
+        <form method="post" action="<?php echo base_url('admin/settlements.php'); ?>">
+            <?php echo csrf_field(); ?>
+            <div class="modal-body" style="padding:16px 20px;">
+                <p class="muted" style="margin-bottom:14px; font-size:13px;">Configure the default setup and monthly subscription fees charged to managers.</p>
+                <div class="form-group">
+                    <label for="setupFeeInput" style="display:block; font-weight:600; margin-bottom:4px; font-size:13px;">Setup Fee (Rs)</label>
+                    <input type="number" id="setupFeeInput" name="setup_fee" value="<?php echo e($setupFee); ?>" min="0" step="50" required class="input" style="width:100%;">
+                </div>
+                <div class="form-group" style="margin-top:14px;">
+                    <label for="monthlyFeeInput" style="display:block; font-weight:600; margin-bottom:4px; font-size:13px;">Monthly Subscription Fee (Rs)</label>
+                    <input type="number" id="monthlyFeeInput" name="monthly_fee" value="<?php echo e($monthlyFee); ?>" min="0" step="50" required class="input" style="width:100%;">
+                </div>
+            </div>
+            <div class="modal-foot" style="padding:12px 20px; display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('feeConfigModal').style.display='none'">Cancel</button>
+                <button type="submit" name="update_fees" value="1" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Save Pricing</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -203,23 +241,28 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<div class="subtabs" role="tablist" aria-label="Filter accounts">
-    <a class="subtab<?php echo $billingFilter === '' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl(''); ?>"
-       <?php echo $billingFilter === '' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-list" aria-hidden="true"></i> All (<?php echo count($managerRows); ?>)</a>
-    <a class="subtab<?php echo $billingFilter === 'overdue' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('overdue'); ?>"
-       <?php echo $billingFilter === 'overdue' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Overdue (<?php echo $overdueTotal; ?>)</a>
-    <a class="subtab<?php echo $billingFilter === 'setup_pending' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('setup_pending'); ?>"
-       <?php echo $billingFilter === 'setup_pending' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-clock" aria-hidden="true"></i> Setup unpaid (<?php echo $pendingTotal; ?>)</a>
-    <a class="subtab<?php echo $billingFilter === 'active' ? ' is-active' : ''; ?>" href="<?php echo $billingFilterUrl('active'); ?>"
-       <?php echo $billingFilter === 'active' ? 'aria-current="page"' : ''; ?>><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Active (<?php echo $activeTotal; ?>)</a>
+<div class="court-location-pills" role="tablist" aria-label="Filter accounts" style="margin-bottom: 20px;">
+    <a class="loc-pill<?php echo $billingFilter === '' ? ' active' : ''; ?>" href="<?php echo $billingFilterUrl(''); ?>"
+       data-filter="" role="tab" <?php echo $billingFilter === '' ? 'aria-selected="true" aria-current="page"' : 'aria-selected="false"'; ?>>
+        <span>All</span>
+        <span class="loc-pill-count"><?php echo count($managerRows); ?></span>
+    </a>
+    <a class="loc-pill<?php echo $billingFilter === 'overdue' ? ' active' : ''; ?>" href="<?php echo $billingFilterUrl('overdue'); ?>"
+       data-filter="overdue" role="tab" <?php echo $billingFilter === 'overdue' ? 'aria-selected="true" aria-current="page"' : 'aria-selected="false"'; ?>>
+        <span>Overdue</span>
+        <span class="loc-pill-count"><?php echo $overdueTotal; ?></span>
+    </a>
+    <a class="loc-pill<?php echo $billingFilter === 'setup_pending' ? ' active' : ''; ?>" href="<?php echo $billingFilterUrl('setup_pending'); ?>"
+       data-filter="setup_pending" role="tab" <?php echo $billingFilter === 'setup_pending' ? 'aria-selected="true" aria-current="page"' : 'aria-selected="false"'; ?>>
+        <span>Setup unpaid</span>
+        <span class="loc-pill-count"><?php echo $pendingTotal; ?></span>
+    </a>
+    <a class="loc-pill<?php echo $billingFilter === 'active' ? ' active' : ''; ?>" href="<?php echo $billingFilterUrl('active'); ?>"
+       data-filter="active" role="tab" <?php echo $billingFilter === 'active' ? 'aria-selected="true" aria-current="page"' : 'aria-selected="false"'; ?>>
+        <span>Active</span>
+        <span class="loc-pill-count"><?php echo $activeTotal; ?></span>
+    </a>
 </div>
-
-<?php if ($billingFilter !== ''): ?>
-    <p class="muted" style="margin:-12px 0 18px; font-size:13.5px;">
-        Showing <?php echo count($filteredRows); ?> of <?php echo count($managerRows); ?> manager<?php echo count($managerRows) === 1 ? '' : 's'; ?>
-        &middot; <a href="<?php echo $billingFilterUrl(''); ?>">clear filter</a>
-    </p>
-<?php endif; ?>
 
 <div class="table-wrap reveal">
     <table>
@@ -235,27 +278,28 @@ require __DIR__ . '/../includes/header.php';
             </tr>
         </thead>
         <tbody>
-            <?php if (!$filteredRows): ?>
-                <tr><td colspan="7" class="muted table-empty">
+            <tr id="settlementsEmptyRow" style="<?php echo empty($filteredRows) ? '' : 'display:none;'; ?>">
+                <td colspan="7" class="muted table-empty" id="settlementsEmptyMsg">
                     <?php echo $billingFilter === 'overdue'
                         ? 'No overdue accounts - every subscription is current.'
                         : ($billingFilter === 'setup_pending'
                             ? 'No managers are awaiting a setup fee.'
                             : ($billingFilter === 'active' ? 'No active subscriptions.' : 'No managers yet.')); ?>
-                </td></tr>
-            <?php else: ?>
-                <?php foreach ($filteredRows as $m): ?>
-                    <?php
-                    $status = 'no_sub';
-                    if ($m['setup_paid_at'] === null) {
-                        $status = 'setup_pending';
-                    } elseif ($m['period_end'] && $m['period_end'] < $today) {
-                        $status = 'overdue';
-                    } else {
-                        $status = 'active';
-                    }
-                    ?>
-                    <tr>
+                </td>
+            </tr>
+            <?php foreach ($managerRows as $m): ?>
+                <?php
+                $status = 'no_sub';
+                if ($m['setup_paid_at'] === null) {
+                    $status = 'setup_pending';
+                } elseif ($m['period_end'] && $m['period_end'] < $today) {
+                    $status = 'overdue';
+                } else {
+                    $status = 'active';
+                }
+                $isRowHidden = ($billingFilter !== '' && $status !== $billingFilter);
+                ?>
+                <tr class="settlement-row" data-billing-status="<?php echo e($status); ?>" style="<?php echo $isRowHidden ? 'display:none;' : ''; ?>">
                         <td class="strong" data-label="Manager"><?php echo e($m['name']); ?><br><span class="muted"><?php echo e($m['email']); ?></span></td>
                         <td class="num" data-label="Grounds"><?php echo (int)$m['ground_count']; ?></td>
                         <td class="num" data-label="Setup fee">
@@ -360,9 +404,82 @@ require __DIR__ . '/../includes/header.php';
                         </td>
                     </tr>
                 <?php endforeach; ?>
-            <?php endif; ?>
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var filterPills = document.querySelectorAll('.court-location-pills .loc-pill[data-filter]');
+    var rows = document.querySelectorAll('.settlement-row');
+    var emptyRow = document.getElementById('settlementsEmptyRow');
+    var emptyMsg = document.getElementById('settlementsEmptyMsg');
+
+    var emptyMessages = {
+        '': 'No managers yet.',
+        'overdue': 'No overdue accounts - every subscription is current.',
+        'setup_pending': 'No managers are awaiting a setup fee.',
+        'active': 'No active subscriptions.'
+    };
+
+    function applyFilter(filter, updateHistory) {
+        filterPills.forEach(function (p) {
+            var pFilter = p.getAttribute('data-filter') || '';
+            var isCurrent = (pFilter === filter);
+            p.classList.toggle('active', isCurrent);
+            p.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+            if (isCurrent) {
+                p.setAttribute('aria-current', 'page');
+            } else {
+                p.removeAttribute('aria-current');
+            }
+        });
+
+        var visibleCount = 0;
+        rows.forEach(function (row) {
+            var status = row.getAttribute('data-billing-status');
+            if (!filter || status === filter) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (emptyRow && emptyMsg) {
+            if (visibleCount === 0) {
+                emptyMsg.textContent = emptyMessages[filter] || 'No accounts found.';
+                emptyRow.style.display = '';
+            } else {
+                emptyRow.style.display = 'none';
+            }
+        }
+
+        if (updateHistory) {
+            var url = new URL(window.location.href);
+            if (filter) {
+                url.searchParams.set('filter', filter);
+            } else {
+                url.searchParams.delete('filter');
+            }
+            window.history.replaceState({}, '', url.toString());
+        }
+    }
+
+    filterPills.forEach(function (pill) {
+        pill.addEventListener('click', function (e) {
+            e.preventDefault();
+            var filter = this.getAttribute('data-filter') || '';
+            applyFilter(filter, true);
+        });
+    });
+
+    window.addEventListener('popstate', function () {
+        var params = new URLSearchParams(window.location.search);
+        var filter = params.get('filter') || '';
+        applyFilter(filter, false);
+    });
+});
+</script>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

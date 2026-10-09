@@ -243,4 +243,20 @@ if (!table_exists('subscription_payments')) {
     echo "Applied: added `subscription_payments` table for subscription invoice history.\n";
 }
 
+// Create match_rsvps table for the public teammate invite page (one-tap RSVP).
+if (!table_exists('match_rsvps')) {
+    $conn->query("CREATE TABLE match_rsvps (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_id INT NOT NULL,
+        identity_key VARCHAR(80) NOT NULL,
+        status ENUM('in','out') NOT NULL DEFAULT 'in',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_rsvp_booking_identity (booking_id, identity_key),
+        FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB");
+    $applied++;
+    echo "Applied: added `match_rsvps` table for invite-page RSVPs.\n";
+}
+
 echo $applied . " migration(s) applied. Done.\n";

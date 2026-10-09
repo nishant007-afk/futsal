@@ -17,6 +17,9 @@ $qrGrounds = $conn->query(
      ORDER BY name ASC'
 )->fetch_all(MYSQLI_ASSOC);
 
+$firstGround = $conn->query('SELECT id FROM grounds WHERE manager_id = ' . $managerId . ' ORDER BY id ASC LIMIT 1')->fetch_assoc();
+$editQrUrl = $firstGround ? base_url('manager/grounds.php?edit=' . (int)$firstGround['id'] . '&tab=media') : base_url('manager/grounds.php?add=1&tab=media');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     if (isset($_POST['request_setup_payment']) && $sub && $sub['setup_paid_at'] === null) {
@@ -163,7 +166,7 @@ if ($sub && !empty($sub['period_end'])) {
                 <button type="button" class="btn btn-outline" data-open-dialog="dlgQr">
                     <i class="fa-solid fa-qrcode"></i> Venue Checkout QR
                 </button>
-                <a href="<?php echo base_url('pages/faq.php'); ?>" class="btn btn-ghost">
+                <a href="<?php echo base_url('pages/faq.php#cat-subscription'); ?>" class="btn btn-ghost">
                     <i class="fa-solid fa-circle-question"></i> Billing FAQ
                 </a>
             </div>
@@ -269,20 +272,18 @@ if ($sub && !empty($sub['period_end'])) {
                 <table class="invoice-table">
                     <thead>
                         <tr>
+                            <th>Invoice</th>
                             <th>Date</th>
-                            <th>Invoice no.</th>
-                            <th>Type</th>
+                            <th>Coverage Period</th>
+                            <th>Payment Method</th>
                             <th class="num">Amount</th>
-                            <th>Channel</th>
-                            <th>Transaction ref.</th>
-                            <th>Period covered</th>
-                            <th>Receipt</th>
+                            <th style="text-align:right;">Receipt</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!$invoices): ?>
                             <tr>
-                                <td colspan="8" class="muted table-empty">
+                                <td colspan="6" class="muted table-empty">
                                     <i class="fa-solid fa-receipt"></i>
                                     No invoices yet. An invoice is issued automatically when an admin
                                     confirms your setup fee or a renewal.
@@ -291,29 +292,48 @@ if ($sub && !empty($sub['period_end'])) {
                         <?php else: ?>
                             <?php foreach ($invoices as $inv): ?>
                                 <tr>
-                                    <td data-label="Date"><?php echo e(date('M j, Y', strtotime($inv['paid_at']))); ?></td>
-                                    <td data-label="Invoice no."><code><?php echo e($inv['receipt_no']); ?></code></td>
-                                    <td data-label="Type">
-                                        <span class="badge <?php echo $inv['kind'] === 'setup' ? 'badge-pending' : 'badge-confirmed'; ?>">
-                                            <?php echo e(subscription_kind_label($inv['kind'])); ?>
-                                        </span>
+                                    <td data-label="Invoice">
+                                        <div class="inv-col-main">
+                                            <div class="inv-title-line">
+                                                <code class="inv-code"><?php echo e($inv['receipt_no']); ?></code>
+                                                <span class="badge <?php echo $inv['kind'] === 'setup' ? 'badge-pending' : 'badge-confirmed'; ?>">
+                                                    <?php echo e(subscription_kind_label($inv['kind'])); ?>
+                                                </span>
+                                            </div>
+                                            <?php if (!empty($inv['txn_ref'])): ?>
+                                                <span class="inv-sub-ref" title="Transaction reference">
+                                                    <i class="fa-solid fa-hashtag" aria-hidden="true"></i> <?php echo e($inv['txn_ref']); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
-                                    <td class="num strong" data-label="Amount"><?php echo format_price((float)$inv['amount']); ?></td>
-                                    <td data-label="Channel"><?php echo e(subscription_channel_label($inv['channel'])); ?></td>
-                                    <td data-label="Transaction ref."><code><?php echo e($inv['txn_ref']); ?></code></td>
-                                    <td data-label="Period covered">
+                                    <td data-label="Date">
+                                        <span class="inv-date"><?php echo e(date('M j, Y', strtotime($inv['paid_at']))); ?></span>
+                                    </td>
+                                    <td data-label="Coverage Period">
                                         <?php if (!empty($inv['period_start']) && !empty($inv['period_end'])): ?>
-                                            <?php echo e(date('M j', strtotime($inv['period_start']))); ?> &rarr;
-                                            <?php echo e(date('M j, Y', strtotime($inv['period_end']))); ?>
+                                            <span class="inv-period">
+                                                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                                <?php echo e(date('M j', strtotime($inv['period_start']))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($inv['period_end']))); ?>
+                                            </span>
                                         <?php else: ?>
-                                            <span class="muted">-</span>
+                                            <span class="muted">&mdash;</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Receipt">
-                                        <a class="btn btn-outline btn-xs"
+                                    <td data-label="Payment Method">
+                                        <span class="inv-channel">
+                                            <i class="fa-solid fa-wallet" aria-hidden="true"></i>
+                                            <?php echo e(subscription_channel_label($inv['channel'])); ?>
+                                        </span>
+                                    </td>
+                                    <td class="num" data-label="Amount">
+                                        <span class="inv-amount"><?php echo format_price((float)$inv['amount']); ?></span>
+                                    </td>
+                                    <td data-label="Receipt" style="text-align:right;">
+                                        <a class="btn btn-outline btn-xs inv-pdf-btn"
                                            href="<?php echo base_url('manager/invoice_pdf.php?no=' . rawurlencode($inv['receipt_no'])); ?>"
                                            target="_blank" rel="noopener">
-                                            <i class="fa-solid fa-file-pdf"></i> PDF
+                                            <i class="fa-solid fa-file-pdf"></i> Download PDF
                                         </a>
                                     </td>
                                 </tr>
@@ -611,15 +631,12 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <?php /* ---------- Modal: Platform Payment Details ---------- */ ?>
-<dialog class="gs-dialog" id="dlgPayInfo" aria-labelledby="dlgPayInfoTitle">
+<dialog class="gs-dialog gs-dialog--compact" id="dlgPayInfo" aria-labelledby="dlgPayInfoTitle">
     <div class="gs-dialog-head">
         <h3 id="dlgPayInfoTitle"><i class="fa-solid fa-wallet"></i> Platform Payment Details</h3>
-        <button type="button" class="gs-dialog-close" data-close-dialog aria-label="Close">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
     </div>
     <div class="gs-dialog-body">
-        <p class="sep-header-p">Use any of the official methods below and mention your Ground / Manager name in the remarks.</p>
+        <p class="sep-header-p" style="margin-bottom:12px;">Use any of the official methods below and mention your Ground / Manager name in the remarks.</p>
         <div class="payment-methods-grid">
             <div class="pay-method-card">
                 <div class="pm-head"><i class="fa-solid fa-mobile-screen-button text-green"></i> <strong>eSewa / Khalti</strong></div>
@@ -639,29 +656,26 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
     <div class="gs-dialog-foot">
-        <button type="button" class="btn btn-outline" data-close-dialog>Close</button>
+        <button type="button" class="btn btn-primary" data-close-dialog>Close</button>
     </div>
 </dialog>
 
 <?php /* ---------- Modal: Venue Checkout QR ---------- */ ?>
-<dialog class="gs-dialog" id="dlgQr" aria-labelledby="dlgQrTitle">
+<dialog class="gs-dialog gs-dialog--compact" id="dlgQr" aria-labelledby="dlgQrTitle">
     <div class="gs-dialog-head">
         <h3 id="dlgQrTitle"><i class="fa-solid fa-qrcode"></i> Venue Checkout QR</h3>
-        <button type="button" class="gs-dialog-close" data-close-dialog aria-label="Close">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
     </div>
-    <div class="gs-dialog-body">
+    <div class="gs-dialog-body" style="text-align:center;">
         <?php if (!$qrGrounds): ?>
-            <div class="empty">
+            <div class="empty" style="padding:24px 16px;">
                 <span class="big"><i class="fa-solid fa-qrcode"></i></span>
                 <h3>No checkout QR uploaded</h3>
                 <p>Upload the payment QR players should scan for each of your courts.</p>
-                <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-primary btn-sm mt-12">Manage court QR codes</a>
+                <a href="<?php echo e($editQrUrl); ?>" class="btn btn-primary btn-sm mt-12">Upload Court QR Code</a>
             </div>
         <?php else: ?>
-            <p class="sep-header-p">Players scan the code for the court they are booking.</p>
-            <div class="qr-grid">
+            <p class="sep-header-p" style="margin-bottom:14px;">Players scan the code for the court they are booking.</p>
+            <div class="qr-grid qr-grid--center">
                 <?php foreach ($qrGrounds as $qg): ?>
                     <div class="qr-item">
                         <div class="qr-frame">
@@ -676,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <?php endif; ?>
     </div>
     <div class="gs-dialog-foot">
-        <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline">
+        <a href="<?php echo e($editQrUrl); ?>" class="btn btn-outline">
             <i class="fa-solid fa-sliders"></i> Edit QR codes
         </a>
         <button type="button" class="btn btn-primary" data-close-dialog>Close</button>

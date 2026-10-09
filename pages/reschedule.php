@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Reschedule booking';
+$page_title = 'Reschedule Booking · ' . $booking['ground_name'];
 require __DIR__ . '/../includes/header.php';
 ?>
 

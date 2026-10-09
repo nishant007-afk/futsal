@@ -46,9 +46,10 @@ $admNav = [
     [
         'label' => 'Operations', 'icon' => 'fa-solid fa-diagram-project',
         'items' => [
-            ['label' => 'Grounds &amp; Courts', 'href' => 'admin/grounds.php', 'match' => ['grounds.php']],
+            ['label' => 'All Courts', 'href' => 'pages/courts.php', 'match' => ['courts.php']],
             ['label' => 'Bookings Management', 'href' => 'admin/bookings.php', 'match' => ['bookings.php']],
-            ['label' => 'Slot &amp; Pricing Schedule', 'href' => 'admin/grounds.php#pricing', 'match' => []],
+            ['label' => 'Court Reviews', 'href' => 'admin/reviews.php', 'match' => ['reviews.php']],
+            ['label' => 'Add New Court', 'href' => 'admin/grounds.php', 'match' => ['grounds.php']],
         ],
     ],
     [
@@ -109,6 +110,10 @@ if ($active === 'page.php' && ($_GET['slug'] ?? '') === 'contact') {
 if (in_array($active, ['settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php'], true)) {
     $body_classes[] = 'settings-page';
 }
+if ($active === 'booking_details.php') {
+    // The booking details canvas is slate-50 so its pure-white cards read as elevated.
+    $body_classes[] = 'booking-details-page';
+}
 $body_class = implode(' ', $body_classes);
 
 // Back button (mobile-first): injected top-left on form/detail pages. Desktop
@@ -151,15 +156,28 @@ $pageBackUrl = base_url('index.php');
             history.replaceState(null, '', __gsUrl.pathname + __gsUrl.search + __gsUrl.hash);
         }
     } catch (e) {}</script>
-    <title><?php echo isset($page_title) ? e($page_title) . ' | ' : ''; ?>GoalSpace</title>
+<?php
+$tab_title_prefix = '';
+if (isset($page_title) && trim((string)$page_title) !== '') {
+    $raw_t = trim((string)$page_title);
+    $raw_t = str_ireplace(['&bull;', '&#8226;'], '·', $raw_t);
+    $raw_t = html_entity_decode($raw_t, ENT_QUOTES, 'UTF-8');
+    $raw_t = preg_replace('/\s*(\||-|·)\s*GoalSpace\s*$/i', '', $raw_t);
+    if (strcasecmp($raw_t, 'GoalSpace') !== 0 && $raw_t !== '') {
+        $tab_title_prefix = $raw_t . ' | ';
+    }
+}
+$full_page_title = $tab_title_prefix . 'GoalSpace';
+?>
+    <title><?php echo e($full_page_title); ?></title>
     <?php
-    $og_title = isset($page_title) ? e($page_title) . ' | GoalSpace' : 'GoalSpace - Book futsal courts online';
+    $og_title = $full_page_title;
     $og_desc  = isset($page_description) ? e($page_description) : e('Book futsal courts online. Find a free court near you, choose your slot, and pay securely with GoalSpace.');
     $og_image = isset($page_image) ? e($page_image) : e(absolute_url('assets/img/icon-512.png'));
     $og_url   = isset($page_url)    ? e($page_url) : e(absolute_url());
     $og_type  = isset($og_type) && $og_type === 'article' ? 'article' : 'website';
     ?>
-    <?php if (in_array($scriptDir, ['admin', 'manager'], true) || in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php', 'receipt.php', 'receipt_pdf.php', 'booking_ics.php', 'my_bookings.php', 'booking_details.php', 'book.php', 'payment.php'], true)): ?>
+    <?php if (in_array($scriptDir, ['admin', 'manager'], true) || in_array($active, ['login.php', 'register.php', 'forgot_password.php', 'reset_password.php', 'verify.php', 'otp_verify.php', 'google_setup.php', 'settings.php', 'settings_account.php', 'settings_notifications.php', 'settings_preferences.php', 'security.php', 'receipt.php', 'receipt_pdf.php', 'booking_ics.php', 'my_bookings.php', 'booking_details.php', 'book.php', 'payment.php', 'thank_you.php'], true)): ?>
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet">
     <?php endif; ?>
@@ -175,9 +193,29 @@ $pageBackUrl = base_url('index.php');
     <meta name="twitter:description" content="<?php echo $og_desc; ?>">
     <meta name="twitter:image" content="<?php echo $og_image; ?>">
     <link rel="canonical" href="<?php echo $og_url; ?>">
-    <link rel="icon" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
+    <link rel="icon" type="image/svg+xml" href="<?php echo base_url('assets/img/favicon.svg'); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url('assets/img/favicon-32x32.png'); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url('assets/img/favicon-16x16.png'); ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url('assets/img/apple-touch-icon.png'); ?>">
+    <link rel="manifest" href="<?php echo base_url('site.webmanifest'); ?>">
     <meta name="theme-color" content="#0a120e">
     <meta name="color-scheme" content="light dark">
+    <?php
+    $ga_id = env('GA_MEASUREMENT_ID') ?: env('GOOGLE_ANALYTICS_ID');
+    ?>
+    <?php if (!empty($ga_id)): ?>
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo urlencode($ga_id); ?>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '<?php echo e($ga_id); ?>', {
+        anonymize_ip: true,
+        cookie_flags: 'SameSite=Lax;Secure'
+      });
+    </script>
+    <?php endif; ?>
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -241,7 +279,7 @@ $pageBackUrl = base_url('index.php');
                                     <button type="button" class="adm-nav-btn<?php echo $admGroupActive ? ' is-active' : ''; ?>"
                                             data-adm-toggle aria-expanded="false" aria-haspopup="true"
                                             aria-controls="admMenu<?php echo (int)$admEntryIndex; ?>">
-                                        <i class="<?php echo $admEntry['icon']; ?>" aria-hidden="true"></i><?php echo $admEntry['label']; ?>
+                                        <span class="adm-nav-btn-label"><?php echo $admEntry['label']; ?></span>
                                         <i class="fa-solid fa-chevron-down adm-nav-caret" aria-hidden="true"></i>
                                     </button>
                                     <ul class="adm-nav-menu" id="admMenu<?php echo (int)$admEntryIndex; ?>">
@@ -279,18 +317,7 @@ $pageBackUrl = base_url('index.php');
             <?php endif; ?>
         </nav>
 
-        <div class="header-search-wrap">
-            <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="header-search" role="search">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input type="search" id="headerSearchInput" name="q" placeholder="Search courts by name or city..."
-                       aria-label="Search courts" autocomplete="off" role="combobox"
-                       aria-expanded="false" aria-controls="headerSearchPanel" aria-autocomplete="list">
-            </form>
-            <div class="hs-panel" id="headerSearchPanel" hidden></div>
-        </div>
-
         <div class="nav-auth">
-            <button type="button" class="header-search-toggle" id="headerSearchToggle" aria-label="Search" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-magnifying-glass"></i></button>
             <?php if ($site_user): ?>
                 <?php $bellNotifications = user_notifications((int)$site_user['id'], 4); ?>
                 <div class="bell-wrap" id="bellWrap">
@@ -375,23 +402,6 @@ $pageBackUrl = base_url('index.php');
         <button class="nav-toggle" id="navToggle" aria-label="Menu"><i class="fa-solid fa-bars-staggered"></i></button>
     </div>
 </header>
-
-<!-- dim backdrop for the mobile search sheet (rest of the page darkens) -->
-<div class="hs-scrim" id="hsScrim"></div>
-
-<!-- mobile search sheet (overlaps only the navbar; the page below is dimmed) -->
-<div class="hs-overlay" id="hsOverlay" hidden>
-    <div class="hs-overlay-top">
-        <form method="get" action="<?php echo base_url('pages/courts.php'); ?>" class="header-search" role="search">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            <input type="search" id="hsOverlayInput" name="q" placeholder="Search courts by name or city..."
-                   aria-label="Search courts" autocomplete="off" role="combobox"
-                   aria-expanded="false" aria-controls="hsOverlayPanel" aria-autocomplete="list">
-        </form>
-        <button type="button" class="hs-overlay-close" id="hsOverlayClose" aria-label="Close search"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="hs-panel" id="hsOverlayPanel" hidden></div>
-</div>
 
 <?php if ($has_sidebar): ?>
 <!-- KEPT (removed per request): persistent desktop sidebar for manager and admin consoles.

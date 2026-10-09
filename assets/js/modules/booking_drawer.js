@@ -111,8 +111,8 @@
         var wrap = doc.querySelector('.bd-wrap');
         if (!wrap) throw new Error('no booking content');
 
-        // The panel has its own close affordances, so the page's back link is redundant.
-        var back = wrap.querySelector('.bd-backlink');
+        // The panel has its own close affordances, so the page's back link/arrow is redundant.
+        var back = wrap.querySelector('.bd-back-link, .page-back-arrow');
         if (back) back.remove();
 
         // .reveal starts at opacity 0 and is un-hidden by the reveal-on-scroll observer in
@@ -124,7 +124,7 @@
             el.classList.add('visible');
         });
 
-        els.title.textContent = (wrap.querySelector('.bd-head h1') || {}).textContent || 'Booking details';
+        els.title.textContent = (wrap.querySelector('.bd-venue-title') || {}).textContent || 'Booking details';
         els.body.innerHTML = '';
         els.body.appendChild(wrap);
         els.body.scrollTop = 0;

@@ -149,7 +149,6 @@ foreach ($gridGrounds as $g) {
     <div class="container hero-tubik-grid">
         <div class="hero-left hero-tubik-left">
             <h1 class="tubik-title">Book verified futsal courts instantly</h1>
-            <p class="hero-subtext">Live availability from real arenas. Instant confirmation, zero double bookings.</p>
 
             <!-- Inline Quick-Search Booking Widget -->
             <form action="<?php echo grounds_list_url(); ?>" method="get" class="hero-quick-search" id="heroSearchForm" role="search" aria-label="Quick Court Search">
@@ -175,18 +174,10 @@ foreach ($gridGrounds as $g) {
                     <div class="hqs-control">
                         <select id="hqsSlot" name="slot" class="hqs-select">
                             <option value="">Any time</option>
-                            <optgroup label="06:00 - 12:00">
-                                <option value="morning" <?php echo $defaultSlot === 'morning' ? 'selected' : ''; ?>>Morning</option>
-                            </optgroup>
-                            <optgroup label="12:00 - 17:00">
-                                <option value="afternoon" <?php echo $defaultSlot === 'afternoon' ? 'selected' : ''; ?>>Afternoon</option>
-                            </optgroup>
-                            <optgroup label="17:00 - 22:00">
-                                <option value="evening" <?php echo $defaultSlot === 'evening' ? 'selected' : ''; ?>>Prime Evening</option>
-                            </optgroup>
-                            <optgroup label="22:00 - 06:00">
-                                <option value="night" <?php echo $defaultSlot === 'night' ? 'selected' : ''; ?>>Late Night</option>
-                            </optgroup>
+                            <option value="morning" <?php echo $defaultSlot === 'morning' ? 'selected' : ''; ?>>Morning (06:00 - 12:00)</option>
+                            <option value="afternoon" <?php echo $defaultSlot === 'afternoon' ? 'selected' : ''; ?>>Afternoon (12:00 - 17:00)</option>
+                            <option value="evening" <?php echo $defaultSlot === 'evening' ? 'selected' : ''; ?>>Evening (17:00 - 22:00)</option>
+                            <option value="night" <?php echo $defaultSlot === 'night' ? 'selected' : ''; ?>>Late Night (22:00 - 06:00)</option>
                         </select>
                     </div>
                 </div>
@@ -366,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Interactive Quick Location Filter for Courts Grid
 document.addEventListener('DOMContentLoaded', function() {
     var pills = document.querySelectorAll('.court-location-pills .loc-pill');
+    var grid = document.getElementById('landingCourtsGrid');
     var cards = document.querySelectorAll('#landingCourtsGrid .card');
     var emptyMsg = document.getElementById('courtsFilterEmpty');
 
@@ -379,15 +371,24 @@ document.addEventListener('DOMContentLoaded', function() {
             this.setAttribute('aria-selected', 'true');
 
             var filter = this.getAttribute('data-city');
+            var isMobile = window.innerWidth <= 768;
+            if (grid) {
+                grid.classList.toggle('is-filtered', filter !== 'all');
+            }
             var visibleCount = 0;
 
             cards.forEach(function(card) {
                 var cardCity = card.getAttribute('data-city') || '';
-                if (filter === 'all' || cardCity.toLowerCase() === filter.toLowerCase()) {
-                    card.style.display = '';
-                    visibleCount++;
+                var matches = (filter === 'all' || cardCity.toLowerCase() === filter.toLowerCase());
+                if (matches) {
+                    if (isMobile && visibleCount >= 6) {
+                        card.style.setProperty('display', 'none', 'important');
+                    } else {
+                        card.style.removeProperty('display');
+                        visibleCount++;
+                    }
                 } else {
-                    card.style.display = 'none';
+                    card.style.setProperty('display', 'none', 'important');
                 }
             });
 
@@ -396,5 +397,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Sticky Mobile CTA visibility controller
+    var stickyCta = document.getElementById('landingStickyCta');
+    var heroSearch = document.getElementById('heroSearchForm');
+    if (stickyCta && heroSearch) {
+        function checkStickyCta() {
+            if (window.innerWidth > 820) {
+                stickyCta.classList.remove('visible');
+                return;
+            }
+            var rect = heroSearch.getBoundingClientRect();
+            if (rect.bottom < 80) {
+                stickyCta.classList.add('visible');
+            } else {
+                stickyCta.classList.remove('visible');
+            }
+        }
+        window.addEventListener('scroll', checkStickyCta, { passive: true });
+        window.addEventListener('resize', checkStickyCta, { passive: true });
+        checkStickyCta();
+    }
 });
 </script>
+
+<div class="landing-sticky-cta" id="landingStickyCta" aria-hidden="true">
+    <a href="#courts" class="btn btn-primary lsc-btn" id="lscBtn" aria-label="Book a Court">
+        <i class="fa-solid fa-futbol"></i>
+        <span>Book a Court</span>
+        <i class="fa-solid fa-arrow-down"></i>
+    </a>
+</div>

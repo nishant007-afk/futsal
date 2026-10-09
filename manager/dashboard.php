@@ -90,7 +90,6 @@ require __DIR__ . '/../includes/header.php';
 <div class="page-head dash-page-head">
     <div>
         <h1 class="page-title">Manager Dashboard</h1>
-        <p class="muted" style="margin-top:4px; font-size:14px;">Court availability, booking activity, and earnings overview</p>
     </div>
     <div class="actions">
         <a href="<?php echo base_url('manager/grounds.php?add=1'); ?>" class="btn btn-primary btn-sm">+ Add Ground</a>
@@ -148,7 +147,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="stat reveal">
         <h3>Net Revenue</h3>
         <p class="stat-amount"><?php echo format_price($revenue); ?></p>
-        <span class="muted">All-time confirmed &middot; after discount &middot; 100% yours</span>
+        <span class="muted">Total settled earnings</span>
     </div>
     <div class="stat reveal">
         <h3>Subscription</h3>

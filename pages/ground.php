@@ -489,7 +489,7 @@ require __DIR__ . '/../includes/header.php';
             <div class="info-loc-text">
                 <span class="info-lbl">Location:</span> <span><?php echo e($courtLocation); ?></span>
             </div>
-            <a href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener" class="btn-view-location">View Location</a>
+            <a href="https://maps.google.com/?q=<?php echo e(rawurlencode($mapQuery)); ?>" target="_blank" rel="noopener" class="btn-view-location"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> View Location</a>
         </div>
         <div class="info-row"><span class="info-lbl">Hours:</span> <span>Open <?php echo e(substr($ground['open_time'], 0, 5)); ?> – <?php echo e(substr($ground['close_time'], 0, 5)); ?> &middot; <?php echo $ground['slot_interval'] == 60 ? 'Hourly' : (int)$ground['slot_interval'] . '-minute'; ?> slots</span></div>
         <div class="info-row"><span class="info-lbl">Capacity:</span> <span>Up to <?php echo (int)$ground['capacity']; ?> players</span></div>
@@ -497,8 +497,6 @@ require __DIR__ . '/../includes/header.php';
         <?php $ownerLabel = ground_owner_label($ground); if ($ownerLabel !== ''): ?>
             <div class="info-row"><span class="info-lbl">Managed by:</span> <span><?php echo e($ownerLabel); ?></span></div>
         <?php endif; ?>
-
-        <div class="court-card-divider"></div>
 
         <div class="court-card-section">
             <h3 class="court-card-heading">Description</h3>
@@ -532,9 +530,6 @@ require __DIR__ . '/../includes/header.php';
                         <i class="fa-solid fa-star"></i> <?php echo number_format((float)$rating['avg'], 1); ?>
                     </span>
                     <span class="rh-count-meta"><?php echo $rating['count']; ?> match review<?php echo $rating['count'] === 1 ? '' : 's'; ?></span>
-                <?php else: ?>
-                    <span class="rh-score-pill rh-score-pill--empty"><i class="fa-solid fa-star"></i> New</span>
-                    <span class="rh-count-meta">Be the first to review</span>
                 <?php endif; ?>
             </div>
         </div>
@@ -543,10 +538,6 @@ require __DIR__ . '/../includes/header.php';
             <button type="button" class="btn btn-outline btn-sm rh-write-btn" id="toggleReviewFormBtn" onclick="toggleReviewForm()">
                 <i class="fa-solid fa-pen-to-square"></i> <?php echo $my_review ? 'Edit Review' : 'Write a Review'; ?>
             </button>
-        <?php elseif (!is_logged_in()): ?>
-            <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline btn-sm rh-write-btn">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in to Review
-            </a>
         <?php endif; ?>
     </div>
 
@@ -639,6 +630,10 @@ require __DIR__ . '/../includes/header.php';
                 <button type="button" class="btn btn-outline btn-sm" onclick="toggleReviewForm()">
                     <i class="fa-solid fa-pen-to-square"></i> Be the first to review
                 </button>
+            <?php elseif (!is_logged_in()): ?>
+                <a href="<?php echo base_url('pages/login.php'); ?>" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in to review
+                </a>
             <?php endif; ?>
         </div>
     <?php endif; ?>

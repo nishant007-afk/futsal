@@ -54,7 +54,9 @@ $firstImage = $previewImages[0];
 
 // Determine default active tab based on any errors or context
 $defaultTab = 'details';
-if (!empty($errors['price_per_hour']) || !empty($errors['discount_price']) || !empty($errors['open_time']) || !empty($errors['close_time']) || !empty($errors['price_weekend'])) {
+if (!empty($_GET['tab']) && in_array($_GET['tab'], ['details', 'location', 'pricing', 'media'], true)) {
+    $defaultTab = $_GET['tab'];
+} elseif (!empty($errors['price_per_hour']) || !empty($errors['discount_price']) || !empty($errors['open_time']) || !empty($errors['close_time']) || !empty($errors['price_weekend'])) {
     $defaultTab = 'pricing';
 } elseif (!empty($errors['latitude']) || !empty($errors['longitude'])) {
     $defaultTab = 'location';
@@ -71,7 +73,6 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <div>
             <h1 class="page-title">My Courts</h1>
-            <p class="page-sub">Manage your futsal venues, live availability, pricing, and court details</p>
         </div>
         <div class="actions">
             <a href="<?php echo base_url('manager/promos.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-tags"></i> Promo Codes</a>
@@ -147,6 +148,12 @@ $inactiveCourts = $totalCourts - $activeCourts;
                         <h3 class="mc-card-title">
                             <a href="<?php echo base_url('manager/grounds.php?edit=' . (int)$g['id']); ?>"><?php echo e($g['name']); ?></a>
                         </h3>
+                        <?php $gRating = ground_rating((int)$g['id']); ?>
+                        <?php if ($gRating['count'] > 0): ?>
+                            <a href="<?php echo base_url('pages/ground.php?id=' . (int)$g['id'] . '#reviews'); ?>" target="_blank" rel="noopener" class="badge badge-warning" title="<?php echo $gRating['count']; ?> review(s)" style="display:inline-flex; align-items:center; gap:4px; text-decoration:none;">
+                                <i class="fa-solid fa-star" style="color:#f59e0b; font-size:0.75rem;"></i> <?php echo number_format($gRating['avg'], 1); ?> (<?php echo $gRating['count']; ?>)
+                            </a>
+                        <?php endif; ?>
                     </div>
 
                     <div class="mc-card-loc">
@@ -194,10 +201,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
 <div class="page-head dash-page-head">
     <a href="<?php echo base_url('manager/grounds.php'); ?>" class="page-back-arrow" aria-label="Back to courts"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="dash-head-main">
-        <div>
-            <h1 class="page-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h1>
-            <p class="page-sub">Configure your futsal pitch specifications, pricing, and live availability</p>
-        </div>
+        <h1 class="page-title"><?php echo $editing ? 'Edit Court: ' . e($editing['name']) : 'Add New Court'; ?></h1>
         <div class="actions">
             <a href="<?php echo base_url('manager/grounds.php'); ?>" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to My Courts</a>
             <?php if ($editing): ?>
@@ -398,7 +402,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                         <div class="panel-intro">
                             <h3>Photos & Payment QR</h3>
                         </div>
-                        <div class="form-card sub" style="margin-bottom: 20px;">
+                        <div class="media-block">
                             <h4><i class="fa-solid fa-camera"></i> Court Photos</h4>
                             <!-- KEPT (removed per request): plain file input with a "Choose files"
                                  label, so photos could only be added through the file browser and
@@ -417,7 +421,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                         <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
                                         <strong>Drag photos here</strong>
                                         <span class="muted">or</span>
-                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Choose files</label>
+                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-upload"></i> Choose files</label>
                                         <span class="file-name" id="fileNames">No files selected</span>
                                     </div>
                                 </div>
@@ -425,13 +429,21 @@ $inactiveCourts = $totalCourts - $activeCourts;
                             <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                         </div>
 
-                        <div class="form-card sub">
+                        <div class="media-block">
                             <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
                             <div class="form-group file-pick">
-                                <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
-                                <input type="file" id="qrInput" name="payment_qr" accept="image/*">
-                                <span class="file-name" id="qrFileName">No file selected</span>
+                                <div class="dropzone" id="qrDropzone" data-for="qrInput">
+                                    <input type="file" id="qrInput" name="payment_qr" accept="image/*">
+                                    <div class="dropzone-inner">
+                                        <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                                        <strong>Drag QR image here</strong>
+                                        <span class="muted">or</span>
+                                        <label class="file-btn" for="qrInput"><i class="fa-solid fa-upload"></i> Choose QR image</label>
+                                        <span class="file-name" id="qrFileName">No file selected</span>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="photo-preview-grid" id="qrPreviewGrid"></div>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -444,7 +456,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                         <h3>Photos & Payment QR</h3>
                     </div>
 
-                    <div class="form-card sub" style="margin-bottom: 24px;">
+                    <div class="media-block">
                         <div class="media-section-head">
                             <div>
                                 <h4><i class="fa-solid fa-camera"></i> Photo Gallery</h4>
@@ -487,7 +499,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                         <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
                                         <strong>Drag photos here</strong>
                                         <span class="muted">or</span>
-                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-image"></i> Select New Photos</label>
+                                        <label class="file-btn" for="photoInput"><i class="fa-solid fa-upload"></i> Select New Photos</label>
                                         <span class="file-name" id="fileNames">No files selected</span>
                                     </div>
                                 </div>
@@ -497,7 +509,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
                         </form>
                     </div>
 
-                    <div class="form-card sub">
+                    <div class="media-block">
                         <div class="media-section-head">
                             <div>
                                 <h4><i class="fa-solid fa-qrcode"></i> Payment QR Code</h4>
@@ -523,10 +535,18 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="upload_qr" value="1">
                                 <div class="form-group file-pick">
-                                    <label class="file-btn" for="qrInputEdit"><i class="fa-solid fa-arrows-rotate"></i> Replace QR image</label>
-                                    <input type="file" id="qrInputEdit" name="payment_qr" accept="image/*">
-                                    <span class="file-name" id="qrFileNameEdit">No file selected</span>
+                                    <div class="dropzone" id="qrDropzone" data-for="qrInputEdit">
+                                        <input type="file" id="qrInputEdit" name="payment_qr" accept="image/*">
+                                        <div class="dropzone-inner">
+                                            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                                            <strong>Drag a new QR image here</strong>
+                                            <span class="muted">or</span>
+                                            <label class="file-btn" for="qrInputEdit"><i class="fa-solid fa-upload"></i> Replace QR image</label>
+                                            <span class="file-name" id="qrFileNameEdit">No file selected</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="photo-preview-grid" id="qrPreviewGrid"></div>
                                 <button type="submit" class="btn btn-outline btn-sm"><i class="fa-solid fa-upload"></i> Save replacement QR</button>
                             </form>
                         <?php else: ?>
@@ -535,10 +555,18 @@ $inactiveCourts = $totalCourts - $activeCourts;
                                 <?php echo csrf_field(); ?>
                                 <input type="hidden" name="upload_qr" value="1">
                                 <div class="form-group file-pick">
-                                    <label class="file-btn" for="qrInput"><i class="fa-solid fa-qrcode"></i> Choose QR image</label>
-                                    <input type="file" id="qrInput" name="payment_qr" accept="image/*">
-                                    <span class="file-name" id="qrFileName">No file selected</span>
+                                    <div class="dropzone" id="qrDropzone" data-for="qrInput">
+                                        <input type="file" id="qrInput" name="payment_qr" accept="image/*">
+                                        <div class="dropzone-inner">
+                                            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                                            <strong>Drag QR image here</strong>
+                                            <span class="muted">or</span>
+                                            <label class="file-btn" for="qrInput"><i class="fa-solid fa-upload"></i> Choose QR image</label>
+                                            <span class="file-name" id="qrFileName">No file selected</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="photo-preview-grid" id="qrPreviewGrid"></div>
                                 <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload QR Code</button>
                             </form>
                         <?php endif; ?>
@@ -922,7 +950,7 @@ $inactiveCourts = $totalCourts - $activeCourts;
 .editor-panel-card .span-full {
     grid-column: 1 / -1;
 }
-.editor-panel-card .form-group label {
+.editor-panel-card .form-group label:not(.file-btn) {
     display: block;
     font-size: 13.5px;
     font-weight: 600;
@@ -1123,22 +1151,39 @@ $inactiveCourts = $totalCourts - $activeCourts;
     }
 }
 @media (max-width: 600px) {
+    /* Mobile keeps the desktop arrangement: Back/Cancel left, Next/Create Ground right */
     .editor-card-footer {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
     }
     .action-footer-left,
     .action-footer-right {
-        width: 100%;
+        width: auto;
+        flex: 0 1 auto;
+        min-width: 0;
         display: flex;
-        gap: 8px;
+        flex-wrap: nowrap;
+        gap: 6px;
         margin-left: 0;
+        overflow: hidden;
+    }
+    .action-footer-right {
+        margin-left: auto;
+        flex: 0 0 auto;
+        overflow: visible;
     }
     .action-footer-left .btn,
     .action-footer-right .btn {
-        flex: 1;
+        flex: 0 1 auto;
+        min-width: 0;
         text-align: center;
         justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
     }
 }
 
@@ -1475,34 +1520,34 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3b. Drag-and-drop onto the photo zone. The real <input> still receives the
+    // 3b. Drag-and-drop onto a drop zone. The real <input> still receives the
     //     files (via DataTransfer) so the normal multipart upload is untouched.
-    var photoDropzone = document.getElementById('photoDropzone');
-    if (photoDropzone && photoInput && window.DataTransfer) {
-        var dzInput = photoDropzone.querySelector('input[type="file"]') || photoInput;
+    function wireDropzone(zone, input, onFiles) {
+        if (!zone || !input || !window.DataTransfer) { return; }
+        var dzInput = zone.querySelector('input[type="file"]') || input;
         var dzDepth = 0;
 
         ['dragenter', 'dragover'].forEach(function (evt) {
-            photoDropzone.addEventListener(evt, function (e) {
+            zone.addEventListener(evt, function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (evt === 'dragenter') { dzDepth++; }
-                photoDropzone.classList.add('is-dragover');
+                zone.classList.add('is-dragover');
             });
         });
 
-        photoDropzone.addEventListener('dragleave', function (e) {
+        zone.addEventListener('dragleave', function (e) {
             e.preventDefault();
             e.stopPropagation();
             dzDepth = Math.max(0, dzDepth - 1);
-            if (dzDepth === 0) { photoDropzone.classList.remove('is-dragover'); }
+            if (dzDepth === 0) { zone.classList.remove('is-dragover'); }
         });
 
-        photoDropzone.addEventListener('drop', function (e) {
+        zone.addEventListener('drop', function (e) {
             e.preventDefault();
             e.stopPropagation();
             dzDepth = 0;
-            photoDropzone.classList.remove('is-dragover');
+            zone.classList.remove('is-dragover');
 
             var dt = e.dataTransfer;
             if (!dt || !dt.files || dt.files.length === 0) { return; }
@@ -1523,18 +1568,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (window.console) { console.warn('Could not attach dropped files to the input', err); }
             }
 
-            handlePhotoFiles(images);
+            onFiles(images);
         });
     }
 
-    // QR filename preview
+    wireDropzone(document.getElementById('photoDropzone'), photoInput, handlePhotoFiles);
+
+    // QR: filename preview + thumbnail, wired through the same drop zone helper
     var qrInput = document.getElementById('qrInput') || document.getElementById('qrInputEdit');
     var qrFileName = document.getElementById('qrFileName') || document.getElementById('qrFileNameEdit');
-    if (qrInput && qrFileName) {
+    var qrGrid = document.getElementById('qrPreviewGrid');
+
+    function handleQrFile(files) {
+        if (qrFileName) {
+            qrFileName.textContent = (files && files.length > 0) ? files[0].name : 'No file selected';
+        }
+        if (!qrGrid) { return; }
+        qrGrid.innerHTML = '';
+        if (!files || files.length === 0 || !files[0].type.match('image.*')) { return; }
+        var wrap = document.createElement('div');
+        wrap.className = 'photo-preview-item';
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(files[0]);
+        img.alt = files[0].name;
+        wrap.appendChild(img);
+        qrGrid.appendChild(wrap);
+    }
+
+    if (qrInput) {
         qrInput.addEventListener('change', function () {
-            qrFileName.textContent = (this.files && this.files.length > 0) ? this.files[0].name : 'No file selected';
+            handleQrFile(this.files);
         });
     }
+    wireDropzone(document.getElementById('qrDropzone'), qrInput, handleQrFile);
 });
 </script>
 <?php endif; ?>

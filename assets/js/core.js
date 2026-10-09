@@ -971,6 +971,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cookieBanner) {
         function consent(choice) {
             try { localStorage.setItem('futsal_cookie_consent', choice); } catch (e) {}
+            if (typeof window.gtag === 'function') {
+                try {
+                    window.gtag('consent', 'update', {
+                        analytics_storage: choice === 'accepted' ? 'granted' : 'denied'
+                    });
+                } catch (e) {}
+            }
             cookieBanner.classList.remove('show');
         }
         const saved = (function () {
@@ -1853,6 +1860,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const parentHqsField = select.closest('.hqs-field');
         const parentRoleSwitch = select.closest('.role-switch');
         const parentFormGroup = select.closest('.form-group');
+        const parentHeroSearch = select.closest('.hero-quick-search');
+        const parentHeroSection = select.closest('.hero--tubik');
 
         // Wrapper
         const wrapper = document.createElement('div');
@@ -1909,6 +1918,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedOpt = select.selectedOptions && select.selectedOptions[0];
             const text = selectedOpt ? selectedOpt.textContent.trim() : (select.options[0] ? select.options[0].textContent.trim() : '');
             labelSpan.textContent = text;
+            labelSpan.title = text;
+            trigger.title = text;
         }
 
         function createOptionElement(opt) {
@@ -1930,8 +1941,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const textEl = document.createElement('span');
             textEl.className = 'gs-select-option-text';
-            textEl.textContent = opt.textContent.trim();
-            optEl.title = opt.textContent.trim();
+            const rawText = opt.textContent.trim();
+            optEl.title = rawText;
+
+            const timeMatch = rawText.match(/^(.*?)\s*(\([0-9]{1,2}:[0-9]{2}\s*[-–]\s*[0-9]{1,2}:[0-9]{2}\))$/);
+            if (timeMatch) {
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'gs-opt-title';
+                titleSpan.textContent = timeMatch[1].trim();
+
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'gs-opt-time';
+                timeSpan.textContent = timeMatch[2].trim();
+
+                textEl.appendChild(titleSpan);
+                textEl.appendChild(timeSpan);
+            } else {
+                textEl.textContent = rawText;
+            }
 
             const checkEl = document.createElement('span');
             checkEl.className = 'gs-select-check';
@@ -2007,6 +2034,31 @@ document.addEventListener('DOMContentLoaded', function () {
             if (parent) {
                 parent.classList.toggle('has-select-open', active);
             }
+            if (parentHeroSearch) {
+                parentHeroSearch.classList.toggle('has-select-open', active);
+            }
+            if (parentHeroSection) {
+                parentHeroSection.classList.toggle('has-select-open', active);
+            }
+            const parentTr = select.closest('tr');
+            if (parentTr) {
+                parentTr.classList.toggle('has-select-open', active);
+            }
+            const parentWrap = select.closest('.table-wrap');
+            if (parentWrap) {
+                parentWrap.classList.toggle('has-select-open', active);
+            }
+        }
+
+        function scrollOptIntoView(optEl) {
+            if (!optEl) return;
+            const optTop = optEl.offsetTop;
+            const optBottom = optTop + optEl.offsetHeight;
+            if (optTop < dropdown.scrollTop) {
+                dropdown.scrollTop = optTop;
+            } else if (optBottom > dropdown.scrollTop + dropdown.clientHeight) {
+                dropdown.scrollTop = optBottom - dropdown.clientHeight;
+            }
         }
 
         function openDropdown() {
@@ -2019,14 +2071,23 @@ document.addEventListener('DOMContentLoaded', function () {
             trigger.setAttribute('aria-expanded', 'true');
             setParentZIndex(true);
 
-            // Viewport boundary check
+            // Viewport boundary check (hero search drops up above the bar on desktop so it is never clipped/hidden)
+            const isHeroSelect = wrapper.classList.contains('gs-select-hqs') || wrapper.closest('.hero-quick-search');
             const rect = wrapper.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-            if (spaceBelow < 280 && spaceAbove > spaceBelow) {
-                wrapper.classList.add('is-dropup');
+            if (isHeroSelect) {
+                if (window.innerWidth > 768) {
+                    wrapper.classList.add('is-dropup');
+                } else {
+                    wrapper.classList.remove('is-dropup');
+                }
             } else {
-                wrapper.classList.remove('is-dropup');
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                if (spaceBelow < 280 && spaceAbove > spaceBelow) {
+                    wrapper.classList.add('is-dropup');
+                } else {
+                    wrapper.classList.remove('is-dropup');
+                }
             }
 
             // Right boundary check
@@ -2037,12 +2098,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 wrapper.classList.remove('is-align-right');
             }
 
-            // Scroll selected option into view
+            // Scroll selected option into view inside dropdown container only (never scroll document/window)
             const selectedOpt = dropdown.querySelector('.gs-select-option.is-selected');
             if (selectedOpt) {
                 dropdown.querySelectorAll('.gs-select-option').forEach(function (el) { el.classList.remove('is-focused'); });
                 selectedOpt.classList.add('is-focused');
-                selectedOpt.scrollIntoView({ block: 'nearest' });
+                scrollOptIntoView(selectedOpt);
             }
         }
 
@@ -2086,7 +2147,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const nextIdx = curIdx < options.length - 1 ? curIdx + 1 : 0;
                     options.forEach(function (el) { el.classList.remove('is-focused'); });
                     options[nextIdx].classList.add('is-focused');
-                    options[nextIdx].scrollIntoView({ block: 'nearest' });
+                    scrollOptIntoView(options[nextIdx]);
                 }
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
@@ -2096,7 +2157,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const prevIdx = curIdx > 0 ? curIdx - 1 : options.length - 1;
                     options.forEach(function (el) { el.classList.remove('is-focused'); });
                     options[prevIdx].classList.add('is-focused');
-                    options[prevIdx].scrollIntoView({ block: 'nearest' });
+                    scrollOptIntoView(options[prevIdx]);
                 }
             } else if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -2128,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (match) {
                     options.forEach(function (el) { el.classList.remove('is-focused'); });
                     match.classList.add('is-focused');
-                    match.scrollIntoView({ block: 'nearest' });
+                    scrollOptIntoView(match);
                     if (!isOpen) {
                         chooseValue(match.dataset.value);
                     }
@@ -2212,5 +2273,41 @@ document.addEventListener('DOMContentLoaded', function () {
     initCustomSelects();
     window.initCustomSelects = initCustomSelects;
     window.initCustomSelect = initCustomSelect;
+
+    // Global dialog scroll lock observer & close handlers
+    function syncDialogScrollLock() {
+        var openDialogs = document.querySelectorAll('dialog[open]');
+        if (openDialogs.length > 0) {
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        } else {
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    // Intercept native showModal and close if supported
+    if (window.HTMLDialogElement) {
+        var origShowModal = HTMLDialogElement.prototype.showModal;
+        HTMLDialogElement.prototype.showModal = function () {
+            origShowModal.apply(this, arguments);
+            syncDialogScrollLock();
+        };
+        var origClose = HTMLDialogElement.prototype.close;
+        HTMLDialogElement.prototype.close = function () {
+            origClose.apply(this, arguments);
+            syncDialogScrollLock();
+        };
+    }
+
+    document.querySelectorAll('dialog').forEach(function (dlg) {
+        dlg.addEventListener('close', syncDialogScrollLock);
+        dlg.addEventListener('cancel', syncDialogScrollLock);
+    });
+
+    var dialogObserver = new MutationObserver(function () {
+        syncDialogScrollLock();
+    });
+    dialogObserver.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
 });
 

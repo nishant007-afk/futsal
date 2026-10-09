@@ -1,0 +1,1 @@
+READ C:\agent-scripts\AGENTS.MD BEFORE ANYTHING 

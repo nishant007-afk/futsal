@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('admin/notify_policy.php');
 }
 
-$page_title = 'Announce a policy update';
+$page_title = 'Announce Policy Update';
 require __DIR__ . '/../includes/header.php';
 ?>
 

@@ -4,7 +4,7 @@ require_admin();
 require_once __DIR__ . '/../includes/functions.php';
 
 $legal = legal_pages_defaults();
-$page_title = 'Legal pages';
+$page_title = 'Legal Pages';
 require __DIR__ . '/../includes/header.php';
 ?>
 

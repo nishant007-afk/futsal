@@ -26,7 +26,8 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
 <section class="welcome reveal">
     <div class="welcome-head">
         <div>
-            <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($me['name']); ?></h1>
+            <?php $greetName = preg_split('/\s+/', trim((string)$me['name']))[0]; ?>
+            <h1><span id="greeting"><?php echo $greeting; ?></span>, <?php echo e($greetName); ?></h1>
         </div>
     </div>
 </section>
@@ -58,7 +59,7 @@ $grounds = $conn->query('SELECT g.*, u.name AS owner_name FROM grounds g LEFT JO
     </div>
 </div>
 
-<section class="section section-pad-top section-top-compact">
+<section class="section section-pad-top section-top-compact player-upcoming-section<?php echo empty($upcoming) ? ' player-upcoming-empty' : ''; ?>">
     <div class="section-head section-head-row reveal">
         <div>
             <h2 class="section-title">Upcoming bookings</h2>
@@ -152,8 +153,8 @@ if ($b['status'] === 'cancelled') {
     <?php endif; ?>
 </section>
 
-<section class="section section-alt section-courts-pad" id="courts">
-    <div class="section-head reveal section-head-offset">
+<section class="section" id="courts">
+    <div class="section-head section-head-row reveal" style="margin-bottom: 20px;">
         <h2 class="section-title">Courts available near you</h2>
     </div>
     <?php if (!$grounds): ?>

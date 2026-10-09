@@ -94,9 +94,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_paid'])) {
     redirect('manager/bookings.php');
 }
 
+$subStatus = subscription_status((int)$_SESSION['user_id']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_walkin'])) {
+    verify_csrf();
+    if (!$subStatus['active']) {
+        set_flash_error(
+            'Cannot create walk-in bookings.',
+            'Your monthly subscription is ' . strtolower($subStatus['label']) . '.',
+            'Renew your subscription first to create reservations and manage your courts.',
+            'manager/subscription.php'
+        );
+        redirect('manager/bookings.php');
+    }
+
+    $ground_id = (int)($_POST['ground_id'] ?? 0);
+    $booking_date = trim($_POST['booking_date'] ?? '');
+    $start_time = trim($_POST['start_time'] ?? '');
+    $end_time = trim($_POST['end_time'] ?? '');
+    $is_maintenance = isset($_POST['is_maintenance']) && $_POST['is_maintenance'] === '1';
+    $customer_name = trim($_POST['customer_name'] ?? '');
+    $customer_phone = trim($_POST['customer_phone'] ?? '');
+    $payment_status = trim($_POST['payment_status'] ?? 'paid');
+    if (!in_array($payment_status, ['paid', 'unpaid', 'partial'], true)) {
+        $payment_status = 'paid';
+    }
+
+    // Format times HH:MM -> HH:MM:00
+    if (preg_match('/^\d{2}:\d{2}$/', $start_time)) { $start_time .= ':00'; }
+    if (preg_match('/^\d{2}:\d{2}$/', $end_time)) { $end_time .= ':00'; }
+
+    // Ownership check
+    $chkGround = $conn->prepare('SELECT id, name, price_per_hour FROM grounds WHERE id = ? AND manager_id = ?');
+    $chkGround->bind_param('ii', $ground_id, $_SESSION['user_id']);
+    $chkGround->execute();
+    $groundRow = $chkGround->get_result()->fetch_assoc();
+
+    $wErrors = [];
+    if (!$groundRow) {
+        $wErrors[] = 'Please select a valid court.';
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $booking_date)) {
+        $wErrors[] = 'Please select a valid booking date.';
+    }
+    if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $start_time) || !preg_match('/^\d{2}:\d{2}:\d{2}$/', $end_time)) {
+        $wErrors[] = 'Please select both start and end time.';
+    } elseif ($end_time <= $start_time) {
+        $wErrors[] = 'End time must be after start time.';
+    }
+
+    // Check slot collision
+    if (empty($wErrors)) {
+        $colCheck = $conn->prepare('SELECT id FROM bookings WHERE ground_id = ? AND booking_date = ? AND status != "cancelled" AND start_time < ? AND end_time > ?');
+        $colCheck->bind_param('isss', $ground_id, $booking_date, $end_time, $start_time);
+        $colCheck->execute();
+        if ($colCheck->get_result()->num_rows > 0) {
+            $wErrors[] = 'That time slot overlaps with an existing booking.';
+        }
+    }
+
+    if ($wErrors) {
+        set_flash_error('Could not create booking.', implode(' ', $wErrors), 'Please try selecting a different time slot.', 'manager/bookings.php');
+        redirect('manager/bookings.php');
+    }
+
+    // Calculate price
+    $total_price = 0.00;
+    if (!$is_maintenance) {
+        $hourly = ground_price_for_date($ground_id, (float)$groundRow['price_per_hour'], $booking_date);
+        $durHrs = max(0.5, (strtotime($end_time) - strtotime($start_time)) / 3600);
+        $total_price = round($hourly * $durHrs, 2);
+    }
+    $amount_paid = ($payment_status === 'paid') ? $total_price : 0.00;
+
+    // Player account lookup / create guest player
+    $target_user_id = (int)$_SESSION['user_id'];
+    if (!$is_maintenance && $customer_name !== '') {
+        $lookupEmail = 'walkin_' . preg_replace('/[^0-9]/', '', $customer_phone !== '' ? $customer_phone : bin2hex(random_bytes(3))) . '@atcourt.local';
+        $userFind = $conn->prepare('SELECT id FROM users WHERE email = ?');
+        $userFind->bind_param('s', $lookupEmail);
+        $userFind->execute();
+        $foundUser = $userFind->get_result()->fetch_assoc();
+        if ($foundUser) {
+            $target_user_id = (int)$foundUser['id'];
+        } else {
+            $guestPass = password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT);
+            $rolePlayer = 'player';
+            $insU = $conn->prepare('INSERT INTO users (name, email, password, phone, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())');
+            $insU->bind_param('sssss', $customer_name, $lookupEmail, $guestPass, $customer_phone, $rolePlayer);
+            if ($insU->execute()) {
+                $target_user_id = (int)$conn->insert_id;
+            }
+        }
+    }
+
+    $refPrefix = $is_maintenance ? 'MAINT-' : 'WALK-';
+    $booking_ref = $refPrefix . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+    $payMethod = $is_maintenance ? 'none' : 'at_court';
+
+    $insB = $conn->prepare(
+        'INSERT INTO bookings (booking_ref, user_id, ground_id, booking_date, start_time, end_time, total_price, amount_paid, payment_status, payment_method, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "confirmed", NOW())'
+    );
+    $insB->bind_param('siisssddss', $booking_ref, $target_user_id, $ground_id, $booking_date, $start_time, $end_time, $total_price, $amount_paid, $payment_status, $payMethod);
+
+    if ($insB->execute()) {
+        $newBId = (int)$conn->insert_id;
+        $successMsg = $is_maintenance ? 'Court slot reserved for maintenance.' : 'Walk-in booking ' . $booking_ref . ' created successfully.';
+        set_flash('success', $successMsg);
+    } else {
+        set_flash_error('Failed to create booking.', 'A database error occurred while creating the reservation.', 'Try again.', 'manager/bookings.php');
+    }
+    redirect('manager/bookings.php');
+}
+
 $myGrounds = $conn->query(
     'SELECT id, name FROM grounds WHERE manager_id = ' . (int)$_SESSION['user_id'] . ' ORDER BY name'
 )->fetch_all(MYSQLI_ASSOC);
+
+// Manager all-time revenue & payment stats for their grounds
+$mgrFinStmt = $conn->prepare(
+    'SELECT 
+        COALESCE(SUM(CASE WHEN b.status = "confirmed" THEN (b.total_price - COALESCE(b.discount, 0)) ELSE 0 END), 0) AS gross_rev,
+        COALESCE(SUM(CASE WHEN b.status = "confirmed" THEN b.amount_paid ELSE 0 END), 0) AS total_collected,
+        COALESCE(SUM(CASE WHEN b.status = "confirmed" AND b.payment_status IN ("unpaid", "partial") THEN ((b.total_price - COALESCE(b.discount, 0)) - b.amount_paid) ELSE 0 END), 0) AS outstanding_due
+     FROM bookings b
+     JOIN grounds g ON g.id = b.ground_id
+     WHERE g.manager_id = ?'
+);
+$mgrFinStmt->bind_param('i', $_SESSION['user_id']);
+$mgrFinStmt->execute();
+$mgrFin = $mgrFinStmt->get_result()->fetch_assoc();
 
 $f_date_from = trim($_GET['date_from'] ?? '');
 $f_date_to = trim($_GET['date_to'] ?? '');
@@ -197,7 +325,7 @@ if ($quick === 'past') {
     $types .= 's';
 }
 
-$perPage = 15;
+$perPage = 10;
 $page = max(1, (int)($_GET['page'] ?? 1));
 
 $baseSql = 'SELECT b.id, b.booking_ref, b.booking_date, b.start_time, b.end_time, b.total_price, b.status,
@@ -278,6 +406,29 @@ if ($f_ground > 0) { $baseFilters['ground'] = $f_ground; }
 $baseQuery = $baseFilters ? http_build_query($baseFilters) . '&' : '';
 if ($quick !== '') { $baseQuery .= 'quick=' . rawurlencode($quick) . '&'; }
 
+function mgr_b_url(?string $qTab = null, ?int $p = null): string
+{
+    $params = $_GET;
+    if ($qTab !== null) {
+        if ($qTab === '') {
+            unset($params['quick']);
+        } else {
+            $params['quick'] = $qTab;
+        }
+        unset($params['page']);
+    }
+    if ($p !== null) {
+        if ($p <= 1) {
+            unset($params['page']);
+        } else {
+            $params['page'] = $p;
+        }
+    }
+    unset($params['export']);
+    $qs = http_build_query($params);
+    return base_url('manager/bookings.php' . ($qs !== '' ? '?' . $qs : ''));
+}
+
 $page_title = 'Manage Bookings';
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -287,10 +438,123 @@ require __DIR__ . '/../includes/header.php';
     <div class="dash-head-main">
         <h1 class="page-title">Bookings on My Grounds</h1>
         <div class="actions">
+            <?php if ($subStatus['active']): ?>
+                <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('walkinModal').showModal()"><i class="fa-solid fa-plus"></i> Walk-in Booking</button>
+            <?php else: ?>
+                <a href="<?php echo base_url('manager/subscription.php'); ?>" class="btn btn-primary btn-sm"><i class="fa-solid fa-triangle-exclamation"></i> Renew to Book</a>
+            <?php endif; ?>
             <a href="<?php echo e(base_url('manager/bookings.php?export=1' . ($_SERVER['QUERY_STRING'] !== '' ? '&' . $_SERVER['QUERY_STRING'] : ''))); ?>" class="btn btn-outline btn-sm">Export CSV</a>
         </div>
     </div>
 </div>
+
+<?php if (!$subStatus['active']): ?>
+    <div class="notice-alert reveal" role="status" style="margin-bottom: 16px;">
+        <i class="fa-solid fa-triangle-exclamation notice-alert-icon" aria-hidden="true"></i>
+        <div class="notice-alert-body">
+            <strong>Monthly Subscription Required:</strong> Your account is currently <?php echo e(strtolower($subStatus['label'])); ?>. New walk-in bookings and public court listings remain suspended until your subscription is renewed.
+        </div>
+        <a href="<?php echo base_url('manager/subscription.php'); ?>" class="btn btn-primary btn-sm notice-alert-cta">Pay Fee</a>
+    </div>
+<?php endif; ?>
+
+<div class="stat-grid reveal" style="margin-bottom: 18px;">
+    <div class="stat">
+        <h3>Total Revenue</h3>
+        <p class="stat-amount"><?php echo format_price((float)$mgrFin['gross_rev']); ?></p>
+        <span class="muted">All-time confirmed bookings</span>
+    </div>
+    <div class="stat">
+        <h3>Collected at Court / Paid</h3>
+        <p class="stat-amount" style="color: var(--brand);"><?php echo format_price((float)$mgrFin['total_collected']); ?></p>
+        <span class="muted">Funds received &amp; confirmed</span>
+    </div>
+    <div class="stat">
+        <h3>Outstanding Due</h3>
+        <p class="stat-amount" style="color: <?php echo (float)$mgrFin['outstanding_due'] > 0 ? 'var(--danger)' : 'var(--ink)'; ?>;"><?php echo format_price((float)$mgrFin['outstanding_due']); ?></p>
+        <span class="muted"><?php echo (float)$mgrFin['outstanding_due'] > 0 ? 'To be collected upon arrival' : 'All accounts settled'; ?></span>
+    </div>
+    <div class="stat">
+        <h3>Subscription</h3>
+        <p class="stat-amount" style="font-size: 20px;"><?php echo e($subStatus['label']); ?></p>
+        <span class="muted">
+            <?php if ($subStatus['sub'] && $subStatus['sub']['period_end']): ?>
+                Valid until <?php echo date('M j, Y', strtotime($subStatus['sub']['period_end'])); ?>
+            <?php else: ?>
+                Inactive
+            <?php endif; ?>
+        </span>
+    </div>
+</div>
+
+<!-- Walk-in / Slot Block Modal -->
+<dialog id="walkinModal" class="app-dialog" style="max-width: 520px; width: 90vw; padding: 24px; border-radius: var(--r-lg); border: 1px solid var(--line); box-shadow: var(--s3); background: var(--bg);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h3 style="margin:0; font-size:1.25rem; font-weight:700;"><i class="fa-solid fa-calendar-plus" style="color:var(--brand); margin-right:8px;"></i>New Walk-in / Hold Slot</h3>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('walkinModal').close()" style="border:none; font-size:1.2rem; cursor:pointer;" aria-label="Close">&times;</button>
+    </div>
+    <form method="post" action="<?php echo base_url('manager/bookings.php'); ?>">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="create_walkin" value="1">
+
+        <div style="display:flex; flex-direction:column; gap:14px;">
+            <div>
+                <label for="wGround" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Select Court *</label>
+                <select id="wGround" name="ground_id" required class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                    <?php foreach ($myGrounds as $mg): ?>
+                        <option value="<?php echo (int)$mg['id']; ?>"><?php echo e($mg['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div>
+                <label for="wDate" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Booking Date *</label>
+                <input type="date" id="wDate" name="booking_date" value="<?php echo date('Y-m-d'); ?>" required class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <label for="wStart" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Start Time *</label>
+                    <input type="time" id="wStart" name="start_time" required class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                </div>
+                <div>
+                    <label for="wEnd" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">End Time *</label>
+                    <input type="time" id="wEnd" name="end_time" required class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                </div>
+            </div>
+
+            <div style="background:var(--bg-soft); padding:10px 14px; border-radius:var(--r); border:1px solid var(--line);">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; font-weight:600;">
+                    <input type="checkbox" name="is_maintenance" value="1" id="wMaint" onchange="document.getElementById('wCustomerFields').style.display = this.checked ? 'none' : 'block';">
+                    Reserve slot for maintenance / court practice
+                </label>
+            </div>
+
+            <div id="wCustomerFields">
+                <div style="margin-bottom:12px;">
+                    <label for="wName" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Player / Team Name</label>
+                    <input type="text" id="wName" name="customer_name" placeholder="e.g. John Doe / Thunder FC" class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label for="wPhone" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Phone Number</label>
+                    <input type="tel" id="wPhone" name="customer_phone" placeholder="98XXXXXXXX" class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                </div>
+                <div>
+                    <label for="wPayStatus" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Payment Status</label>
+                    <select id="wPayStatus" name="payment_status" class="input" style="width:100%; height:40px; border-radius:var(--r); border:1px solid var(--line); padding:0 12px; background:var(--bg-soft);">
+                        <option value="paid">Paid at court</option>
+                        <option value="unpaid">Unpaid (Pay after game)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('walkinModal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Create Booking</button>
+            </div>
+        </div>
+    </form>
+</dialog>
 
 <div class="courts-toolbar reveal">
     <form method="get" action="<?php echo base_url('manager/bookings.php'); ?>" class="courts-search" data-ajax-results="bookingsResults">
@@ -344,15 +608,15 @@ require __DIR__ . '/../includes/header.php';
 </div>
 
 <div id="bookingsResults">
-<div class="view-tabs reveal" style="margin:12px 0 6px;">
-    <a href="<?php echo base_url('manager/bookings.php?view=bookings'); ?>" class="view-tab <?php echo $quick === '' ? 'active' : ''; ?>">All (<?php echo $tabCounts['all']; ?>)</a>
-    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=upcoming'); ?>" class="view-tab <?php echo $quick === 'upcoming' ? 'active' : ''; ?>">Upcoming (<?php echo $tabCounts['upcoming']; ?>)</a>
-    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=unpaid'); ?>" class="view-tab <?php echo $quick === 'unpaid' ? 'active' : ''; ?>">Unpaid (<?php echo $tabCounts['unpaid']; ?>)</a>
-    <a href="<?php echo base_url('manager/bookings.php?view=bookings&quick=past'); ?>" class="view-tab <?php echo $quick === 'past' ? 'active' : ''; ?>">Past (<?php echo $tabCounts['past']; ?>)</a>
+<div class="view-tabs" style="margin:12px 0 6px;">
+    <a href="<?php echo mgr_b_url(''); ?>" class="view-tab <?php echo $quick === '' ? 'active' : ''; ?>" data-ajax-link="bookingsResults">All (<?php echo $tabCounts['all']; ?>)</a>
+    <a href="<?php echo mgr_b_url('upcoming'); ?>" class="view-tab <?php echo $quick === 'upcoming' ? 'active' : ''; ?>" data-ajax-link="bookingsResults">Upcoming (<?php echo $tabCounts['upcoming']; ?>)</a>
+    <a href="<?php echo mgr_b_url('unpaid'); ?>" class="view-tab <?php echo $quick === 'unpaid' ? 'active' : ''; ?>" data-ajax-link="bookingsResults">Unpaid (<?php echo $tabCounts['unpaid']; ?>)</a>
+    <a href="<?php echo mgr_b_url('past'); ?>" class="view-tab <?php echo $quick === 'past' ? 'active' : ''; ?>" data-ajax-link="bookingsResults">Past (<?php echo $tabCounts['past']; ?>)</a>
 </div>
 
 <?php if (empty($rows)): ?>
-    <div class="empty reveal"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3><?php echo $hasFilters ? 'No bookings match your filters' : 'No bookings on your grounds yet'; ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : 'When players reserve a slot, it will appear here.'; ?></p></div>
+    <div class="empty"><span class="big"><i class="fa-regular fa-calendar-xmark"></i></span><h3><?php echo $hasFilters ? 'No bookings match your filters' : 'No bookings on your grounds yet'; ?></h3><p><?php echo $hasFilters ? 'Try adjusting or clearing the filters above.' : 'When players reserve a slot, it will appear here.'; ?></p></div>
 <?php else: ?>
 
         <?php bookings_table_html($rows, ['show_player' => true, 'manager_action' => true, 'drawer' => true]); ?>
@@ -360,13 +624,13 @@ require __DIR__ . '/../includes/header.php';
     <?php if ($totalPages > 1): ?>
         <nav class="pagination" aria-label="Bookings pages" data-ajax-link="bookingsResults">
             <?php if ($page > 1): ?>
-                <a class="page-link" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . ($page - 1)); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
+                <a class="page-link" href="<?php echo mgr_b_url(null, $page - 1); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
             <?php endif; ?>
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . $i); ?>"><?php echo $i; ?></a>
+                <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo mgr_b_url(null, $i); ?>"><?php echo $i; ?></a>
             <?php endfor; ?>
             <?php if ($page < $totalPages): ?>
-                <a class="page-link" href="<?php echo base_url('manager/bookings.php?' . $baseQuery . 'page=' . ($page + 1)); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
+                <a class="page-link" href="<?php echo mgr_b_url(null, $page + 1); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
             <?php endif; ?>
         </nav>
     <?php endif; ?>

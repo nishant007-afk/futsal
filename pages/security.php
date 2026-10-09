@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     redirect('pages/delete_account_otp.php');
 }
 
-$page_title = 'Security';
+$page_title = 'Account Security';
 require __DIR__ . '/../includes/header.php';
 ?>
 

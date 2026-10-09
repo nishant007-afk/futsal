@@ -184,6 +184,20 @@ function mb_view_url(string $v): string
     return $v === 'all' ? base_url('pages/my_bookings.php') : base_url('pages/my_bookings.php?view=' . $v);
 }
 
+function mb_page_url(int $p): string
+{
+    $params = [];
+    $v = $_GET['view'] ?? 'all';
+    if (in_array($v, ['upcoming', 'unpaid', 'past'], true)) {
+        $params['view'] = $v;
+    }
+    if ($p > 1) {
+        $params['page'] = $p;
+    }
+    $qs = http_build_query($params);
+    return base_url('pages/my_bookings.php' . ($qs !== '' ? '?' . $qs : ''));
+}
+
 $page_title = 'My Bookings';
 $page_description = 'View your upcoming and past futsal court bookings on GoalSpace, check payment status, and manage your schedule.';
 require __DIR__ . '/../includes/header.php';
@@ -212,6 +226,18 @@ if ($view === 'unpaid') {
 if ($view === 'all') {
     $showRows = array_merge($upcoming, $past);
 }
+
+// Pagination: 10 bookings per page.
+$perPage = 10;
+$totalRows = count($showRows);
+$totalPages = max(1, (int)ceil($totalRows / $perPage));
+$page = max(1, (int)($_GET['page'] ?? 1));
+if ($page > $totalPages) {
+    $page = $totalPages;
+}
+$pageRows = array_slice($showRows, ($page - 1) * $perPage, $perPage);
+$showFrom = $totalRows > 0 ? ($page - 1) * $perPage + 1 : 0;
+$showTo = min($totalRows, $page * $perPage);
 ?>
 
 <?php if (!$bookings): ?>
@@ -233,7 +259,23 @@ if ($view === 'all') {
             <?php empty_state('fa-regular fa-calendar-xmark', 'No past bookings yet', '', grounds_list_url(), 'Browse courts', 'btn btn-primary btn-sm'); ?>
         <?php endif; ?>
     <?php else: ?>
-        <?php bookings_table_html($showRows, ['show_player' => false]); ?>
+        <?php bookings_table_html($pageRows, ['show_player' => false]); ?>
+
+        <p class="mb-page-info">Showing <?php echo $showFrom; ?>&ndash;<?php echo $showTo; ?> of <?php echo $totalRows; ?> bookings</p>
+
+        <?php if ($totalPages > 1): ?>
+            <nav class="pagination" aria-label="My bookings pages">
+                <?php if ($page > 1): ?>
+                    <a class="page-link" href="<?php echo mb_page_url($page - 1); ?>" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
+                <?php endif; ?>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <a class="page-link <?php echo $i === $page ? 'active' : ''; ?>" href="<?php echo mb_page_url($i); ?>"><?php echo $i; ?></a>
+                <?php endfor; ?>
+                <?php if ($page < $totalPages): ?>
+                    <a class="page-link" href="<?php echo mb_page_url($page + 1); ?>" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
+                <?php endif; ?>
+            </nav>
+        <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
 

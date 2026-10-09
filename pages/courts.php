@@ -30,7 +30,7 @@ if (!in_array($sort, ['price_asc', 'price_desc', 'name_asc'], true)) {
     $sort = 'price_asc';
 }
 $slot = trim($_GET['slot'] ?? '');
-$slotLabels = ['morning' => 'Morning', 'afternoon' => 'Afternoon', 'evening' => 'Prime Evening', 'night' => 'Late Night'];
+$slotLabels = ['morning' => 'Morning', 'afternoon' => 'Afternoon', 'evening' => 'Evening', 'night' => 'Late Night'];
 if (!isset($slotLabels[$slot])) {
     $slot = '';
 } elseif ($date === '') {

@@ -26,6 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_ground'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['duplicate_ground'])) {
     verify_csrf();
+    if (!$subStatus['active']) {
+        set_flash_error(
+            'You can\'t duplicate courts right now.',
+            'Your subscription is ' . strtolower($subStatus['label']) . '.',
+            'Renew your subscription with the platform to keep managing courts.',
+            'manager/dashboard.php'
+        );
+        redirect('manager/grounds.php');
+    }
     $id = (int)$_POST['duplicate_ground'];
     if (user_owns_ground($id)) {
         $stmt = $conn->prepare('SELECT * FROM grounds WHERE id = ? AND manager_id = ?');
